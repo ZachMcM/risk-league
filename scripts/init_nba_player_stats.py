@@ -65,7 +65,7 @@ player_ids = set(player['id'] for player in active_players)
 start_index = 0
 # Process each game with 3-second sleep (~20 requests/min)
 for i, game_id in enumerate(game_ids[start_index:], start = start_index + 1):
-  print(f"Processing game {i}/{len(game_ids)}: {game_id}")
+  print(f"Processing game {i + 1}/{len(game_ids)}: {game_id}")
   df = get_boxscore(game_id)
   time.sleep(3)  # ~20 requests per minute
 
