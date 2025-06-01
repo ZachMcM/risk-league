@@ -15,3 +15,8 @@ Thumbs.db
 *.swp
 
 /node_modules
+/data
+
+# python
+.venv/
+__pycache__/

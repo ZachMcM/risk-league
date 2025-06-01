@@ -8,23 +8,20 @@ export const authRoute = Router();
 export const authMiddleware = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   console.log("Authenticating...");
   // TODO
-}
+};
 
 authRoute.get("/auth/session", authMiddleware, async (req, res) => {
   // TODO
-})
+});
 
 authRoute.post("/auth/login", async (req, res) => {
   // TODO
-})
+});
 
 authRoute.post("/auth/register", async (req, res) => {
   // TODO
 });
-
-
-

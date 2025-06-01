@@ -19,43 +19,29 @@ SET default_table_access_method = heap;
 --
 
 CREATE TABLE public.nba_games (
-    id text DEFAULT gen_random_uuid() NOT NULL,
-    home_team_id text,
-    away_team_id text,
-    home_score integer,
-    away_score integer,
+    id text NOT NULL,
+    team_id text,
+    pts integer,
     game_date timestamp with time zone,
-    is_playoff boolean DEFAULT false,
-    round text,
-    season_year integer,
-    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
-);
-
-
---
--- Name: nba_player_stats; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.nba_player_stats (
-    id text DEFAULT gen_random_uuid() NOT NULL,
-    player_id text,
-    game_id text,
-    minutes integer,
-    points integer,
-    rebounds integer,
-    assists integer,
-    steals integer,
-    blocks integer,
-    turnovers integer,
-    fga integer,
+    wl text,
+    matchup text,
+    min integer,
     fgm integer,
+    fga integer,
     fta integer,
     ftm integer,
     three_pa integer,
     three_pm integer,
+    oreb integer,
+    dreb integer,
+    reb integer,
+    ast integer,
+    stl integer,
+    blk integer,
+    tov integer,
+    pf integer,
     plus_minus integer,
-    usg_rate numeric,
-    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
+    game_id text
 );
 
 
@@ -64,11 +50,14 @@ CREATE TABLE public.nba_player_stats (
 --
 
 CREATE TABLE public.nba_players (
-    id text DEFAULT gen_random_uuid() NOT NULL,
+    id text NOT NULL,
     name text,
     team_id text,
     "position" text,
-    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
+    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    height text,
+    weight text,
+    number text
 );
 
 
@@ -77,12 +66,13 @@ CREATE TABLE public.nba_players (
 --
 
 CREATE TABLE public.nba_teams (
-    id text DEFAULT gen_random_uuid() NOT NULL,
-    name text,
-    pace_rating numeric,
-    def_rating numeric,
-    off_rating numeric,
-    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
+    id text NOT NULL,
+    full_name text,
+    abbreviation text,
+    nickname text,
+    city text,
+    state text,
+    year_founded integer
 );
 
 
@@ -101,14 +91,6 @@ CREATE TABLE public.schema_migrations (
 
 ALTER TABLE ONLY public.nba_games
     ADD CONSTRAINT nba_games_pkey PRIMARY KEY (id);
-
-
---
--- Name: nba_player_stats nba_player_stats_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.nba_player_stats
-    ADD CONSTRAINT nba_player_stats_pkey PRIMARY KEY (id);
 
 
 --
@@ -136,42 +118,18 @@ ALTER TABLE ONLY public.schema_migrations
 
 
 --
--- Name: nba_games fk_away_team; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.nba_games
-    ADD CONSTRAINT fk_away_team FOREIGN KEY (away_team_id) REFERENCES public.nba_teams(id);
-
-
---
--- Name: nba_player_stats fk_game; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.nba_player_stats
-    ADD CONSTRAINT fk_game FOREIGN KEY (game_id) REFERENCES public.nba_games(id);
-
-
---
--- Name: nba_games fk_home_team; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.nba_games
-    ADD CONSTRAINT fk_home_team FOREIGN KEY (home_team_id) REFERENCES public.nba_teams(id);
-
-
---
--- Name: nba_player_stats fk_player; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.nba_player_stats
-    ADD CONSTRAINT fk_player FOREIGN KEY (player_id) REFERENCES public.nba_players(id);
-
-
---
 -- Name: nba_players fk_team; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.nba_players
+    ADD CONSTRAINT fk_team FOREIGN KEY (team_id) REFERENCES public.nba_teams(id);
+
+
+--
+-- Name: nba_games fk_team; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.nba_games
     ADD CONSTRAINT fk_team FOREIGN KEY (team_id) REFERENCES public.nba_teams(id);
 
 
@@ -185,4 +143,13 @@ ALTER TABLE ONLY public.nba_players
 --
 
 INSERT INTO public.schema_migrations (version) VALUES
-    ('20250530043202');
+    ('20250531064414'),
+    ('20250531072205'),
+    ('20250531072849'),
+    ('20250531080346'),
+    ('20250531084812'),
+    ('20250531213836'),
+    ('20250531224140'),
+    ('20250601014450'),
+    ('20250601014520'),
+    ('20250601015005');
