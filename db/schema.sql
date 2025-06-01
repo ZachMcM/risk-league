@@ -46,6 +46,35 @@ CREATE TABLE public.nba_games (
 
 
 --
+-- Name: nba_player_stats; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.nba_player_stats (
+    id text DEFAULT gen_random_uuid() NOT NULL,
+    player_id text,
+    game_id text,
+    pts integer,
+    min integer,
+    fgm integer,
+    fga integer,
+    fta integer,
+    ftm integer,
+    three_pa integer,
+    three_pm integer,
+    oreb integer,
+    dreb integer,
+    reb integer,
+    ast integer,
+    stl integer,
+    blk integer,
+    tov integer,
+    pf integer,
+    plus_minus integer,
+    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
+);
+
+
+--
 -- Name: nba_players; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -94,6 +123,14 @@ ALTER TABLE ONLY public.nba_games
 
 
 --
+-- Name: nba_player_stats nba_player_stats_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.nba_player_stats
+    ADD CONSTRAINT nba_player_stats_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: nba_players nba_players_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -115,6 +152,22 @@ ALTER TABLE ONLY public.nba_teams
 
 ALTER TABLE ONLY public.schema_migrations
     ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY (version);
+
+
+--
+-- Name: nba_player_stats fk_game; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.nba_player_stats
+    ADD CONSTRAINT fk_game FOREIGN KEY (game_id) REFERENCES public.nba_games(id);
+
+
+--
+-- Name: nba_player_stats fk_player; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.nba_player_stats
+    ADD CONSTRAINT fk_player FOREIGN KEY (player_id) REFERENCES public.nba_players(id);
 
 
 --
@@ -151,5 +204,4 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20250531213836'),
     ('20250531224140'),
     ('20250601014450'),
-    ('20250601014520'),
-    ('20250601015005');
+    ('20250601014520');
