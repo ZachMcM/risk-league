@@ -53,6 +53,7 @@ nba_games = Table(
   Column("tov", Integer),
   Column("pf", Integer),
   Column("plus_minus", Integer),
+  Column("game_type", String),
 )
 
 nba_player_stats = Table(

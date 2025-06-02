@@ -41,7 +41,7 @@ CREATE TABLE public.nba_games (
     tov integer,
     pf integer,
     plus_minus integer,
-    game_type character varying(20) DEFAULT 'regular'::character varying NOT NULL
+    game_type character varying(20) NOT NULL
 );
 
 
@@ -328,4 +328,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20250602015050'),
     ('20250602030726'),
     ('20250602031100'),
-    ('20250602031458');
+    ('20250602031458'),
+    ('20250602034407');

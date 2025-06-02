@@ -18,16 +18,28 @@ engine = create_engine(os.getenv("DATABASE_URL"))
 
 def get_previous_day_games():
   season = get_current_season()
-  yesterday = datetime.now() - timedelta(days=1)
+  yesterday = datetime.now() - timedelta(days=2)
   yesterday_str = yesterday.strftime("%m/%d/%Y")  # Format: MM/DD/YYYY
-  gamefinder = leaguegamefinder.LeagueGameFinder(
+  regular = leaguegamefinder.LeagueGameFinder(
       season_nullable=season,
+      season_type_nullable='Regular Season',
       league_id_nullable='00',
       date_from_nullable=yesterday_str,
       date_to_nullable=yesterday_str,
-  )
-  df = gamefinder.get_data_frames()[0]
-  return df
+  ).get_data_frames()[0]
+  playoffs = leaguegamefinder.LeagueGameFinder(
+      season_nullable=season,
+      season_type_nullable='Playoffs',
+      league_id_nullable='00',
+      date_from_nullable=yesterday_str,
+      date_to_nullable=yesterday_str,
+  ).get_data_frames()[0]
+  dfs = [df for df in [regular, playoffs] if not df.empty]
+
+  if not dfs:
+    return pd.DataFrame()  # Return empty if no data
+
+  return pd.concat(dfs, ignore_index=True)
 
 def insert_games(games_df, engine, nba_games):
   data = games_df.to_dict(orient="records")
@@ -38,7 +50,16 @@ def insert_games(games_df, engine, nba_games):
   
   with engine.begin() as conn:
     try:
-      stmt = insert(nba_games).values(data)
+      stmt = pg_insert(nba_games).values(data)
+      update_cols = {col: stmt.excluded[col] for col in [
+          'id', 'team_id', 'game_type', 'pts', 'game_date', 'wl', 'matchup', 'min', 'fgm', 'fga', 'fta', 'ftm', 
+          'three_pa', 'three_pm', 'oreb', 'dreb', 'reb', 'ast', 
+          'stl', 'blk', 'tov', 'pf', 'plus_minus'
+      ]}
+      stmt = stmt.on_conflict_do_update(
+        index_elements=['id'],
+        set_=update_cols
+      )
       conn.execute(stmt)
       print(f"✅ Inserted {len(data)} games")
     except IntegrityError as e:
@@ -77,7 +98,10 @@ def insert_player_stats(stats_df, engine, nba_player_stats):
       print(f"⚠️ Upsert failed: {e._message}")
 
 games = get_previous_day_games()
+
+games['game_type'] = games['GAME_ID'].astype(str).str[:3]
 games['id'] = games['GAME_ID'].astype(str) + '-' + games['TEAM_ID'].astype(str)
+
 games = games.rename(columns = {
   'TEAM_ID': 'team_id',
   'PTS': 'pts',
@@ -103,26 +127,28 @@ games = games.rename(columns = {
 })[
   ['id', 'team_id', 'pts', 'game_date', 'wl', 'matchup', 'min', 'fgm', 'fga', 'fta', 'ftm', 
   'three_pa', 'three_pm', 'oreb', 'dreb', 'reb', 'ast', 
-  'stl', 'blk', 'tov', 'pf', 'plus_minus']
+  'stl', 'blk', 'tov', 'pf', 'plus_minus', 'game_type']
 ]
 
 games['min'] = games['min'].apply(clean_minutes)
 games['game_date'] = pd.to_datetime(games['game_date'], errors='coerce')
 insert_games(games, engine, nba_games)
 
-game_ids = games['GAME_ID'].unique().tolist()
+game_ids = games['id'].unique().tolist()
 active_players = get_active_players()
 player_ids = set(player['id'] for player in active_players)
 
 for game_id in game_ids:
   print(f"Processing game: {game_id} for day {games['game_date'].iloc[0]}")
-  df = get_boxscore(game_id)
+  formatted_game_id = game_id.split('-')[0]  # Extract just the GAME_ID part
+  df = get_boxscore(formatted_game_id)
   if df is None or df.empty:
     break # Means connection timed out so we stop processing
   time.sleep(3)  # ~20 requests per minute
   
   df['minutes'] = df['minutes'].apply(clean_minutes)
-  df['game_id'] = game_id + "-" + df['teamId'].astype(str)
+  df['game_id'] = game_id
+  df['id'] = df['game_id'] + "-" + df['personId'].astype(str)
   
   stat_df = df.rename(columns={
     'personId': 'player_id',
@@ -144,7 +170,7 @@ for game_id in game_ids:
     'reboundsTotal': 'reb',
     'foulsPersonal': 'pf',
   })[
-    ['player_id', 'game_id', 'pts', 'min', 'fgm', 'fga', 'fta', 'ftm',
+    ['id', 'player_id', 'game_id', 'pts', 'min', 'fgm', 'fga', 'fta', 'ftm',
       'three_pa', 'three_pm', 'oreb', 'dreb', 'reb', 'ast', 'stl', 'blk',
       'tov', 'pf', 'plus_minus']
   ]

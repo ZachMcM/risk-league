@@ -8,6 +8,7 @@ from sqlalchemy.exc import IntegrityError
 from tables import nba_player_stats
 from utils import clean_minutes
 from sqlalchemy.dialects.postgresql import insert as pg_insert
+import pandas as pd
 
 # Load environment variables and set up DB engine
 load_dotenv()
@@ -15,12 +16,18 @@ engine = create_engine(os.getenv("DATABASE_URL"))
 
 # Fetch game metadata for a given season
 def get_game_ids(season):
-  gamefinder = leaguegamefinder.LeagueGameFinder(
+  regular = leaguegamefinder.LeagueGameFinder(
     season_nullable=season,
     season_type_nullable='Regular Season',
     league_id_nullable='00'
-  )
-  df = gamefinder.get_data_frames()[0]
+  ).get_data_frames()[0]
+  playoffs = leaguegamefinder.LeagueGameFinder(
+    season_nullable=season,
+    season_type_nullable='Playoffs',
+    league_id_nullable='00'
+  ).get_data_frames()[0]
+  
+  df = pd.concat([regular, playoffs], ignore_index=True)
   return df['GAME_ID'].unique().tolist()
 
 # Fetch advanced box score data for a given game ID
@@ -62,7 +69,7 @@ print(len(game_ids), "games found for 2024–25 season")
 active_players = get_active_players()
 player_ids = set(player['id'] for player in active_players)
 
-start_index = 1202  # Adjust this to resume from a specific index if needed
+start_index = 0  # Adjust this to resume from a specific index if needed
 # Process each game with 3-second sleep (~20 requests/min)
 for i, game_id in enumerate(game_ids[start_index:], start=start_index):
   print(f"Processing game {i + 1}/{len(game_ids)}: {game_id}")
