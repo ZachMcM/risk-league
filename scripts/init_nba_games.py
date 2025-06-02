@@ -44,7 +44,6 @@ games['id'] = games['GAME_ID'].astype(str) + '-' + games['TEAM_ID'].astype(str)
   
 games = games.rename(columns={
   'TEAM_ID': 'team_id',
-  'GAME_ID': 'game_id',
   'PTS': 'pts',
   'GAME_DATE': 'game_date',
   'WL': 'wl',

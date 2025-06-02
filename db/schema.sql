@@ -41,7 +41,7 @@ CREATE TABLE public.nba_games (
     tov integer,
     pf integer,
     plus_minus integer,
-    game_id text
+    game_type character varying(20) DEFAULT 'regular'::character varying NOT NULL
 );
 
 
@@ -50,7 +50,7 @@ CREATE TABLE public.nba_games (
 --
 
 CREATE TABLE public.nba_player_stats (
-    id text DEFAULT gen_random_uuid() NOT NULL,
+    id text NOT NULL,
     player_id text,
     game_id text,
     pts integer,
@@ -91,6 +91,21 @@ CREATE TABLE public.nba_players (
 
 
 --
+-- Name: nba_props; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.nba_props (
+    id text NOT NULL,
+    stat_type text NOT NULL,
+    player_id text NOT NULL,
+    game_id text NOT NULL,
+    line numeric NOT NULL,
+    current_value numeric,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
+);
+
+
+--
 -- Name: nba_teams; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -111,6 +126,35 @@ CREATE TABLE public.nba_teams (
 
 CREATE TABLE public.schema_migrations (
     version character varying NOT NULL
+);
+
+
+--
+-- Name: user_nba_prop_entries; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.user_nba_prop_entries (
+    id text DEFAULT gen_random_uuid() NOT NULL,
+    user_id text NOT NULL,
+    prop_id text NOT NULL,
+    over_under text NOT NULL,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    status text
+);
+
+
+--
+-- Name: users; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.users (
+    id text DEFAULT gen_random_uuid() NOT NULL,
+    username text NOT NULL,
+    email text NOT NULL,
+    password_hash text NOT NULL,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    image text
 );
 
 
@@ -139,6 +183,14 @@ ALTER TABLE ONLY public.nba_players
 
 
 --
+-- Name: nba_props nba_props_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.nba_props
+    ADD CONSTRAINT nba_props_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: nba_teams nba_teams_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -155,10 +207,50 @@ ALTER TABLE ONLY public.schema_migrations
 
 
 --
+-- Name: user_nba_prop_entries user_nba_prop_entries_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_nba_prop_entries
+    ADD CONSTRAINT user_nba_prop_entries_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: users users_email_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT users_email_key UNIQUE (email);
+
+
+--
+-- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT users_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: users users_username_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT users_username_key UNIQUE (username);
+
+
+--
 -- Name: nba_player_stats fk_game; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.nba_player_stats
+    ADD CONSTRAINT fk_game FOREIGN KEY (game_id) REFERENCES public.nba_games(id);
+
+
+--
+-- Name: nba_props fk_game; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.nba_props
     ADD CONSTRAINT fk_game FOREIGN KEY (game_id) REFERENCES public.nba_games(id);
 
 
@@ -168,6 +260,22 @@ ALTER TABLE ONLY public.nba_player_stats
 
 ALTER TABLE ONLY public.nba_player_stats
     ADD CONSTRAINT fk_player FOREIGN KEY (player_id) REFERENCES public.nba_players(id);
+
+
+--
+-- Name: nba_props fk_player; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.nba_props
+    ADD CONSTRAINT fk_player FOREIGN KEY (player_id) REFERENCES public.nba_players(id);
+
+
+--
+-- Name: user_nba_prop_entries fk_prop; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_nba_prop_entries
+    ADD CONSTRAINT fk_prop FOREIGN KEY (prop_id) REFERENCES public.nba_props(id);
 
 
 --
@@ -184,6 +292,14 @@ ALTER TABLE ONLY public.nba_players
 
 ALTER TABLE ONLY public.nba_games
     ADD CONSTRAINT fk_team FOREIGN KEY (team_id) REFERENCES public.nba_teams(id);
+
+
+--
+-- Name: user_nba_prop_entries fk_user; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_nba_prop_entries
+    ADD CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 
 --
@@ -204,4 +320,12 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20250531213836'),
     ('20250531224140'),
     ('20250601014450'),
-    ('20250601014520');
+    ('20250601014520'),
+    ('20250601015005'),
+    ('20250602002306'),
+    ('20250602012549'),
+    ('20250602013946'),
+    ('20250602015050'),
+    ('20250602030726'),
+    ('20250602031100'),
+    ('20250602031458');
