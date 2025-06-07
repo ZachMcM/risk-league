@@ -6,7 +6,7 @@ from nba_api.stats.static.players import get_active_players
 from dotenv import load_dotenv
 from sqlalchemy.exc import IntegrityError
 from tables import nba_player_stats
-from utils import clean_minutes
+from utils import clean_minutes, get_game_type, get_current_season
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 import pandas as pd
 
@@ -15,7 +15,8 @@ load_dotenv()
 engine = create_engine(os.getenv("DATABASE_URL"))
 
 # Fetch game metadata for a given season
-def get_game_ids(season):
+def get_game_ids():
+  season = get_current_season()
   regular = leaguegamefinder.LeagueGameFinder(
     season_nullable=season,
     season_type_nullable='Regular Season',
@@ -51,7 +52,7 @@ def insert_player_stats(stats_df, engine, nba_player_stats):
       update_cols = {col: stmt.excluded[col] for col in [
         'player_id', 'game_id', 'pts', 'min', 'fgm', 'fga', 'fta', 'ftm',
         'three_pa', 'three_pm', 'oreb', 'dreb', 'reb', 'ast', 'stl', 'blk',
-        'tov', 'pf', 'plus_minus'
+        'tov', 'pf', 'plus_minus', 'season'
       ]}
       stmt = stmt.on_conflict_do_update(
         index_elements=['id'],
@@ -63,7 +64,7 @@ def insert_player_stats(stats_df, engine, nba_player_stats):
       print(f"⚠️ Upsert failed: {e._message}")
 
 # Start
-game_ids = get_game_ids("2024-25")
+game_ids = get_game_ids()
 print(len(game_ids), "games found for 2024–25 season")
 
 active_players = get_active_players()
@@ -82,6 +83,7 @@ for i, game_id in enumerate(game_ids[start_index:], start=start_index):
   df['minutes'] = df['minutes'].apply(clean_minutes)
   df['game_id'] = game_id + "-" + df['teamId'].astype(str)
   df['id'] = df['game_id'] + "-" + df['personId'].astype(str)
+  df['season'] = get_current_season()
 
   stat_df = df.rename(columns={
     'personId': 'player_id',
@@ -105,7 +107,7 @@ for i, game_id in enumerate(game_ids[start_index:], start=start_index):
   })[
     ['player_id', 'game_id', 'pts', 'min', 'fgm', 'fga', 'fta', 'ftm',
       'three_pa', 'three_pm', 'oreb', 'dreb', 'reb', 'ast', 'stl', 'blk',
-      'tov', 'pf', 'plus_minus', 'id']
+      'tov', 'pf', 'plus_minus', 'id', 'season']
   ]
 
   stat_df['player_id'] = stat_df['player_id'].apply(lambda x: x if x in player_ids else None)

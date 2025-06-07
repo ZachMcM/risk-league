@@ -1,4 +1,4 @@
-from sqlalchemy import Table, Column, MetaData, Integer, String, TIMESTAMP, ForeignKey, text
+from sqlalchemy import Table, Column, MetaData, Integer, String, TIMESTAMP, ForeignKey, Numeric, text
 
 metadata = MetaData()
 
@@ -54,6 +54,7 @@ nba_games = Table(
   Column("pf", Integer),
   Column("plus_minus", Integer),
   Column("game_type", String),
+  Column("season", String)
 )
 
 nba_player_stats = Table(
@@ -80,4 +81,17 @@ nba_player_stats = Table(
   Column("pf", Integer),
   Column("plus_minus", Integer),
   Column("updated_at", TIMESTAMP(timezone=True), server_default=text("CURRENT_TIMESTAMP")),
+  Column("season", String)
+)
+
+nba_props = Table(
+  "nba_props",
+  metadata,
+  Column("id", String, primary_key=True, server_default=text("gen_random_uuid()")),
+  Column("stat_type", String),
+  Column("player_id", String, ForeignKey("nba_players.id")),
+  Column("game_id", String, ForeignKey("nba_games.id")),
+  Column("line", Numeric),
+  Column("current_value", Numeric),
+  Column("created_date", TIMESTAMP, default=("CURRENT_TIMESTAMP"))
 )

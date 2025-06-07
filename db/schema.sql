@@ -41,7 +41,8 @@ CREATE TABLE public.nba_games (
     tov integer,
     pf integer,
     plus_minus integer,
-    game_type character varying(20) NOT NULL
+    game_type character varying(20) NOT NULL,
+    season text
 );
 
 
@@ -70,7 +71,8 @@ CREATE TABLE public.nba_player_stats (
     tov integer,
     pf integer,
     plus_minus integer,
-    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
+    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    season text
 );
 
 
@@ -329,4 +331,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20250602030726'),
     ('20250602031100'),
     ('20250602031458'),
-    ('20250602034407');
+    ('20250602034407'),
+    ('20250607021119');

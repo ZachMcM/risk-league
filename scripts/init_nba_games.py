@@ -7,14 +7,15 @@ from sqlalchemy import create_engine, insert
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.exc import IntegrityError
 from tables import nba_games
-from utils import clean_minutes
+from utils import clean_minutes, get_current_season, get_game_type
 
 # This script initializes the database with NBA game data from multiple seasons. This script should only be run once to populate the database with historical data.
 
 load_dotenv()
 engine = create_engine(os.getenv("DATABASE_URL"))
 
-def get_games(season):
+def get_games():
+  season = get_current_season()
   # Regular Season
   regular = leaguegamefinder.LeagueGameFinder(
     season_nullable=season,
@@ -50,7 +51,7 @@ def insert_games(games_df, engine, nba_games):
       update_cols = {col: stmt.excluded[col] for col in [
           'id', 'team_id', 'game_type', 'pts', 'game_date', 'wl', 'matchup', 'min', 'fgm', 'fga', 'fta', 'ftm', 
           'three_pa', 'three_pm', 'oreb', 'dreb', 'reb', 'ast', 
-          'stl', 'blk', 'tov', 'pf', 'plus_minus'
+          'stl', 'blk', 'tov', 'pf', 'plus_minus', 'season'
       ]}
       stmt = stmt.on_conflict_do_update(
         index_elements=['id'],
@@ -62,11 +63,12 @@ def insert_games(games_df, engine, nba_games):
       print(f"⚠️ Insert failed due to integrity error: {e._message}")
       return
 
-games = get_games("2024-25")
+games = get_games()
 
 games['id'] = games['GAME_ID'].astype(str) + '-' + games['TEAM_ID'].astype(str)
-games['game_type'] = games['GAME_ID'].astype(str).str[:3]
-  
+games['game_type'] = games['GAME_ID'].astype(str).str[:3].apply(get_game_type)
+games['season'] = get_current_season()
+   
 games = games.rename(columns={
   'TEAM_ID': 'team_id',
   'PTS': 'pts',
@@ -92,7 +94,7 @@ games = games.rename(columns={
 })[
   ['id', 'team_id', 'game_type', 'pts', 'game_date', 'wl', 'matchup', 'min', 'fgm', 'fga', 'fta', 'ftm', 
   'three_pa', 'three_pm', 'oreb', 'dreb', 'reb', 'ast', 
-  'stl', 'blk', 'tov', 'pf', 'plus_minus']
+  'stl', 'blk', 'tov', 'pf', 'plus_minus', 'season']
 ]
 
 games['min'] = games['min'].apply(clean_minutes)

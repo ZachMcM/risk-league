@@ -7,9 +7,9 @@ from dotenv import load_dotenv
 from sqlalchemy import create_engine, insert
 from sqlalchemy.exc import IntegrityError
 from tables import nba_player_stats, nba_games
-from utils import clean_minutes, get_current_season
 from datetime import datetime, timedelta
 from sqlalchemy.dialects.postgresql import insert as pg_insert
+from utils import clean_minutes, get_game_type, get_current_season
 
 # This script updates the database with all the NBA games from the past day
 
@@ -54,7 +54,7 @@ def insert_games(games_df, engine, nba_games):
       update_cols = {col: stmt.excluded[col] for col in [
           'id', 'team_id', 'game_type', 'pts', 'game_date', 'wl', 'matchup', 'min', 'fgm', 'fga', 'fta', 'ftm', 
           'three_pa', 'three_pm', 'oreb', 'dreb', 'reb', 'ast', 
-          'stl', 'blk', 'tov', 'pf', 'plus_minus'
+          'stl', 'blk', 'tov', 'pf', 'plus_minus', 'season'
       ]}
       stmt = stmt.on_conflict_do_update(
         index_elements=['id'],
@@ -86,7 +86,7 @@ def insert_player_stats(stats_df, engine, nba_player_stats):
       update_cols = {col: stmt.excluded[col] for col in [
         'player_id', 'game_id', 'pts', 'min', 'fgm', 'fga', 'fta', 'ftm',
         'three_pa', 'three_pm', 'oreb', 'dreb', 'reb', 'ast', 'stl', 'blk',
-        'tov', 'pf', 'plus_minus'
+        'tov', 'pf', 'plus_minus', 'season'
       ]}
       stmt = stmt.on_conflict_do_update(
         index_elements=['id'],
@@ -99,8 +99,9 @@ def insert_player_stats(stats_df, engine, nba_player_stats):
 
 games = get_previous_day_games()
 
-games['game_type'] = games['GAME_ID'].astype(str).str[:3]
+games['game_type'] = games['GAME_ID'].astype(str).str[:3].apply(get_game_type)
 games['id'] = games['GAME_ID'].astype(str) + '-' + games['TEAM_ID'].astype(str)
+games['season'] = get_current_season()
 
 games = games.rename(columns = {
   'TEAM_ID': 'team_id',
@@ -127,7 +128,7 @@ games = games.rename(columns = {
 })[
   ['id', 'team_id', 'pts', 'game_date', 'wl', 'matchup', 'min', 'fgm', 'fga', 'fta', 'ftm', 
   'three_pa', 'three_pm', 'oreb', 'dreb', 'reb', 'ast', 
-  'stl', 'blk', 'tov', 'pf', 'plus_minus', 'game_type']
+  'stl', 'blk', 'tov', 'pf', 'plus_minus', 'game_type', 'season']
 ]
 
 games['min'] = games['min'].apply(clean_minutes)
@@ -172,11 +173,12 @@ for game_id in game_ids:
   })[
     ['id', 'player_id', 'game_id', 'pts', 'min', 'fgm', 'fga', 'fta', 'ftm',
       'three_pa', 'three_pm', 'oreb', 'dreb', 'reb', 'ast', 'stl', 'blk',
-      'tov', 'pf', 'plus_minus']
+      'tov', 'pf', 'plus_minus', 'season']
   ]
 
   stat_df['player_id'] = stat_df['player_id'].apply(lambda x: x if x in player_ids else None)
   stat_df['player_id'] = stat_df['player_id'].astype('Int64')
+  stat_df['season'] = get_current_season()
 
   insert_player_stats(stat_df, engine, nba_player_stats)
     
