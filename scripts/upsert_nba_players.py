@@ -18,7 +18,7 @@ engine = create_engine(os.getenv("DATABASE_URL"))
 
 def get_team_players(team_id, season):
   try:
-    roster = commonteamroster.CommonTeamRoster(team_id=team_id)
+    roster = commonteamroster.CommonTeamRoster(team_id=team_id, season=season)
     return roster.get_data_frames()[0]
   except Exception as e:
     print(f"Error fetching roster for team {team_id}: {e}")

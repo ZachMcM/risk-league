@@ -42,7 +42,12 @@ CREATE TABLE public.nba_games (
     pf integer,
     plus_minus integer,
     game_type character varying(20) NOT NULL,
-    season text
+    season text,
+    pace numeric,
+    tov_ratio numeric,
+    tov_pct numeric,
+    off_rating numeric,
+    def_rating numeric
 );
 
 
@@ -72,7 +77,15 @@ CREATE TABLE public.nba_player_stats (
     pf integer,
     plus_minus integer,
     updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
-    season text
+    season text,
+    true_shooting numeric,
+    usage_rate numeric,
+    reb_pct numeric,
+    dreb_pct numeric,
+    oreb_pct numeric,
+    ast_pct numeric,
+    ast_ratio numeric,
+    tov_ratio numeric
 );
 
 
@@ -332,4 +345,7 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20250602031100'),
     ('20250602031458'),
     ('20250602034407'),
-    ('20250607021119');
+    ('20250607021119'),
+    ('20250607224529'),
+    ('20250607231439'),
+    ('20250607232925');
