@@ -2,8 +2,9 @@ import os
 import time
 from nba_api.live.nba.endpoints import ScoreBoard
 from dotenv import load_dotenv
-from sqlalchemy import create_engine, select, or_, insert
+from sqlalchemy import create_engine, select, or_
 from tables import nba_player_stats, nba_games, nba_players, nba_props
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 from datetime import datetime
 from utils import get_current_season, get_last_season, db_response_to_json
 import random
@@ -39,7 +40,7 @@ def get_today_games(test_games=False):
         games = ScoreBoard().games.get_dict()
         if not test_games:
             if scoreboard.score_board_date != today:
-                print("No games found today, no props to generate!")
+                print("⚠️ No games found today, no props to generate!")
                 sys.exit(0)
         return games
     except Exception as e:
@@ -80,7 +81,7 @@ def get_games_by_id(id_list: list[str], regular_season_only=True) -> list[NbaGam
             result = conn.execute(stmt).fetchall()
             return db_response_to_json(result)
     except Exception as e:
-        print(f"There was an error fetching games by id, {e}")
+        print(f"⚠️ There was an error fetching games by id, {e}")
         sys.exit(1)
 
 
@@ -158,7 +159,7 @@ def get_player_last_games(
                 or sum(game["min"] for game in last_games) / len(last_games)
                 < minutes_threshold
             ):
-                print(f"Skipping player {player_id}")
+                print(f"🚨 Skipping player {player_id}")
                 return None
             else:
                 return last_games
@@ -342,9 +343,6 @@ def generate_reb_prop(
     last_games: list[NbaPlayerStats],
     matchup_last_games: list[NbaGame],
 ):
-    if len(last_games) != len(matchup_last_games):
-        print(len(last_games), len(matchup_last_games))
-
     data = pd.DataFrame(
         {
             "mpg": [game["min"] for game in last_games],
@@ -590,7 +588,7 @@ def insert_prop(
 ):
     try:
         with engine.begin() as conn:
-            stmt = insert(nba_props).values(
+            stmt = pg_insert(nba_props).values(
                 line=line,
                 raw_game_id=game_id,
                 player_id=player_id,
@@ -598,8 +596,21 @@ def insert_prop(
                 game_start_time=game_start_time,
                 current_value=0,
             )
+
+            update_cols = {
+                col: stmt.excluded[col]
+                for col in [
+                    "line",
+                    "raw_game_id",
+                    "player_id",
+                    "stat_type",
+                    "game_start_time",
+                    "current_value",
+                ]
+            }
+
+            stmt = stmt.on_conflict_do_update(index_elements=["id"], set_=update_cols)
             conn.execute(stmt)
-            print(f"🎰 Successfully generated prop for {stat_type} at line {line}\n")
     except Exception as e:
         print(f"⚠️ There was an error inserting the prop, {e}")
         sys.exit(1)
@@ -622,15 +633,15 @@ def main():
     total_props_generated = 0
 
     for i, game in enumerate(games):
-        print(f"Processing for game {game['gameId']} {i + 1}/{len(games)}\n")
+        print(
+            f"Getting initial game data for game {game['gameId']} {i + 1}/{len(games)}\n"
+        )
         home_team_id = game["homeTeam"]["teamId"]
         away_team_id = game["awayTeam"]["teamId"]
 
         home_team_players = get_players_from_team(home_team_id)
         away_team_players = get_players_from_team(away_team_id)
         all_game_players = home_team_players + away_team_players
-
-        print(f"We found {len(all_game_players)} players for the game")
 
         for player in all_game_players:
             player_last_games = get_player_last_games(player["id"])
@@ -653,12 +664,11 @@ def main():
                     "game_start_time": game["gameTimeUTC"],
                 }
             )
-        print(f"Finished processing players from game {game['gameId']} ✅\n")
 
     # we now have our whole list of players who at a baseline are eligible for prop ceration
     for player_data in player_data_list:
         print(
-            f"Processing player {player['name']} against team {player_data['matchup']}\n"
+            f"Processing player {player['name']} {player['id']} against team {player_data['matchup']}\n"
         )
         player = player_data["player"]
 
@@ -718,7 +728,6 @@ def main():
             and not reb_ast_prop_eligible
             and not pts_ast_prop_eligible
         ):
-            print(f"{player['name']} is not eligible for any props")
             continue
 
         # we get the last n games for the opposing team
@@ -841,7 +850,9 @@ def main():
             total_props_generated += 1
 
         if pts_ast_prop_eligible:
-            pts_line = generate_pts_prop(player_data["last_games"], matchup_last_games, team_last_games)
+            pts_line = generate_pts_prop(
+                player_data["last_games"], matchup_last_games, team_last_games
+            )
             ast_line = generate_ast_prop(
                 player_data["last_games"], matchup_last_games, team_last_games
             )

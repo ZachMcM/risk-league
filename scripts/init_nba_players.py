@@ -49,6 +49,7 @@ def main():
     for player in active_players:
         print(f"Fetching info for player {player['id']} - {player['full_name']}")
         player_info = get_player_info(player["id"]).iloc[0]
+        time.sleep(0.6)
         data = {
             "id": player_info["PERSON_ID"],
             "name": player_info["DISPLAY_FIRST_LAST"],
