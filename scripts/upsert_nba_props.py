@@ -158,6 +158,7 @@ def get_player_last_games(
                 or sum(game["min"] for game in last_games) / len(last_games)
                 < minutes_threshold
             ):
+                print(f"Skipping player {player_id}")
                 return None
             else:
                 return last_games
@@ -286,7 +287,12 @@ def generate_prop_truncated_gaussian(
     while True:
         sample = random.gauss(mean, std_dev)
         if abs(sample - mean) <= max_sigma * std_dev:
-            return round(round(sample / round_to) * round_to, 1)
+            return round_prop(sample)
+
+
+# rounds props to 0.5
+def round_prop(line) -> float:
+    return round(round(line / 0.5) * 0.5, 1)
 
 
 # generates a prop for pts
@@ -578,172 +584,6 @@ def generate_tov_prop(
     return final_prop
 
 
-# generates a prop for PRA (points + rebounds + assists)
-def generate_pra_prop(
-    last_games: list[NbaPlayerStats],
-    matchup_last_games: list[NbaGame],
-    team_last_games: list[NbaGame],
-):
-    data = pd.DataFrame(
-        {
-            "mpg": [game["min"] for game in last_games],
-            "fga": [game["fga"] for game in last_games],
-            "three_pa": [game["three_pa"] for game in last_games],
-            "true_shooting": [game["true_shooting"] for game in last_games],
-            "pace": [game["pace"] for game in team_last_games],
-            "usage_rate": [game["usage_rate"] for game in last_games],
-            "opp_def_rating": [game["def_rating"] for game in matchup_last_games],
-            "team_off_rating": [game["def_rating"] for game in team_last_games],
-            "reb_pct": [game["reb_pct"] for game in last_games],
-            "dreb_pct": [game["dreb_pct"] for game in last_games],
-            "oreb_pct": [game["oreb_pct"] for game in last_games],
-            "opp_fg_pct": [
-                0 if game["fga"] == 0 else (game["fgm"] / game["fga"]) * 100
-                for game in matchup_last_games
-            ],
-            "opp_pace": [game["pace"] for game in matchup_last_games],
-            "ast_pct": [game["ast_pct"] for game in last_games],
-            "ast_ratio": [game["ast_ratio"] for game in last_games],
-            "team_fg_pct": [
-                0 if game["fga"] == 0 else (game["fgm"] / game["fga"]) * 100
-                for game in team_last_games
-            ],
-            "pra": [game["pts"] + game["reb"] + game["ast"] for game in last_games],
-        }
-    )
-
-    x_values = data[
-        [
-            "mpg",
-            "fga",
-            "three_pa",
-            "true_shooting",
-            "pace",
-            "usage_rate",
-            "opp_def_rating",
-            "team_off_rating",
-            "reb_pct",
-            "dreb_pct",
-            "oreb_pct",
-            "opp_fg_pct",
-            "opp_pace",
-            "ast_pct",
-            "ast_ratio",
-            "team_fg_pct",
-        ]
-    ]
-    y_values = data["pra"]
-    model = LinearRegression().fit(x_values, y_values)
-    next_game_features = pd.DataFrame([x_values.mean()])
-    predicted_pra = model.predict(next_game_features)[0]
-    sd = np.std(data["pra"], ddof=1)
-    final_prop = generate_prop_truncated_gaussian(predicted_pra, sd)
-    return final_prop
-
-
-def generate_pts_ast_prop(
-    last_games: list[NbaPlayerStats],
-    matchup_last_games: list[NbaGame],
-    team_last_games: list[NbaGame],
-):
-    data = pd.DataFrame(
-        {
-            "mpg": [game["min"] for game in last_games],
-            "fga": [game["fga"] for game in last_games],
-            "three_pa": [game["three_pa"] for game in last_games],
-            "true_shooting": [game["true_shooting"] for game in last_games],
-            "pace": [game["pace"] for game in team_last_games],
-            "usage_rate": [game["usage_rate"] for game in last_games],
-            "opp_def_rating": [game["def_rating"] for game in matchup_last_games],
-            "team_off_rating": [game["def_rating"] for game in team_last_games],
-            "ast_pct": [game["ast_pct"] for game in last_games],
-            "ast_ratio": [game["ast_ratio"] for game in last_games],
-            "team_fg_pct": [
-                0 if game["fga"] == 0 else (game["fgm"] / game["fga"]) * 100
-                for game in team_last_games
-            ],
-            "pts_ast": [game["ast"] + game["pts"] for game in last_games],
-        }
-    )
-
-    x_values = data[
-        [
-            "mpg",
-            "fga",
-            "three_pa",
-            "true_shooting",
-            "pace",
-            "usage_rate",
-            "opp_def_rating",
-            "team_off_rating",
-            "ast_pct",
-            "ast_ratio",
-            "team_fg_pct",
-        ]
-    ]
-    y_values = data["pts_ast"]
-    model = LinearRegression().fit(x_values, y_values)
-    next_game_features = pd.DataFrame([x_values.mean()])
-    predicted_pts_ast = model.predict(next_game_features)[0]
-    sd = np.std(data["pts_ast"], ddof=1)
-    final_prop = generate_prop_truncated_gaussian(predicted_pts_ast, sd)
-    return final_prop
-
-
-def generate_reb_ast_prop(
-    last_games: list[NbaPlayerStats],
-    matchup_last_games: list[NbaGame],
-    team_last_games: list[NbaGame],
-):
-    data = pd.DataFrame(
-        {
-            "mpg": [game["min"] for game in last_games],
-            "ast_pct": [game["ast_pct"] for game in last_games],
-            "ast_ratio": [game["ast_ratio"] for game in last_games],
-            "team_fg_pct": [
-                0 if game["fga"] == 0 else (game["fgm"] / game["fga"]) * 100
-                for game in team_last_games
-            ],
-            "usage_rate": [game["usage_rate"] for game in last_games],
-            "team_off_rating": [game["off_rating"] for game in team_last_games],
-            "opp_def_rating": [game["def_rating"] for game in matchup_last_games],
-            "reb_pct": [game["reb_pct"] for game in last_games],
-            "dreb_pct": [game["dreb_pct"] for game in last_games],
-            "oreb_pct": [game["oreb_pct"] for game in last_games],
-            "opp_fg_pct": [
-                0 if game["fga"] == 0 else (game["fgm"] / game["fga"]) * 100
-                for game in matchup_last_games
-            ],
-            "opp_pace": [game["pace"] for game in matchup_last_games],
-            "reb_ast": [game["reb"] + game["ast"] for game in last_games],
-        }
-    )
-
-    x_values = data[
-        [
-            "mpg",
-            "ast_pct",
-            "ast_ratio",
-            "team_fg_pct",
-            "usage_rate",
-            "team_off_rating",
-            "opp_def_rating",
-            "reb_pct",
-            "dreb_pct",
-            "oreb_pct",
-            "opp_fg_pct",
-            "opp_pace",
-        ]
-    ]
-    y_values = data["reb_ast"]
-    model = LinearRegression().fit(x_values, y_values)
-    next_game_features = pd.DataFrame([x_values.mean()])
-    predicted_reb_ast = model.predict(next_game_features)[0]
-    sd = np.std(data["reb_ast"], ddof=1)
-    final_prop = generate_prop_truncated_gaussian(predicted_reb_ast, sd)
-    return final_prop
-
-
 # inserts a prop into the database
 def insert_prop(
     line: float, game_id: str, player_id: str, stat_type: str, game_start_time: datetime
@@ -878,6 +718,7 @@ def main():
             and not reb_ast_prop_eligible
             and not pts_ast_prop_eligible
         ):
+            print(f"{player['name']} is not eligible for any props")
             continue
 
         # we get the last n games for the opposing team
@@ -982,9 +823,14 @@ def main():
             total_props_generated += 1
 
         if pra_prop_eligible:
-            pra_line = generate_pra_prop(
+            pts_line = generate_pts_prop(
                 player_data["last_games"], matchup_last_games, team_last_games
             )
+            reb_line = generate_reb_prop(player_data["last_games"], matchup_last_games)
+            ast_line = generate_ast_prop(
+                player_data["last_games"], matchup_last_games, team_last_games
+            )
+            pra_line = round_prop(pts_line + reb_line + ast_line)
             insert_prop(
                 pra_line,
                 player_data["game_id"],
@@ -995,9 +841,11 @@ def main():
             total_props_generated += 1
 
         if pts_ast_prop_eligible:
-            pts_ast_line = generate_pts_ast_prop(
+            pts_line = generate_pts_prop(player_data["last_games"], matchup_last_games, team_last_games)
+            ast_line = generate_ast_prop(
                 player_data["last_games"], matchup_last_games, team_last_games
             )
+            pts_ast_line = round_prop(pts_line + ast_line)
             insert_prop(
                 pts_ast_line,
                 player_data["game_id"],
@@ -1008,9 +856,11 @@ def main():
             total_props_generated += 1
 
         if reb_ast_prop_eligible:
-            reb_ast_line = generate_reb_ast_prop(
+            reb_line = generate_reb_prop(player_data["last_games"], matchup_last_games)
+            ast_line = generate_ast_prop(
                 player_data["last_games"], matchup_last_games, team_last_games
             )
+            reb_ast_line = round_prop(reb_line + ast_line)
             insert_prop(
                 reb_ast_line,
                 player_data["game_id"],
