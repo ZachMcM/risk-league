@@ -107,10 +107,20 @@ class NbaPlayerStats(TypedDict):
     ast_pct: float
     ast_ratio: float
     tov_ratio: float
-
+    
+class NbaProp(TypedDict):
+    id: str
+    stat_type: str
+    player_id: str
+    raw_game_id: str
+    line: float
+    current_value: float
+    created_at: datetime
+    game_start_time: datetime
 
 class PlayerData(TypedDict):
     matchup: str
     player: NbaPlayer
     game_id: str
     last_games: list[NbaPlayerStats]
+    game_start_time: datetime

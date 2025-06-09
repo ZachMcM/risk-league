@@ -1,5 +1,7 @@
 from typing import TypedDict
 
+req_pause_time = 0.6
+
 class ConstantSet(TypedDict):
   standard: float
   fallback: float

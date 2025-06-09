@@ -9,6 +9,7 @@ from sqlalchemy.exc import IntegrityError
 from tables import nba_games
 from utils import get_current_season, get_game_type
 import sys
+from constants import req_pause_time
 
 # This script initializes the database with NBA game data from multiple seasons. This script should only be run once to populate the database with historical data.
 
@@ -124,90 +125,110 @@ def insert_advanced_stats(
         sys.exit(1)
 
 
-games = get_games()
-game_ids = games["GAME_ID"]
+def process_advanced_stats(games, start_index=0):
+    for i, (_, row) in enumerate(
+        games.iloc[start_index:].iterrows(), start=start_index
+    ):
+        print(f"Processing advanced stats for game {row['id']} {i + 1}/{len(games)}")
+        game_id = row["id"][: row["id"].find("-")]
+        team_id = row["team_id"]
 
-games["id"] = games["GAME_ID"].astype(str) + "-" + games["TEAM_ID"].astype(str)
-games["game_type"] = games["GAME_ID"].astype(str).str[:3].apply(get_game_type)
-games["season"] = get_current_season()
+        advanced_df = get_boxscore_advanced(game_id)
+        time.sleep(req_pause_time)
+        team_row = advanced_df[advanced_df["teamId"] == team_id].iloc[0]
 
-games = games.rename(
-    columns={
-        "TEAM_ID": "team_id",
-        "PTS": "pts",
-        "GAME_DATE": "game_date",
-        "WL": "wl",
-        "MATCHUP": "matchup",
-        "MIN": "min",
-        "FGM": "fgm",
-        "FGA": "fga",
-        "FTA": "fta",
-        "FTM": "ftm",
-        "FG3A": "three_pa",
-        "FG3M": "three_pm",
-        "OREB": "oreb",
-        "DREB": "dreb",
-        "REB": "reb",
-        "AST": "ast",
-        "STL": "stl",
-        "BLK": "blk",
-        "TOV": "tov",
-        "PF": "pf",
-        "PLUS_MINUS": "plus_minus",
-    }
-)[
-    [
-        "id",
-        "team_id",
-        "game_type",
-        "pts",
-        "game_date",
-        "wl",
-        "matchup",
-        "min",
-        "fgm",
-        "fga",
-        "fta",
-        "ftm",
-        "three_pa",
-        "three_pm",
-        "oreb",
-        "dreb",
-        "reb",
-        "ast",
-        "stl",
-        "blk",
-        "tov",
-        "pf",
-        "plus_minus",
-        "season",
+        insert_advanced_stats(
+            float(team_row["pace"]),
+            float(team_row["turnoverRatio"]),
+            float(team_row["estimatedTeamTurnoverPercentage"]),
+            float(team_row["offensiveRating"]),
+            float(team_row["defensiveRating"]),
+            row["id"],
+        )
+        i = i + 1
+
+
+def process_original_games(games):
+    games["id"] = games["GAME_ID"].astype(str) + "-" + games["TEAM_ID"].astype(str)
+    games["game_type"] = games["GAME_ID"].astype(str).str[:3].apply(get_game_type)
+    games["season"] = get_current_season()
+
+    games = games.rename(
+        columns={
+            "TEAM_ID": "team_id",
+            "PTS": "pts",
+            "GAME_DATE": "game_date",
+            "WL": "wl",
+            "MATCHUP": "matchup",
+            "MIN": "min",
+            "FGM": "fgm",
+            "FGA": "fga",
+            "FTA": "fta",
+            "FTM": "ftm",
+            "FG3A": "three_pa",
+            "FG3M": "three_pm",
+            "OREB": "oreb",
+            "DREB": "dreb",
+            "REB": "reb",
+            "AST": "ast",
+            "STL": "stl",
+            "BLK": "blk",
+            "TOV": "tov",
+            "PF": "pf",
+            "PLUS_MINUS": "plus_minus",
+        }
+    )[
+        [
+            "id",
+            "team_id",
+            "game_type",
+            "pts",
+            "game_date",
+            "wl",
+            "matchup",
+            "min",
+            "fgm",
+            "fga",
+            "fta",
+            "ftm",
+            "three_pa",
+            "three_pm",
+            "oreb",
+            "dreb",
+            "reb",
+            "ast",
+            "stl",
+            "blk",
+            "tov",
+            "pf",
+            "plus_minus",
+            "season",
+        ]
     ]
-]
 
-games["game_date"] = pd.to_datetime(games["game_date"], errors="coerce")
+    games["game_date"] = pd.to_datetime(games["game_date"], errors="coerce")
 
-# insert_games(games, engine, nba_games)
+    insert_games(games, engine, nba_games)
 
-rows = games.iterrows()
 
-start_index = 1800
-for i, (idx, row) in enumerate(games.iloc[start_index:].iterrows(), start=start_index):
-    print(f"Processing advanced stats for game {row['id']} {i + 1}/{len(games)}")
-    game_id = row["id"][: row["id"].find("-")]
-    team_id = row["team_id"]
+def main():
+    games = get_games()
 
-    advanced_df = get_boxscore_advanced(game_id)
-    time.sleep(3)
-    team_row = advanced_df[advanced_df["teamId"] == team_id].iloc[0]
+    if len(sys.argv) == 3:
+        if sys.argv[1] == "advanced":
+            process_advanced_stats(games, int(sys.argv[2]))
+    elif len(sys.argv) == 2:
+        if sys.argv[1] == "advanced":
+            process_advanced_stats(games)
+        else:
+            process_original_games(games)
+    else:
+        process_original_games(games)
+        time.sleep(10)
+        process_advanced_stats(games)
 
-    insert_advanced_stats(
-        float(team_row["pace"]),
-        float(team_row["turnoverRatio"]),
-        float(team_row["estimatedTeamTurnoverPercentage"]),
-        float(team_row["offensiveRating"]),
-        float(team_row["defensiveRating"]),
-        row["id"],
-    )
-    i = i + 1
+    engine.dispose()
 
-engine.dispose()
+
+if __name__ == "__main__":
+    main()

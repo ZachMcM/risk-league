@@ -110,13 +110,14 @@ CREATE TABLE public.nba_players (
 --
 
 CREATE TABLE public.nba_props (
-    id text NOT NULL,
+    id text DEFAULT gen_random_uuid() NOT NULL,
     stat_type text NOT NULL,
     player_id text NOT NULL,
-    game_id text NOT NULL,
+    raw_game_id text NOT NULL,
     line numeric NOT NULL,
     current_value numeric,
-    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    game_start_time timestamp with time zone
 );
 
 
@@ -262,14 +263,6 @@ ALTER TABLE ONLY public.nba_player_stats
 
 
 --
--- Name: nba_props fk_game; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.nba_props
-    ADD CONSTRAINT fk_game FOREIGN KEY (game_id) REFERENCES public.nba_games(id);
-
-
---
 -- Name: nba_player_stats fk_player; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -348,4 +341,9 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20250607021119'),
     ('20250607224529'),
     ('20250607231439'),
-    ('20250607232925');
+    ('20250607232925'),
+    ('20250608211241'),
+    ('20250608213533'),
+    ('20250608213707'),
+    ('20250608222102'),
+    ('20250609061907');

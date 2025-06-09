@@ -1,6 +1,6 @@
 import os
 import time
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, update
 from nba_api.stats.endpoints import (
     leaguegamefinder,
     boxscoretraditionalv3,
@@ -8,16 +8,12 @@ from nba_api.stats.endpoints import (
 )
 from nba_api.stats.static.players import get_active_players
 from dotenv import load_dotenv
-from sqlalchemy.exc import IntegrityError
 from tables import nba_player_stats
 from utils import clean_minutes, get_current_season
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 import pandas as pd
 import sys
-
-# Load environment variables and set up DB engine
-load_dotenv()
-engine = create_engine(os.getenv("DATABASE_URL"))
+from constants import req_pause_time
 
 
 # Fetch game metadata for a given season
@@ -29,10 +25,13 @@ def get_game_ids():
         league_id_nullable="00",
     ).get_data_frames()[0]
     playoffs = leaguegamefinder.LeagueGameFinder(
-        season_nullable=season, season_type_nullable="Playoffs", league_id_nullable="00"
+        season_nullable=season,
+        season_type_nullable="Playoffs",
+        league_id_nullable="00",
     ).get_data_frames()[0]
 
     df = pd.concat([regular, playoffs], ignore_index=True)
+
     return df["GAME_ID"].unique().tolist()
 
 
@@ -52,6 +51,41 @@ def get_boxscore_advanced(game_id):
         return boxscore.get_data_frames()[0]
     except Exception as e:
         print(f"⚠️ Error fetching boxscore advanced for game {game_id}: {e}")
+        sys.exit(1)
+
+
+def insert_advanced_stats(
+    id: str,
+    true_shooting: float,
+    usage_rate: float,
+    reb_pct: float,
+    dreb_pct: float,
+    oreb_pct: float,
+    ast_pct: float,
+    ast_ratio: float,
+    tov_ratio: float,
+):
+    try:
+        with engine.begin() as conn:
+            stmt = (
+                update(nba_player_stats)
+                .where(nba_player_stats.c.id == id)
+                .values(
+                    true_shooting=true_shooting,
+                    usage_rate=usage_rate,
+                    reb_pct=reb_pct,
+                    dreb_pct=dreb_pct,
+                    oreb_pct=oreb_pct,
+                    ast_pct=ast_pct,
+                    ast_ratio=ast_ratio,
+                    tov_ratio=tov_ratio,
+                )
+            )
+
+            result = conn.execute(stmt)
+            print(f"✅ Updated game {id} advanced stats")
+    except Exception as e:
+        print(f"⚠️ There was an error inserting advanced stats for game {id}, {e}")
         sys.exit(1)
 
 
@@ -88,116 +122,138 @@ def insert_player_stats(stats_df, engine, nba_player_stats):
                     "plus_minus",
                     "id",
                     "season",
-                    "true_shooting",
-                    "usage_rate",
-                    "reb_pct",
-                    "dreb_pct",
-                    "oreb_pct",
-                    "ast_pct",
-                    "ast_ratio",
-                    "tov_ratio",
                 ]
             }
             stmt = stmt.on_conflict_do_update(index_elements=["id"], set_=update_cols)
             conn.execute(stmt)
             print(f"✅ Upserted {len(data)} player stats")
-        except IntegrityError as e:
+        except Exception as e:
             print(f"⚠️ Upsert failed: {e._message}")
 
 
-# Start
-game_ids = get_game_ids()
-print(len(game_ids), "games found for 2024–25 season")
+def process_stats(game_ids: list[str], start_index=0):
+    print(len(game_ids), "games found for 2024–25 season")
 
-active_players = get_active_players()
-player_ids = set(player["id"] for player in active_players)
+    active_players = get_active_players()
+    player_ids = set(player["id"] for player in active_players)
 
-start_index = 301  # Adjust this to resume from a specific index if needed
-# Process each game with 3-second sleep (~20 requests/min)
-for i, game_id in enumerate(game_ids[start_index:], start=start_index):
-    print(f"Processing game {i + 1}/{len(game_ids)}: {game_id}")
-    df = get_boxscore(game_id)
-    time.sleep(3)  # ~20 requests per minute
-    advanced_df = get_boxscore_advanced(game_id)
-    if df is None or advanced_df is None or df.empty or advanced_df.empty:
-        break  # Means connection timed out so we stop processing
-    time.sleep(3)  # ~20 requests per minute
+    # Process each game with 3-second sleep (~20 requests/min)
+    for i, game_id in enumerate(game_ids[start_index:], start=start_index):
+        print(f"Processing game {i + 1}/{len(game_ids)}: {game_id}")
+        df = get_boxscore(game_id)
+        time.sleep(req_pause_time)
+        if df is None or df.empty:
+            break  # Means connection timed out so we stop processing
 
-    df["minutes"] = df["minutes"].apply(clean_minutes)
-    df["game_id"] = game_id + "-" + df["teamId"].astype(str)
-    df["id"] = df["game_id"] + "-" + df["personId"].astype(str)
-    df["season"] = get_current_season()
+        df["minutes"] = df["minutes"].apply(clean_minutes)
+        df["game_id"] = game_id + "-" + df["teamId"].astype(str)
+        df["id"] = df["game_id"] + "-" + df["personId"].astype(str)
+        df["season"] = get_current_season()
 
-    # add in advanced stats
-    df["true_shooting"] = advanced_df["trueShootingPercentage"]
-    df["usage_rate"] = advanced_df["usagePercentage"]
-    df["reb_pct"] = advanced_df["reboundPercentage"]
-    df["dreb_pct"] = advanced_df["defensiveReboundPercentage"]
-    df["oreb_pct"] = advanced_df["offensiveReboundPercentage"]
-    df["ast_pct"] = advanced_df["assistPercentage"]
-    df["ast_ratio"] = advanced_df["assistRatio"]
-    df["tov_ratio"] = advanced_df["turnoverRatio"]
-
-    stat_df = df.rename(
-        columns={
-            "personId": "player_id",
-            "minutes": "min",
-            "points": "pts",
-            "assists": "ast",
-            "steals": "stl",
-            "blocks": "blk",
-            "turnovers": "tov",
-            "fieldGoalsAttempted": "fga",
-            "fieldGoalsMade": "fgm",
-            "freeThrowsAttempted": "fta",
-            "freeThrowsMade": "ftm",
-            "threePointersAttempted": "three_pa",
-            "threePointersMade": "three_pm",
-            "plusMinusPoints": "plus_minus",
-            "reboundsOffensive": "oreb",
-            "reboundsDefensive": "dreb",
-            "reboundsTotal": "reb",
-            "foulsPersonal": "pf",
-        }
-    )[
-        [
-            "player_id",
-            "game_id",
-            "pts",
-            "min",
-            "fgm",
-            "fga",
-            "fta",
-            "ftm",
-            "three_pa",
-            "three_pm",
-            "oreb",
-            "dreb",
-            "reb",
-            "ast",
-            "stl",
-            "blk",
-            "tov",
-            "pf",
-            "plus_minus",
-            "id",
-            "season",
-            "true_shooting",
-            "usage_rate",
-            "reb_pct",
-            "dreb_pct",
-            "oreb_pct",
-            "ast_pct",
-            "ast_ratio",
-            "tov_ratio",
+        stat_df = df.rename(
+            columns={
+                "personId": "player_id",
+                "minutes": "min",
+                "points": "pts",
+                "assists": "ast",
+                "steals": "stl",
+                "blocks": "blk",
+                "turnovers": "tov",
+                "fieldGoalsAttempted": "fga",
+                "fieldGoalsMade": "fgm",
+                "freeThrowsAttempted": "fta",
+                "freeThrowsMade": "ftm",
+                "threePointersAttempted": "three_pa",
+                "threePointersMade": "three_pm",
+                "plusMinusPoints": "plus_minus",
+                "reboundsOffensive": "oreb",
+                "reboundsDefensive": "dreb",
+                "reboundsTotal": "reb",
+                "foulsPersonal": "pf",
+            }
+        )[
+            [
+                "player_id",
+                "game_id",
+                "pts",
+                "min",
+                "fgm",
+                "fga",
+                "fta",
+                "ftm",
+                "three_pa",
+                "three_pm",
+                "oreb",
+                "dreb",
+                "reb",
+                "ast",
+                "stl",
+                "blk",
+                "tov",
+                "pf",
+                "plus_minus",
+                "id",
+                "season",
+            ]
         ]
-    ]
 
-    stat_df["player_id"] = stat_df["player_id"].apply(
-        lambda x: x if x in player_ids else None
-    )
-    stat_df["player_id"] = stat_df["player_id"].astype("Int64")
+        stat_df["player_id"] = stat_df["player_id"].apply(
+            lambda x: x if x in player_ids else None
+        )
+        stat_df["player_id"] = stat_df["player_id"].astype("Int64")
 
-    insert_player_stats(stat_df, engine, nba_player_stats)
+        insert_player_stats(stat_df, engine, nba_player_stats)
 
-engine.dispose()
+
+def process_advanced_stats(game_ids: list[str], start_index=0):
+    for i, game_id in enumerate(game_ids[start_index:], start=start_index):
+        print(f"Processing advanced stats game {i + 1}/{len(game_ids)}: {game_id}")
+        advanced_df = get_boxscore_advanced(game_id)
+        time.sleep(req_pause_time)
+
+        j = 0
+        for _, row in advanced_df.iterrows():
+            id = game_id + "-" + str(row["teamId"]) + "-" + str(row["personId"])
+            insert_advanced_stats(
+                id,
+                row["trueShootingPercentage"],
+                row["usagePercentage"],
+                row["reboundPercentage"],
+                row["defensiveReboundPercentage"],
+                row["offensiveReboundPercentage"],
+                row["assistPercentage"],
+                row["assistRatio"],
+                row["turnoverRatio"],
+            )
+            j = j + 1
+        print(f"Successfully updated {j} advanced stats\n")
+
+
+# Load environment variables and set up DB engine
+load_dotenv()
+engine = create_engine(os.getenv("DATABASE_URL"))
+
+
+def main():
+    game_ids = get_game_ids()
+
+    if len(sys.argv) == 3:
+        if sys.argv[1] == "advanced":
+            process_advanced_stats(game_ids, int(sys.argv[2]))
+        else:
+            process_stats(game_ids, int(sys.argv[2]))
+    elif len(sys.argv) == 2:
+        if sys.argv[1] == "advanced":
+            process_advanced_stats(game_ids)
+        else:
+            process_stats(game_ids)
+    else:
+        process_stats(game_ids)
+        time.sleep(10)
+        process_advanced_stats(game_ids)
+
+    engine.dispose()
+
+
+if __name__ == "__main__":
+    main()
