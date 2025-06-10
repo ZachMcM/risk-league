@@ -11,6 +11,7 @@ from tables import nba_teams
 load_dotenv()
 engine = create_engine(os.getenv("DATABASE_URL"))
 
+
 def insert_teams(teams_df, engine, nba_teams):
     # Convert DataFrame to list of dicts
     data = teams_df.to_dict(orient="records")
@@ -36,7 +37,7 @@ def main():
     insert_teams(teams_df, engine, nba_teams)
     # Close the engine connection
     engine.dispose()
-    
+
+
 if __name__ == "__main__":
     main()
-

@@ -5,7 +5,12 @@ from sqlalchemy import create_engine, select, or_
 from tables import nba_player_stats, nba_games, nba_players, nba_props
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from datetime import datetime
-from utils import get_current_season, get_last_season, db_response_to_json, get_today_games
+from utils import (
+    get_current_season,
+    get_last_season,
+    db_response_to_json,
+    get_today_games,
+)
 import random
 from my_types import (
     MetricStats,
@@ -29,6 +34,7 @@ engine = create_engine(os.getenv("DATABASE_URL"))
 minutes_threshold = 15  # how many minutes a player must average in last n_games games to be considered for a prop
 n_games = 15  # number of games to analyze
 sigma_coeff = 0.8
+
 
 # get a list of all the player_ids from a team
 def get_players_from_team(team_id: str) -> list[NbaPlayer]:

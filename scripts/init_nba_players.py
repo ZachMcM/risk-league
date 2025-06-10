@@ -14,6 +14,7 @@ from constants import req_pause_time
 load_dotenv()
 engine = create_engine(os.getenv("DATABASE_URL"))
 
+
 def get_player_info(player_id):
     player_info = commonplayerinfo.CommonPlayerInfo(player_id=player_id)
     return player_info.get_data_frames()[0]
@@ -49,7 +50,6 @@ def main():
     for player in active_players:
         print(f"Fetching info for player {player['id']} - {player['full_name']}")
         player_info = get_player_info(player["id"]).iloc[0]
-        time.sleep(0.6)
         data = {
             "id": player_info["PERSON_ID"],
             "name": player_info["DISPLAY_FIRST_LAST"],
@@ -62,6 +62,7 @@ def main():
 
         insert_player(pd.DataFrame([data]), engine, nba_players)
         engine.dispose()
-        
+
+
 if __name__ == "__main__":
     main()
