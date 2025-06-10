@@ -22,7 +22,7 @@ from my_types import (
     CombinedStatType,
 )
 import sys
-from constants import constants
+from constants import constants, minutes_threshold, n_games, sigma_coeff
 from time import time
 from sklearn.linear_model import LinearRegression
 import pandas as pd
@@ -30,11 +30,6 @@ import numpy as np
 
 load_dotenv()
 engine = create_engine(os.getenv("DATABASE_URL"))
-
-minutes_threshold = 15  # how many minutes a player must average in last n_games games to be considered for a prop
-n_games = 15  # number of games to analyze
-sigma_coeff = 0.8
-
 
 # get a list of all the player_ids from a team
 def get_players_from_team(team_id: str) -> list[NbaPlayer]:
