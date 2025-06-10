@@ -1,12 +1,11 @@
 import os
 import time
-from nba_api.live.nba.endpoints import ScoreBoard
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, select, or_
 from tables import nba_player_stats, nba_games, nba_players, nba_props
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from datetime import datetime
-from utils import get_current_season, get_last_season, db_response_to_json
+from utils import get_current_season, get_last_season, db_response_to_json, get_today_games
 import random
 from my_types import (
     MetricStats,
@@ -27,26 +26,9 @@ import numpy as np
 load_dotenv()
 engine = create_engine(os.getenv("DATABASE_URL"))
 
-minutes_threshold = 10  # how many minutes a player must average in last n_games games to be considered for a prop
+minutes_threshold = 15  # how many minutes a player must average in last n_games games to be considered for a prop
 n_games = 15  # number of games to analyze
 sigma_coeff = 0.8
-
-
-# gets all the games for today
-def get_today_games(test_games=False):
-    today = datetime.now().strftime("%Y-%m-%d")
-    try:
-        scoreboard = ScoreBoard()
-        games = ScoreBoard().games.get_dict()
-        if not test_games:
-            if scoreboard.score_board_date != today:
-                print("⚠️ No games found today, no props to generate!")
-                sys.exit(0)
-        return games
-    except Exception as e:
-        print(f"⚠️ Error fetching today's games: {e}")
-        sys.exit(1)
-
 
 # get a list of all the player_ids from a team
 def get_players_from_team(team_id: str) -> list[NbaPlayer]:
@@ -283,7 +265,7 @@ def is_combined_stat_prop_eligible(
 # this gives us a random value (- sigma * max_sigma, + sigma * max_sigma) with values
 # close to the mean much more likely
 def generate_prop_truncated_gaussian(
-    mean: float, std_dev: float, max_sigma: float = 0.5, round_to: float = 0.5
+    mean: float, std_dev: float, max_sigma: float = 1.5
 ):
     while True:
         sample = random.gauss(mean, std_dev)

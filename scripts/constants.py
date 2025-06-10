@@ -15,7 +15,6 @@ class StatConstants(TypedDict):
   stl: ConstantSet
   tov: ConstantSet
   pra: ConstantSet
-  fantasy_score: ConstantSet
   reb_ast: ConstantSet
   pts_ast: ConstantSet
 
@@ -51,10 +50,6 @@ constants: StatConstants = {
   "pra": {
     "standard": 4,
     "fallback": -1.5
-  },
-  "fantasy_score": {
-    "standard": 5,
-    "fallback": -2
   },
   "pts_ast": {
     "standard": 3,

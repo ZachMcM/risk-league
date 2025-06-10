@@ -16,11 +16,26 @@ StatType = Literal[
     "stl",
     "tov",
     "pra",
-    "fantasy_score",
     "reb_ast",
     "pts_ast",
 ]
 CombinedStatType = Literal["pra", "reb_ast", "pts_ast"]
+
+
+class StatName(TypedDict):
+    dbname: str
+    api_name: str
+
+
+stat_name_list: list[StatName] = [
+    {"db_name": "pts", "api_name": "points"},
+    {"db_name": "reb", "api_name": "reboundsTotal"},
+    {"db_name": "ast", "api_name": "assists"},
+    {"db_name": "three_pm", "api_name": "threePointersMade"},
+    {"db_name": "blk", "api_name": "blocks"},
+    {"db_name": "stl", "api_name": "steals"},
+    {"db_name": "tov", "api_name": "turnovers"},
+]
 
 
 class NbaPlayer(TypedDict):
@@ -107,7 +122,8 @@ class NbaPlayerStats(TypedDict):
     ast_pct: float
     ast_ratio: float
     tov_ratio: float
-    
+
+
 class NbaProp(TypedDict):
     id: str
     stat_type: str
@@ -117,6 +133,7 @@ class NbaProp(TypedDict):
     current_value: float
     created_at: datetime
     game_start_time: datetime
+
 
 class PlayerData(TypedDict):
     matchup: str
