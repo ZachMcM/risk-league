@@ -1,8 +1,21 @@
-# Risk League
+# Risk League Docs
 
-## Docs
+## How To Setup Database Locally
+```
+docker run --name local-postgres -e POSTGRES_PASSWORD=<PASSWORD> -p 5432:5432 -d postgres
+```
 
-### How To Start The Local Database
+Add to `.env`
+```
+DATABASE_URL="postgresql://postgres:<PASSWORD>@localhost:5432/postgres?sslmode=disable"
+```
+
+Run in your shell of choice in the root directory
+```
+dbmate up
+```
+
+## Starting The Database Locally
 ```
 docker start local-postgres
 ```
