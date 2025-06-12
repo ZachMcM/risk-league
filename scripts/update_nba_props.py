@@ -22,7 +22,7 @@ from my_types import (
     CombinedStatType,
 )
 import sys
-from constants import constants, minutes_threshold, n_games, sigma_coeff
+from constants import minutes_threshold, n_games, sigma_coeff, stat_constants
 from time import time
 from sklearn.linear_model import LinearRegression
 import pandas as pd
@@ -30,6 +30,7 @@ import numpy as np
 
 load_dotenv()
 engine = create_engine(os.getenv("DATABASE_URL"))
+
 
 # get a list of all the player_ids from a team
 def get_players_from_team(team_id: str) -> list[NbaPlayer]:
@@ -137,12 +138,14 @@ def get_player_last_games(
             # the player didn't play enough out of the teams last n games
             # or the player doesn't average enough minutes we return null to skip this player
 
-            if (
-                len(last_games) != n_games
-                or sum(game["min"] for game in last_games) / len(last_games)
-                < minutes_threshold
-            ):
-                print(f"🚨 Skipping player {player_id}")
+            avg_minutes = (
+                0
+                if len(last_games) == 0
+                else sum(game["min"] for game in last_games) / len(last_games)
+            )
+
+            if len(last_games) != n_games or avg_minutes < minutes_threshold:
+                print(f"🚨 Skipping player {player_id}\n")
                 return None
             else:
                 return last_games
@@ -227,13 +230,13 @@ def get_combined_metric_stats(metric_list: list[str], position: str) -> MetricSt
 # Determines if a player is eligible for a prop on a certain stat
 def is_prop_eligible(stat_type: StatType, player_stat: float, position: str) -> bool:
     stat_desc = get_metric_stats(stat_type, position)
-    if player_stat >= stat_desc["mean"] + constants[stat_type]["standard"]:
+    if player_stat >= stat_desc["mean"] + stat_constants[stat_type]["standard"]:
         return True
     else:
         rand_thresh = (
             stat_desc["mean"]
-            - constants[stat_type]["fallback"]
-            + random.gauss(0, sigma_coeff * constants[stat_type]["fallback"])
+            - stat_constants[stat_type]["fallback"]
+            + random.gauss(0, sigma_coeff * stat_constants[stat_type]["fallback"])
         )
         return player_stat >= rand_thresh
 
@@ -251,13 +254,13 @@ def is_combined_stat_prop_eligible(
         combined_metric_list = ["reb", "ast"]
 
     stat_desc = get_combined_metric_stats(combined_metric_list, position)
-    if player_stat >= stat_desc["mean"] + constants[stat_type]["standard"]:
+    if player_stat >= stat_desc["mean"] + stat_constants[stat_type]["standard"]:
         return True
     else:
         rand_thresh = (
             stat_desc["mean"]
-            - constants[stat_type]["fallback"]
-            + random.gauss(0, sigma_coeff * constants[stat_type]["fallback"])
+            - stat_constants[stat_type]["fallback"]
+            + random.gauss(0, sigma_coeff * stat_constants[stat_type]["fallback"])
         )
         return player_stat >= rand_thresh
 

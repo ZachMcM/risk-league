@@ -4,10 +4,10 @@ import os
 
 load_dotenv()
 
-req_pause_time = os.getenv("REQ_PAUSE_TIME") 
-minutes_threshold = os.getenv("MINUTES_THRESHOLD") 
-n_games = os.getenv("N_GAMES")
-sigma_coeff = os.getenv("SIGMA_COEFF")
+req_pause_time = float(os.getenv("REQ_PAUSE_TIME"))
+minutes_threshold = int(os.getenv("MINUTES_THRESHOLD"))
+n_games = int(os.getenv("N_GAMES"))
+sigma_coeff = float(os.getenv("SIGMA_COEFF"))
 
 class ConstantSet(TypedDict):
     standard: float
@@ -26,10 +26,7 @@ class StatConstants(TypedDict):
     reb_ast: ConstantSet
     pts_ast: ConstantSet
 
-
-import os
-
-StatConstants = {
+stat_constants: ConstantSet = {
     "pts": {
         "standard": float(os.getenv("PTS_STANDARD", 2)),
         "fallback": float(os.getenv("PTS_FALLBACK", -0.5)),
