@@ -1,5 +1,4 @@
 import os
-import time
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, select, or_
 from tables import nba_player_stats, nba_games, nba_players, nba_props
@@ -94,17 +93,6 @@ def get_team_last_games(
     except Exception as e:
         print(f"⚠️  There was an error fetching the last games for team {team_id}, {e}")
         sys.exit(1)
-
-
-def get_game(game_id: str) -> NbaGame:
-    try:
-        with engine.connect() as conn:
-            stmt = select(nba_games).where(game_id == game_id)
-
-            result = conn.execute(stmt).first()
-            return db_response_to_json(result)
-    except Exception as e:
-        print(f"⚠️ There was an error fetching game {game_id}, {e}")
 
 
 # returns a players last n_games games if they are eligible for a prop
@@ -270,7 +258,7 @@ def is_combined_stat_prop_eligible(
 # close to the mean much more likely
 def generate_prop_truncated_gaussian(
     mean: float, std_dev: float, max_sigma: float = 1.5
-):
+) -> float:
     while True:
         sample = random.gauss(mean, std_dev)
         if abs(sample - mean) <= max_sigma * std_dev:
@@ -297,7 +285,7 @@ def generate_pts_prop(
             "pace": [game["pace"] for game in team_last_games],
             "usage_rate": [game["usage_rate"] for game in last_games],
             "opp_def_rating": [game["def_rating"] for game in matchup_last_games],
-            "team_off_rating": [game["def_rating"] for game in team_last_games],
+            "team_off_rating": [game["off_rating"] for game in team_last_games],
             "pts": [game["pts"] for game in last_games],
         }
     )
@@ -612,9 +600,13 @@ def main():
 
     # we are gonna have a data structure with player and basic game data for future lookups
     print("Currently getting today's games")
+
     games = get_today_games(test_games=test)
+
     print("Finished getting today's games ✅\n")
+
     player_data_list: list[PlayerData] = []
+    team_games_cache: dict[str, list[NbaGame]] = {}
 
     total_props_generated = 0
 
@@ -653,10 +645,10 @@ def main():
 
     # we now have our whole list of players who at a baseline are eligible for prop ceration
     for player_data in player_data_list:
+        player = player_data["player"]
         print(
             f"Processing player {player['name']} {player['id']} against team {player_data['matchup']}\n"
         )
-        player = player_data["player"]
 
         # first we get all the mu's we need
 
@@ -702,22 +694,28 @@ def main():
         )
 
         # we just continue and don't do anymore intensive processing if no props are needed to be created
-        if (
-            not pts_prop_eligible
-            and not reb_prop_eligible
-            and not ast_prop_eligible
-            and not three_pm_prop_eligible
-            and not blk_prop_eligible
-            and not stl_prop_eligible
-            and not tov_prop_eligible
-            and not pra_prop_eligible
-            and not reb_ast_prop_eligible
-            and not pts_ast_prop_eligible
+        if not any(
+            [
+                pts_prop_eligible,
+                reb_prop_eligible,
+                ast_prop_eligible,
+                three_pm_prop_eligible,
+                blk_prop_eligible,
+                stl_prop_eligible,
+                tov_prop_eligible,
+                pra_prop_eligible,
+                reb_ast_prop_eligible,
+                pts_ast_prop_eligible,
+            ]
         ):
             continue
 
         # we get the last n games for the opposing team
-        matchup_last_games = get_team_last_games(player_data["matchup"])
+        if player_data["matchup"] not in team_games_cache:
+            team_games_cache[player_data["matchup"]] = get_team_last_games(
+                player_data["matchup"]
+            )
+        matchup_last_games = team_games_cache[player_data["matchup"]]
 
         # we get full team stats for the player's last n games
         # we use the get games by id function to make sure we aren't getting games the player didn't play in
