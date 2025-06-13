@@ -57,7 +57,7 @@ We utilize statistical concepts like linear regression and the normal (gaussian)
 ## Running The API Server
 
 ### Generating Types
-If `api/src/db/schema.d.t` does not exist run this command
+If `api/src/db/schema.d.ts` does not exist run this command
 ```
 npm run codegen
 ```
