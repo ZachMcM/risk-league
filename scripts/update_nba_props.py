@@ -143,8 +143,15 @@ def get_player_last_games(
         sys.exit(1)
 
 
+_metric_stats_cache: dict[tuple[str, str], MetricStats] = {}
+
+
 # gets the league mean and standard deviation of a specific stat
 def get_metric_stats(metric: str, position: str) -> MetricStats:
+    cache_key = (metric, position)
+    if cache_key in _metric_stats_cache:
+        return _metric_stats_cache[cache_key]
+
     with engine.connect() as conn:
         try:
             season = get_current_season()
@@ -169,7 +176,9 @@ def get_metric_stats(metric: str, position: str) -> MetricStats:
 
             result = conn.execute(stmt).fetchall()
             stats = db_response_to_json(result, metric)
-            return {"mean": np.mean(stats), "sd": np.std(stats)}
+            metric_stats = {"mean": np.mean(stats), "sd": np.std(stats)}
+            _metric_stats_cache[cache_key] = metric_stats
+            return metric_stats
         except Exception as e:
             print(
                 f"⚠️ Error getting stats for metric {metric} for the {get_current_season()} season, {e}"
@@ -177,8 +186,15 @@ def get_metric_stats(metric: str, position: str) -> MetricStats:
             sys.exit(1)
 
 
+_combined_stats_cache: dict[tuple[tuple[str, ...], str], MetricStats] = {}
+
+
 # gets the league mean and standard deviation of combined metrics
 def get_combined_metric_stats(metric_list: list[str], position: str) -> MetricStats:
+    cache_key = (tuple(sorted(metric_list)), position)
+    if cache_key in _combined_stats_cache:
+        return _combined_stats_cache[cache_key]
+
     try:
         with engine.connect() as conn:
             season = get_current_season()
@@ -203,10 +219,12 @@ def get_combined_metric_stats(metric_list: list[str], position: str) -> MetricSt
 
             result = conn.execute(stmt).fetchall()
             combined_values = [sum(row) for row in result]
-            return {
+            stat = {
                 "mean": np.mean(combined_values),
                 "sd": np.std(combined_values),
             }
+            _combined_stats_cache[cache_key] = stat
+            return stat
 
     except Exception as e:
         print(
