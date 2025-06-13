@@ -13,10 +13,16 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from tables import nba_games, nba_player_stats, nba_players, nba_props
 from utils import db_response_to_json, get_today_games
 
-from scripts.nba_regression import (generate_ast_prop, generate_blk_prop,
-                                    generate_pts_prop, generate_reb_prop,
-                                    generate_stl_prop, generate_three_pm_prop,
-                                    generate_tov_prop, round_prop)
+from nba_regression import (
+    generate_ast_prop,
+    generate_blk_prop,
+    generate_pts_prop,
+    generate_reb_prop,
+    generate_stl_prop,
+    generate_three_pm_prop,
+    generate_tov_prop,
+    round_prop,
+)
 
 load_dotenv()
 engine = create_engine(os.getenv("DATABASE_URL"))

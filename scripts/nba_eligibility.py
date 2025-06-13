@@ -102,7 +102,9 @@ def get_combined_metric_stats(
 
 
 # Determines if a player is eligible for a prop on a certain stat
-def is_prop_eligible(engine: Engine, stat_type: StatType, player_stat: float, position: str) -> bool:
+def is_prop_eligible(
+    engine: Engine, stat_type: StatType, player_stat: float, position: str
+) -> bool:
     stat_desc = get_metric_stats(engine, stat_type, position)
     if player_stat >= stat_desc["mean"] + stat_constants[stat_type]["standard"]:
         return True
@@ -116,8 +118,8 @@ def is_prop_eligible(engine: Engine, stat_type: StatType, player_stat: float, po
 
 
 # checks if a player is eligible for a prop generation for a combined metric
-def is_combined_stat_prop_eligible(engine: Engine,
-    stat_type: CombinedStatType, player_stat: float, position: str
+def is_combined_stat_prop_eligible(
+    engine: Engine, stat_type: CombinedStatType, player_stat: float, position: str
 ) -> bool:
     combined_metric_list: list[str] = []
     if stat_type == "pra":
