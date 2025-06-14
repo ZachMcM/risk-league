@@ -146,21 +146,6 @@ CREATE TABLE public.schema_migrations (
 
 
 --
--- Name: user_nba_prop_entries; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.user_nba_prop_entries (
-    id text DEFAULT gen_random_uuid() NOT NULL,
-    user_id text NOT NULL,
-    prop_id text NOT NULL,
-    over_under text NOT NULL,
-    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
-    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
-    status text
-);
-
-
---
 -- Name: users; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -170,7 +155,8 @@ CREATE TABLE public.users (
     email text NOT NULL,
     password_hash text NOT NULL,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
-    image text
+    image text,
+    name text
 );
 
 
@@ -223,14 +209,6 @@ ALTER TABLE ONLY public.schema_migrations
 
 
 --
--- Name: user_nba_prop_entries user_nba_prop_entries_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.user_nba_prop_entries
-    ADD CONSTRAINT user_nba_prop_entries_pkey PRIMARY KEY (id);
-
-
---
 -- Name: users users_email_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -279,14 +257,6 @@ ALTER TABLE ONLY public.nba_props
 
 
 --
--- Name: user_nba_prop_entries fk_prop; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.user_nba_prop_entries
-    ADD CONSTRAINT fk_prop FOREIGN KEY (prop_id) REFERENCES public.nba_props(id);
-
-
---
 -- Name: nba_players fk_team; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -300,14 +270,6 @@ ALTER TABLE ONLY public.nba_players
 
 ALTER TABLE ONLY public.nba_games
     ADD CONSTRAINT fk_team FOREIGN KEY (team_id) REFERENCES public.nba_teams(id);
-
-
---
--- Name: user_nba_prop_entries fk_user; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.user_nba_prop_entries
-    ADD CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 
 --
@@ -346,4 +308,6 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20250608213533'),
     ('20250608213707'),
     ('20250608222102'),
-    ('20250609061907');
+    ('20250609061907'),
+    ('20250614161657'),
+    ('20250614184158');

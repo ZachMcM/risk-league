@@ -114,21 +114,12 @@ export interface SchemaMigrations {
   version: string;
 }
 
-export interface UserNbaPropEntries {
-  createdAt: Generated<Timestamp | null>;
-  id: Generated<string>;
-  overUnder: string;
-  propId: string;
-  status: string | null;
-  updatedAt: Generated<Timestamp | null>;
-  userId: string;
-}
-
 export interface Users {
   createdAt: Generated<Timestamp | null>;
   email: string;
   id: Generated<string>;
   image: string | null;
+  name: string | null;
   passwordHash: string;
   username: string;
 }
@@ -140,6 +131,5 @@ export interface DB {
   nbaProps: NbaProps;
   nbaTeams: NbaTeams;
   schemaMigrations: SchemaMigrations;
-  userNbaPropEntries: UserNbaPropEntries;
   users: Users;
 }
