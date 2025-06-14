@@ -3,13 +3,30 @@ from nba_api.live.nba.endpoints import BoxScore
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, update
 from tables import nba_props
-from utils import (
-    get_today_games,
-)
+from datetime import datetime
 from my_types import StatType, stat_name_list
+from nba_api.live.nba.endpoints import ScoreBoard
+import sys
 
 load_dotenv()
 engine = create_engine(os.getenv("DATABASE_URL"))
+
+
+# gets all the games for today
+def get_today_games(test_games=False):
+    today = datetime.now().strftime("%Y-%m-%d")
+    try:
+        scoreboard = ScoreBoard()
+        games = ScoreBoard().games.get_dict()
+        if not test_games:
+            if scoreboard.score_board_date != today:
+                print("⚠️ No games found today, no props to generate!")
+                sys.exit(0)
+        return games
+    except Exception as e:
+        print(f"⚠️ Error fetching today's games: {e}")
+        sys.exit(1)
+
 
 # gets all the player stats for a given live game
 def get_player_stats(game_id: str):
@@ -17,6 +34,7 @@ def get_player_stats(game_id: str):
     home_players = boxscore["homeTeam"]["players"]
     away_players = boxscore["awayTeam"]["players"]
     return home_players + away_players
+
 
 # updates a given prop
 def update_prop(stat_type: StatType, player_id: str, raw_game_id: str, updated_value):
@@ -38,7 +56,6 @@ def update_prop(stat_type: StatType, player_id: str, raw_game_id: str, updated_v
 
 
 def main():
-    total_updated = 0
     games = get_today_games(test_games=True)
 
     for i, game in enumerate(games):
@@ -57,25 +74,21 @@ def main():
                     str(game["gameId"]),
                     stats[stat_name["api_name"]],
                 )
-                total_updated += 1
 
             pra = stats["points"] + stats["reboundsTotal"] + stats["assists"]
             update_prop("pra", str(player["personId"]), str(game["gameId"]), pra)
-            total_updated += 1
 
             pts_ast = stats["points"] + stats["assists"]
             update_prop(
                 "pts_ast", str(player["personId"]), str(game["gameId"]), pts_ast
             )
-            total_updated += 1
 
             reb_ast = stats["reboundsTotal"] + stats["assists"]
             update_prop(
                 "reb_ast", str(player["personId"]), str(game["gameId"]), reb_ast
             )
-            total_updated += 1
 
-    print(f"✅ Successfully updated {total_updated} props\n")
+    print(f"✅ Successfully updated props\n")
     engine.dispose()
 
 

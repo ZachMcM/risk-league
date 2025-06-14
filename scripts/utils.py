@@ -1,7 +1,4 @@
 from datetime import datetime
-from nba_api.live.nba.endpoints import ScoreBoard
-import sys
-
 
 def clean_minutes(min_str):
     if isinstance(min_str, str) and ":" in min_str:
@@ -57,18 +54,3 @@ def db_response_to_json(res, field=None):
     else:
         return [dict(row._mapping) for row in res]
 
-
-# gets all the games for today
-def get_today_games(test_games=False):
-    today = datetime.now().strftime("%Y-%m-%d")
-    try:
-        scoreboard = ScoreBoard()
-        games = ScoreBoard().games.get_dict()
-        if not test_games:
-            if scoreboard.score_board_date != today:
-                print("⚠️ No games found today, no props to generate!")
-                sys.exit(0)
-        return games
-    except Exception as e:
-        print(f"⚠️ Error fetching today's games: {e}")
-        sys.exit(1)

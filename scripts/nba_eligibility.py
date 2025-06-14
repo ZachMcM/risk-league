@@ -1,12 +1,11 @@
 import random
 import sys
 from datetime import datetime
-
 import numpy as np
 from constants import minutes_threshold, sigma_coeff, stat_constants
 from my_types import CombinedStatType, MetricStats, StatType
 from sqlalchemy import Engine, select
-from tables import nba_games, nba_player_stats, nba_players, nba_props
+from tables import nba_games, nba_player_stats, nba_players
 from utils import db_response_to_json, get_current_season, get_last_season
 
 _metric_stats_cache: dict[tuple[str, str], MetricStats] = {}

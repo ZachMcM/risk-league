@@ -2,7 +2,7 @@ import os
 import sys
 from datetime import datetime
 from time import time
-
+import requests
 import numpy as np
 from constants import minutes_threshold, n_games
 from dotenv import load_dotenv
@@ -11,7 +11,7 @@ from nba_eligibility import is_combined_stat_prop_eligible, is_prop_eligible
 from sqlalchemy import create_engine, or_, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from tables import nba_games, nba_player_stats, nba_players, nba_props
-from utils import db_response_to_json, get_today_games
+from utils import db_response_to_json
 
 from nba_regression import (
     generate_ast_prop,
@@ -26,6 +26,24 @@ from nba_regression import (
 
 load_dotenv()
 engine = create_engine(os.getenv("DATABASE_URL"))
+
+
+# gets all the games for today
+def get_today_games(test_date=None):
+    url = "https://cdn.nba.com/static/json/staticData/scheduleLeagueV2.json"
+    res = requests.get(url)
+    data = res.json()
+
+    today_str = datetime.today().strftime("%m/%d/%Y 00:00:00")
+
+    if test_date != None:
+        today_str = test_date
+
+    for date in data["leagueSchedule"]["gameDates"]:
+        if date["gameDate"] == today_str:
+            return date["games"]
+
+    return []
 
 
 # get a list of all the player_ids from a team
@@ -178,14 +196,14 @@ def main():
     # start timing the execution
     start = time()
 
-    test = False
-    if len(sys.argv) == 2 and sys.argv[1] == "test":
-        test = True
+    test_date = None
+    if len(sys.argv) == 2:
+        test_date = sys.argv[1]
 
     # we are gonna have a data structure with player and basic game data for future lookups
     print("Currently getting today's games")
 
-    games = get_today_games(test_games=test)
+    todays_games = get_today_games(test_date)
 
     print("Finished getting today's games ✅\n")
 
@@ -194,12 +212,12 @@ def main():
 
     total_props_generated = 0
 
-    for i, game in enumerate(games):
+    for i, today_game in enumerate(todays_games):
         print(
-            f"Getting initial game data for game {game['gameId']} {i + 1}/{len(games)}\n"
+            f"Getting initial game data for game {today_game['gameId']} {i + 1}/{len(todays_games)}\n"
         )
-        home_team_id = game["homeTeam"]["teamId"]
-        away_team_id = game["awayTeam"]["teamId"]
+        home_team_id = today_game["homeTeam"]["teamId"]
+        away_team_id = today_game["awayTeam"]["teamId"]
 
         home_team_players = get_players_from_team(home_team_id)
         away_team_players = get_players_from_team(away_team_id)
@@ -221,9 +239,9 @@ def main():
                 {
                     "matchup": matchup,
                     "player": player,
-                    "game_id": game["gameId"],
+                    "game_id": today_game["gameId"],
                     "last_games": player_last_games,
-                    "game_start_time": game["gameTimeUTC"],
+                    "game_start_time": today_game["gameDateTimeUTC"],
                 }
             )
 
