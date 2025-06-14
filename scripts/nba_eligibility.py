@@ -1,6 +1,7 @@
 import random
 import sys
 from datetime import datetime
+
 import numpy as np
 from constants import minutes_threshold, sigma_coeff, stat_constants
 from my_types import CombinedStatType, MetricStats, StatType

@@ -1,5 +1,6 @@
 from datetime import datetime
 
+
 def clean_minutes(min_str):
     if isinstance(min_str, str) and ":" in min_str:
         mins, _ = min_str.split(":")
@@ -53,4 +54,3 @@ def db_response_to_json(res, field=None):
         return [dict(row._mapping)[field] for row in res]
     else:
         return [dict(row._mapping) for row in res]
-

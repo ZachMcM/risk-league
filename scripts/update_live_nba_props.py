@@ -1,12 +1,14 @@
 import os
-from nba_api.live.nba.endpoints import BoxScore
+import signal
+import sys
+from datetime import datetime
+
+from apscheduler.schedulers.background import BackgroundScheduler
 from dotenv import load_dotenv
+from my_types import StatType, stat_name_list
+from nba_api.live.nba.endpoints import BoxScore, ScoreBoard
 from sqlalchemy import create_engine, update
 from tables import nba_props
-from datetime import datetime
-from my_types import StatType, stat_name_list
-from nba_api.live.nba.endpoints import ScoreBoard
-import sys
 
 load_dotenv()
 engine = create_engine(os.getenv("DATABASE_URL"))
@@ -55,7 +57,7 @@ def update_prop(stat_type: StatType, player_id: str, raw_game_id: str, updated_v
         print(f"⚠️ There was an error updating the prop: {e}")
 
 
-def main():
+def update_live_nba_props():
     games = get_today_games(test_games=True)
 
     for i, game in enumerate(games):
@@ -90,6 +92,22 @@ def main():
 
     print(f"✅ Successfully updated props\n")
     engine.dispose()
+
+
+def main():
+    scheduler = BackgroundScheduler()
+    scheduler.add_job(update_live_nba_props, "interval", seconds=60)
+    scheduler.start()
+
+    try:
+        signal.pause()
+    except (KeyboardInterrupt, SystemExit):
+        print("Exiting...")
+        scheduler.shutdown()
+    except Exception as e:
+        print(f"Unhandled exception: {e}")
+        scheduler.shutdown()
+        sys.exit(1)
 
 
 if __name__ == "__main__":

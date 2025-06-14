@@ -1,20 +1,18 @@
 import os
-import time
-import pandas as pd
-from nba_api.stats.endpoints import (
-    leaguegamefinder,
-    boxscoretraditionalv3,
-    boxscoreadvancedv3,
-)
-from nba_api.stats.static.players import get_active_players
-from dotenv import load_dotenv
-from sqlalchemy import create_engine, update
-from tables import nba_player_stats, nba_games
-from datetime import datetime, timedelta
-from sqlalchemy.dialects.postgresql import insert as pg_insert
-from utils import clean_minutes, get_game_type, get_current_season
 import sys
+import time
+from datetime import datetime, timedelta
+
+import pandas as pd
 from constants import req_pause_time
+from dotenv import load_dotenv
+from nba_api.stats.endpoints import (boxscoreadvancedv3, boxscoretraditionalv3,
+                                     leaguegamefinder)
+from nba_api.stats.static.players import get_active_players
+from sqlalchemy import create_engine, update
+from sqlalchemy.dialects.postgresql import insert as pg_insert
+from tables import nba_games, nba_player_stats
+from utils import clean_minutes, get_current_season, get_game_type
 
 # This script updates the database with all the NBA games from the past day
 

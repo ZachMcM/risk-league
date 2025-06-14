@@ -2,27 +2,21 @@ import os
 import sys
 from datetime import datetime
 from time import time
-import requests
+
 import numpy as np
+import requests
 from constants import minutes_threshold, n_games
 from dotenv import load_dotenv
 from my_types import NbaGame, NbaPlayer, NbaPlayerStats, PlayerData
 from nba_eligibility import is_combined_stat_prop_eligible, is_prop_eligible
+from nba_regression import (generate_ast_prop, generate_blk_prop,
+                            generate_pts_prop, generate_reb_prop,
+                            generate_stl_prop, generate_three_pm_prop,
+                            generate_tov_prop, round_prop)
 from sqlalchemy import create_engine, or_, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from tables import nba_games, nba_player_stats, nba_players, nba_props
 from utils import db_response_to_json
-
-from nba_regression import (
-    generate_ast_prop,
-    generate_blk_prop,
-    generate_pts_prop,
-    generate_reb_prop,
-    generate_stl_prop,
-    generate_three_pm_prop,
-    generate_tov_prop,
-    round_prop,
-)
 
 load_dotenv()
 engine = create_engine(os.getenv("DATABASE_URL"))
