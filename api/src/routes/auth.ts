@@ -71,6 +71,7 @@ authRoute.get("/auth/session", authMiddleware, async (_, res) => {
 
 authRoute.post("/auth/signup", async (req, res) => {
   const body: RegisterBody = req.body;
+  console.log(body)
 
   try {
     assertRequiredFields(body, ["name", "username", "email", "password"]);
@@ -111,7 +112,7 @@ authRoute.post("/auth/signup", async (req, res) => {
         name,
         username,
         email,
-        passwordHash: encryptedPassword,
+        password_hash: encryptedPassword,
       })
       .returning(["id"])
       .executeTakeFirstOrThrow();
@@ -127,7 +128,7 @@ authRoute.post("/auth/signup", async (req, res) => {
         message: `${err.missing} missing`,
       });
     } else {
-      res.status(500).json({ error: "Unexpected error" });
+      res.status(500).json({ error: "Unexpected error", message: err });
     }
     return;
   }
@@ -143,7 +144,7 @@ authRoute.post("/auth/signin", async (req, res) => {
 
     const user = await db
       .selectFrom("users")
-      .select(["id", "passwordHash"])
+      .select(["id", "password_hash"])
       .where("email", "=", email)
       .executeTakeFirstOrThrow();
 
@@ -155,7 +156,7 @@ authRoute.post("/auth/signin", async (req, res) => {
       return;
     }
 
-    const isPasswordCorrect = await bycrpt.compare(password, user.passwordHash);
+    const isPasswordCorrect = await bycrpt.compare(password, user.password_hash);
 
     if (!isPasswordCorrect) {
       res.status(401).json({

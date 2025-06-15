@@ -16,32 +16,32 @@ export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 export interface NbaGames {
   ast: number | null;
   blk: number | null;
-  defRating: Numeric | null;
+  def_rating: Numeric | null;
   dreb: number | null;
   fga: number | null;
   fgm: number | null;
   fta: number | null;
   ftm: number | null;
-  gameDate: Timestamp | null;
-  gameType: string;
+  game_date: Timestamp | null;
+  game_type: string;
   id: string;
   matchup: string | null;
   min: number | null;
-  offRating: Numeric | null;
+  off_rating: Numeric | null;
   oreb: number | null;
   pace: Numeric | null;
   pf: number | null;
-  plusMinus: number | null;
+  plus_minus: number | null;
   pts: number | null;
   reb: number | null;
   season: string | null;
   stl: number | null;
-  teamId: string | null;
-  threePa: number | null;
-  threePm: number | null;
+  team_id: string | null;
+  three_pa: number | null;
+  three_pm: number | null;
   tov: number | null;
-  tovPct: Numeric | null;
-  tovRatio: Numeric | null;
+  tov_pct: Numeric | null;
+  tov_ratio: Numeric | null;
   wl: string | null;
 }
 
@@ -51,63 +51,63 @@ export interface NbaPlayers {
   name: string | null;
   number: string | null;
   position: string | null;
-  teamId: string | null;
-  updatedAt: Generated<Timestamp | null>;
+  team_id: string | null;
+  updated_at: Generated<Timestamp | null>;
   weight: string | null;
 }
 
 export interface NbaPlayerStats {
   ast: number | null;
-  astPct: Numeric | null;
-  astRatio: Numeric | null;
+  ast_pct: Numeric | null;
+  ast_ratio: Numeric | null;
   blk: number | null;
   dreb: number | null;
-  drebPct: Numeric | null;
+  dreb_pct: Numeric | null;
   fga: number | null;
   fgm: number | null;
   fta: number | null;
   ftm: number | null;
-  gameId: string | null;
+  game_id: string | null;
   id: string;
   min: number | null;
   oreb: number | null;
-  orebPct: Numeric | null;
+  oreb_pct: Numeric | null;
   pf: number | null;
-  playerId: string | null;
-  plusMinus: number | null;
+  player_id: string | null;
+  plus_minus: number | null;
   pts: number | null;
   reb: number | null;
-  rebPct: Numeric | null;
+  reb_pct: Numeric | null;
   season: string | null;
   stl: number | null;
-  threePa: number | null;
-  threePm: number | null;
+  three_pa: number | null;
+  three_pm: number | null;
   tov: number | null;
-  tovRatio: Numeric | null;
-  trueShooting: Numeric | null;
-  updatedAt: Generated<Timestamp | null>;
-  usageRate: Numeric | null;
+  tov_ratio: Numeric | null;
+  true_shooting: Numeric | null;
+  updated_at: Generated<Timestamp | null>;
+  usage_rate: Numeric | null;
 }
 
 export interface NbaProps {
-  createdAt: Generated<Timestamp | null>;
-  currentValue: Numeric | null;
-  gameStartTime: Timestamp | null;
+  created_at: Generated<Timestamp | null>;
+  current_value: Numeric | null;
+  game_start_time: Timestamp | null;
   id: Generated<string>;
   line: Numeric;
-  playerId: string;
-  rawGameId: string;
-  statType: string;
+  player_id: string;
+  raw_game_id: string;
+  stat_type: string;
 }
 
 export interface NbaTeams {
   abbreviation: string | null;
   city: string | null;
-  fullName: string | null;
+  full_name: string | null;
   id: string;
   nickname: string | null;
   state: string | null;
-  yearFounded: number | null;
+  year_founded: number | null;
 }
 
 export interface SchemaMigrations {
@@ -115,21 +115,21 @@ export interface SchemaMigrations {
 }
 
 export interface Users {
-  createdAt: Generated<Timestamp | null>;
+  created_at: Generated<Timestamp | null>;
   email: string;
   id: Generated<string>;
   image: string | null;
   name: string | null;
-  passwordHash: string;
+  password_hash: string;
   username: string;
 }
 
 export interface DB {
-  nbaGames: NbaGames;
-  nbaPlayers: NbaPlayers;
-  nbaPlayerStats: NbaPlayerStats;
-  nbaProps: NbaProps;
-  nbaTeams: NbaTeams;
-  schemaMigrations: SchemaMigrations;
+  nba_games: NbaGames;
+  nba_player_stats: NbaPlayerStats;
+  nba_players: NbaPlayers;
+  nba_props: NbaProps;
+  nba_teams: NbaTeams;
+  schema_migrations: SchemaMigrations;
   users: Users;
 }
