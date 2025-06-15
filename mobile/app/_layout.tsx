@@ -1,20 +1,24 @@
 import { SessionProvider } from "@/components/providers/SessionProvider";
-import { useFocusEffect } from "@react-navigation/native";
+import { themes } from "@/themes";
+import {
+  DarkTheme,
+  DefaultTheme,
+  ThemeProvider,
+  useFocusEffect,
+} from "@react-navigation/native";
+import { defaultConfig } from "@tamagui/config/v4";
 import {
   focusManager,
-  onlineManager,
   QueryClient,
   QueryClientProvider,
 } from "@tanstack/react-query";
-import * as Network from "expo-network";
 import { Stack } from "expo-router";
-import { StatusBar } from "expo-status-bar";
 import { useCallback, useEffect, useRef } from "react";
 import type { AppStateStatus } from "react-native";
 import { AppState, Platform } from "react-native";
 import "react-native-reanimated";
+import { createTamagui, TamaguiProvider } from "tamagui";
 
-// refetch on screen focus
 export function useRefreshOnFocus<T>(refetch: () => Promise<T>) {
   const firstTimeRef = useRef(true);
 
@@ -30,10 +34,19 @@ export function useRefreshOnFocus<T>(refetch: () => Promise<T>) {
   );
 }
 
+export {
+  // Catch any errors thrown by the Layout component.
+  ErrorBoundary,
+} from "expo-router";
+
+const config = createTamagui({
+  ...defaultConfig,
+  themes,
+});
+
 const queryClient = new QueryClient();
 
 export default function RootLayout() {
-  // refetch on app focus
   function onAppStateChange(status: AppStateStatus) {
     if (Platform.OS !== "web") {
       focusManager.setFocused(status === "active");
@@ -46,23 +59,17 @@ export default function RootLayout() {
     return () => subscription.remove();
   }, []);
 
-  // auto refetch on reconnect
-  onlineManager.setEventListener((setOnline) => {
-    const eventSubscription = Network.addNetworkStateListener((state) => {
-      setOnline(!!state.isConnected);
-    });
-    return eventSubscription.remove;
-  });
-
   return (
-    <QueryClientProvider client={queryClient}>
-      <SessionProvider>
-        <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="signup" options={{ title: "Sign Up" }} />
-        </Stack>
-        <StatusBar style="auto" />
-      </SessionProvider>
-    </QueryClientProvider>
+    <TamaguiProvider config={config}>
+      {/* <ThemeProvider value={DarkTheme}> */}
+      <QueryClientProvider client={queryClient}>
+        <SessionProvider>
+          <Stack>
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          </Stack>
+        </SessionProvider>
+      </QueryClientProvider>
+      {/* </ThemeProvider> */}
+    </TamaguiProvider>
   );
 }

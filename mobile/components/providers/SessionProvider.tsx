@@ -3,7 +3,7 @@ import {
   signInRequest,
   signOutRequest,
   signUpRequest,
-} from "@/requestMethods";
+} from "@/endpoints";
 import { SessionProviderValues } from "@/types/session";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createContext, ReactNode, useContext } from "react";
