@@ -137,22 +137,14 @@ authRoute.post("/auth/signin", async (req, res) => {
   const body: SignInBody = req.body;
 
   try {
-    assertRequiredFields(body, ["password"], [["email", "username"]]);
+    assertRequiredFields(body, ["password", "email"]);
 
-    const { password, email, username } = body;
+    const { password, email } = body;
 
     const user = await db
       .selectFrom("users")
       .select(["id", "passwordHash"])
-      .where((eb) => {
-        if (email) {
-          return eb("email", "=", email);
-        } else if (username) {
-          return eb("username", "=", username);
-        } else {
-          throw new MissingFieldsError(["email", "username"]);
-        }
-      })
+      .where("email", "=", email)
       .executeTakeFirstOrThrow();
 
     if (!user) {
@@ -173,8 +165,10 @@ authRoute.post("/auth/signin", async (req, res) => {
       return;
     }
 
-    const accessToken = await createSession(user);
-    res.header("Access-Token", accessToken).json(user);
+    const accessToken = await createSession({ id: user.id });
+    res.header("Access-Token", accessToken).json({
+      id: user.id
+    });
     return;
   } catch (err) {
     if (err instanceof MissingFieldsError) {

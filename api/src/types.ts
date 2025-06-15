@@ -11,7 +11,6 @@ export type RegisterBody = {
 };
 
 export type SignInBody = {
-  username?: string | null;
   email?: string | null;
   password?: string | null;
 };
