@@ -304,6 +304,7 @@ def main():
                 pts_ast_prop_eligible,
             ]
         ):
+            print(f"🚨 Skipping player {player['name']}, {player['id']}\n")            
             continue
 
         # we get the last n games for the opposing team
