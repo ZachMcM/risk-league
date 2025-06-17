@@ -3,11 +3,19 @@ import sys
 from datetime import datetime
 
 import numpy as np
-from constants import minutes_threshold, sigma_coeff, stat_constants
 from my_types import CombinedStatType, MetricStats, StatType
 from sqlalchemy import Engine, select
 from tables import nba_games, nba_player_stats, nba_players
 from utils import db_response_to_json, get_current_season, get_last_season
+
+
+def get_dynamic_sigma_coeff(mpg: float) -> float:
+    base = 0.35  # max sigma_coeff for low-MPG players
+    min_sigma = 0.15  # floor for high-MPG players
+    scale = 0.005  # sensitivity to mpg change
+
+    return max(min_sigma, base - scale * mpg)
+
 
 _metric_stats_cache: dict[tuple[str, str], MetricStats] = {}
 
@@ -35,7 +43,8 @@ def get_metric_stats(engine: Engine, metric: str, position: str) -> MetricStats:
                 select(column)
                 .select_from(j)
                 .where(nba_player_stats.c.season == season)
-                .where(nba_player_stats.c.min >= minutes_threshold)
+                .where(nba_player_stats.c.min > 0)
+                .where(nba_player_stats.c.player_id.is_not(None))
                 .where(nba_games.c.game_type == "regular_season")
                 .where(nba_players.c.position == position)
             )
@@ -80,7 +89,8 @@ def get_combined_metric_stats(
                 select(*columns)
                 .select_from(j)
                 .where(nba_player_stats.c.season == season)
-                .where(nba_player_stats.c.min >= minutes_threshold)
+                .where(nba_player_stats.c.min > 0)
+                .where(nba_player_stats.c.player_id.is_not(None))
                 .where(nba_games.c.game_type == "regular_season")
                 .where(nba_players.c.position == position)
             )
@@ -103,23 +113,26 @@ def get_combined_metric_stats(
 
 # Determines if a player is eligible for a prop on a certain stat
 def is_prop_eligible(
-    engine: Engine, stat_type: StatType, player_stat: float, position: str
+    engine: Engine, stat_type: StatType, player_stat: float, position: str, mpg: float
 ) -> bool:
     stat_desc = get_metric_stats(engine, stat_type, position)
-    if player_stat >= stat_desc["mean"] + stat_constants[stat_type]["standard"]:
+    standard_thresh = stat_desc["mean"] + 1 * stat_desc["sd"]
+    if player_stat >= standard_thresh:
         return True
     else:
-        rand_thresh = (
-            stat_desc["mean"]
-            - stat_constants[stat_type]["fallback"]
-            + random.gauss(0, sigma_coeff * stat_constants[stat_type]["fallback"])
-        )
+        sigma_coeff = get_dynamic_sigma_coeff(mpg)
+        rand_thresh = stat_desc["mean"] - random.gauss(0, sigma_coeff * stat_desc["sd"])
+        rand_thresh = min(rand_thresh, standard_thresh)
         return player_stat >= rand_thresh
 
 
 # checks if a player is eligible for a prop generation for a combined metric
 def is_combined_stat_prop_eligible(
-    engine: Engine, stat_type: CombinedStatType, player_stat: float, position: str
+    engine: Engine,
+    stat_type: CombinedStatType,
+    player_stat: float,
+    position: str,
+    mpg: float,
 ) -> bool:
     combined_metric_list: list[str] = []
     if stat_type == "pra":
@@ -130,12 +143,11 @@ def is_combined_stat_prop_eligible(
         combined_metric_list = ["reb", "ast"]
 
     stat_desc = get_combined_metric_stats(engine, combined_metric_list, position)
-    if player_stat >= stat_desc["mean"] + stat_constants[stat_type]["standard"]:
+    standard_thresh = stat_desc["mean"] + 1 * stat_desc["sd"]
+    if player_stat >= standard_thresh:
         return True
     else:
-        rand_thresh = (
-            stat_desc["mean"]
-            - stat_constants[stat_type]["fallback"]
-            + random.gauss(0, sigma_coeff * stat_constants[stat_type]["fallback"])
-        )
+        sigma_coeff = get_dynamic_sigma_coeff(mpg)
+        rand_thresh = stat_desc["mean"] - random.gauss(0, sigma_coeff * stat_desc["sd"])
+        rand_thresh = min(rand_thresh, standard_thresh)
         return player_stat >= rand_thresh

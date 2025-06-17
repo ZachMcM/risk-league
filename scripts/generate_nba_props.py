@@ -270,23 +270,39 @@ def main():
 
         # then we get the booleans for eligiblity
 
-        pts_prop_eligible = is_prop_eligible(engine, "pts", mu_pts, player["position"])
-        reb_prop_eligible = is_prop_eligible(engine, "reb", mu_reb, player["position"])
-        ast_prop_eligible = is_prop_eligible(engine, "ast", mu_ast, player["position"])
-        three_pm_prop_eligible = is_prop_eligible(
-            engine, "three_pm", mu_three_pm, player["position"]
+        mpg = sum(game["min"] for game in player_data["last_games"]) / len(
+            player_data["last_games"]
         )
-        blk_prop_eligible = is_prop_eligible(engine, "blk", mu_blk, player["position"])
-        stl_prop_eligible = is_prop_eligible(engine, "stl", mu_stl, player["position"])
-        tov_prop_eligible = is_prop_eligible(engine, "tov", mu_tov, player["position"])
+
+        pts_prop_eligible = is_prop_eligible(
+            engine, "pts", mu_pts, player["position"], mpg
+        )
+        reb_prop_eligible = is_prop_eligible(
+            engine, "reb", mu_reb, player["position"], mpg
+        )
+        ast_prop_eligible = is_prop_eligible(
+            engine, "ast", mu_ast, player["position"], mpg
+        )
+        three_pm_prop_eligible = is_prop_eligible(
+            engine, "three_pm", mu_three_pm, player["position"], mpg
+        )
+        blk_prop_eligible = is_prop_eligible(
+            engine, "blk", mu_blk, player["position"], mpg
+        )
+        stl_prop_eligible = is_prop_eligible(
+            engine, "stl", mu_stl, player["position"], mpg
+        )
+        tov_prop_eligible = is_prop_eligible(
+            engine, "tov", mu_tov, player["position"], mpg
+        )
         pra_prop_eligible = is_combined_stat_prop_eligible(
-            engine, "pra", mu_pra, player["position"]
+            engine, "pra", mu_pra, player["position"], mpg
         )
         reb_ast_prop_eligible = is_combined_stat_prop_eligible(
-            engine, "reb_ast", mu_reb_ast, player["position"]
+            engine, "reb_ast", mu_reb_ast, player["position"], mpg
         )
         pts_ast_prop_eligible = is_combined_stat_prop_eligible(
-            engine, "pts_ast", mu_pts_ast, player["position"]
+            engine, "pts_ast", mu_pts_ast, player["position"], mpg
         )
 
         # we just continue and don't do anymore intensive processing if no props are needed to be created
@@ -304,7 +320,7 @@ def main():
                 pts_ast_prop_eligible,
             ]
         ):
-            print(f"🚨 Skipping player {player['name']}, {player['id']}\n")            
+            print(f"🚨 Skipping player {player['name']}, {player['id']}\n")
             continue
 
         # we get the last n games for the opposing team
@@ -321,146 +337,171 @@ def main():
             [game["game_id"] for game in player_data["last_games"]]
         )
 
+        pts_line = None
+        reb_line = None
+        ast_line = None
+
         # check for prop eligibility and if so insert
 
         if pts_ast_prop_eligible:
             pts_line = generate_pts_prop(
                 player_data["last_games"], matchup_last_games, team_last_games
             )
-            insert_prop(
-                pts_line,
-                player_data["game_id"],
-                player["id"],
-                "pts",
-                player_data["game_start_time"],
-            )
-            total_props_generated += 1
+            if pts_line != 0:
+                insert_prop(
+                    pts_line,
+                    player_data["game_id"],
+                    player["id"],
+                    "pts",
+                    player_data["game_start_time"],
+                )
+                total_props_generated += 1
 
         if reb_prop_eligible:
             reb_line = generate_reb_prop(player_data["last_games"], matchup_last_games)
-            insert_prop(
-                reb_line,
-                player_data["game_id"],
-                player["id"],
-                "reb",
-                player_data["game_start_time"],
-            )
-            total_props_generated += 1
+            if reb_line != 0:
+                insert_prop(
+                    reb_line,
+                    player_data["game_id"],
+                    player["id"],
+                    "reb",
+                    player_data["game_start_time"],
+                )
+                total_props_generated += 1
 
         if ast_prop_eligible:
             ast_line = generate_ast_prop(
                 player_data["last_games"], matchup_last_games, team_last_games
             )
-            insert_prop(
-                ast_line,
-                player_data["game_id"],
-                player["id"],
-                "ast",
-                player_data["game_start_time"],
-            )
-            total_props_generated += 1
+            if ast_line != 0:
+                insert_prop(
+                    ast_line,
+                    player_data["game_id"],
+                    player["id"],
+                    "ast",
+                    player_data["game_start_time"],
+                )
+                total_props_generated += 1
 
         if three_pm_prop_eligible:
             three_pm_line = generate_three_pm_prop(
                 player_data["last_games"], matchup_last_games, team_last_games
             )
-            insert_prop(
-                three_pm_line,
-                player_data["game_id"],
-                player["id"],
-                "three_pm",
-                player_data["game_start_time"],
-            )
-            total_props_generated += 1
+            if three_pm_line != 0:
+                insert_prop(
+                    three_pm_line,
+                    player_data["game_id"],
+                    player["id"],
+                    "three_pm",
+                    player_data["game_start_time"],
+                )
+                total_props_generated += 1
 
         if blk_prop_eligible:
             blk_line = generate_blk_prop(
                 player_data["last_games"], matchup_last_games, team_last_games
             )
-            insert_prop(
-                blk_line,
-                player_data["game_id"],
-                player["id"],
-                "blk",
-                player_data["game_start_time"],
-            )
-            total_props_generated += 1
+            if blk_line != 0:
+                insert_prop(
+                    blk_line,
+                    player_data["game_id"],
+                    player["id"],
+                    "blk",
+                    player_data["game_start_time"],
+                )
+                total_props_generated += 1
 
         if stl_prop_eligible:
             stl_line = generate_stl_prop(
                 player_data["last_games"], matchup_last_games, team_last_games
             )
-            insert_prop(
-                stl_line,
-                player_data["game_id"],
-                player["id"],
-                "stl",
-                player_data["game_start_time"],
-            )
-            total_props_generated += 1
+            if stl_line != 0:
+                insert_prop(
+                    stl_line,
+                    player_data["game_id"],
+                    player["id"],
+                    "stl",
+                    player_data["game_start_time"],
+                )
+                total_props_generated += 1
 
         if tov_prop_eligible:
             tov_line = generate_tov_prop(
                 player_data["last_games"], matchup_last_games, team_last_games
             )
-            insert_prop(
-                tov_line,
-                player_data["game_id"],
-                player["id"],
-                "tov",
-                player_data["game_start_time"],
-            )
-            total_props_generated += 1
+            if tov_line != 0:
+                insert_prop(
+                    tov_line,
+                    player_data["game_id"],
+                    player["id"],
+                    "tov",
+                    player_data["game_start_time"],
+                )
+                total_props_generated += 1
 
         if pra_prop_eligible:
-            pts_line = generate_pts_prop(
-                player_data["last_games"], matchup_last_games, team_last_games
-            )
-            reb_line = generate_reb_prop(player_data["last_games"], matchup_last_games)
-            ast_line = generate_ast_prop(
-                player_data["last_games"], matchup_last_games, team_last_games
-            )
+            if pts_line is None:
+                pts_line = generate_pts_prop(
+                    player_data["last_games"], matchup_last_games, team_last_games
+                )
+            if reb_line is None:
+                reb_line = generate_reb_prop(
+                    player_data["last_games"], matchup_last_games
+                )
+            if ast_line is None:
+                ast_line = generate_ast_prop(
+                    player_data["last_games"], matchup_last_games, team_last_games
+                )
             pra_line = round_prop(pts_line + reb_line + ast_line)
-            insert_prop(
-                pra_line,
-                player_data["game_id"],
-                player["id"],
-                "pra",
-                player_data["game_start_time"],
-            )
-            total_props_generated += 1
+            if pra_line != 0:
+                insert_prop(
+                    pra_line,
+                    player_data["game_id"],
+                    player["id"],
+                    "pra",
+                    player_data["game_start_time"],
+                )
+                total_props_generated += 1
 
         if pts_ast_prop_eligible:
-            pts_line = generate_pts_prop(
-                player_data["last_games"], matchup_last_games, team_last_games
-            )
-            ast_line = generate_ast_prop(
-                player_data["last_games"], matchup_last_games, team_last_games
-            )
+            if pts_line is None:
+                pts_line = generate_pts_prop(
+                    player_data["last_games"], matchup_last_games, team_last_games
+                )
+            if ast_line is None:
+                ast_line = generate_ast_prop(
+                    player_data["last_games"], matchup_last_games, team_last_games
+                )
             pts_ast_line = round_prop(pts_line + ast_line)
-            insert_prop(
-                pts_ast_line,
-                player_data["game_id"],
-                player["id"],
-                "pts_ast",
-                player_data["game_start_time"],
-            )
-            total_props_generated += 1
+            if pts_ast_line != 0:
+                insert_prop(
+                    pts_ast_line,
+                    player_data["game_id"],
+                    player["id"],
+                    "pts_ast",
+                    player_data["game_start_time"],
+                )
+                total_props_generated += 1
 
         if reb_ast_prop_eligible:
-            reb_line = generate_reb_prop(player_data["last_games"], matchup_last_games)
-            ast_line = generate_ast_prop(
-                player_data["last_games"], matchup_last_games, team_last_games
-            )
+            if reb_line is None:
+                reb_line = generate_reb_prop(
+                    player_data["last_games"], matchup_last_games
+                )
+            if ast_line is None:
+                ast_line = generate_ast_prop(
+                    player_data["last_games"], matchup_last_games, team_last_games
+                )
             reb_ast_line = round_prop(reb_line + ast_line)
-            insert_prop(
-                reb_ast_line,
-                player_data["game_id"],
-                player["id"],
-                "reb_ast",
-                player_data["game_start_time"],
-            )
-            total_props_generated += 1
+            if reb_ast_line != 0:
+                insert_prop(
+                    reb_ast_line,
+                    player_data["game_id"],
+                    player["id"],
+                    "reb_ast",
+                    player_data["game_start_time"],
+                )
+                total_props_generated += 1
 
     end = time()
     print(

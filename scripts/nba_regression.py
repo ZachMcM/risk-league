@@ -5,6 +5,17 @@ import pandas as pd
 from my_types import NbaGame, NbaPlayerStats
 from sklearn.linear_model import LinearRegression
 
+def get_max_sigma(mpg: float) -> float:
+    """
+    Dynamically scale max_sigma for truncated Gaussian line generation
+    based on a player's minutes per game.
+
+    - Starts at 0.4 for 10 MPG (minimum eligible)
+    - Caps at 1.0 for 35+ MPG (high-minute, stable players)
+    """
+    mpg = max(10, min(mpg, 35))  # Clamp between 10 and 35
+    return 0.4 + (mpg - 10) / (35 - 10) * (1.0 - 0.4)
+
 
 # we using the normal distribution and truncate the max sigma * sigma
 # this gives us a random value (- sigma * max_sigma, + sigma * max_sigma) with values
@@ -31,7 +42,7 @@ def generate_pts_prop(
 ):
     data = pd.DataFrame(
         {
-            "mpg": [game["min"] for game in last_games],
+            "min": [game["min"] for game in last_games],
             "fga": [game["fga"] for game in last_games],
             "three_pa": [game["three_pa"] for game in last_games],
             "true_shooting": [game["true_shooting"] for game in last_games],
@@ -45,7 +56,7 @@ def generate_pts_prop(
 
     x_values = data[
         [
-            "mpg",
+            "min",
             "fga",
             "three_pa",
             "true_shooting",
@@ -61,7 +72,8 @@ def generate_pts_prop(
     next_game_features = pd.DataFrame([x_values.mean()])
     predicted_pts = model.predict(next_game_features)[0]
     sd = np.std(data["pts"], ddof=1)
-    final_prop = generate_prop_truncated_gaussian(predicted_pts, sd)
+    max_sigma = get_max_sigma(np.mean(data["min"]))
+    final_prop = generate_prop_truncated_gaussian(predicted_pts, sd, max_sigma)
     return final_prop
 
 
@@ -72,7 +84,7 @@ def generate_reb_prop(
 ):
     data = pd.DataFrame(
         {
-            "mpg": [game["min"] for game in last_games],
+            "min": [game["min"] for game in last_games],
             "reb_pct": [game["reb_pct"] for game in last_games],
             "dreb_pct": [game["dreb_pct"] for game in last_games],
             "oreb_pct": [game["oreb_pct"] for game in last_games],
@@ -86,7 +98,7 @@ def generate_reb_prop(
     )
 
     x_values = data[
-        ["mpg", "reb_pct", "dreb_pct", "oreb_pct", "opp_fg_pct", "opp_pace"]
+        ["min", "reb_pct", "dreb_pct", "oreb_pct", "opp_fg_pct", "opp_pace"]
     ]
     y_values = data["reb"]
 
@@ -94,7 +106,8 @@ def generate_reb_prop(
     next_game_features = pd.DataFrame([x_values.mean()])
     predicted_reb = model.predict(next_game_features)[0]
     sd = np.std(data["reb"], ddof=1)
-    final_prop = generate_prop_truncated_gaussian(predicted_reb, sd)
+    max_sigma = get_max_sigma(np.mean(data["min"]))
+    final_prop = generate_prop_truncated_gaussian(predicted_reb, sd, max_sigma)
     return final_prop
 
 
@@ -106,7 +119,7 @@ def generate_ast_prop(
 ):
     data = pd.DataFrame(
         {
-            "mpg": [game["min"] for game in last_games],
+            "min": [game["min"] for game in last_games],
             "ast_pct": [game["ast_pct"] for game in last_games],
             "ast_ratio": [game["ast_ratio"] for game in last_games],
             "team_fg_pct": [
@@ -122,7 +135,7 @@ def generate_ast_prop(
 
     x_values = data[
         [
-            "mpg",
+            "min",
             "ast_pct",
             "ast_ratio",
             "team_fg_pct",
@@ -137,7 +150,8 @@ def generate_ast_prop(
     next_game_features = pd.DataFrame([x_values.mean()])
     predicted_ast = model.predict(next_game_features)[0]
     sd = np.std(data["ast"], ddof=1)
-    final_prop = generate_prop_truncated_gaussian(predicted_ast, sd)
+    max_sigma = get_max_sigma(np.mean(data["min"]))
+    final_prop = generate_prop_truncated_gaussian(predicted_ast, sd, max_sigma)
     return final_prop
 
 
@@ -149,7 +163,7 @@ def generate_three_pm_prop(
 ):
     data = pd.DataFrame(
         {
-            "mpg": [game["min"] for game in last_games],
+            "min": [game["min"] for game in last_games],
             "team_off_rating": [game["off_rating"] for game in team_last_games],
             "opp_def_rating": [game["def_rating"] for game in matchup_last_games],
             "usage_rate": [game["usage_rate"] for game in last_games],
@@ -168,7 +182,7 @@ def generate_three_pm_prop(
 
     x_values = data[
         [
-            "mpg",
+            "min",
             "team_off_rating",
             "opp_def_rating",
             "usage_rate",
@@ -182,7 +196,8 @@ def generate_three_pm_prop(
     next_game_features = pd.DataFrame([x_values.mean()])
     predicted_three_pm = model.predict(next_game_features)[0]
     sd = np.std(data["three_pm"], ddof=1)
-    final_prop = generate_prop_truncated_gaussian(predicted_three_pm, sd)
+    max_sigma = get_max_sigma(np.mean(data["min"]))
+    final_prop = generate_prop_truncated_gaussian(predicted_three_pm, sd, max_sigma)
     return final_prop
 
 
@@ -194,7 +209,7 @@ def generate_blk_prop(
 ):
     data = pd.DataFrame(
         {
-            "mpg": [game["min"] for game in last_games],
+            "min": [game["min"] for game in last_games],
             "pct_blk_a": [
                 (
                     0
@@ -211,14 +226,15 @@ def generate_blk_prop(
     )
 
     x_values = data[
-        ["mpg", "pct_blk_a", "opp_pace", "opp_off_rating", "team_def_rating"]
+        ["min", "pct_blk_a", "opp_pace", "opp_off_rating", "team_def_rating"]
     ]
     y_values = data["blk"]
     model = LinearRegression().fit(x_values, y_values)
     next_game_features = pd.DataFrame([x_values.mean()])
     predicted_blk = model.predict(next_game_features)[0]
     sd = np.std(data["blk"], ddof=1)
-    final_prop = generate_prop_truncated_gaussian(predicted_blk, sd)
+    max_sigma = get_max_sigma(np.mean(data["min"]))
+    final_prop = generate_prop_truncated_gaussian(predicted_blk, sd, max_sigma)
     return final_prop
 
 
@@ -230,7 +246,7 @@ def generate_stl_prop(
 ):
     data = pd.DataFrame(
         {
-            "mpg": [game["min"] for game in last_games],
+            "min": [game["min"] for game in last_games],
             "team_def_rating": [game["def_rating"] for game in team_last_games],
             "opp_off_rating": [game["off_rating"] for game in matchup_last_games],
             "opp_pace": [game["pace"] for game in matchup_last_games],
@@ -251,7 +267,7 @@ def generate_stl_prop(
 
     x_values = data[
         [
-            "mpg",
+            "min",
             "team_def_rating",
             "opp_off_rating",
             "opp_pace",
@@ -267,7 +283,8 @@ def generate_stl_prop(
     next_game_features = pd.DataFrame([x_values.mean()])
     predicted_stl = model.predict(next_game_features)[0]
     sd = np.std(data["stl"], ddof=1)
-    final_prop = generate_prop_truncated_gaussian(predicted_stl, sd)
+    max_sigma = get_max_sigma(np.mean(data["min"]))
+    final_prop = generate_prop_truncated_gaussian(predicted_stl, sd, max_sigma)
     return final_prop
 
 
@@ -279,7 +296,7 @@ def generate_tov_prop(
 ):
     data = pd.DataFrame(
         {
-            "mpg": [game["min"] for game in last_games],
+            "min": [game["min"] for game in last_games],
             "usage_rate": [game["usage_rate"] for game in last_games],
             "team_off_rating": [game["off_rating"] for game in team_last_games],
             "opp_def_rating": [game["def_rating"] for game in matchup_last_games],
@@ -291,7 +308,7 @@ def generate_tov_prop(
 
     x_values = data[
         [
-            "mpg",
+            "min",
             "usage_rate",
             "team_off_rating",
             "opp_def_rating",
@@ -305,5 +322,6 @@ def generate_tov_prop(
     next_game_features = pd.DataFrame([x_values.mean()])
     predicted_tov = model.predict(next_game_features)[0]
     sd = np.std(data["tov"], ddof=1)
-    final_prop = generate_prop_truncated_gaussian(predicted_tov, sd)
+    max_sigma = get_max_sigma(np.mean(data["min"]))
+    final_prop = generate_prop_truncated_gaussian(predicted_tov, sd, max_sigma)
     return final_prop
