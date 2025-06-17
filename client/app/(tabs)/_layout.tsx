@@ -30,8 +30,8 @@ export default function TabsLayout() {
         },
         tabBarActiveTintColor: "hsl(324.9505 80.8% 50.9804%)", // from --primary
         tabBarInactiveTintColor: isDarkColorScheme
-          ? "hsl(223.8136 0% 63.0163%)" // from --muted-foreground dark root
-          : "hsl(223.8136 0% 45.1519%)", // from --muted-foreground root
+          ? "hsl(223.8136 0% 63.0163%)" // from --muted-foreground .dark:root
+          : "hsl(223.8136 0% 45.1519%)", // from --muted-foreground .root
       }}
     >
       <Tabs.Screen

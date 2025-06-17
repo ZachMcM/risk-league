@@ -21,10 +21,13 @@ import * as React from "react";
 import { useEffect } from "react";
 import type { AppStateStatus } from "react-native";
 import { Appearance, AppState, Platform } from "react-native";
+import { Toaster } from "sonner-native";
 import { SessionProvider } from "~/components/providers/SessionProvider";
 import { setAndroidNavigationBar } from "~/lib/android-navigation-bar";
 import { NAV_THEME } from "~/lib/constants";
 import { useColorScheme } from "~/lib/useColorScheme";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 onlineManager.setEventListener((setOnline) => {
   const eventSubscription = Network.addNetworkStateListener((state) => {
@@ -51,7 +54,7 @@ const usePlatformSpecificSetup = Platform.select({
 export {
   // Catch any errors thrown by the Layout component.
   ErrorBoundary,
-} from 'expo-router';
+} from "expo-router";
 
 const queryClient = new QueryClient();
 
@@ -72,31 +75,48 @@ export default function RootLayout() {
   const { isDarkColorScheme } = useColorScheme();
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <SessionProvider>
-        <ThemeProvider value={isDarkColorScheme ? DARK_THEME : LIGHT_THEME}>
-          <StatusBar style={isDarkColorScheme ? "light" : "dark"} />
-          <Stack>
-            <Stack.Screen
-              name="(tabs)"
-              options={{
-                headerShown: false,
-              }}
-            />
-            <Stack.Screen
-              name="+not-found"
-              options={{
-                headerShown: false,
-              }}
-            />
-            <Stack.Screen name="landing" options={{ headerShown: false }} />
-            <Stack.Screen name="signin" options={{ headerShown: false }} />
-            <Stack.Screen name="signup" options={{ headerShown: false }} />
-          </Stack>
-          <PortalHost />
-        </ThemeProvider>
-      </SessionProvider>
-    </QueryClientProvider>
+    <SafeAreaProvider>
+      <GestureHandlerRootView>
+        <QueryClientProvider client={queryClient}>
+          <SessionProvider>
+            <ThemeProvider value={isDarkColorScheme ? DARK_THEME : LIGHT_THEME}>
+              <StatusBar style={isDarkColorScheme ? "light" : "dark"} />
+              <Stack>
+                <Stack.Screen
+                  name="(tabs)"
+                  options={{
+                    headerShown: false,
+                  }}
+                />
+                <Stack.Screen
+                  name="+not-found"
+                  options={{
+                    headerShown: false,
+                  }}
+                />
+                <Stack.Screen name="landing" options={{ headerShown: false }} />
+                <Stack.Screen name="signin" options={{ headerShown: false }} />
+                <Stack.Screen name="signup" options={{ headerShown: false }} />
+              </Stack>
+              <PortalHost />
+            </ThemeProvider>
+          </SessionProvider>
+          <Toaster
+            toastOptions={{
+              style: {
+                backgroundColor: isDarkColorScheme
+                  ? "hsl(223.8136 0% 9.0527%)" // from --card .dark:root
+                  : "hsl(223.8136 -172.5242% 100%)", // from --card .root
+                borderColor: isDarkColorScheme
+                  ? "hsl(223.8136 0% 15.5096%)" // from --border .dark:root
+                  : "hsl(223.8136 0.0001% 89.8161%)", // from --border .root
+                borderWidth: 1
+              },
+            }}
+          />
+        </QueryClientProvider>
+      </GestureHandlerRootView>
+    </SafeAreaProvider>
   );
 }
 

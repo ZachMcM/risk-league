@@ -7,6 +7,7 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createContext, ReactNode, useContext } from "react";
 import { SessionProviderValues } from "~/types/session";
+import { toast } from 'sonner-native';
 
 const SessionContext = createContext<SessionProviderValues | null>(null);
 
@@ -25,12 +26,12 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     mutationFn: signInRequest,
     onError: (err) => {
       console.log(err);
-      // TODO
+      toast.error(err.message)
     },
     onSuccess: (data) => {
-      // TODO
       console.log(data)
       queryClient.invalidateQueries({ queryKey: ["session"] });
+      toast.success("Sign in successful")
     },
   });
 
@@ -38,25 +39,25 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     mutationFn: signUpRequest,
     onError: (err) => {
       console.log(err);
-      // TODO
+      toast.error(err.message)
     },
     onSuccess: (data) => {
-      // TODO
       console.log(data)
       queryClient.invalidateQueries({ queryKey: ["session"] });
+      toast.success("Sign up successful")
     },
   });
 
   const { mutate: signOut, isPending: isSignOutPending } = useMutation({
     mutationFn: signOutRequest,
     onError: (err) => {
-      // TODO
       console.log(err)
+      toast.error(err.message)
     },
     onSuccess: (data) => {
-      // TODO
       console.log(data)
       queryClient.invalidateQueries({ queryKey: ["session"] });
+      toast.success("Sign out successful")
     },
   });
 

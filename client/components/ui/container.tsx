@@ -1,11 +1,13 @@
 import { ReactNode } from "react"
-import { View } from "react-native"
+import { KeyboardAvoidingView, View } from "react-native"
 
-function Container({ children }: { children: ReactNode }) {
+function Container({ children }: { children?: ReactNode }) {
   return (
-    <View className="flex flex-1 py-24 px-6">
-      {children}
-    </View>
+    <KeyboardAvoidingView  className="flex-1 flex" behavior="padding">
+      <View className="flex flex-1 py-24 px-6">
+        {children}
+      </View>
+    </KeyboardAvoidingView>
   )
 }
 

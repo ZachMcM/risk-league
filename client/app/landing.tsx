@@ -24,11 +24,11 @@ export default function Landing() {
         <View className="flex-col gap-8 flex-1 justify-end p-2">
           <View className="flex-col gap-1">
             <Text>
-              <Text className="font-bold text-5xl">Play.</Text>
-              <Text className="font-bold text-5xl text-primary"> Risk.</Text>
-              <Text className="font-bold text-5xl"> Win.</Text>
+              <Text className="font-black text-5xl">Play.</Text>
+              <Text className="font-black text-5xl text-primary"> Risk.</Text>
+              <Text className="font-black text-5xl"> Win.</Text>
             </Text>
-            <Text className="text-muted-foreground text-xl">
+            <Text className="text-muted-foreground font-medium text-xl">
               The ultimate competitive fantasy sports betting game. Battle 1v1,
               climb the ELO ladder, and prove you're the best.
             </Text>
