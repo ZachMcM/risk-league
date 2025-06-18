@@ -5,17 +5,23 @@ from time import time
 
 import numpy as np
 import requests
-from constants import minutes_threshold, n_games
 from dotenv import load_dotenv
+from nba_constants import minutes_threshold, n_games
 from nba_eligibility import is_combined_stat_prop_eligible, is_prop_eligible
-from nba_regression import (generate_ast_prop, generate_blk_prop,
-                            generate_pts_prop, generate_reb_prop,
-                            generate_stl_prop, generate_three_pm_prop,
-                            generate_tov_prop, round_prop)
+from nba_regression import (
+    generate_ast_prop,
+    generate_blk_prop,
+    generate_pts_prop,
+    generate_reb_prop,
+    generate_stl_prop,
+    generate_three_pm_prop,
+    generate_tov_prop,
+    round_prop,
+)
+from nba_tables import nba_games, nba_player_stats, nba_players, nba_props
 from nba_types import NbaGame, NbaPlayer, NbaPlayerStats, PlayerData
 from sqlalchemy import create_engine, or_, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
-from tables import nba_games, nba_player_stats, nba_players, nba_props
 from utils import db_response_to_json
 
 load_dotenv()
@@ -32,7 +38,7 @@ def get_today_games(test_date=None):
 
     if test_date is not None:
         today_str = test_date + " 00:00:00"
-        
+
     for date in data["leagueSchedule"]["gameDates"]:
         if date["gameDate"] == today_str:
             return date["games"]
@@ -199,7 +205,9 @@ def main():
 
     todays_games = get_today_games(test_date=test_date)
 
-    print(f"Finished getting games for {'today' if test_date is None else test_date} ✅\n")
+    print(
+        f"Finished getting games for {'today' if test_date is None else test_date} ✅\n"
+    )
 
     player_data_list: list[PlayerData] = []
     team_games_cache: dict[str, list[NbaGame]] = {}
@@ -320,7 +328,9 @@ def main():
                 pts_ast_prop_eligible,
             ]
         ):
-            print(f"🚨 Skipping player {player['name']}, {player['id']}. Not eligible by stats but passed minutes threshold.\n")
+            print(
+                f"🚨 Skipping player {player['name']}, {player['id']}. Not eligible by stats but passed minutes threshold.\n"
+            )
             continue
 
         # we get the last n games for the opposing team

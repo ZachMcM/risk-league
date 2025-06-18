@@ -3,11 +3,15 @@ import sys
 from datetime import datetime
 
 import numpy as np
-from constants import (secondary_fallback_pct, soft_k_subtrahend,
-                       strict_k_high_volume, strict_k_low_volume)
+from nba_constants import (
+    secondary_fallback_pct,
+    soft_k_subtrahend,
+    strict_k_high_volume,
+    strict_k_low_volume,
+)
+from nba_tables import nba_games, nba_player_stats, nba_players
 from nba_types import CombinedStatType, MetricStats, StatType
 from sqlalchemy import Engine, select
-from tables import nba_games, nba_player_stats, nba_players
 from utils import db_response_to_json, get_current_season, get_last_season
 
 

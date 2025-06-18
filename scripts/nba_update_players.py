@@ -1,15 +1,16 @@
 import os
+import time
+
 import pandas as pd
+from dotenv import load_dotenv
+from nba_api.stats.endpoints import commonteamroster
+from nba_api.stats.static import teams
+from nba_constants import req_pause_time
+from nba_tables import nba_players
 from sqlalchemy import create_engine
 from sqlalchemy.dialects.postgresql import insert as pg_insert
-from nba_api.stats.static import teams
-from nba_api.stats.endpoints import commonteamroster
-from dotenv import load_dotenv
 from sqlalchemy.exc import IntegrityError
-from tables import nba_players
-import time
 from utils import get_current_season
-from constants import req_pause_time
 
 # Load environment variables
 load_dotenv()

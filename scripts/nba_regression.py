@@ -1,7 +1,11 @@
 import numpy as np
 import pandas as pd
-from constants import (bias_gaussian_mean, bias_gaussian_sd, bias_lower_bound,
-                       bias_upper_bound)
+from nba_constants import (
+    bias_gaussian_mean,
+    bias_gaussian_sd,
+    bias_lower_bound,
+    bias_upper_bound,
+)
 from nba_types import NbaGame, NbaPlayerStats
 from sklearn.linear_model import LinearRegression
 

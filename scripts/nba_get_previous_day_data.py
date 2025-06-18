@@ -4,14 +4,17 @@ import time
 from datetime import datetime, timedelta
 
 import pandas as pd
-from constants import req_pause_time
 from dotenv import load_dotenv
-from nba_api.stats.endpoints import (boxscoreadvancedv3, boxscoretraditionalv3,
-                                     leaguegamefinder)
+from nba_api.stats.endpoints import (
+    boxscoreadvancedv3,
+    boxscoretraditionalv3,
+    leaguegamefinder,
+)
 from nba_api.stats.static.players import get_active_players
+from nba_constants import req_pause_time
+from nba_tables import nba_games, nba_player_stats
 from sqlalchemy import create_engine, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
-from tables import nba_games, nba_player_stats
 from utils import clean_minutes, get_current_season, get_game_type
 
 # This script updates the database with all the NBA games from the past day
@@ -154,7 +157,7 @@ def insert_player_advanced_stats(
             )
 
             conn.execute(stmt)
-            print(f"✅ Inserted game {id} advanced stats\n")
+            print(f"✅ Inserted player {id} advanced stats\n")
     except Exception as e:
         print(f"⚠️ There was an error inserting advanced stats for game {id}, {e}")
         sys.exit(1)

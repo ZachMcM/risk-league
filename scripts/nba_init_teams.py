@@ -1,11 +1,11 @@
 import os
+
 import pandas as pd
-from sqlalchemy import create_engine
-from nba_api.stats.static import teams
 from dotenv import load_dotenv
+from nba_api.stats.static import teams
+from nba_tables import nba_teams
 from sqlalchemy import create_engine, insert
 from sqlalchemy.exc import IntegrityError
-from tables import nba_teams
 
 # This script initializes the database with NBA teams. This script should only be run once to populate the database with historical data.
 load_dotenv()

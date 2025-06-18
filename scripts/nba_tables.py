@@ -1,12 +1,12 @@
 from sqlalchemy import (
-    Table,
-    Column,
-    MetaData,
-    Integer,
-    String,
     TIMESTAMP,
+    Column,
     ForeignKey,
+    Integer,
+    MetaData,
     Numeric,
+    String,
+    Table,
     text,
 )
 
@@ -120,5 +120,7 @@ nba_props = Table(
     Column("game_start_time", TIMESTAMP),
     Column("line", Numeric),
     Column("current_value", Numeric),
-    Column("created_at", TIMESTAMP(timezone=True), server_default=text("CURRENT_TIMESTAMP")),
+    Column(
+        "created_at", TIMESTAMP(timezone=True), server_default=text("CURRENT_TIMESTAMP")
+    ),
 )

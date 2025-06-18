@@ -5,10 +5,10 @@ from datetime import datetime
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from dotenv import load_dotenv
-from nba_types import StatType, stat_name_list
 from nba_api.live.nba.endpoints import BoxScore, ScoreBoard
+from nba_tables import nba_props
+from nba_types import StatType, stat_name_list
 from sqlalchemy import create_engine, update
-from tables import nba_props
 
 load_dotenv()
 engine = create_engine(os.getenv("DATABASE_URL"))

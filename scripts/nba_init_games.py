@@ -1,15 +1,16 @@
 import os
+import sys
 import time
+
 import pandas as pd
-from nba_api.stats.endpoints import leaguegamefinder, boxscoreadvancedv3
 from dotenv import load_dotenv
+from nba_api.stats.endpoints import boxscoreadvancedv3, leaguegamefinder
+from nba_constants import req_pause_time
+from nba_tables import nba_games
 from sqlalchemy import create_engine, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.exc import IntegrityError
-from tables import nba_games
 from utils import get_current_season, get_game_type
-import sys
-from constants import req_pause_time
 
 # This script initializes the database with NBA game data from multiple seasons. This script should only be run once to populate the database with historical data.
 

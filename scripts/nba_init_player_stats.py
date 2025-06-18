@@ -1,19 +1,20 @@
 import os
+import sys
 import time
-from sqlalchemy import create_engine, update
+
+import pandas as pd
+from dotenv import load_dotenv
 from nba_api.stats.endpoints import (
-    leaguegamefinder,
-    boxscoretraditionalv3,
     boxscoreadvancedv3,
+    boxscoretraditionalv3,
+    leaguegamefinder,
 )
 from nba_api.stats.static.players import get_active_players
-from dotenv import load_dotenv
-from tables import nba_player_stats
-from utils import clean_minutes, get_current_season
+from nba_constants import req_pause_time
+from nba_tables import nba_player_stats
+from sqlalchemy import create_engine, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
-import pandas as pd
-import sys
-from constants import req_pause_time
+from utils import clean_minutes, get_current_season
 
 
 # Fetch game metadata for a given season
