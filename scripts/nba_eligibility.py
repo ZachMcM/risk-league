@@ -3,18 +3,21 @@ import sys
 from datetime import datetime
 
 import numpy as np
-from my_types import CombinedStatType, MetricStats, StatType
+from constants import (secondary_fallback_pct, soft_k_subtrahend,
+                       strict_k_high_volume, strict_k_low_volume)
+from nba_types import CombinedStatType, MetricStats, StatType
 from sqlalchemy import Engine, select
 from tables import nba_games, nba_player_stats, nba_players
 from utils import db_response_to_json, get_current_season, get_last_season
 
 
 def get_dynamic_sigma_coeff(mpg: float) -> float:
-    base = 0.35  # max sigma_coeff for low-MPG players
-    min_sigma = 0.15  # floor for high-MPG players
-    scale = 0.005  # sensitivity to mpg change
+    min_sigma = 0.2  # low MPG = still has a shot
+    max_sigma = 1  # high MPG = forgiving fallback
+    max_mpg = 35.0
 
-    return max(min_sigma, base - scale * mpg)
+    mpg = min(max(mpg, 0), max_mpg)
+    return min_sigma + (max_sigma - min_sigma) * (mpg / max_mpg)
 
 
 _metric_stats_cache: dict[tuple[str, str], MetricStats] = {}
@@ -113,24 +116,39 @@ def get_combined_metric_stats(
 
 # Determines if a player is eligible for a prop on a certain stat
 def is_prop_eligible(
-    engine: Engine, stat_type: StatType, player_stat: float, position: str, mpg: float
+    engine: Engine,
+    stat_type: StatType,
+    player_stat_average: float,
+    position: str,
+    mpg: float,
 ) -> bool:
     stat_desc = get_metric_stats(engine, stat_type, position)
-    standard_thresh = stat_desc["mean"] + 1 * stat_desc["sd"]
-    if player_stat >= standard_thresh:
+    strict_k = (
+        strict_k_high_volume
+        if stat_type in ["pts", "reb", "ast"]
+        else strict_k_low_volume
+    )
+    standard_thresh = stat_desc["mean"] + strict_k * stat_desc["sd"]
+    if player_stat_average >= standard_thresh:
         return True
     else:
-        sigma_coeff = get_dynamic_sigma_coeff(mpg)
-        rand_thresh = stat_desc["mean"] - random.gauss(0, sigma_coeff * stat_desc["sd"])
-        rand_thresh = min(rand_thresh, standard_thresh)
-        return player_stat >= rand_thresh
+        soft_k = max(0.1, strict_k - soft_k_subtrahend)
+        if player_stat_average >= stat_desc["mean"] + soft_k * stat_desc["sd"]:
+            if random.random() < secondary_fallback_pct:
+                return True
+            else:
+                sigma_coeff = get_dynamic_sigma_coeff(mpg)
+                rand_thresh = stat_desc["mean"] - random.gauss(
+                    0, sigma_coeff * stat_desc["sd"]
+                )
+                return player_stat_average >= rand_thresh
 
 
 # checks if a player is eligible for a prop generation for a combined metric
 def is_combined_stat_prop_eligible(
     engine: Engine,
     stat_type: CombinedStatType,
-    player_stat: float,
+    player_stat_average: float,
     position: str,
     mpg: float,
 ) -> bool:
@@ -143,11 +161,19 @@ def is_combined_stat_prop_eligible(
         combined_metric_list = ["reb", "ast"]
 
     stat_desc = get_combined_metric_stats(engine, combined_metric_list, position)
-    standard_thresh = stat_desc["mean"] + 1 * stat_desc["sd"]
-    if player_stat >= standard_thresh:
+    strict_k = strict_k_high_volume
+    standard_thresh = stat_desc["mean"] + strict_k * stat_desc["sd"]
+    if player_stat_average >= standard_thresh:
         return True
     else:
-        sigma_coeff = get_dynamic_sigma_coeff(mpg)
-        rand_thresh = stat_desc["mean"] - random.gauss(0, sigma_coeff * stat_desc["sd"])
-        rand_thresh = min(rand_thresh, standard_thresh)
-        return player_stat >= rand_thresh
+        soft_k = strict_k - soft_k_subtrahend
+        if player_stat_average >= stat_desc["mean"] + soft_k * stat_desc["sd"]:
+            if random.random() < secondary_fallback_pct:
+                return True
+            else:
+                sigma_coeff = get_dynamic_sigma_coeff(mpg)
+                rand_thresh = stat_desc["mean"] - random.gauss(
+                    0, sigma_coeff * stat_desc["sd"]
+                )
+                rand_thresh = min(rand_thresh, standard_thresh)
+                return player_stat_average >= rand_thresh

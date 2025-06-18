@@ -1,32 +1,9 @@
-import random
-
 import numpy as np
 import pandas as pd
-from my_types import NbaGame, NbaPlayerStats
+from constants import (bias_gaussian_mean, bias_gaussian_sd, bias_lower_bound,
+                       bias_upper_bound)
+from nba_types import NbaGame, NbaPlayerStats
 from sklearn.linear_model import LinearRegression
-
-def get_max_sigma(mpg: float) -> float:
-    """
-    Dynamically scale max_sigma for truncated Gaussian line generation
-    based on a player's minutes per game.
-
-    - Starts at 0.4 for 10 MPG (minimum eligible)
-    - Caps at 1.0 for 35+ MPG (high-minute, stable players)
-    """
-    mpg = max(10, min(mpg, 35))  # Clamp between 10 and 35
-    return 0.4 + (mpg - 10) / (35 - 10) * (1.0 - 0.4)
-
-
-# we using the normal distribution and truncate the max sigma * sigma
-# this gives us a random value (- sigma * max_sigma, + sigma * max_sigma) with values
-# close to the mean much more likely
-def generate_prop_truncated_gaussian(
-    mean: float, std_dev: float, max_sigma: float = 1.5
-) -> float:
-    while True:
-        sample = random.gauss(mean, std_dev)
-        if abs(sample - mean) <= max_sigma * std_dev:
-            return round_prop(sample)
 
 
 # rounds props to 0.5
@@ -34,12 +11,18 @@ def round_prop(line) -> float:
     return round(round(line / 0.5) * 0.5, 1)
 
 
+def get_bias() -> float:
+    bias = np.random.normal(bias_gaussian_mean, bias_gaussian_sd)
+    bias = np.clip(bias, bias_lower_bound, bias_upper_bound)
+    return bias
+
+
 # generates a prop for pts
 def generate_pts_prop(
     last_games: list[NbaPlayerStats],
     matchup_last_games: list[NbaGame],
     team_last_games: list[NbaGame],
-):
+) -> float:
     data = pd.DataFrame(
         {
             "min": [game["min"] for game in last_games],
@@ -72,16 +55,16 @@ def generate_pts_prop(
     next_game_features = pd.DataFrame([x_values.mean()])
     predicted_pts = model.predict(next_game_features)[0]
     sd = np.std(data["pts"], ddof=1)
-    max_sigma = get_max_sigma(np.mean(data["min"]))
-    final_prop = generate_prop_truncated_gaussian(predicted_pts, sd, max_sigma)
-    return final_prop
+    bias = get_bias()
+    final_prop = predicted_pts + bias * sd
+    return round_prop(final_prop)
 
 
 # generates a prop for rebounds
 def generate_reb_prop(
     last_games: list[NbaPlayerStats],
     matchup_last_games: list[NbaGame],
-):
+) -> float:
     data = pd.DataFrame(
         {
             "min": [game["min"] for game in last_games],
@@ -106,9 +89,9 @@ def generate_reb_prop(
     next_game_features = pd.DataFrame([x_values.mean()])
     predicted_reb = model.predict(next_game_features)[0]
     sd = np.std(data["reb"], ddof=1)
-    max_sigma = get_max_sigma(np.mean(data["min"]))
-    final_prop = generate_prop_truncated_gaussian(predicted_reb, sd, max_sigma)
-    return final_prop
+    bias = get_bias()
+    final_prop = predicted_reb + bias * sd
+    return round_prop(final_prop)
 
 
 # generates a prop for assists
@@ -116,7 +99,7 @@ def generate_ast_prop(
     last_games: list[NbaPlayerStats],
     matchup_last_games: list[NbaGame],
     team_last_games: list[NbaGame],
-):
+) -> float:
     data = pd.DataFrame(
         {
             "min": [game["min"] for game in last_games],
@@ -150,9 +133,9 @@ def generate_ast_prop(
     next_game_features = pd.DataFrame([x_values.mean()])
     predicted_ast = model.predict(next_game_features)[0]
     sd = np.std(data["ast"], ddof=1)
-    max_sigma = get_max_sigma(np.mean(data["min"]))
-    final_prop = generate_prop_truncated_gaussian(predicted_ast, sd, max_sigma)
-    return final_prop
+    bias = get_bias()
+    final_prop = predicted_ast + bias * sd
+    return round_prop(final_prop)
 
 
 # generates a prop for three pointers made
@@ -160,7 +143,7 @@ def generate_three_pm_prop(
     last_games: list[NbaPlayerStats],
     matchup_last_games: list[NbaGame],
     team_last_games: list[NbaGame],
-):
+) -> float:
     data = pd.DataFrame(
         {
             "min": [game["min"] for game in last_games],
@@ -196,9 +179,9 @@ def generate_three_pm_prop(
     next_game_features = pd.DataFrame([x_values.mean()])
     predicted_three_pm = model.predict(next_game_features)[0]
     sd = np.std(data["three_pm"], ddof=1)
-    max_sigma = get_max_sigma(np.mean(data["min"]))
-    final_prop = generate_prop_truncated_gaussian(predicted_three_pm, sd, max_sigma)
-    return final_prop
+    bias = get_bias()
+    final_prop = predicted_three_pm + bias * sd
+    return round_prop(final_prop)
 
 
 # generates a prop for blocks
@@ -206,7 +189,7 @@ def generate_blk_prop(
     last_games: list[NbaPlayerStats],
     matchup_last_games: list[NbaGame],
     team_last_games: list[NbaGame],
-):
+) -> float:
     data = pd.DataFrame(
         {
             "min": [game["min"] for game in last_games],
@@ -233,9 +216,9 @@ def generate_blk_prop(
     next_game_features = pd.DataFrame([x_values.mean()])
     predicted_blk = model.predict(next_game_features)[0]
     sd = np.std(data["blk"], ddof=1)
-    max_sigma = get_max_sigma(np.mean(data["min"]))
-    final_prop = generate_prop_truncated_gaussian(predicted_blk, sd, max_sigma)
-    return final_prop
+    bias = get_bias()
+    final_prop = predicted_blk + bias * sd
+    return round_prop(final_prop)
 
 
 # generates a prop for steals
@@ -243,7 +226,7 @@ def generate_stl_prop(
     last_games: list[NbaPlayerStats],
     matchup_last_games: list[NbaGame],
     team_last_games: list[NbaGame],
-):
+) -> float:
     data = pd.DataFrame(
         {
             "min": [game["min"] for game in last_games],
@@ -283,9 +266,9 @@ def generate_stl_prop(
     next_game_features = pd.DataFrame([x_values.mean()])
     predicted_stl = model.predict(next_game_features)[0]
     sd = np.std(data["stl"], ddof=1)
-    max_sigma = get_max_sigma(np.mean(data["min"]))
-    final_prop = generate_prop_truncated_gaussian(predicted_stl, sd, max_sigma)
-    return final_prop
+    bias = get_bias()
+    final_prop = predicted_stl + bias * sd
+    return round_prop(final_prop)
 
 
 # generates a prop for turnovers
@@ -293,7 +276,7 @@ def generate_tov_prop(
     last_games: list[NbaPlayerStats],
     matchup_last_games: list[NbaGame],
     team_last_games: list[NbaGame],
-):
+) -> float:
     data = pd.DataFrame(
         {
             "min": [game["min"] for game in last_games],
@@ -322,6 +305,6 @@ def generate_tov_prop(
     next_game_features = pd.DataFrame([x_values.mean()])
     predicted_tov = model.predict(next_game_features)[0]
     sd = np.std(data["tov"], ddof=1)
-    max_sigma = get_max_sigma(np.mean(data["min"]))
-    final_prop = generate_prop_truncated_gaussian(predicted_tov, sd, max_sigma)
-    return final_prop
+    bias = get_bias()
+    final_prop = predicted_tov + bias * sd
+    return round_prop(final_prop)

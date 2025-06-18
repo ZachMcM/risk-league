@@ -7,12 +7,12 @@ import numpy as np
 import requests
 from constants import minutes_threshold, n_games
 from dotenv import load_dotenv
-from my_types import NbaGame, NbaPlayer, NbaPlayerStats, PlayerData
 from nba_eligibility import is_combined_stat_prop_eligible, is_prop_eligible
 from nba_regression import (generate_ast_prop, generate_blk_prop,
                             generate_pts_prop, generate_reb_prop,
                             generate_stl_prop, generate_three_pm_prop,
                             generate_tov_prop, round_prop)
+from nba_types import NbaGame, NbaPlayer, NbaPlayerStats, PlayerData
 from sqlalchemy import create_engine, or_, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from tables import nba_games, nba_player_stats, nba_players, nba_props
@@ -30,9 +30,9 @@ def get_today_games(test_date=None):
 
     today_str = datetime.today().strftime("%m/%d/%Y 00:00:00")
 
-    if test_date != None:
-        today_str = test_date
-
+    if test_date is not None:
+        today_str = test_date + " 00:00:00"
+        
     for date in data["leagueSchedule"]["gameDates"]:
         if date["gameDate"] == today_str:
             return date["games"]
@@ -195,11 +195,11 @@ def main():
         test_date = sys.argv[1]
 
     # we are gonna have a data structure with player and basic game data for future lookups
-    print("Currently getting today's games")
+    print(f"Currently getting games for {'today' if test_date is None else test_date}")
 
-    todays_games = get_today_games(test_date)
+    todays_games = get_today_games(test_date=test_date)
 
-    print("Finished getting today's games ✅\n")
+    print(f"Finished getting games for {'today' if test_date is None else test_date} ✅\n")
 
     player_data_list: list[PlayerData] = []
     team_games_cache: dict[str, list[NbaGame]] = {}
@@ -320,7 +320,7 @@ def main():
                 pts_ast_prop_eligible,
             ]
         ):
-            print(f"🚨 Skipping player {player['name']}, {player['id']}\n")
+            print(f"🚨 Skipping player {player['name']}, {player['id']}. Not eligible by stats but passed minutes threshold.\n")
             continue
 
         # we get the last n games for the opposing team
@@ -347,7 +347,7 @@ def main():
             pts_line = generate_pts_prop(
                 player_data["last_games"], matchup_last_games, team_last_games
             )
-            if pts_line != 0:
+            if pts_line > 0:
                 insert_prop(
                     pts_line,
                     player_data["game_id"],
@@ -359,7 +359,7 @@ def main():
 
         if reb_prop_eligible:
             reb_line = generate_reb_prop(player_data["last_games"], matchup_last_games)
-            if reb_line != 0:
+            if reb_line > 0:
                 insert_prop(
                     reb_line,
                     player_data["game_id"],
@@ -373,7 +373,7 @@ def main():
             ast_line = generate_ast_prop(
                 player_data["last_games"], matchup_last_games, team_last_games
             )
-            if ast_line != 0:
+            if ast_line > 0:
                 insert_prop(
                     ast_line,
                     player_data["game_id"],
@@ -387,7 +387,7 @@ def main():
             three_pm_line = generate_three_pm_prop(
                 player_data["last_games"], matchup_last_games, team_last_games
             )
-            if three_pm_line != 0:
+            if three_pm_line > 0:
                 insert_prop(
                     three_pm_line,
                     player_data["game_id"],
@@ -401,7 +401,7 @@ def main():
             blk_line = generate_blk_prop(
                 player_data["last_games"], matchup_last_games, team_last_games
             )
-            if blk_line != 0:
+            if blk_line > 0:
                 insert_prop(
                     blk_line,
                     player_data["game_id"],
@@ -415,7 +415,7 @@ def main():
             stl_line = generate_stl_prop(
                 player_data["last_games"], matchup_last_games, team_last_games
             )
-            if stl_line != 0:
+            if stl_line > 0:
                 insert_prop(
                     stl_line,
                     player_data["game_id"],
@@ -429,7 +429,7 @@ def main():
             tov_line = generate_tov_prop(
                 player_data["last_games"], matchup_last_games, team_last_games
             )
-            if tov_line != 0:
+            if tov_line > 0:
                 insert_prop(
                     tov_line,
                     player_data["game_id"],
@@ -453,7 +453,7 @@ def main():
                     player_data["last_games"], matchup_last_games, team_last_games
                 )
             pra_line = round_prop(pts_line + reb_line + ast_line)
-            if pra_line != 0:
+            if pra_line > 0:
                 insert_prop(
                     pra_line,
                     player_data["game_id"],
@@ -473,7 +473,7 @@ def main():
                     player_data["last_games"], matchup_last_games, team_last_games
                 )
             pts_ast_line = round_prop(pts_line + ast_line)
-            if pts_ast_line != 0:
+            if pts_ast_line > 0:
                 insert_prop(
                     pts_ast_line,
                     player_data["game_id"],
@@ -493,7 +493,7 @@ def main():
                     player_data["last_games"], matchup_last_games, team_last_games
                 )
             reb_ast_line = round_prop(reb_line + ast_line)
-            if reb_ast_line != 0:
+            if reb_ast_line > 0:
                 insert_prop(
                     reb_ast_line,
                     player_data["game_id"],

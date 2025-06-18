@@ -15,8 +15,7 @@ Thumbs.db
 *.swp
 
 /node_modules
-/data
-railway_dump.sql
+/tmp
 
 # python
 .venv/

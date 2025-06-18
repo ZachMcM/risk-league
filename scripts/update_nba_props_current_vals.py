@@ -5,7 +5,7 @@ from datetime import datetime
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from dotenv import load_dotenv
-from my_types import StatType, stat_name_list
+from nba_types import StatType, stat_name_list
 from nba_api.live.nba.endpoints import BoxScore, ScoreBoard
 from sqlalchemy import create_engine, update
 from tables import nba_props
