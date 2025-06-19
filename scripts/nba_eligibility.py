@@ -1,34 +1,20 @@
-import random
 import sys
 from datetime import datetime
 
 import numpy as np
-from nba_constants import (
-    secondary_fallback_pct,
-    soft_k_subtrahend,
-    strict_k_high_volume,
-    strict_k_low_volume,
-)
+from nba_constants import min_num_stats, secondary_minutes_threshold, sigma_coeff
 from nba_tables import nba_games, nba_player_stats, nba_players
 from nba_types import CombinedStatType, MetricStats, StatType
-from sqlalchemy import Engine, select
+from sqlalchemy import Engine, or_, select
 from utils import db_response_to_json, get_current_season, get_last_season
-
-
-def get_dynamic_sigma_coeff(mpg: float) -> float:
-    min_sigma = 0.2  # low MPG = still has a shot
-    max_sigma = 1  # high MPG = forgiving fallback
-    max_mpg = 35.0
-
-    mpg = min(max(mpg, 0), max_mpg)
-    return min_sigma + (max_sigma - min_sigma) * (mpg / max_mpg)
-
 
 _metric_stats_cache: dict[tuple[str, str], MetricStats] = {}
 
 
 # gets the league mean and standard deviation of a specific stat
-def get_metric_stats(engine: Engine, metric: str, position: str) -> MetricStats:
+def get_metric_stats(
+    engine: Engine, metric: str, position: str, use_playoffs: bool
+) -> MetricStats:
     cache_key = (metric, position)
     if cache_key in _metric_stats_cache:
         return _metric_stats_cache[cache_key]
@@ -46,17 +32,38 @@ def get_metric_stats(engine: Engine, metric: str, position: str) -> MetricStats:
                 nba_games, nba_player_stats.c.game_id == nba_games.c.id
             ).join(nba_players, nba_player_stats.c.player_id == nba_players.c.id)
 
+            game_type_value = "playoffs" if use_playoffs else "regular_season"
+
             stmt = (
                 select(column)
                 .select_from(j)
                 .where(nba_player_stats.c.season == season)
                 .where(nba_player_stats.c.min > 0)
+                .where(nba_games.c.game_type == game_type_value)
                 .where(nba_player_stats.c.player_id.is_not(None))
-                .where(nba_games.c.game_type == "regular_season")
                 .where(nba_players.c.position == position)
             )
 
             result = conn.execute(stmt).fetchall()
+
+            if len(result) < min_num_stats:
+                stmt = (
+                    select(column)
+                    .select_from(j)
+                    .where(nba_player_stats.c.season == season)
+                    .where(nba_player_stats.c.min > 0)
+                    .where(
+                        or_(
+                            nba_games.c.game_type == "regular_season",
+                            nba_games.c.game_type == "playoffs",
+                        )
+                    )
+                    .where(nba_player_stats.c.player_id.is_not(None))
+                    .where(nba_players.c.position == position)
+                )
+
+                result = conn.execute(stmt).fetchall()
+
             stats = db_response_to_json(result, metric)
             metric_stats = {"mean": np.mean(stats), "sd": np.std(stats)}
             _metric_stats_cache[cache_key] = metric_stats
@@ -73,7 +80,7 @@ _combined_stats_cache: dict[tuple[tuple[str, ...], str], MetricStats] = {}
 
 # gets the league mean and standard deviation of combined metrics
 def get_combined_metric_stats(
-    engine: Engine, metric_list: list[str], position: str
+    engine: Engine, metric_list: list[str], position: str, use_playoffs: bool
 ) -> MetricStats:
     cache_key = (tuple(sorted(metric_list)), position)
     if cache_key in _combined_stats_cache:
@@ -92,17 +99,37 @@ def get_combined_metric_stats(
 
             columns = [getattr(nba_player_stats.c, metric) for metric in metric_list]
 
+            game_type_value = "playoffs" if use_playoffs else "regular_season"
+
             stmt = (
                 select(*columns)
                 .select_from(j)
                 .where(nba_player_stats.c.season == season)
                 .where(nba_player_stats.c.min > 0)
                 .where(nba_player_stats.c.player_id.is_not(None))
-                .where(nba_games.c.game_type == "regular_season")
+                .where(nba_games.c.game_type == game_type_value)
                 .where(nba_players.c.position == position)
             )
 
             result = conn.execute(stmt).fetchall()
+
+            if len(result) < min_num_stats:
+                stmt = (
+                    select(*columns)
+                    .select_from(j)
+                    .where(nba_player_stats.c.season == season)
+                    .where(nba_player_stats.c.min > 0)
+                    .where(nba_player_stats.c.player_id.is_not(None))
+                    .where(
+                        or_(
+                            nba_games.c.game_type == "regular_season",
+                            nba_games.c.game_type == "playoffs",
+                        )
+                    )
+                    .where(nba_players.c.position == position)
+                )
+                result = conn.execute(stmt).fetchall()
+
             combined_values = [sum(row) for row in result]
             stat = {
                 "mean": np.mean(combined_values),
@@ -125,27 +152,13 @@ def is_prop_eligible(
     player_stat_average: float,
     position: str,
     mpg: float,
+    use_playoffs=False,
 ) -> bool:
-    stat_desc = get_metric_stats(engine, stat_type, position)
-    strict_k = (
-        strict_k_high_volume
-        if stat_type in ["pts", "reb", "ast"]
-        else strict_k_low_volume
+    stat_desc = get_metric_stats(engine, stat_type, position, use_playoffs)
+    return (
+        mpg > secondary_minutes_threshold
+        and player_stat_average >= stat_desc["mean"] - sigma_coeff * stat_desc["sd"]
     )
-    standard_thresh = stat_desc["mean"] + strict_k * stat_desc["sd"]
-    if player_stat_average >= standard_thresh:
-        return True
-    else:
-        soft_k = max(0.1, strict_k - soft_k_subtrahend)
-        if player_stat_average >= stat_desc["mean"] + soft_k * stat_desc["sd"]:
-            if random.random() < secondary_fallback_pct:
-                return True
-            else:
-                sigma_coeff = get_dynamic_sigma_coeff(mpg)
-                rand_thresh = stat_desc["mean"] - random.gauss(
-                    0, sigma_coeff * stat_desc["sd"]
-                )
-                return player_stat_average >= rand_thresh
 
 
 # checks if a player is eligible for a prop generation for a combined metric
@@ -155,6 +168,7 @@ def is_combined_stat_prop_eligible(
     player_stat_average: float,
     position: str,
     mpg: float,
+    use_playoffs=False,
 ) -> bool:
     combined_metric_list: list[str] = []
     if stat_type == "pra":
@@ -164,20 +178,11 @@ def is_combined_stat_prop_eligible(
     elif stat_type == "reb_ast":
         combined_metric_list = ["reb", "ast"]
 
-    stat_desc = get_combined_metric_stats(engine, combined_metric_list, position)
-    strict_k = strict_k_high_volume
-    standard_thresh = stat_desc["mean"] + strict_k * stat_desc["sd"]
-    if player_stat_average >= standard_thresh:
-        return True
-    else:
-        soft_k = strict_k - soft_k_subtrahend
-        if player_stat_average >= stat_desc["mean"] + soft_k * stat_desc["sd"]:
-            if random.random() < secondary_fallback_pct:
-                return True
-            else:
-                sigma_coeff = get_dynamic_sigma_coeff(mpg)
-                rand_thresh = stat_desc["mean"] - random.gauss(
-                    0, sigma_coeff * stat_desc["sd"]
-                )
-                rand_thresh = min(rand_thresh, standard_thresh)
-                return player_stat_average >= rand_thresh
+    stat_desc = get_combined_metric_stats(
+        engine, combined_metric_list, position, use_playoffs
+    )
+
+    return (
+        mpg > secondary_minutes_threshold
+        and player_stat_average >= stat_desc["mean"] - sigma_coeff * stat_desc["sd"]
+    )

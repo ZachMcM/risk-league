@@ -26,6 +26,7 @@ def generate_pts_prop(
     last_games: list[NbaPlayerStats],
     matchup_last_games: list[NbaGame],
     team_last_games: list[NbaGame],
+    team_opp_games: list[NbaGame],
 ) -> float:
     data = pd.DataFrame(
         {
@@ -35,7 +36,7 @@ def generate_pts_prop(
             "true_shooting": [game["true_shooting"] for game in last_games],
             "pace": [game["pace"] for game in team_last_games],
             "usage_rate": [game["usage_rate"] for game in last_games],
-            "opp_def_rating": [game["def_rating"] for game in matchup_last_games],
+            "opp_def_rating": [game["def_rating"] for game in team_opp_games],
             "team_off_rating": [game["off_rating"] for game in team_last_games],
             "pts": [game["pts"] for game in last_games],
         }
@@ -56,7 +57,22 @@ def generate_pts_prop(
     y_values = data["pts"]
 
     model = LinearRegression().fit(x_values, y_values)
-    next_game_features = pd.DataFrame([x_values.mean()])
+    next_game_features = pd.DataFrame(
+        [
+            {
+                "min": np.mean(data["min"]),
+                "fga": np.mean(data["fga"]),
+                "three_pa": np.mean(data["three_pa"]),
+                "true_shooting": np.mean(data["true_shooting"]),
+                "pace": np.mean(data["pace"]),
+                "usage_rate": np.mean(data["usage_rate"]),
+                "opp_def_rating": np.mean(
+                    [game["def_rating"] for game in matchup_last_games]
+                ),
+                "team_off_rating": np.mean(data["team_off_rating"]),
+            }
+        ]
+    )
     predicted_pts = model.predict(next_game_features)[0]
     sd = np.std(data["pts"], ddof=1)
     bias = get_bias()
@@ -68,6 +84,7 @@ def generate_pts_prop(
 def generate_reb_prop(
     last_games: list[NbaPlayerStats],
     matchup_last_games: list[NbaGame],
+    team_opp_games: list[NbaGame],
 ) -> float:
     data = pd.DataFrame(
         {
@@ -77,9 +94,9 @@ def generate_reb_prop(
             "oreb_pct": [game["oreb_pct"] for game in last_games],
             "opp_fg_pct": [
                 0 if game["fga"] == 0 else (game["fgm"] / game["fga"]) * 100
-                for game in matchup_last_games
+                for game in team_opp_games
             ],
-            "opp_pace": [game["pace"] for game in matchup_last_games],
+            "opp_pace": [game["pace"] for game in team_opp_games],
             "reb": [game["reb"] for game in last_games],
         }
     )
@@ -90,7 +107,23 @@ def generate_reb_prop(
     y_values = data["reb"]
 
     model = LinearRegression().fit(x_values, y_values)
-    next_game_features = pd.DataFrame([x_values.mean()])
+    next_game_features = pd.DataFrame(
+        [
+            {
+                "min": np.mean(data["min"]),
+                "reb_pct": np.mean(data["reb_pct"]),
+                "dreb_pct": np.mean(data["dreb_pct"]),
+                "oreb_pct": np.mean(data["oreb_pct"]),
+                "opp_fg_pct": np.mean(
+                    [
+                        0 if game["fga"] == 0 else (game["fgm"] / game["fga"]) * 100
+                        for game in matchup_last_games
+                    ]
+                ),
+                "opp_pace": np.mean([game["pace"] for game in matchup_last_games]),
+            }
+        ]
+    )
     predicted_reb = model.predict(next_game_features)[0]
     sd = np.std(data["reb"], ddof=1)
     bias = get_bias()
@@ -103,6 +136,7 @@ def generate_ast_prop(
     last_games: list[NbaPlayerStats],
     matchup_last_games: list[NbaGame],
     team_last_games: list[NbaGame],
+    team_opp_games: list[NbaGame],
 ) -> float:
     data = pd.DataFrame(
         {
@@ -115,7 +149,7 @@ def generate_ast_prop(
             ],
             "usage_rate": [game["usage_rate"] for game in last_games],
             "team_off_rating": [game["off_rating"] for game in team_last_games],
-            "opp_def_rating": [game["def_rating"] for game in matchup_last_games],
+            "opp_def_rating": [game["def_rating"] for game in team_opp_games],
             "ast": [game["ast"] for game in last_games],
         }
     )
@@ -134,7 +168,21 @@ def generate_ast_prop(
     y_values = data["ast"]
 
     model = LinearRegression().fit(x_values, y_values)
-    next_game_features = pd.DataFrame([x_values.mean()])
+    next_game_features = pd.DataFrame(
+        [
+            {
+                "min": np.mean(data["min"]),
+                "ast_pct": np.mean(data["ast_pct"]),
+                "ast_ratio": np.mean(data["ast_ratio"]),
+                "team_fg_pct": np.mean(data["team_fg_pct"]),
+                "usage_rate": np.mean(data["usage_rate"]),
+                "team_off_rating": np.mean(data["team_off_rating"]),
+                "opp_def_rating": np.mean(
+                    [game["def_rating"] for game in matchup_last_games]
+                ),
+            }
+        ]
+    )
     predicted_ast = model.predict(next_game_features)[0]
     sd = np.std(data["ast"], ddof=1)
     bias = get_bias()
@@ -147,12 +195,13 @@ def generate_three_pm_prop(
     last_games: list[NbaPlayerStats],
     matchup_last_games: list[NbaGame],
     team_last_games: list[NbaGame],
+    team_opp_games: list[NbaGame],
 ) -> float:
     data = pd.DataFrame(
         {
             "min": [game["min"] for game in last_games],
             "team_off_rating": [game["off_rating"] for game in team_last_games],
-            "opp_def_rating": [game["def_rating"] for game in matchup_last_games],
+            "opp_def_rating": [game["def_rating"] for game in team_opp_games],
             "usage_rate": [game["usage_rate"] for game in last_games],
             "three_pa": [game["three_pa"] for game in last_games],
             "three_pct": [
@@ -180,7 +229,20 @@ def generate_three_pm_prop(
     y_values = data["three_pm"]
 
     model = LinearRegression().fit(x_values, y_values)
-    next_game_features = pd.DataFrame([x_values.mean()])
+    next_game_features = pd.DataFrame(
+        [
+            {
+                "min": np.mean(data["min"]),
+                "team_off_rating": np.mean(data["team_off_rating"]),
+                "opp_def_rating": np.mean(
+                    [game["def_rating"] for game in matchup_last_games]
+                ),
+                "usage_rate": np.mean(data["usage_rate"]),
+                "three_pa": np.mean(data["three_pa"]),
+                "three_pct": np.mean(data["three_pct"]),
+            }
+        ]
+    )
     predicted_three_pm = model.predict(next_game_features)[0]
     sd = np.std(data["three_pm"], ddof=1)
     bias = get_bias()
@@ -193,6 +255,7 @@ def generate_blk_prop(
     last_games: list[NbaPlayerStats],
     matchup_last_games: list[NbaGame],
     team_last_games: list[NbaGame],
+    team_opp_games: list[NbaGame],
 ) -> float:
     data = pd.DataFrame(
         {
@@ -205,8 +268,8 @@ def generate_blk_prop(
                 )
                 for i, game in enumerate(last_games)
             ],
-            "opp_pace": [game["pace"] for game in matchup_last_games],
-            "opp_off_rating": [game["off_rating"] for game in matchup_last_games],
+            "opp_pace": [game["pace"] for game in team_opp_games],
+            "opp_off_rating": [game["off_rating"] for game in team_opp_games],
             "team_def_rating": [game["def_rating"] for game in team_last_games],
             "blk": [game["blk"] for game in last_games],
         }
@@ -217,7 +280,19 @@ def generate_blk_prop(
     ]
     y_values = data["blk"]
     model = LinearRegression().fit(x_values, y_values)
-    next_game_features = pd.DataFrame([x_values.mean()])
+    next_game_features = pd.DataFrame(
+        [
+            {
+                "min": np.mean(data["min"]),
+                "pct_blk_a": np.mean(data["pct_blk_a"]),
+                "opp_pace": np.mean([game["pace"] for game in matchup_last_games]),
+                "opp_off_rating": np.mean(
+                    [game["off_rating"] for game in matchup_last_games]
+                ),
+                "team_def_rating": np.mean(data["team_def_rating"]),
+            }
+        ]
+    )
     predicted_blk = model.predict(next_game_features)[0]
     sd = np.std(data["blk"], ddof=1)
     bias = get_bias()
@@ -230,13 +305,14 @@ def generate_stl_prop(
     last_games: list[NbaPlayerStats],
     matchup_last_games: list[NbaGame],
     team_last_games: list[NbaGame],
+    team_opp_games: list[NbaGame],
 ) -> float:
     data = pd.DataFrame(
         {
             "min": [game["min"] for game in last_games],
             "team_def_rating": [game["def_rating"] for game in team_last_games],
-            "opp_off_rating": [game["off_rating"] for game in matchup_last_games],
-            "opp_pace": [game["pace"] for game in matchup_last_games],
+            "opp_off_rating": [game["off_rating"] for game in team_opp_games],
+            "opp_pace": [game["pace"] for game in team_opp_games],
             "pct_stl_a": [
                 (
                     0
@@ -245,9 +321,9 @@ def generate_stl_prop(
                 )
                 for i, game in enumerate(last_games)
             ],
-            "opp_tov": [game["tov"] for game in matchup_last_games],
-            "opp_tov_ratio": [game["tov_ratio"] for game in matchup_last_games],
-            "opp_tov_pct": [game["tov_pct"] for game in matchup_last_games],
+            "opp_tov": [game["tov"] for game in team_opp_games],
+            "opp_tov_ratio": [game["tov_ratio"] for game in team_opp_games],
+            "opp_tov_pct": [game["tov_pct"] for game in team_opp_games],
             "stl": [game["stl"] for game in last_games],
         }
     )
@@ -267,7 +343,26 @@ def generate_stl_prop(
     y_values = data["stl"]
 
     model = LinearRegression().fit(x_values, y_values)
-    next_game_features = pd.DataFrame([x_values.mean()])
+    next_game_features = pd.DataFrame(
+        [
+            {
+                "min": np.mean(data["min"]),
+                "team_def_rating": np.mean(data["team_def_rating"]),
+                "opp_off_rating": np.mean(
+                    [game["off_rating"] for game in matchup_last_games]
+                ),
+                "opp_pace": np.mean([game["pace"] for game in matchup_last_games]),
+                "pct_stl_a": np.mean(data["pct_stl_a"]),
+                "opp_tov": np.mean([game["tov"] for game in matchup_last_games]),
+                "opp_tov_ratio": np.mean(
+                    [game["tov_ratio"] for game in matchup_last_games]
+                ),
+                "opp_tov_pct": np.mean(
+                    [game["tov_pct"] for game in matchup_last_games]
+                ),
+            }
+        ]
+    )
     predicted_stl = model.predict(next_game_features)[0]
     sd = np.std(data["stl"], ddof=1)
     bias = get_bias()
@@ -280,15 +375,16 @@ def generate_tov_prop(
     last_games: list[NbaPlayerStats],
     matchup_last_games: list[NbaGame],
     team_last_games: list[NbaGame],
+    team_opp_games: list[NbaGame],
 ) -> float:
     data = pd.DataFrame(
         {
             "min": [game["min"] for game in last_games],
             "usage_rate": [game["usage_rate"] for game in last_games],
             "team_off_rating": [game["off_rating"] for game in team_last_games],
-            "opp_def_rating": [game["def_rating"] for game in matchup_last_games],
+            "opp_def_rating": [game["def_rating"] for game in team_opp_games],
             "tov_ratio": [game["tov_ratio"] for game in last_games],
-            "opp_stl": [game["stl"] for game in matchup_last_games],
+            "opp_stl": [game["stl"] for game in team_opp_games],
             "tov": [game["tov"] for game in last_games],
         }
     )
@@ -306,7 +402,20 @@ def generate_tov_prop(
     y_values = data["tov"]
 
     model = LinearRegression().fit(x_values, y_values)
-    next_game_features = pd.DataFrame([x_values.mean()])
+    next_game_features = pd.DataFrame(
+        [
+            {
+                "min": np.mean(data["min"]),
+                "usage_rate": np.mean(data["usage_rate"]),
+                "team_off_rating": np.mean(data["team_off_rating"]),
+                "opp_def_rating": np.mean(
+                    [game["def_rating"] for game in matchup_last_games]
+                ),
+                "tov_ratio": np.mean(data["tov_ratio"]),
+                "opp_stl": np.mean([game["stl"] for game in matchup_last_games]),
+            }
+        ]
+    )
     predicted_tov = model.predict(next_game_features)[0]
     sd = np.std(data["tov"], ddof=1)
     bias = get_bias()

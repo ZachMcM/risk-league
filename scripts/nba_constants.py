@@ -14,7 +14,7 @@ bias_gaussian_sd = float(os.getenv("BIAS_GAUSSIAN_SD"))
 bias_lower_bound = float(os.getenv("BIAS_LOWER_BOUND"))
 bias_upper_bound = float(os.getenv("BIAS_UPPER_BOUND"))
 
-strict_k_high_volume = float(os.getenv("STRICT_K_HIGH_VOLUME"))
-strict_k_low_volume = float(os.getenv("STRICT_K_LOW_VOLUME"))
-soft_k_subtrahend = float(os.getenv("SOFT_K_SUBTRAHEND"))
-secondary_fallback_pct = float(os.getenv("SECONDARY_FALLBACK_PCT"))
+sigma_coeff = float(os.getenv("SIGMA_COEFF"))
+secondary_minutes_threshold = float(os.getenv("SECONDARY_MINUTES_THRESHOLD"))
+
+min_num_stats = float(os.getenv("MIN_NUM_STATS"))

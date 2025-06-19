@@ -20,9 +20,9 @@ from nba_regression import (
 )
 from nba_tables import nba_games, nba_player_stats, nba_players, nba_props
 from nba_types import NbaGame, NbaPlayer, NbaPlayerStats, PlayerData
-from sqlalchemy import create_engine, or_, select
+from sqlalchemy import and_, create_engine, or_, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
-from utils import db_response_to_json
+from utils import db_response_to_json, get_game_type
 
 load_dotenv()
 engine = create_engine(os.getenv("DATABASE_URL"))
@@ -60,18 +60,18 @@ def get_players_from_team(team_id: str) -> list[NbaPlayer]:
         sys.exit(1)
 
 
-def get_games_by_id(id_list: list[str], regular_season_only=True) -> list[NbaGame]:
+def get_games_by_id(id_list: list[str]) -> list[NbaGame]:
     try:
         with engine.connect() as conn:
-            conditions = [nba_games.c.game_type == "regular_season"]
-
-            if not regular_season_only:
-                conditions.append(nba_games.c.game_type == "playoffs")
-
             stmt = (
                 select(nba_games)
                 .where(nba_games.c.id.in_(id_list))
-                .where(or_(*conditions))
+                .where(
+                    or_(
+                        nba_games.c.game_type == "regular_season",
+                        nba_games.c.game_type == "playoffs",
+                    )
+                )
                 .order_by(nba_games.c.game_date.desc())
                 .limit(n_games)
             )
@@ -83,21 +83,51 @@ def get_games_by_id(id_list: list[str], regular_season_only=True) -> list[NbaGam
         sys.exit(1)
 
 
-# gets the last n_games games for a team
-def get_team_last_games(
-    team_id: str, regular_season_only=True
-) -> list[NbaGame] | list[str]:
+def get_opposing_team_games_for_games(id_list: list[str]) -> list[NbaGame]:
+    conditions = []
+    for game_id in id_list:
+        raw_game_id, _ = game_id.split("-")
+        game_prefix = f"{raw_game_id}-"
+
+        conditions.append(
+            and_(nba_games.c.id.startswith(game_prefix), nba_games.c.id != raw_game_id)
+        )
+
     try:
         with engine.connect() as conn:
-            conditions = [nba_games.c.game_type == "regular_season"]
+            stmt = (
+                select(nba_games)
+                .where(or_(*conditions))
+                .where(
+                    or_(
+                        nba_games.c.game_type == "regular_season",
+                        nba_games.c.game_type == "playoffs",
+                    )
+                )
+                .order_by(nba_games.c.game_date.desc())
+                .limit(n_games)
+            )
 
-            if not regular_season_only:
-                conditions.append(nba_games.c.game_type == "playoffs")
+            result = conn.execute(stmt).fetchall()
+            return db_response_to_json(result)
+    except Exception as e:
+        print(f"⚠️ There was an error fetching opposing team games {e}")
+        sys.exit(1)
 
+
+# gets the last n_games games for a team
+def get_team_last_games(team_id: str) -> list[NbaGame] | list[str]:
+    try:
+        with engine.connect() as conn:
             stmt = (
                 select(nba_games)
                 .where(nba_games.c.team_id == str(team_id))
-                .where(or_(*conditions))
+                .where(
+                    or_(
+                        nba_games.c.game_type == "regular_season",
+                        nba_games.c.game_type == "playoffs",
+                    )
+                )
                 .order_by(nba_games.c.game_date.desc())
                 .limit(n_games)
             )
@@ -111,24 +141,22 @@ def get_team_last_games(
 
 
 # returns a players last n_games games if they are eligible for a prop
-def get_player_last_games(
-    player_id, regular_season_only=True
-) -> list[NbaPlayerStats] | None:
+def get_player_last_games(player_id) -> list[NbaPlayerStats] | None:
     try:
         with engine.connect() as conn:
             j = nba_player_stats.join(
                 nba_games, nba_player_stats.c.game_id == nba_games.c.id
             )
 
-            conditions = [nba_games.c.game_type == "regular_season"]
-
-            if not regular_season_only:
-                conditions.append(nba_games.c.game_type == "playoffs")
-
             stmt = (
                 select(nba_player_stats)
                 .select_from(j)
-                .where(or_(*conditions))
+                .where(
+                    or_(
+                        nba_games.c.game_type == "regular_season",
+                        nba_games.c.game_type == "playoffs",
+                    )
+                )
                 .where(nba_player_stats.c.player_id == str(player_id))
                 .order_by(nba_games.c.game_date.desc())
                 .limit(n_games)
@@ -214,7 +242,17 @@ def main():
 
     total_props_generated = 0
 
+    regular_season_only = True
+
     for i, today_game in enumerate(todays_games):
+        game_type = get_game_type(today_game["gameId"])
+        if regular_season_only == True and game_type == "playoffs":
+            regular_season_only = False
+
+        if game_type == "all_star":
+            print("🚨 Skipping this game because its an all start game\n")
+            continue
+
         print(
             f"Getting initial game data for game {today_game['gameId']} {i + 1}/{len(todays_games)}\n"
         )
@@ -278,39 +316,87 @@ def main():
 
         # then we get the booleans for eligiblity
 
-        mpg = sum(game["min"] for game in player_data["last_games"]) / len(
-            player_data["last_games"]
-        )
+        mpg = np.mean([game["min"] for game in player_data["last_games"]])
 
         pts_prop_eligible = is_prop_eligible(
-            engine, "pts", mu_pts, player["position"], mpg
+            engine,
+            "pts",
+            mu_pts,
+            player["position"],
+            mpg,
+            use_playoffs=(not regular_season_only),
         )
         reb_prop_eligible = is_prop_eligible(
-            engine, "reb", mu_reb, player["position"], mpg
+            engine,
+            "reb",
+            mu_reb,
+            player["position"],
+            mpg,
+            use_playoffs=(not regular_season_only),
         )
         ast_prop_eligible = is_prop_eligible(
-            engine, "ast", mu_ast, player["position"], mpg
+            engine,
+            "ast",
+            mu_ast,
+            player["position"],
+            mpg,
+            use_playoffs=(not regular_season_only),
         )
         three_pm_prop_eligible = is_prop_eligible(
-            engine, "three_pm", mu_three_pm, player["position"], mpg
+            engine,
+            "three_pm",
+            mu_three_pm,
+            player["position"],
+            mpg,
+            use_playoffs=(not regular_season_only),
         )
         blk_prop_eligible = is_prop_eligible(
-            engine, "blk", mu_blk, player["position"], mpg
+            engine,
+            "blk",
+            mu_blk,
+            player["position"],
+            mpg,
+            use_playoffs=(not regular_season_only),
         )
         stl_prop_eligible = is_prop_eligible(
-            engine, "stl", mu_stl, player["position"], mpg
+            engine,
+            "stl",
+            mu_stl,
+            player["position"],
+            mpg,
+            use_playoffs=(not regular_season_only),
         )
         tov_prop_eligible = is_prop_eligible(
-            engine, "tov", mu_tov, player["position"], mpg
+            engine,
+            "tov",
+            mu_tov,
+            player["position"],
+            mpg,
+            use_playoffs=(not regular_season_only),
         )
         pra_prop_eligible = is_combined_stat_prop_eligible(
-            engine, "pra", mu_pra, player["position"], mpg
+            engine,
+            "pra",
+            mu_pra,
+            player["position"],
+            mpg,
+            use_playoffs=(not regular_season_only),
         )
         reb_ast_prop_eligible = is_combined_stat_prop_eligible(
-            engine, "reb_ast", mu_reb_ast, player["position"], mpg
+            engine,
+            "reb_ast",
+            mu_reb_ast,
+            player["position"],
+            mpg,
+            use_playoffs=(not regular_season_only),
         )
         pts_ast_prop_eligible = is_combined_stat_prop_eligible(
-            engine, "pts_ast", mu_pts_ast, player["position"], mpg
+            engine,
+            "pts_ast",
+            mu_pts_ast,
+            player["position"],
+            mpg,
+            use_playoffs=(not regular_season_only),
         )
 
         # we just continue and don't do anymore intensive processing if no props are needed to be created
@@ -343,9 +429,11 @@ def main():
         # we get full team stats for the player's last n games
         # we use the get games by id function to make sure we aren't getting games the player didn't play in
 
-        team_last_games = get_games_by_id(
-            [game["game_id"] for game in player_data["last_games"]]
-        )
+        games_id_list = [game["game_id"] for game in player_data["last_games"]]
+
+        team_last_games = get_games_by_id(games_id_list)
+
+        team_opp_games = get_opposing_team_games_for_games(games_id_list)
 
         pts_line = None
         reb_line = None
@@ -355,7 +443,10 @@ def main():
 
         if pts_ast_prop_eligible:
             pts_line = generate_pts_prop(
-                player_data["last_games"], matchup_last_games, team_last_games
+                player_data["last_games"],
+                matchup_last_games,
+                team_last_games,
+                team_opp_games,
             )
             if pts_line > 0:
                 insert_prop(
@@ -368,7 +459,9 @@ def main():
                 total_props_generated += 1
 
         if reb_prop_eligible:
-            reb_line = generate_reb_prop(player_data["last_games"], matchup_last_games)
+            reb_line = generate_reb_prop(
+                player_data["last_games"], matchup_last_games, team_opp_games
+            )
             if reb_line > 0:
                 insert_prop(
                     reb_line,
@@ -381,7 +474,10 @@ def main():
 
         if ast_prop_eligible:
             ast_line = generate_ast_prop(
-                player_data["last_games"], matchup_last_games, team_last_games
+                player_data["last_games"],
+                matchup_last_games,
+                team_last_games,
+                team_opp_games,
             )
             if ast_line > 0:
                 insert_prop(
@@ -395,7 +491,10 @@ def main():
 
         if three_pm_prop_eligible:
             three_pm_line = generate_three_pm_prop(
-                player_data["last_games"], matchup_last_games, team_last_games
+                player_data["last_games"],
+                matchup_last_games,
+                team_last_games,
+                team_opp_games,
             )
             if three_pm_line > 0:
                 insert_prop(
@@ -409,7 +508,10 @@ def main():
 
         if blk_prop_eligible:
             blk_line = generate_blk_prop(
-                player_data["last_games"], matchup_last_games, team_last_games
+                player_data["last_games"],
+                matchup_last_games,
+                team_last_games,
+                team_opp_games,
             )
             if blk_line > 0:
                 insert_prop(
@@ -423,7 +525,10 @@ def main():
 
         if stl_prop_eligible:
             stl_line = generate_stl_prop(
-                player_data["last_games"], matchup_last_games, team_last_games
+                player_data["last_games"],
+                matchup_last_games,
+                team_last_games,
+                team_opp_games,
             )
             if stl_line > 0:
                 insert_prop(
@@ -437,7 +542,10 @@ def main():
 
         if tov_prop_eligible:
             tov_line = generate_tov_prop(
-                player_data["last_games"], matchup_last_games, team_last_games
+                player_data["last_games"],
+                matchup_last_games,
+                team_last_games,
+                team_opp_games,
             )
             if tov_line > 0:
                 insert_prop(
@@ -452,15 +560,21 @@ def main():
         if pra_prop_eligible:
             if pts_line is None:
                 pts_line = generate_pts_prop(
-                    player_data["last_games"], matchup_last_games, team_last_games
+                    player_data["last_games"],
+                    matchup_last_games,
+                    team_last_games,
+                    team_opp_games,
                 )
             if reb_line is None:
                 reb_line = generate_reb_prop(
-                    player_data["last_games"], matchup_last_games
+                    player_data["last_games"], matchup_last_games, team_opp_games
                 )
             if ast_line is None:
                 ast_line = generate_ast_prop(
-                    player_data["last_games"], matchup_last_games, team_last_games
+                    player_data["last_games"],
+                    matchup_last_games,
+                    team_last_games,
+                    team_opp_games,
                 )
             pra_line = round_prop(pts_line + reb_line + ast_line)
             if pra_line > 0:
@@ -476,11 +590,17 @@ def main():
         if pts_ast_prop_eligible:
             if pts_line is None:
                 pts_line = generate_pts_prop(
-                    player_data["last_games"], matchup_last_games, team_last_games
+                    player_data["last_games"],
+                    matchup_last_games,
+                    team_last_games,
+                    team_opp_games,
                 )
             if ast_line is None:
                 ast_line = generate_ast_prop(
-                    player_data["last_games"], matchup_last_games, team_last_games
+                    player_data["last_games"],
+                    matchup_last_games,
+                    team_last_games,
+                    team_opp_games,
                 )
             pts_ast_line = round_prop(pts_line + ast_line)
             if pts_ast_line > 0:
@@ -496,11 +616,14 @@ def main():
         if reb_ast_prop_eligible:
             if reb_line is None:
                 reb_line = generate_reb_prop(
-                    player_data["last_games"], matchup_last_games
+                    player_data["last_games"], matchup_last_games, team_opp_games
                 )
             if ast_line is None:
                 ast_line = generate_ast_prop(
-                    player_data["last_games"], matchup_last_games, team_last_games
+                    player_data["last_games"],
+                    matchup_last_games,
+                    team_last_games,
+                    team_opp_games,
                 )
             reb_ast_line = round_prop(reb_line + ast_line)
             if reb_ast_line > 0:
