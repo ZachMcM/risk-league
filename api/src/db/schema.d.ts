@@ -116,9 +116,11 @@ export interface SchemaMigrations {
 
 export interface Users {
   created_at: Generated<Timestamp | null>;
+  elo_rating: Generated<Numeric | null>;
   email: string;
   id: Generated<string>;
   image: string | null;
+  is_bot: boolean | null;
   name: string | null;
   password_hash: string;
   username: string;

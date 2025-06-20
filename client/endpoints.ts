@@ -66,9 +66,7 @@ export async function sessionRequest(): Promise<Session> {
     throw new Error(data.message);
   }
 
-  return {
-    user: data,
-  };
+  return data
 }
 
 export async function signInRequest({

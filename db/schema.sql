@@ -156,7 +156,9 @@ CREATE TABLE public.users (
     password_hash text NOT NULL,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
     image text,
-    name text
+    name text,
+    is_bot boolean,
+    elo_rating numeric DEFAULT 1200
 );
 
 
@@ -310,4 +312,6 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20250608222102'),
     ('20250609061907'),
     ('20250614161657'),
-    ('20250614184158');
+    ('20250614184158'),
+    ('20250620015043'),
+    ('20250620020835');

@@ -50,7 +50,7 @@ authRoute.get("/auth/session", authMiddleware, async (_, res) => {
   try {
     const user = await db
       .selectFrom("users")
-      .select(["id", "email", "username", "image"])
+      .select(["id", "email", "username", "image", "elo_rating"])
       .where("id", "=", userId)
       .executeTakeFirstOrThrow();
 
@@ -62,7 +62,14 @@ authRoute.get("/auth/session", authMiddleware, async (_, res) => {
       return;
     }
 
-    res.json(user);
+    res.json({
+      user: {
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        image: user.image,
+      }
+    });
     return;
   } catch (err) {
     res.status(500).json({ error: "Unexpected error" });
