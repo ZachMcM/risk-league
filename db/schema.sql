@@ -43,11 +43,11 @@ CREATE TABLE public.nba_games (
     plus_minus integer,
     game_type character varying(20) NOT NULL,
     season text,
-    pace numeric,
-    tov_ratio numeric,
-    tov_pct numeric,
-    off_rating numeric,
-    def_rating numeric
+    pace double precision,
+    tov_ratio double precision,
+    tov_pct double precision,
+    off_rating double precision,
+    def_rating double precision
 );
 
 
@@ -78,14 +78,14 @@ CREATE TABLE public.nba_player_stats (
     plus_minus integer,
     updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
     season text,
-    true_shooting numeric,
-    usage_rate numeric,
-    reb_pct numeric,
-    dreb_pct numeric,
-    oreb_pct numeric,
-    ast_pct numeric,
-    ast_ratio numeric,
-    tov_ratio numeric
+    true_shooting double precision,
+    usage_rate double precision,
+    reb_pct double precision,
+    dreb_pct double precision,
+    oreb_pct double precision,
+    ast_pct double precision,
+    ast_ratio double precision,
+    tov_ratio double precision
 );
 
 
@@ -114,8 +114,8 @@ CREATE TABLE public.nba_props (
     stat_type text NOT NULL,
     player_id text NOT NULL,
     raw_game_id text NOT NULL,
-    line numeric NOT NULL,
-    current_value numeric,
+    line double precision NOT NULL,
+    current_value double precision,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
     game_start_time timestamp with time zone
 );
@@ -158,7 +158,7 @@ CREATE TABLE public.users (
     image text,
     name text,
     is_bot boolean,
-    elo_rating numeric DEFAULT 1200
+    elo_rating double precision DEFAULT 1200 NOT NULL
 );
 
 
@@ -314,4 +314,7 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20250614161657'),
     ('20250614184158'),
     ('20250620015043'),
-    ('20250620020835');
+    ('20250620020835'),
+    ('20250621024817'),
+    ('20250621025156'),
+    ('20250621025736');

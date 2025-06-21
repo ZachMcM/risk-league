@@ -21,7 +21,7 @@ type LegendRank = {
   tier: "Legend";
   level: null;
   minElo: number;
-  maxElo: null;
+  maxElo: number;
 };
 
 export type Rank = NonLegendRank | LegendRank;
@@ -48,14 +48,12 @@ export const ranks: Rank[] = [
   { tier: "Elite", level: "I", minElo: 1800, maxElo: 1833 },
   { tier: "Elite", level: "II", minElo: 1834, maxElo: 1866 },
   { tier: "Elite", level: "III", minElo: 1867, maxElo: 1899 },
-  { tier: "Legend", level: null, minElo: 1900, maxElo: null },
+  { tier: "Legend", level: null, minElo: 1900, maxElo: Infinity },
 ];
 
-export const getRank = (eloRating: number) => {
-  for (let i = 0; i < ranks.length; i++) {}
-
-  return {
-    current: ranks[0],
-    next: ranks[1],
-  };
-};
+export type RankResponse = {
+  eloRating: number,
+  currentRank: Rank,
+  nextRank: Rank | null,
+  progressToNext: number
+}

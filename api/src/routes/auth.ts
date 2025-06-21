@@ -47,38 +47,33 @@ export const authMiddleware = async (
 authRoute.get("/auth/session", authMiddleware, async (_, res) => {
   const userId = res.locals.userId;
 
-  try {
-    const user = await db
-      .selectFrom("users")
-      .select(["id", "email", "username", "image", "elo_rating"])
-      .where("id", "=", userId)
-      .executeTakeFirstOrThrow();
+  const user = await db
+    .selectFrom("users")
+    .select(["id", "email", "username", "image", "elo_rating"])
+    .where("id", "=", userId)
+    .executeTakeFirst();
 
-    if (!user) {
-      res.status(404).json({
-        error: "Not Found",
-        message: "No user was found",
-      });
-      return;
-    }
-
-    res.json({
-      user: {
-        id: user.id,
-        email: user.email,
-        username: user.username,
-        image: user.image,
-      }
+  if (!user) {
+    res.status(404).json({
+      error: "Not Found",
+      message: "No user was found",
     });
     return;
-  } catch (err) {
-    res.status(500).json({ error: "Unexpected error" });
   }
+
+  res.json({
+    user: {
+      id: user.id,
+      email: user.email,
+      username: user.username,
+      image: user.image,
+    },
+  });
 });
 
 authRoute.post("/auth/signup", async (req, res) => {
   const body: RegisterBody = req.body;
-  console.log(body)
+  console.log(body);
 
   try {
     assertRequiredFields(body, ["name", "username", "email", "password"]);
@@ -153,7 +148,7 @@ authRoute.post("/auth/signin", async (req, res) => {
       .selectFrom("users")
       .select(["id", "password_hash"])
       .where("email", "=", email)
-      .executeTakeFirstOrThrow();
+      .executeTakeFirst();
 
     if (!user) {
       res.status(404).json({
@@ -163,7 +158,10 @@ authRoute.post("/auth/signin", async (req, res) => {
       return;
     }
 
-    const isPasswordCorrect = await bycrpt.compare(password, user.password_hash);
+    const isPasswordCorrect = await bycrpt.compare(
+      password,
+      user.password_hash
+    );
 
     if (!isPasswordCorrect) {
       res.status(401).json({
@@ -175,7 +173,7 @@ authRoute.post("/auth/signin", async (req, res) => {
 
     const accessToken = await createSession({ id: user.id });
     res.header("Access-Token", accessToken).json({
-      id: user.id
+      id: user.id,
     });
     return;
   } catch (err) {

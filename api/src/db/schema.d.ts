@@ -9,14 +9,12 @@ export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
   ? ColumnType<S, I | undefined, U>
   : ColumnType<T, T | undefined, T>;
 
-export type Numeric = ColumnType<string, number | string, number | string>;
-
 export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 
 export interface NbaGames {
   ast: number | null;
   blk: number | null;
-  def_rating: Numeric | null;
+  def_rating: number | null;
   dreb: number | null;
   fga: number | null;
   fgm: number | null;
@@ -27,9 +25,9 @@ export interface NbaGames {
   id: string;
   matchup: string | null;
   min: number | null;
-  off_rating: Numeric | null;
+  off_rating: number | null;
   oreb: number | null;
-  pace: Numeric | null;
+  pace: number | null;
   pf: number | null;
   plus_minus: number | null;
   pts: number | null;
@@ -40,8 +38,8 @@ export interface NbaGames {
   three_pa: number | null;
   three_pm: number | null;
   tov: number | null;
-  tov_pct: Numeric | null;
-  tov_ratio: Numeric | null;
+  tov_pct: number | null;
+  tov_ratio: number | null;
   wl: string | null;
 }
 
@@ -58,11 +56,11 @@ export interface NbaPlayers {
 
 export interface NbaPlayerStats {
   ast: number | null;
-  ast_pct: Numeric | null;
-  ast_ratio: Numeric | null;
+  ast_pct: number | null;
+  ast_ratio: number | null;
   blk: number | null;
   dreb: number | null;
-  dreb_pct: Numeric | null;
+  dreb_pct: number | null;
   fga: number | null;
   fgm: number | null;
   fta: number | null;
@@ -71,30 +69,30 @@ export interface NbaPlayerStats {
   id: string;
   min: number | null;
   oreb: number | null;
-  oreb_pct: Numeric | null;
+  oreb_pct: number | null;
   pf: number | null;
   player_id: string | null;
   plus_minus: number | null;
   pts: number | null;
   reb: number | null;
-  reb_pct: Numeric | null;
+  reb_pct: number | null;
   season: string | null;
   stl: number | null;
   three_pa: number | null;
   three_pm: number | null;
   tov: number | null;
-  tov_ratio: Numeric | null;
-  true_shooting: Numeric | null;
+  tov_ratio: number | null;
+  true_shooting: number | null;
   updated_at: Generated<Timestamp | null>;
-  usage_rate: Numeric | null;
+  usage_rate: number | null;
 }
 
 export interface NbaProps {
   created_at: Generated<Timestamp | null>;
-  current_value: Numeric | null;
+  current_value: number | null;
   game_start_time: Timestamp | null;
   id: Generated<string>;
-  line: Numeric;
+  line: number;
   player_id: string;
   raw_game_id: string;
   stat_type: string;
@@ -116,7 +114,7 @@ export interface SchemaMigrations {
 
 export interface Users {
   created_at: Generated<Timestamp | null>;
-  elo_rating: Generated<Numeric | null>;
+  elo_rating: Generated<number>;
   email: string;
   id: Generated<string>;
   image: string | null;

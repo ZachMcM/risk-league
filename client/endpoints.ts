@@ -1,5 +1,6 @@
 import { deleteItemAsync, getItemAsync, setItemAsync } from "expo-secure-store";
 import { Session } from "./types/session";
+import { RankResponse } from "./types/ranks";
 
 export type HttpRequestParams = {
   endpoint: string;
@@ -122,4 +123,20 @@ export async function signUpRequest({
 
 export async function signOutRequest() {
   await deleteItemAsync("Access-Token");
+}
+
+export async function getRank(id: string): Promise<RankResponse> {
+  const res = await httpRequest({
+    endpoint: "/users/ranks",
+    method: "GET"
+  })
+
+  const data = await res.json()
+  console.log(data)
+
+  if (!res.ok) {
+    throw new Error(data.message)
+  }
+
+  return data 
 }
