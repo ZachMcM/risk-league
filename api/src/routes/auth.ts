@@ -2,14 +2,10 @@ import bycrpt from "bcrypt";
 import { NextFunction, Request, Response, Router } from "express";
 import jwt from "jsonwebtoken";
 import { db } from "../db/db";
-import {
-  MissingFieldsError,
-  RegisterBody,
-  SignInBody,
-  TokenPayload,
-} from "../types";
 import { createSession } from "../utils/createSession";
 import { assertRequiredFields } from "../utils/validateFields";
+import { RegisterBody, SignInBody, TokenPayload } from "../types/auth";
+import { MissingFieldsError } from "../types/MissingFieldsError";
 
 export const authRoute = Router();
 

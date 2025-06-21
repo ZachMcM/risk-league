@@ -1,4 +1,4 @@
-import { MissingFieldsError } from "../types";
+import { MissingFieldsError } from "../types/MissingFieldsError";
 
 type FieldGroup<T> = (keyof T)[];
 

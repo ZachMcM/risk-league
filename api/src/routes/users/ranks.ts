@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { authMiddleware } from "../auth";
 import { db } from "../../db/db";
+import { authMiddleware } from "../auth";
 
 export const ranksRoute = Router();
 

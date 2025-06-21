@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
 import { ActivityIndicator } from "react-native";
-import SignOutButton from "~/components/auth/SignOutButton";
 import { RankProgress } from "~/components/home/RankProgress";
 import { useSession } from "~/components/providers/SessionProvider";
 import { ScrollContainer } from "~/components/ui/scroll-container";
@@ -22,9 +21,9 @@ export default function Home() {
       ) : (
         rankInfo && (
           <RankProgress
+            eloRating={rankInfo.eloRating}
             currentRank={rankInfo.currentRank}
             nextRank={rankInfo.nextRank}
-            eloRating={rankInfo.eloRating}
             progressToNext={rankInfo.progressToNext}
           />
         )

@@ -11,6 +11,27 @@ export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
 
 export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 
+export interface Matches {
+  created_at: Generated<Timestamp | null>;
+  ends_at: Timestamp;
+  id: Generated<string>;
+  resolved: Generated<boolean | null>;
+}
+
+export interface MatchUserNbaPicks {
+  id: Generated<string>;
+  match_user_id: string | null;
+  nba_prop_id: string | null;
+  pick: string;
+}
+
+export interface MatchUsers {
+  created_at: Generated<Timestamp | null>;
+  id: Generated<string>;
+  match_id: string | null;
+  user_id: string | null;
+}
+
 export interface NbaGames {
   ast: number | null;
   blk: number | null;
@@ -125,6 +146,9 @@ export interface Users {
 }
 
 export interface DB {
+  match_user_nba_picks: MatchUserNbaPicks;
+  match_users: MatchUsers;
+  matches: Matches;
   nba_games: NbaGames;
   nba_player_stats: NbaPlayerStats;
   nba_players: NbaPlayers;

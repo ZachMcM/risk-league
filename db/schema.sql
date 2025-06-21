@@ -15,6 +15,42 @@ SET default_tablespace = '';
 SET default_table_access_method = heap;
 
 --
+-- Name: match_user_nba_picks; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.match_user_nba_picks (
+    id text DEFAULT gen_random_uuid() NOT NULL,
+    pick text NOT NULL,
+    match_user_id text,
+    nba_prop_id text
+);
+
+
+--
+-- Name: match_users; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.match_users (
+    id text DEFAULT gen_random_uuid() NOT NULL,
+    match_id text,
+    user_id text,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
+);
+
+
+--
+-- Name: matches; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.matches (
+    id text DEFAULT gen_random_uuid() NOT NULL,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    ends_at timestamp with time zone NOT NULL,
+    resolved boolean DEFAULT false
+);
+
+
+--
 -- Name: nba_games; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -163,6 +199,30 @@ CREATE TABLE public.users (
 
 
 --
+-- Name: match_user_nba_picks match_user_nba_picks_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.match_user_nba_picks
+    ADD CONSTRAINT match_user_nba_picks_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: match_users match_users_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.match_users
+    ADD CONSTRAINT match_users_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: matches matches_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.matches
+    ADD CONSTRAINT matches_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: nba_games nba_games_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -243,6 +303,30 @@ ALTER TABLE ONLY public.nba_player_stats
 
 
 --
+-- Name: match_users fk_match; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.match_users
+    ADD CONSTRAINT fk_match FOREIGN KEY (match_id) REFERENCES public.matches(id);
+
+
+--
+-- Name: match_user_nba_picks fk_match_user; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.match_user_nba_picks
+    ADD CONSTRAINT fk_match_user FOREIGN KEY (match_user_id) REFERENCES public.match_users(id);
+
+
+--
+-- Name: match_user_nba_picks fk_nba_prop; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.match_user_nba_picks
+    ADD CONSTRAINT fk_nba_prop FOREIGN KEY (nba_prop_id) REFERENCES public.nba_props(id);
+
+
+--
 -- Name: nba_player_stats fk_player; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -272,6 +356,14 @@ ALTER TABLE ONLY public.nba_players
 
 ALTER TABLE ONLY public.nba_games
     ADD CONSTRAINT fk_team FOREIGN KEY (team_id) REFERENCES public.nba_teams(id);
+
+
+--
+-- Name: match_users fk_user; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.match_users
+    ADD CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 
 --
@@ -317,4 +409,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20250620020835'),
     ('20250621024817'),
     ('20250621025156'),
-    ('20250621025736');
+    ('20250621025736'),
+    ('20250621052839');
