@@ -97,6 +97,10 @@ export default function RootLayout() {
                 <Stack.Screen name="landing" options={{ headerShown: false }} />
                 <Stack.Screen name="signin" options={{ headerShown: false }} />
                 <Stack.Screen name="signup" options={{ headerShown: false }} />
+                <Stack.Screen
+                  name="matchmaking"
+                  options={{ headerShown: false }}
+                />
               </Stack>
               <PortalHost />
             </ThemeProvider>
@@ -110,7 +114,7 @@ export default function RootLayout() {
                 borderColor: isDarkColorScheme
                   ? "hsl(223.8136 0% 15.5096%)" // from --border .dark:root
                   : "hsl(223.8136 0.0001% 89.8161%)", // from --border .root
-                borderWidth: 1
+                borderWidth: 1,
               },
             }}
           />

@@ -55,6 +55,11 @@ To run the API server without transpiling into JS with the build command simply 
 npm run dev
 ```
 
+### Running The Redis Server
+```
+redis-server
+```
+
 ### Running the Expo Simulator
 
 ```

@@ -7,3 +7,5 @@ export const routes = express.Router();
 routes.use(authRoute);
 routes.use(usersRoute);
 routes.use(scoreboard)
+
+

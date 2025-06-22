@@ -11,7 +11,7 @@ export function RankProgress(props: RankResponse) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-3xl font-black text-foreground">
+        <CardTitle className="text-3xl font-extrabold text-foreground">
           {currentRank.tier} {currentRank.level}
         </CardTitle>
       </CardHeader>
