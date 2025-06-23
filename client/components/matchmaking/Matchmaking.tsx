@@ -70,7 +70,6 @@ export default function Matchmaking() {
       setProgress(100);
       setLoadingMessage("Opponent found!");
       toast.success("Opponent found!")
-      socket.disconnect();
       router.replace({
         pathname: '/matches/[id]',
         params: { id: matchId }
@@ -83,13 +82,11 @@ export default function Matchmaking() {
       setProgress(0)
       setLoadingMessage("Matchmaking failed...")
       toast.error("Matchmaking failed")
-      socket.disconnect();
       router.replace("/(tabs)")
     })
 
     return () => {
       clearInterval(interval);
-      socket.emit("cancel-search");
       socket.disconnect();
     };
   }, [userId]);
@@ -125,7 +122,6 @@ export default function Matchmaking() {
           <Button
             onPress={() => {
               socketRef.current?.emit("cancel-search");
-              socketRef.current?.disconnect();
               router.replace("/(tabs)");
             }}
             size="lg"
