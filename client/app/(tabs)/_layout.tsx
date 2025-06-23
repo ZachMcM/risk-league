@@ -43,11 +43,18 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="matches"
+        name="matches/index"
         options={{
           title: "Matches",
           headerShown: false,
           tabBarIcon: ({ color }) => <Dices color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="matches/[id]"
+        options={{
+          href: null,
+          headerShown: false,
         }}
       />
     </Tabs>

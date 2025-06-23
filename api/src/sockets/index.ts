@@ -1,4 +1,5 @@
 import { Server } from "socket.io";
+import { createMatch } from "../matchmaking/createMatch";
 import { addToQueue, getPair, removeFromQueue } from "../matchmaking/queue";
 
 export function initSocketServer(io: Server) {
@@ -13,13 +14,18 @@ export function initSocketServer(io: Server) {
       const pair = await getPair();
 
       if (pair) {
+        const matchId = await createMatch(pair);
+
         const { user1, user2 } = pair;
-        io.of("/matchmaking")
-          .to(user1)
-          .emit("match-found", { opponentId: user2 });
-        io.of("/matchmaking")
-          .to(user2)
-          .emit("match-found", { opponentId: user1 });
+
+        if (!matchId) {
+          console.log("Matchmaking failed due to failure to insert match");
+          io.of("/matchmaking").to(user1).emit("matchmaking-failed");
+          io.of("/matchmaking").to(user2).emit("matchmaking-failed");
+        }
+
+        io.of("/matchmaking").to(user1).emit("match-found", { matchId });
+        io.of("/matchmaking").to(user2).emit("match-found", { matchId });
 
         console.log(`Match found between users ${user1} and ${user2}`);
       }

@@ -26,6 +26,7 @@ export interface MatchUserNbaPicks {
 }
 
 export interface MatchUsers {
+  balance: Generated<number | null>;
   created_at: Generated<Timestamp | null>;
   id: Generated<string>;
   match_id: string | null;

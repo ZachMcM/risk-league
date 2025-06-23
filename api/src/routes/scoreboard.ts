@@ -1,6 +1,5 @@
 import { Router } from "express";
-import { NbaScoreboardResponse } from "../types/nba_cdn";
-import { LiveGame } from "../types/scoreboard";
+import { LiveGame, NbaScoreboardResponse } from "../types/nbaScoreboard";
 
 export const scoreboard = Router();
 

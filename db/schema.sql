@@ -34,7 +34,8 @@ CREATE TABLE public.match_users (
     id text DEFAULT gen_random_uuid() NOT NULL,
     match_id text,
     user_id text,
-    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    balance double precision DEFAULT 100
 );
 
 
@@ -410,4 +411,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20250621024817'),
     ('20250621025156'),
     ('20250621025736'),
-    ('20250621052839');
+    ('20250621052839'),
+    ('20250623024227');

@@ -49,19 +49,18 @@ If `api/src/db/schema.d.ts` does not exist run this command
 npm run codegen
 ```
 
+### Running The Redis Server
+```
+redis-server
+```
+
 ### Running The Server In Dev Mode (Nodemon)
 To run the API server without transpiling into JS with the build command simply run
 ```
 npm run dev
 ```
 
-### Running The Redis Server
-```
-redis-server
-```
-
 ### Running the Expo Simulator
-
 ```
 npm run start
 ```

@@ -12,10 +12,7 @@ def get_current_season():
     now = datetime.now()
     year = now.year
 
-    if now.month < 10:  # Before October, use last season
-        return f"{year - 1}-{str(year)[-2:]}"
-    else:  # From October onwards, use current season
-        return f"{year}-{str(year + 1)[-2:]}"
+    return f"{year}-{str(year + 1)[-2:]}"
 
 
 def get_last_season():

@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { View } from "react-native";
 import { io } from "socket.io-client";
 import { Trophy } from "~/lib/icons/Trophy";
+import { Users } from "~/lib/icons/Users";
 import { X } from "~/lib/icons/X";
 import { useSession } from "../providers/SessionProvider";
 import { Button } from "../ui/button";
@@ -15,10 +16,11 @@ import {
 } from "../ui/card";
 import { Progress } from "../ui/progress";
 import { Text } from "../ui/text";
+import { toast } from "sonner-native";
 
 const messages = [
   "Matching skill levels...",
-  "Searching for worthy opponents...",
+  "Searching for opponent...",
   "Analyzing ranks...",
   "Finding the perfect match...",
   "Hang tight, almost there...",
@@ -41,7 +43,7 @@ export default function Matchmaking() {
     const interval = setInterval(() => {
       // Random increment between 3 and 25, but never let it reach 100%
       setProgress((prev) => {
-        const randomIncrement = Math.floor(Math.random() * 23) + 3; // 3-25
+        const randomIncrement = Math.floor(Math.random() * 6) + 5; // 3-25
         const newProgress = prev + randomIncrement;
         // Cap at 95% to never reach 100% naturally
         return Math.min(newProgress, 95);
@@ -62,13 +64,28 @@ export default function Matchmaking() {
       console.log("Connected to matchmaking namespace")
     );
 
-    socket.on("match-found", ({ opponentId }: { opponentId: string }) => {
-      console.log("Matched with opponent");
+    socket.on("match-found", ({ matchId }: { matchId: string }) => {
+      console.log(`Found match id: ${matchId}`);
       clearInterval(interval);
       setProgress(100);
       setLoadingMessage("Opponent found!");
-      // TODO
+      toast.success("Opponent found!")
+      socket.disconnect();
+      router.replace({
+        pathname: '/matches/[id]',
+        params: { id: matchId }
+      })
     });
+
+    socket.on("matchmaking-failed", () => {
+      console.log("Failed to create match")
+      clearInterval(interval)
+      setProgress(0)
+      setLoadingMessage("Matchmaking failed...")
+      toast.error("Matchmaking failed")
+      socket.disconnect();
+      router.replace("/(tabs)")
+    })
 
     return () => {
       clearInterval(interval);
@@ -80,8 +97,9 @@ export default function Matchmaking() {
   return (
     <Card>
       <CardHeader className="flex flex-col items-center gap-4">
-        <View className="h-20 w-20 border-2 border-primary/20 bg-primary/10 flex items-center justify-center rounded-full">
-          <Trophy size={32} className="text-primary" />
+        <View className="relative mx-auto w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center">
+          <Users size={28} className="text-primary" />
+          <View className="absolute inset-0 border-2 border-primary/20 rounded-full animate-spin border-t-primary" />
         </View>
         <CardTitle className="font-extrabold text-3xl">
           Finding Opponent
@@ -94,15 +112,15 @@ export default function Matchmaking() {
         <View className="flex flex-col gap-4">
           <Progress
             value={progress}
-            className="bg-primary/10"
+            className="bg-primary/10 h-3"
             indicatorClassName="bg-primary"
           />
           <Text className="text-center font-medium text-muted-foreground text-lg">
             {Math.round(progress)}% complete
           </Text>
           <View className="flex flex-row gap-4 items-center bg-muted/50 rounded-lg p-4">
-            <Trophy size={24} className="text-primary" />
-            <Text className="font-medium text-xl">{loadingMessage}</Text>
+            <Trophy size={20} className="text-primary" />
+            <Text className="font-medium">{loadingMessage}</Text>
           </View>
           <Button
             onPress={() => {
