@@ -35,7 +35,8 @@ CREATE TABLE public.match_users (
     match_id text,
     user_id text,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
-    balance double precision DEFAULT 100
+    balance double precision DEFAULT 100,
+    elo_gained double precision DEFAULT 0
 );
 
 
@@ -448,4 +449,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20250621025736'),
     ('20250621052839'),
     ('20250623024227'),
-    ('20250624014156');
+    ('20250624014156'),
+    ('20250625021323');
