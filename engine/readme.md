@@ -1,0 +1,2 @@
+# Engine 
+Engine is the layer of risk league responsible for orchestration of matches, props, and all league specific data. Much of the code exists as infrastructure to generate props for each league and to handle the real time aspect of the application. The original code was written by Zach McMullen. 

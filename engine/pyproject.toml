@@ -1,0 +1,37 @@
+[project]
+name = "engine"
+version = "0.1.0"
+description = "Engine-level orchestration for Risk League: league logic, daemons, shared infrastructure"
+authors = [{ name = "Zach McMullen", email = "zachmcmullen04@gmail.com" }]
+readme = "README.md"
+requires-python = ">=3.9"
+
+dependencies = [
+  "nba_api",
+  "pandas",
+  "sqlalchemy",
+  "psycopg2",
+  "python-dotenv",
+  "scikit-learn",
+  "numpy",
+  "requests",
+  "apscheduler",
+  "black",
+]
+
+[tool.setuptools]
+packages = [
+  "nba",
+  "nba.tests",
+  "nba.scripts",
+  "nba.scripts.prop_generation",
+  "nba.scripts.init_data",
+  "nba.daemons",
+  "system",
+  "system.daemons",
+  "shared",
+]
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"

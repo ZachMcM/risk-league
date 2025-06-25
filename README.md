@@ -41,6 +41,12 @@ python init_nba_games.py
 python init_nba_player_stats.py
 ```
 
+## Install Engine
+```
+cd engine
+pip install -e .
+```
+
 ## Running The API Server
 
 ### Generating Types

@@ -40,13 +40,24 @@ CREATE TABLE public.match_users (
 
 
 --
+-- Name: match_winners; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.match_winners (
+    id text DEFAULT gen_random_uuid() NOT NULL,
+    match_id text,
+    winner_id text,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
+);
+
+
+--
 -- Name: matches; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.matches (
     id text DEFAULT gen_random_uuid() NOT NULL,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
-    ends_at timestamp with time zone NOT NULL,
     resolved boolean DEFAULT false
 );
 
@@ -216,6 +227,14 @@ ALTER TABLE ONLY public.match_users
 
 
 --
+-- Name: match_winners match_winners_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.match_winners
+    ADD CONSTRAINT match_winners_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: matches matches_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -312,6 +331,14 @@ ALTER TABLE ONLY public.match_users
 
 
 --
+-- Name: match_winners fk_match; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.match_winners
+    ADD CONSTRAINT fk_match FOREIGN KEY (match_id) REFERENCES public.matches(id);
+
+
+--
 -- Name: match_user_nba_picks fk_match_user; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -368,6 +395,14 @@ ALTER TABLE ONLY public.match_users
 
 
 --
+-- Name: match_winners fk_winner; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.match_winners
+    ADD CONSTRAINT fk_winner FOREIGN KEY (winner_id) REFERENCES public.users(id);
+
+
+--
 -- PostgreSQL database dump complete
 --
 
@@ -412,4 +447,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20250621025156'),
     ('20250621025736'),
     ('20250621052839'),
-    ('20250623024227');
+    ('20250623024227'),
+    ('20250624014156');
