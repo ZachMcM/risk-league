@@ -9,12 +9,14 @@ export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
   ? ColumnType<S, I | undefined, U>
   : ColumnType<T, T | undefined, T>;
 
+export type MatchResult = "draw" | "forfeit" | "in_progress" | "loss" | "win";
+
 export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 
 export interface Matches {
   created_at: Generated<Timestamp | null>;
   id: Generated<string>;
-  resolved: Generated<boolean | null>;
+  resolved: Generated<boolean>;
 }
 
 export interface MatchUserNbaPicks {
@@ -27,17 +29,11 @@ export interface MatchUserNbaPicks {
 export interface MatchUsers {
   balance: Generated<number | null>;
   created_at: Generated<Timestamp | null>;
-  elo_gained: Generated<number | null>;
+  elo_delta: Generated<number | null>;
   id: Generated<string>;
   match_id: string | null;
+  result: MatchResult;
   user_id: string | null;
-}
-
-export interface MatchWinners {
-  created_at: Generated<Timestamp | null>;
-  id: Generated<string>;
-  match_id: string | null;
-  winner_id: string | null;
 }
 
 export interface NbaGames {
@@ -156,7 +152,6 @@ export interface Users {
 export interface DB {
   match_user_nba_picks: MatchUserNbaPicks;
   match_users: MatchUsers;
-  match_winners: MatchWinners;
   matches: Matches;
   nba_games: NbaGames;
   nba_player_stats: NbaPlayerStats;

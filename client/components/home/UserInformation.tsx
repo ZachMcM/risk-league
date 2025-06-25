@@ -13,23 +13,27 @@ export default function UserInformation({
   rankString: string;
 }) {
   return (
-    <View className="rounded-2xl py-6 px-8 border border-primary/20 bg-primary/10">
-      <View className="flex flex-row items-center justify-between">
-        <View className="flex flex-row items-center gap-4">
-          <Avatar className="h-14 w-14 border border-primary/20" alt="Profile">
-            {/* TODO */}
-            <AvatarImage source={{ uri: "" }} />
-            <AvatarFallback>
-              <Text>RL</Text>
-            </AvatarFallback>
-          </Avatar>
-          <Text className="text-foreground font-extrabold text-2xl">
+    <View className="rounded-2xl p-4 border border-primary/20 bg-primary/10">
+      <View className="flex flex-row items-center gap-4">
+        <Avatar className="h-16 w-16 border border-primary/20" alt="Profile">
+          {/* TODO */}
+          <AvatarImage
+            source={{
+              uri: "https://www.chicagotribune.com/wp-content/uploads/2025/05/APTOPIX_Pacers_Knicks_Basketball_39878_b013f1.jpg?w=1800&resize=1800,1800",
+            }}
+          />
+          <AvatarFallback>
+            <Text>RL</Text>
+          </AvatarFallback>
+        </Avatar>
+        <View className="flex flex-col gap-1 items-start">
+          <Badge>
+            <Text>{rankString}</Text>
+          </Badge>
+          <Text className="text-foreground font-bold text-2xl">
             {username}
           </Text>
         </View>
-        <Badge>
-          <Text>{rankString}</Text>
-        </Badge>
       </View>
     </View>
   );

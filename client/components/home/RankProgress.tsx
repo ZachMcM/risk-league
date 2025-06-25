@@ -1,31 +1,38 @@
 import { TrendingUp } from "lib/icons/TrendingUp";
 import { View } from "react-native";
 import { RankResponse } from "~/types/ranks";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "../ui/card";
 import { Progress } from "../ui/progress";
 import { Text } from "../ui/text";
 
 export function RankProgress(props: RankResponse) {
-  const { currentRank, nextRank, progressToNext } = props;
+  const { currentRank, nextRank, progressToNext, eloRating } = props;
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-3xl font-extrabold text-foreground">
+        <CardTitle className="text-primary font-bold text-4xl">{eloRating}</CardTitle>
+        <CardDescription className="text-foreground font-bold text-xl">
           {currentRank.tier} {currentRank.level}
-        </CardTitle>
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <View className="flex flex-col gap-4">
           {nextRank && (
             <View className="flex flex-row items-center justify-between">
-              <View className="flex flex-row items-center gap-2">
+              <View className="flex flex-row items-center gap-3">
                 <TrendingUp className="w-4 h-4 text-primary" />
                 <Text className="font-semibold text-xl text-muted-foreground">
                   Progress to {nextRank?.tier} {nextRank?.level}
                 </Text>
               </View>
-              <Text className="font-extrabold text-primary text-3xl">
+              <Text className="font-semibold text-primary text-2xl">
                 {progressToNext * 100}%
               </Text>
             </View>

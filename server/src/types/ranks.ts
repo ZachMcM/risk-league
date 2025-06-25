@@ -50,10 +50,3 @@ export const ranks: Rank[] = [
   { tier: "GOAT", level: "III", minElo: 1867, maxElo: 1899 },
   { tier: "Hall of Fame", level: null, minElo: 1900, maxElo: Infinity },
 ];
-
-export type RankResponse = {
-  eloRating: number,
-  currentRank: Rank,
-  nextRank: Rank | null,
-  progressToNext: number
-}

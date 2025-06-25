@@ -1,6 +1,4 @@
 import { db } from "../db/db";
-import { getGameEndTime } from "../utils/getGameEndTime";
-import { getTodayLatestGame } from "../utils/getTodayLatestGame";
 
 export async function createMatch({
   user1,
@@ -9,13 +7,10 @@ export async function createMatch({
   user1: string;
   user2: string;
 }) {
-  const todayLatestGame = await getTodayLatestGame();
-  if (todayLatestGame == null) {
-    return null;
-  }
   const match = await db
     .insertInto("matches")
-    .returning(["id"])
+    .values({ resolved: false })
+    .returning("id")
     .executeTakeFirstOrThrow();
 
   await db
@@ -23,6 +18,7 @@ export async function createMatch({
     .values({
       match_id: match.id,
       user_id: user1,
+      result: "in_progress",
     })
     .execute();
 
@@ -31,6 +27,7 @@ export async function createMatch({
     .values({
       match_id: match.id,
       user_id: user2,
+      result: "in_progress",
     })
     .execute();
 

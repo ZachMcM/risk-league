@@ -15,15 +15,13 @@ engine = create_engine(os.getenv("DATABASE_URL"))
 
 
 # gets all the games for today
-def get_today_games(test_games=False):
+def get_today_games():
     today = datetime.now().strftime("%Y-%m-%d")
     try:
         scoreboard = ScoreBoard()
         games = ScoreBoard().games.get_dict()
-        if not test_games:
-            if scoreboard.score_board_date != today:
-                print("⚠️ No games found today, no props to generate!")
-                sys.exit(0)
+        if scoreboard.score_board_date != today:
+            print("⚠️ No games found today, no props to generate!")
         return games
     except Exception as e:
         print(f"⚠️ Error fetching today's games: {e}")
@@ -58,7 +56,7 @@ def update_prop(stat_type: StatType, player_id: str, raw_game_id: str, updated_v
 
 
 def sync_props():
-    games = get_today_games(test_games=True)
+    games = get_today_games()
 
     for i, game in enumerate(games):
         print(f"Processing game {i + 1}/{len(games)}\n")

@@ -10,6 +10,19 @@ SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
 
+--
+-- Name: match_result; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.match_result AS ENUM (
+    'win',
+    'loss',
+    'draw',
+    'forfeit',
+    'in_progress'
+);
+
+
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
@@ -36,19 +49,8 @@ CREATE TABLE public.match_users (
     user_id text,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
     balance double precision DEFAULT 100,
-    elo_gained double precision DEFAULT 0
-);
-
-
---
--- Name: match_winners; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.match_winners (
-    id text DEFAULT gen_random_uuid() NOT NULL,
-    match_id text,
-    winner_id text,
-    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
+    elo_delta double precision DEFAULT 0,
+    result public.match_result NOT NULL
 );
 
 
@@ -59,7 +61,7 @@ CREATE TABLE public.match_winners (
 CREATE TABLE public.matches (
     id text DEFAULT gen_random_uuid() NOT NULL,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
-    resolved boolean DEFAULT false
+    resolved boolean DEFAULT false NOT NULL
 );
 
 
@@ -228,14 +230,6 @@ ALTER TABLE ONLY public.match_users
 
 
 --
--- Name: match_winners match_winners_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.match_winners
-    ADD CONSTRAINT match_winners_pkey PRIMARY KEY (id);
-
-
---
 -- Name: matches matches_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -332,14 +326,6 @@ ALTER TABLE ONLY public.match_users
 
 
 --
--- Name: match_winners fk_match; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.match_winners
-    ADD CONSTRAINT fk_match FOREIGN KEY (match_id) REFERENCES public.matches(id);
-
-
---
 -- Name: match_user_nba_picks fk_match_user; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -396,14 +382,6 @@ ALTER TABLE ONLY public.match_users
 
 
 --
--- Name: match_winners fk_winner; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.match_winners
-    ADD CONSTRAINT fk_winner FOREIGN KEY (winner_id) REFERENCES public.users(id);
-
-
---
 -- PostgreSQL database dump complete
 --
 
@@ -450,4 +428,7 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20250621052839'),
     ('20250623024227'),
     ('20250624014156'),
-    ('20250625021323');
+    ('20250625021323'),
+    ('20250625032311'),
+    ('20250625032535'),
+    ('20250625033321');
