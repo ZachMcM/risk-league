@@ -17,6 +17,7 @@ dependencies = [
   "requests",
   "apscheduler",
   "black",
+  "sqlacodegen"
 ]
 
 [tool.setuptools]

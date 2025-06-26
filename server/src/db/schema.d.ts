@@ -9,6 +9,8 @@ export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
   ? ColumnType<S, I | undefined, U>
   : ColumnType<T, T | undefined, T>;
 
+export type LeagueType = "mlb" | "nba" | "nfl";
+
 export type MatchResult = "draw" | "forfeit" | "in_progress" | "loss" | "win";
 
 export type Timestamp = ColumnType<Date, Date | string, Date | string>;
@@ -17,13 +19,6 @@ export interface Matches {
   created_at: Generated<Timestamp | null>;
   id: Generated<string>;
   resolved: Generated<boolean>;
-}
-
-export interface MatchUserNbaPicks {
-  id: Generated<string>;
-  match_user_id: string | null;
-  nba_prop_id: string | null;
-  pick: string;
 }
 
 export interface MatchUsers {
@@ -68,17 +63,6 @@ export interface NbaGames {
   wl: string | null;
 }
 
-export interface NbaPlayers {
-  height: string | null;
-  id: string;
-  name: string | null;
-  number: string | null;
-  position: string | null;
-  team_id: string | null;
-  updated_at: Generated<Timestamp | null>;
-  weight: string | null;
-}
-
 export interface NbaPlayerStats {
   ast: number | null;
   ast_pct: number | null;
@@ -112,9 +96,21 @@ export interface NbaPlayerStats {
   usage_rate: number | null;
 }
 
-export interface NbaProps {
+export interface Players {
+  height: string | null;
+  id: string;
+  league: LeagueType;
+  name: string | null;
+  number: string | null;
+  position: string | null;
+  team_id: string | null;
+  updated_at: Generated<Timestamp | null>;
+  weight: string | null;
+}
+
+export interface Props {
   created_at: Generated<Timestamp | null>;
-  current_value: number | null;
+  current_value: Generated<number>;
   game_start_time: Timestamp | null;
   id: Generated<string>;
   line: number;
@@ -123,18 +119,19 @@ export interface NbaProps {
   stat_type: string;
 }
 
-export interface NbaTeams {
+export interface SchemaMigrations {
+  version: string;
+}
+
+export interface Teams {
   abbreviation: string | null;
   city: string | null;
   full_name: string | null;
   id: string;
+  league: LeagueType;
   nickname: string | null;
   state: string | null;
   year_founded: number | null;
-}
-
-export interface SchemaMigrations {
-  version: string;
 }
 
 export interface Users {
@@ -150,14 +147,13 @@ export interface Users {
 }
 
 export interface DB {
-  match_user_nba_picks: MatchUserNbaPicks;
   match_users: MatchUsers;
   matches: Matches;
   nba_games: NbaGames;
   nba_player_stats: NbaPlayerStats;
-  nba_players: NbaPlayers;
-  nba_props: NbaProps;
-  nba_teams: NbaTeams;
+  players: Players;
+  props: Props;
   schema_migrations: SchemaMigrations;
+  teams: Teams;
   users: Users;
 }

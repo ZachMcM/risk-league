@@ -11,6 +11,17 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 --
+-- Name: league_type; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.league_type AS ENUM (
+    'nba',
+    'nfl',
+    'mlb'
+);
+
+
+--
 -- Name: match_result; Type: TYPE; Schema: public; Owner: -
 --
 
@@ -23,21 +34,19 @@ CREATE TYPE public.match_result AS ENUM (
 );
 
 
+--
+-- Name: pick_type; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.pick_type AS ENUM (
+    'over',
+    'under'
+);
+
+
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
-
---
--- Name: match_user_nba_picks; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.match_user_nba_picks (
-    id text DEFAULT gen_random_uuid() NOT NULL,
-    pick text NOT NULL,
-    match_user_id text,
-    nba_prop_id text
-);
-
 
 --
 -- Name: match_users; Type: TABLE; Schema: public; Owner: -
@@ -141,10 +150,10 @@ CREATE TABLE public.nba_player_stats (
 
 
 --
--- Name: nba_players; Type: TABLE; Schema: public; Owner: -
+-- Name: players; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.nba_players (
+CREATE TABLE public.players (
     id text NOT NULL,
     name text,
     team_id text,
@@ -152,38 +161,24 @@ CREATE TABLE public.nba_players (
     updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
     height text,
     weight text,
-    number text
+    number text,
+    league public.league_type NOT NULL
 );
 
 
 --
--- Name: nba_props; Type: TABLE; Schema: public; Owner: -
+-- Name: props; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.nba_props (
+CREATE TABLE public.props (
     id text DEFAULT gen_random_uuid() NOT NULL,
-    stat_type text NOT NULL,
-    player_id text NOT NULL,
-    raw_game_id text NOT NULL,
     line double precision NOT NULL,
-    current_value double precision,
+    current_value double precision DEFAULT 0 NOT NULL,
+    raw_game_id text NOT NULL,
+    player_id text NOT NULL,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    stat_type text NOT NULL,
     game_start_time timestamp with time zone
-);
-
-
---
--- Name: nba_teams; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.nba_teams (
-    id text NOT NULL,
-    full_name text,
-    abbreviation text,
-    nickname text,
-    city text,
-    state text,
-    year_founded integer
 );
 
 
@@ -193,6 +188,22 @@ CREATE TABLE public.nba_teams (
 
 CREATE TABLE public.schema_migrations (
     version character varying NOT NULL
+);
+
+
+--
+-- Name: teams; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.teams (
+    id text NOT NULL,
+    full_name text,
+    abbreviation text,
+    nickname text,
+    city text,
+    state text,
+    year_founded integer,
+    league public.league_type NOT NULL
 );
 
 
@@ -211,14 +222,6 @@ CREATE TABLE public.users (
     is_bot boolean,
     elo_rating double precision DEFAULT 1200 NOT NULL
 );
-
-
---
--- Name: match_user_nba_picks match_user_nba_picks_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.match_user_nba_picks
-    ADD CONSTRAINT match_user_nba_picks_pkey PRIMARY KEY (id);
 
 
 --
@@ -254,27 +257,27 @@ ALTER TABLE ONLY public.nba_player_stats
 
 
 --
--- Name: nba_players nba_players_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: players nba_players_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.nba_players
+ALTER TABLE ONLY public.players
     ADD CONSTRAINT nba_players_pkey PRIMARY KEY (id);
 
 
 --
--- Name: nba_props nba_props_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: teams nba_teams_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.nba_props
-    ADD CONSTRAINT nba_props_pkey PRIMARY KEY (id);
-
-
---
--- Name: nba_teams nba_teams_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.nba_teams
+ALTER TABLE ONLY public.teams
     ADD CONSTRAINT nba_teams_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: props props_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.props
+    ADD CONSTRAINT props_pkey PRIMARY KEY (id);
 
 
 --
@@ -326,43 +329,19 @@ ALTER TABLE ONLY public.match_users
 
 
 --
--- Name: match_user_nba_picks fk_match_user; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.match_user_nba_picks
-    ADD CONSTRAINT fk_match_user FOREIGN KEY (match_user_id) REFERENCES public.match_users(id);
-
-
---
--- Name: match_user_nba_picks fk_nba_prop; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.match_user_nba_picks
-    ADD CONSTRAINT fk_nba_prop FOREIGN KEY (nba_prop_id) REFERENCES public.nba_props(id);
-
-
---
 -- Name: nba_player_stats fk_player; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.nba_player_stats
-    ADD CONSTRAINT fk_player FOREIGN KEY (player_id) REFERENCES public.nba_players(id);
+    ADD CONSTRAINT fk_player FOREIGN KEY (player_id) REFERENCES public.players(id);
 
 
 --
--- Name: nba_props fk_player; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: props fk_player; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.nba_props
-    ADD CONSTRAINT fk_player FOREIGN KEY (player_id) REFERENCES public.nba_players(id);
-
-
---
--- Name: nba_players fk_team; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.nba_players
-    ADD CONSTRAINT fk_team FOREIGN KEY (team_id) REFERENCES public.nba_teams(id);
+ALTER TABLE ONLY public.props
+    ADD CONSTRAINT fk_player FOREIGN KEY (player_id) REFERENCES public.players(id);
 
 
 --
@@ -370,7 +349,15 @@ ALTER TABLE ONLY public.nba_players
 --
 
 ALTER TABLE ONLY public.nba_games
-    ADD CONSTRAINT fk_team FOREIGN KEY (team_id) REFERENCES public.nba_teams(id);
+    ADD CONSTRAINT fk_team FOREIGN KEY (team_id) REFERENCES public.teams(id);
+
+
+--
+-- Name: players fk_team; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.players
+    ADD CONSTRAINT fk_team FOREIGN KEY (team_id) REFERENCES public.teams(id);
 
 
 --
@@ -431,4 +418,11 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20250625021323'),
     ('20250625032311'),
     ('20250625032535'),
-    ('20250625033321');
+    ('20250625033321'),
+    ('20250625235042'),
+    ('20250626002642'),
+    ('20250626004623'),
+    ('20250626005625'),
+    ('20250626005840'),
+    ('20250626011259'),
+    ('20250626011939');

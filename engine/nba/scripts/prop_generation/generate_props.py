@@ -7,12 +7,13 @@ import numpy as np
 import requests
 from dotenv import load_dotenv
 from nba.constants import minutes_threshold, n_games
-from nba.my_types import NbaGame, NbaPlayer, NbaPlayerStats, PlayerData
+from nba.my_types import NbaGame, NbaPlayerStats, PlayerData
+from shared.my_types import Player
 from nba.scripts.prop_generation.eligibility import (
     is_combined_stat_prop_eligible,
     is_prop_eligible,
 )
-from nba.tables import nba_games, nba_player_stats, nba_players, nba_props
+from shared.tables import t_nba_games, t_nba_player_stats, t_players, t_props
 from nba.utils import get_game_type
 from regression import (
     generate_ast_prop,
@@ -51,11 +52,11 @@ def get_today_games(test_date=None):
 
 
 # get a list of all the player_ids from a team
-def get_players_from_team(team_id: str) -> list[NbaPlayer]:
+def get_players_from_team(team_id: str) -> list[Player]:
     try:
         with engine.connect() as conn:
-            stmt = select(nba_players).where(
-                nba_players.c.team_id == str(team_id),
+            stmt = select(t_players).where(
+                t_players.c.team_id == str(team_id),
             )
             result = conn.execute(stmt).fetchall()
             return db_response_to_json(result)
@@ -68,15 +69,15 @@ def get_games_by_id(id_list: list[str]) -> list[NbaGame]:
     try:
         with engine.connect() as conn:
             stmt = (
-                select(nba_games)
-                .where(nba_games.c.id.in_(id_list))
+                select(t_nba_games)
+                .where(t_nba_games.c.id.in_(id_list))
                 .where(
                     or_(
-                        nba_games.c.game_type == "regular_season",
-                        nba_games.c.game_type == "playoffs",
+                        t_nba_games.c.game_type == "regular_season",
+                        t_nba_games.c.game_type == "playoffs",
                     )
                 )
-                .order_by(nba_games.c.game_date.desc())
+                .order_by(t_nba_games.c.game_date.desc())
                 .limit(n_games)
             )
 
@@ -94,21 +95,21 @@ def get_opposing_team_games_for_games(id_list: list[str]) -> list[NbaGame]:
         game_prefix = f"{raw_game_id}-"
 
         conditions.append(
-            and_(nba_games.c.id.startswith(game_prefix), nba_games.c.id != raw_game_id)
+            and_(t_nba_games.c.id.startswith(game_prefix), t_nba_games.c.id != raw_game_id)
         )
 
     try:
         with engine.connect() as conn:
             stmt = (
-                select(nba_games)
+                select(t_nba_games)
                 .where(or_(*conditions))
                 .where(
                     or_(
-                        nba_games.c.game_type == "regular_season",
-                        nba_games.c.game_type == "playoffs",
+                        t_nba_games.c.game_type == "regular_season",
+                        t_nba_games.c.game_type == "playoffs",
                     )
                 )
-                .order_by(nba_games.c.game_date.desc())
+                .order_by(t_nba_games.c.game_date.desc())
                 .limit(n_games)
             )
 
@@ -124,15 +125,15 @@ def get_team_last_games(team_id: str) -> list[NbaGame] | list[str]:
     try:
         with engine.connect() as conn:
             stmt = (
-                select(nba_games)
-                .where(nba_games.c.team_id == str(team_id))
+                select(t_nba_games)
+                .where(t_nba_games.c.team_id == str(team_id))
                 .where(
                     or_(
-                        nba_games.c.game_type == "regular_season",
-                        nba_games.c.game_type == "playoffs",
+                        t_nba_games.c.game_type == "regular_season",
+                        t_nba_games.c.game_type == "playoffs",
                     )
                 )
-                .order_by(nba_games.c.game_date.desc())
+                .order_by(t_nba_games.c.game_date.desc())
                 .limit(n_games)
             )
 
@@ -148,21 +149,21 @@ def get_team_last_games(team_id: str) -> list[NbaGame] | list[str]:
 def get_player_last_games(player_id) -> list[NbaPlayerStats] | None:
     try:
         with engine.connect() as conn:
-            j = nba_player_stats.join(
-                nba_games, nba_player_stats.c.game_id == nba_games.c.id
+            j = t_nba_player_stats.join(
+                t_nba_games, t_nba_player_stats.c.game_id == t_nba_games.c.id
             )
 
             stmt = (
-                select(nba_player_stats)
+                select(t_nba_player_stats)
                 .select_from(j)
                 .where(
                     or_(
-                        nba_games.c.game_type == "regular_season",
-                        nba_games.c.game_type == "playoffs",
+                        t_nba_games.c.game_type == "regular_season",
+                        t_nba_games.c.game_type == "playoffs",
                     )
                 )
-                .where(nba_player_stats.c.player_id == str(player_id))
-                .order_by(nba_games.c.game_date.desc())
+                .where(t_nba_player_stats.c.player_id == str(player_id))
+                .order_by(t_nba_games.c.game_date.desc())
                 .limit(n_games)
             )
 
@@ -196,7 +197,7 @@ def insert_prop(
 ):
     try:
         with engine.begin() as conn:
-            stmt = pg_insert(nba_props).values(
+            stmt = pg_insert(t_props).values(
                 line=line,
                 raw_game_id=game_id,
                 player_id=player_id,

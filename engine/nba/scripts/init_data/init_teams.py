@@ -2,7 +2,7 @@ import os
 
 import pandas as pd
 from dotenv import load_dotenv
-from nba.tables import nba_teams
+from shared.tables import t_nba_teams
 from nba_api.stats.static import teams
 from sqlalchemy import create_engine, insert
 from sqlalchemy.exc import IntegrityError
@@ -22,7 +22,7 @@ def insert_teams(teams_df, engine, nba_teams):
 
     with engine.begin() as conn:
         try:
-            stmt = insert(nba_teams).values(data)
+            stmt = insert(t_nba_teams).values(data)
             conn.execute(stmt)
             print(f"✅ Inserted {len(data)} NBA teams")
         except IntegrityError as e:
@@ -33,8 +33,9 @@ def insert_teams(teams_df, engine, nba_teams):
 def main():
     teams_list = teams.get_teams()
     teams_df = pd.DataFrame(teams_list)
+    teams_df["league"] = "nba"
 
-    insert_teams(teams_df, engine, nba_teams)
+    insert_teams(teams_df, engine)
     # Close the engine connection
     engine.dispose()
 

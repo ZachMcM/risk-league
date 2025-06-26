@@ -47,11 +47,18 @@ cd engine
 pip install -e .
 ```
 
+## Codegen Tables for SqlAlchemy
+```
+cd engine
+sqlacodegen --generator tables $DATABASE_URL > shared/tables.py
+```
+
 ## Running The API Server
 
 ### Generating Types
 If `api/src/db/schema.d.ts` does not exist run this command
 ```
+cd server
 npm run codegen
 ```
 
@@ -63,10 +70,12 @@ redis-server
 ### Running The Server In Dev Mode (Nodemon)
 To run the API server without transpiling into JS with the build command simply run
 ```
+cd client
 npm run dev
 ```
 
 ### Running the Expo Simulator
 ```
+cd client
 npm run start
 ```

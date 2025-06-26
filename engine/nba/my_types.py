@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Literal, TypedDict
-
+from shared.my_types import Player, Team
 
 class MetricStats(TypedDict):
     mean: float
@@ -36,27 +36,6 @@ stat_name_list: list[StatName] = [
     {"db_name": "stl", "api_name": "steals"},
     {"db_name": "tov", "api_name": "turnovers"},
 ]
-
-
-class NbaPlayer(TypedDict):
-    id: str
-    name: str
-    team_id: str
-    position: str
-    updated_at: datetime
-    height: str
-    weight: int
-    number: int
-
-
-class NbaTeam(TypedDict):
-    id: str
-    full_name: str
-    abbreviation: str
-    nickname: str
-    city: str
-    state: str
-    year_founded: int
 
 
 class NbaGame(TypedDict):
@@ -124,20 +103,9 @@ class NbaPlayerStats(TypedDict):
     tov_ratio: float
 
 
-class NbaProp(TypedDict):
-    id: str
-    stat_type: str
-    player_id: str
-    raw_game_id: str
-    line: float
-    current_value: float
-    created_at: datetime
-    game_start_time: datetime
-
-
 class PlayerData(TypedDict):
     matchup: str
-    player: NbaPlayer
+    player: Player
     game_id: str
     last_games: list[NbaPlayerStats]
     game_start_time: datetime

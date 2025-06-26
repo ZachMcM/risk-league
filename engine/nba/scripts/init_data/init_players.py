@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from nba_api.stats.endpoints import commonplayerinfo
 from nba_api.stats.static.players import get_active_players
 from nba.constants import req_pause_time
-from nba.tables import nba_players
+from shared.tables import t_players
 from sqlalchemy import create_engine
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
@@ -21,16 +21,16 @@ def get_player_info(player_id):
     return player_info.get_data_frames()[0]
 
 
-def insert_player(players_df, engine, nba_players):
+def insert_player(players_df, engine):
     data = players_df.to_dict(orient="records")
 
     with engine.begin() as conn:
         try:
-            stmt = pg_insert(nba_players).values(data)
+            stmt = pg_insert(t_players).values(data)
 
             update_cols = {
                 col: stmt.excluded[col]
-                for col in ["name", "team_id", "position", "height", "weight", "number"]
+                for col in ["name", "team_id", "position", "height", "weight", "number", "league"]
             }
 
             stmt = stmt.on_conflict_do_update(
@@ -60,9 +60,10 @@ def main():
             "height": player_info["HEIGHT"],
             "weight": player_info["WEIGHT"],
             "number": player_info["JERSEY"],
+            "league": "nba"
         }
 
-        insert_player(pd.DataFrame([data]), engine, nba_players)
+        insert_player(pd.DataFrame([data]), engine)
         engine.dispose()
 
 

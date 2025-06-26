@@ -6,7 +6,7 @@ import pandas as pd
 from dotenv import load_dotenv
 from nba_api.stats.endpoints import boxscoreadvancedv3, leaguegamefinder
 from nba.constants import req_pause_time
-from nba.tables import nba_games
+from shared.tables import t_nba_games
 from sqlalchemy import create_engine, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.exc import IntegrityError
@@ -50,7 +50,7 @@ def get_boxscore_advanced(game_id):
         sys.exit(1)
 
 
-def insert_games(games_df, engine, nba_games):
+def insert_games(games_df, engine):
     data = games_df.to_dict(orient="records")
 
     if not data:
@@ -59,7 +59,7 @@ def insert_games(games_df, engine, nba_games):
 
     with engine.begin() as conn:
         try:
-            stmt = pg_insert(nba_games).values(data)
+            stmt = pg_insert(t_nba_games).values(data)
             update_cols = {
                 col: stmt.excluded[col]
                 for col in [
@@ -108,8 +108,8 @@ def insert_advanced_stats(
     try:
         with engine.begin() as conn:
             stmt = (
-                update(nba_games)
-                .where(nba_games.c.id == game_id)
+                update(t_nba_games)
+                .where(t_nba_games.c.id == game_id)
                 .values(
                     pace=pace,
                     tov_ratio=tov_ratio,
@@ -209,7 +209,7 @@ def process_original_games(games):
 
     games["game_date"] = pd.to_datetime(games["game_date"], errors="coerce")
 
-    insert_games(games, engine, nba_games)
+    insert_games(games, engine)
 
 
 def main():

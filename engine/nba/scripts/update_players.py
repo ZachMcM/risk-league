@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from nba_api.stats.endpoints import commonteamroster
 from nba_api.stats.static import teams
 from nba.constants import req_pause_time
-from nba.tables import nba_players
+from shared.tables import t_players
 from sqlalchemy import create_engine
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.exc import IntegrityError
@@ -28,16 +28,16 @@ def get_team_players(team_id, season):
         return pd.DataFrame()
 
 
-def insert_team_players(data, engine, nba_players):
+def insert_team_players(data, engine):
     records = data.to_dict(orient="records")
 
     with engine.begin() as conn:
         try:
-            stmt = pg_insert(nba_players).values(records)
+            stmt = pg_insert(t_players).values(records)
 
             update_cols = {
                 col: stmt.excluded[col]
-                for col in ["name", "team_id", "position", "height", "weight", "number"]
+                for col in ["name", "team_id", "position", "height", "weight", "number", "league"]
             }
 
             stmt = stmt.on_conflict_do_update(
@@ -58,6 +58,7 @@ def main():
     for team in team_list:
         team_id = team["id"]
         players_df = get_team_players(team_id, season)
+        players_df["league"] = "nba"
 
         data = players_df.rename(
             columns={
@@ -69,9 +70,9 @@ def main():
                 "WEIGHT": "weight",
                 "NUM": "number",
             }
-        )[["id", "name", "team_id", "position", "height", "weight", "number"]]
+        )[["id", "name", "team_id", "position", "height", "weight", "number", "league"]]
 
-        insert_team_players(data, engine, nba_players)
+        insert_team_players(data, engine)
         time.sleep(req_pause_time)
 
     engine.dispose()

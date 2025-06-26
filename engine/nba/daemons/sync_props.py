@@ -2,11 +2,10 @@ import os
 import signal
 import sys
 from datetime import datetime
-
+from shared.tables import t_props
 from apscheduler.schedulers.background import BackgroundScheduler
 from dotenv import load_dotenv
 from nba.my_types import StatType, stat_name_list
-from nba.tables import nba_props
 from nba_api.live.nba.endpoints import BoxScore, ScoreBoard
 from sqlalchemy import create_engine, update
 
@@ -41,10 +40,10 @@ def update_prop(stat_type: StatType, player_id: str, raw_game_id: str, updated_v
     try:
         with engine.begin() as conn:
             stmt = (
-                update(nba_props)
-                .where(nba_props.c.stat_type == stat_type)
-                .where(nba_props.c.raw_game_id == raw_game_id)
-                .where(nba_props.c.player_id == player_id)
+                update(t_props)
+                .where(t_props.c.stat_type == stat_type)
+                .where(t_props.c.game_id == raw_game_id)
+                .where(t_props.c.player_id == player_id)
                 .values(current_value=updated_value)
             )
 

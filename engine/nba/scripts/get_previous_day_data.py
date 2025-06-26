@@ -12,7 +12,7 @@ from nba_api.stats.endpoints import (
 )
 from nba_api.stats.static.players import get_active_players
 from nba.constants import req_pause_time
-from nba.tables import nba_games, nba_player_stats
+from shared.tables import t_nba_games, t_nba_player_stats
 from sqlalchemy import create_engine, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from nba.utils import clean_minutes, get_current_season, get_game_type
@@ -144,8 +144,8 @@ def insert_player_advanced_stats(
     try:
         with engine.begin() as conn:
             stmt = (
-                update(nba_player_stats)
-                .where(nba_player_stats.c.id == id)
+                update(t_nba_player_stats)
+                .where(t_nba_player_stats.c.id == id)
                 .values(
                     true_shooting=true_shooting,
                     usage_rate=usage_rate,
@@ -221,8 +221,8 @@ def insert_team_advanced_stats(
     try:
         with engine.begin() as conn:
             stmt = (
-                update(nba_games)
-                .where(nba_games.c.id == game_id)
+                update(t_nba_games)
+                .where(t_nba_games.c.id == game_id)
                 .values(
                     pace=pace,
                     tov_ratio=tov_ratio,
@@ -308,7 +308,7 @@ def main():
 
     games["min"] = games["min"]
     games["game_date"] = pd.to_datetime(games["game_date"], errors="coerce")
-    insert_games(games, engine, nba_games)
+    insert_games(games, engine, t_nba_games)
 
     time.sleep(step_sleep_time)
 
@@ -404,7 +404,7 @@ def main():
         )
         stat_df["player_id"] = stat_df["player_id"].astype("Int64")
 
-        insert_player_stats(stat_df, engine, nba_player_stats)
+        insert_player_stats(stat_df, engine, t_nba_player_stats)
 
     time.sleep(step_sleep_time)
 

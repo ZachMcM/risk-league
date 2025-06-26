@@ -11,7 +11,7 @@ from nba_api.stats.endpoints import (
 )
 from nba_api.stats.static.players import get_active_players
 from nba.constants import req_pause_time
-from nba.tables import nba_player_stats
+from shared.tables import t_nba_player_stats
 from sqlalchemy import create_engine, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from nba.utils import clean_minutes, get_current_season
@@ -69,8 +69,8 @@ def insert_advanced_stats(
     try:
         with engine.begin() as conn:
             stmt = (
-                update(nba_player_stats)
-                .where(nba_player_stats.c.id == id)
+                update(t_nba_player_stats)
+                .where(t_nba_player_stats.c.id == id)
                 .values(
                     true_shooting=true_shooting,
                     usage_rate=usage_rate,
@@ -90,7 +90,7 @@ def insert_advanced_stats(
         sys.exit(1)
 
 
-def insert_player_stats(stats_df, engine, nba_player_stats):
+def insert_player_stats(stats_df, engine):
     data = stats_df.to_dict(orient="records")
     if not data:
         print("⚠️ No data to insert.")
@@ -98,7 +98,7 @@ def insert_player_stats(stats_df, engine, nba_player_stats):
 
     with engine.begin() as conn:
         try:
-            stmt = pg_insert(nba_player_stats).values(data)
+            stmt = pg_insert(t_nba_player_stats).values(data)
             update_cols = {
                 col: stmt.excluded[col]
                 for col in [
@@ -203,7 +203,7 @@ def process_stats(game_ids: list[str], start_index=0):
         )
         stat_df["player_id"] = stat_df["player_id"].astype("Int64")
 
-        insert_player_stats(stat_df, engine, nba_player_stats)
+        insert_player_stats(stat_df, engine)
 
 
 def process_advanced_stats(game_ids: list[str], start_index=0):

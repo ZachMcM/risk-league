@@ -3,7 +3,7 @@ import sys
 import numpy as np
 from nba.constants import min_num_stats, secondary_minutes_threshold, sigma_coeff
 from nba.my_types import CombinedStatType, MetricStats, StatType
-from nba.tables import nba_games, nba_player_stats, nba_players
+from shared.tables import t_nba_games, t_nba_player_stats, t_players
 from nba.utils import get_current_season, get_last_season
 from shared.utils import db_response_to_json
 from sqlalchemy import Engine, or_, select
@@ -21,17 +21,17 @@ def get_metric_stats(
 
     def build_stmt(game_type_filter, season_filter):
         return (
-            select(getattr(nba_player_stats.c, metric))
+            select(getattr(t_nba_player_stats.c, metric))
             .select_from(
-                nba_player_stats.join(
-                    nba_games, nba_player_stats.c.game_id == nba_games.c.id
-                ).join(nba_players, nba_player_stats.c.player_id == nba_players.c.id)
+                t_nba_player_stats.join(
+                    t_nba_games, t_nba_player_stats.c.game_id == t_nba_games.c.id
+                ).join(t_players, t_nba_player_stats.c.player_id == t_players.c.id)
             )
             .where(*game_type_filter)
             .where(*season_filter)
-            .where(nba_player_stats.c.min > 0)
-            .where(nba_player_stats.c.player_id.is_not(None))
-            .where(nba_players.c.position == position)
+            .where(t_nba_player_stats.c.min > 0)
+            .where(t_nba_player_stats.c.player_id.is_not(None))
+            .where(t_players.c.position == position)
         )
 
     try:
@@ -41,8 +41,8 @@ def get_metric_stats(
             # Primary filters
             game_type = "playoffs" if use_playoffs else "regular_season"
             stmt = build_stmt(
-                [nba_games.c.game_type == game_type],
-                [nba_player_stats.c.season == season],
+                [t_nba_games.c.game_type == game_type],
+                [t_nba_player_stats.c.season == season],
             )
 
             result = conn.execute(stmt).fetchall()
@@ -53,18 +53,18 @@ def get_metric_stats(
                     # Combine regular and playoffs for current season
                     game_type_filter = [
                         or_(
-                            nba_games.c.game_type == "regular_season",
-                            nba_games.c.game_type == "playoffs",
+                            t_nba_games.c.game_type == "regular_season",
+                            t_nba_games.c.game_type == "playoffs",
                         )
                     ]
-                    season_filter = [nba_player_stats.c.season == season]
+                    season_filter = [t_nba_player_stats.c.season == season]
                 else:
                     # Use two seasons for regular season stats
-                    game_type_filter = [nba_games.c.game_type == "regular_season"]
+                    game_type_filter = [t_nba_games.c.game_type == "regular_season"]
                     season_filter = [
                         or_(
-                            nba_player_stats.c.season == season,
-                            nba_player_stats.c.season == get_last_season(),
+                            t_nba_player_stats.c.season == season,
+                            t_nba_player_stats.c.season == get_last_season(),
                         )
                     ]
 
@@ -95,19 +95,19 @@ def get_combined_metric_stats(
         return _combined_stats_cache[cache_key]
 
     def build_stmt(game_type_filter, season_filter):
-        columns = [getattr(nba_player_stats.c, metric) for metric in metric_list]
+        columns = [getattr(t_nba_player_stats.c, metric) for metric in metric_list]
         return (
             select(*columns)
             .select_from(
-                nba_player_stats.join(
-                    nba_games, nba_player_stats.c.game_id == nba_games.c.id
-                ).join(nba_players, nba_player_stats.c.player_id == nba_players.c.id)
+                t_nba_player_stats.join(
+                    t_nba_games, t_nba_player_stats.c.game_id == t_nba_games.c.id
+                ).join(t_players, t_nba_player_stats.c.player_id == t_players.c.id)
             )
             .where(*game_type_filter)
             .where(*season_filter)
-            .where(nba_player_stats.c.min > 0)
-            .where(nba_player_stats.c.player_id.is_not(None))
-            .where(nba_players.c.position == position)
+            .where(t_nba_player_stats.c.min > 0)
+            .where(t_nba_player_stats.c.player_id.is_not(None))
+            .where(t_players.c.position == position)
         )
 
     try:
@@ -116,8 +116,8 @@ def get_combined_metric_stats(
 
             game_type = "playoffs" if use_playoffs else "regular_season"
             stmt = build_stmt(
-                [nba_games.c.game_type == game_type],
-                [nba_player_stats.c.season == season],
+                [t_nba_games.c.game_type == game_type],
+                [t_nba_player_stats.c.season == season],
             )
             result = conn.execute(stmt).fetchall()
 
@@ -125,17 +125,17 @@ def get_combined_metric_stats(
                 if use_playoffs:
                     game_type_filter = [
                         or_(
-                            nba_games.c.game_type == "regular_season",
-                            nba_games.c.game_type == "playoffs",
+                            t_nba_games.c.game_type == "regular_season",
+                            t_nba_games.c.game_type == "playoffs",
                         )
                     ]
-                    season_filter = [nba_player_stats.c.season == season]
+                    season_filter = [t_nba_player_stats.c.season == season]
                 else:
-                    game_type_filter = [nba_games.c.game_type == "regular_season"]
+                    game_type_filter = [t_nba_games.c.game_type == "regular_season"]
                     season_filter = [
                         or_(
-                            nba_player_stats.c.season == season,
-                            nba_player_stats.c.season == get_last_season(),
+                            t_nba_player_stats.c.season == season,
+                            t_nba_player_stats.c.season == get_last_season(),
                         )
                     ]
 
