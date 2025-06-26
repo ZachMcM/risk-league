@@ -35,6 +35,28 @@ CREATE TYPE public.match_result AS ENUM (
 
 
 --
+-- Name: parlay_status_type; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.parlay_status_type AS ENUM (
+    'in_progress',
+    'hit',
+    'missed'
+);
+
+
+--
+-- Name: pick_status; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.pick_status AS ENUM (
+    'in_progress',
+    'hit',
+    'missed'
+);
+
+
+--
 -- Name: pick_type; Type: TYPE; Schema: public; Owner: -
 --
 
@@ -150,6 +172,31 @@ CREATE TABLE public.nba_player_stats (
 
 
 --
+-- Name: parlay_picks; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.parlay_picks (
+    id text DEFAULT gen_random_uuid() NOT NULL,
+    parlay_id text NOT NULL,
+    prop_id text NOT NULL,
+    pick public.pick_type NOT NULL,
+    status public.pick_status DEFAULT 'in_progress'::public.pick_status NOT NULL
+);
+
+
+--
+-- Name: parlays; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.parlays (
+    id text DEFAULT gen_random_uuid() NOT NULL,
+    match_user_id text NOT NULL,
+    status public.parlay_status_type DEFAULT 'in_progress'::public.parlay_status_type NOT NULL,
+    stake double precision NOT NULL
+);
+
+
+--
 -- Name: players; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -178,7 +225,9 @@ CREATE TABLE public.props (
     player_id text NOT NULL,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
     stat_type text NOT NULL,
-    game_start_time timestamp with time zone
+    game_start_time timestamp with time zone,
+    league public.league_type NOT NULL,
+    resolved boolean DEFAULT false NOT NULL
 );
 
 
@@ -273,6 +322,22 @@ ALTER TABLE ONLY public.teams
 
 
 --
+-- Name: parlay_picks parlay_picks_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.parlay_picks
+    ADD CONSTRAINT parlay_picks_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: parlays parlays_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.parlays
+    ADD CONSTRAINT parlays_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: props props_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -329,6 +394,22 @@ ALTER TABLE ONLY public.match_users
 
 
 --
+-- Name: parlays fk_match_user; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.parlays
+    ADD CONSTRAINT fk_match_user FOREIGN KEY (match_user_id) REFERENCES public.match_users(id);
+
+
+--
+-- Name: parlay_picks fk_parlay; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.parlay_picks
+    ADD CONSTRAINT fk_parlay FOREIGN KEY (parlay_id) REFERENCES public.parlays(id);
+
+
+--
 -- Name: nba_player_stats fk_player; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -342,6 +423,14 @@ ALTER TABLE ONLY public.nba_player_stats
 
 ALTER TABLE ONLY public.props
     ADD CONSTRAINT fk_player FOREIGN KEY (player_id) REFERENCES public.players(id);
+
+
+--
+-- Name: parlay_picks fk_prop; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.parlay_picks
+    ADD CONSTRAINT fk_prop FOREIGN KEY (prop_id) REFERENCES public.props(id);
 
 
 --
@@ -425,4 +514,7 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20250626005625'),
     ('20250626005840'),
     ('20250626011259'),
-    ('20250626011939');
+    ('20250626011939'),
+    ('20250626021518'),
+    ('20250626025110'),
+    ('20250626030106');

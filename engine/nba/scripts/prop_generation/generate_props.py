@@ -203,7 +203,7 @@ def insert_prop(
                 player_id=player_id,
                 stat_type=stat_type,
                 game_start_time=game_start_time,
-                current_value=0,
+                league="nba"
             )
 
             update_cols = {
@@ -214,7 +214,7 @@ def insert_prop(
                     "player_id",
                     "stat_type",
                     "game_start_time",
-                    "current_value",
+                    "league"
                 ]
             }
 

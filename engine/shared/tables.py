@@ -147,6 +147,16 @@ t_nba_player_stats = Table(
     PrimaryKeyConstraint('id', name='nba_player_stats_pkey')
 )
 
+t_parlays = Table(
+    'parlays', metadata,
+    Column('id', Text, primary_key=True, server_default=text('gen_random_uuid()')),
+    Column('match_user_id', Text, nullable=False),
+    Column('status', Enum('in_progress', 'hit', 'missed', name='parlay_status_type'), nullable=False, server_default=text("'in_progress'::parlay_status_type")),
+    Column('stake', Double(53), nullable=False),
+    ForeignKeyConstraint(['match_user_id'], ['match_users.id'], name='fk_match_user'),
+    PrimaryKeyConstraint('id', name='parlays_pkey')
+)
+
 t_props = Table(
     'props', metadata,
     Column('id', Text, primary_key=True, server_default=text('gen_random_uuid()')),
@@ -157,6 +167,20 @@ t_props = Table(
     Column('created_at', DateTime(True), server_default=text('CURRENT_TIMESTAMP')),
     Column('stat_type', Text, nullable=False),
     Column('game_start_time', DateTime(True)),
+    Column('league', Enum('nba', 'nfl', 'mlb', name='league_type'), nullable=False),
+    Column('resolved', Boolean, nullable=False, server_default=text('false')),
     ForeignKeyConstraint(['player_id'], ['players.id'], name='fk_player'),
     PrimaryKeyConstraint('id', name='props_pkey')
+)
+
+t_parlay_picks = Table(
+    'parlay_picks', metadata,
+    Column('id', Text, primary_key=True, server_default=text('gen_random_uuid()')),
+    Column('parlay_id', Text, nullable=False),
+    Column('prop_id', Text, nullable=False),
+    Column('pick', Enum('over', 'under', name='pick_type'), nullable=False),
+    Column('status', Enum('in_progress', 'hit', 'missed', name='pick_status'), nullable=False, server_default=text("'in_progress'::pick_status")),
+    ForeignKeyConstraint(['parlay_id'], ['parlays.id'], name='fk_parlay'),
+    ForeignKeyConstraint(['prop_id'], ['props.id'], name='fk_prop'),
+    PrimaryKeyConstraint('id', name='parlay_picks_pkey')
 )

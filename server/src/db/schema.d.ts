@@ -13,6 +13,12 @@ export type LeagueType = "mlb" | "nba" | "nfl";
 
 export type MatchResult = "draw" | "forfeit" | "in_progress" | "loss" | "win";
 
+export type ParlayStatusType = "hit" | "in_progress" | "missed";
+
+export type PickStatus = "hit" | "in_progress" | "missed";
+
+export type PickType = "over" | "under";
+
 export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 
 export interface Matches {
@@ -96,6 +102,21 @@ export interface NbaPlayerStats {
   usage_rate: number | null;
 }
 
+export interface ParlayPicks {
+  id: Generated<string>;
+  parlay_id: string;
+  pick: PickType;
+  prop_id: string;
+  status: Generated<PickStatus>;
+}
+
+export interface Parlays {
+  id: Generated<string>;
+  match_user_id: string;
+  stake: number;
+  status: Generated<ParlayStatusType>;
+}
+
 export interface Players {
   height: string | null;
   id: string;
@@ -113,9 +134,11 @@ export interface Props {
   current_value: Generated<number>;
   game_start_time: Timestamp | null;
   id: Generated<string>;
+  league: LeagueType;
   line: number;
   player_id: string;
   raw_game_id: string;
+  resolved: Generated<boolean>;
   stat_type: string;
 }
 
@@ -151,6 +174,8 @@ export interface DB {
   matches: Matches;
   nba_games: NbaGames;
   nba_player_stats: NbaPlayerStats;
+  parlay_picks: ParlayPicks;
+  parlays: Parlays;
   players: Players;
   props: Props;
   schema_migrations: SchemaMigrations;
