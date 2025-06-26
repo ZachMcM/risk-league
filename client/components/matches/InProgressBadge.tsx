@@ -18,7 +18,7 @@ export default function InProgressBadge({
           : "success"
       }
     >
-      <Text className="text-sm">
+      <Text className="text-base">
         {opponentBalance > balance
           ? "Losing"
           : opponentBalance == balance

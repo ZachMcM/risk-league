@@ -32,12 +32,9 @@ export default function MatchListItem({ match }: { match: MatchListEntity }) {
                 </AvatarFallback>
               </Avatar>
               <View className="flex-col gap-1">
-                <Text className="text-xl font-bold">
-                  {match.opponentUsername}
-                </Text>
-                <View className="flex flex-row items-center gap-2">
-                  <Text className="font-medium text-lg text-muted-foreground">
-                    {timeAgo(match.createdAt)}
+                <View className="flex flex-row gap-3">
+                  <Text className="text-xl font-bold">
+                    {match.opponentUsername}
                   </Text>
                   {match.status == "in_progress" && (
                     <InProgressBadge
@@ -45,6 +42,11 @@ export default function MatchListItem({ match }: { match: MatchListEntity }) {
                       balance={match.balance}
                     />
                   )}
+                </View>
+                <View className="flex flex-row items-center gap-4">
+                  <Text className="font-medium text-xl text-muted-foreground">
+                    {timeAgo(match.createdAt)}
+                  </Text>
                   <Text
                     className={cn(
                       match.balance == 100
@@ -52,7 +54,7 @@ export default function MatchListItem({ match }: { match: MatchListEntity }) {
                         : match.balance > 100
                         ? "text-green-600"
                         : "text-destructive",
-                      "text-xl font-semibold"
+                      "text-xl font-medium"
                     )}
                   >
                     ${match.balance}
