@@ -1,5 +1,5 @@
-import { redis } from "../redis";
-import { getRank } from "../utils/getRank";
+import { redis } from "../../redis";
+import { getRank } from "../../utils/getRank";
 
 const QUEUE_KEY = "matchmaking:queue";
 

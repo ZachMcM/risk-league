@@ -1,4 +1,4 @@
-import { db } from "../db/db";
+import { db } from "../../db/db";
 
 export async function createMatch({
   user1,
@@ -18,7 +18,7 @@ export async function createMatch({
     .values({
       match_id: match.id,
       user_id: user1,
-      result: "in_progress",
+      status: "in_progress",
     })
     .execute();
 
@@ -27,7 +27,7 @@ export async function createMatch({
     .values({
       match_id: match.id,
       user_id: user2,
-      result: "in_progress",
+      status: "in_progress",
     })
     .execute();
 

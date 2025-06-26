@@ -11,7 +11,7 @@ export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
 
 export type LeagueType = "mlb" | "nba" | "nfl";
 
-export type MatchResult = "draw" | "forfeit" | "in_progress" | "loss" | "win";
+export type MatchStatus = "draw" | "in_progress" | "loss" | "win";
 
 export type ParlayStatusType = "hit" | "in_progress" | "missed";
 
@@ -33,7 +33,7 @@ export interface MatchUsers {
   elo_delta: Generated<number | null>;
   id: Generated<string>;
   match_id: string | null;
-  result: MatchResult;
+  status: Generated<MatchStatus>;
   user_id: string | null;
 }
 

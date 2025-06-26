@@ -54,7 +54,7 @@ t_match_users = Table(
     Column('created_at', DateTime(True), server_default=text('CURRENT_TIMESTAMP')),
     Column('balance', Double(53), server_default=text('100')),
     Column('elo_delta', Double(53), server_default=text('0')),
-    Column('result', Enum('win', 'loss', 'draw', 'forfeit', 'in_progress', name='match_result'), nullable=False),
+    Column('status', Enum('in_progress', 'loss', 'win', 'draw', name='match_status'), nullable=False, server_default=text("'in_progress'::match_status")),
     ForeignKeyConstraint(['match_id'], ['matches.id'], name='fk_match'),
     ForeignKeyConstraint(['user_id'], ['users.id'], name='fk_user'),
     PrimaryKeyConstraint('id', name='match_users_pkey')

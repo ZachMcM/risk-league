@@ -11,7 +11,7 @@ function ScrollContainer({ children }: { children?: ReactNode }) {
           display: "flex",
         }}
       >
-        <View className="flex flex-1 py-24 px-6">{children}</View>
+        <View className="flex flex-1 py-24 px-4">{children}</View>
       </ScrollView>
     </KeyboardAvoidingView>
   );

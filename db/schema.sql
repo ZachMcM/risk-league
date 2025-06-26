@@ -22,15 +22,14 @@ CREATE TYPE public.league_type AS ENUM (
 
 
 --
--- Name: match_result; Type: TYPE; Schema: public; Owner: -
+-- Name: match_status; Type: TYPE; Schema: public; Owner: -
 --
 
-CREATE TYPE public.match_result AS ENUM (
-    'win',
+CREATE TYPE public.match_status AS ENUM (
+    'in_progress',
     'loss',
-    'draw',
-    'forfeit',
-    'in_progress'
+    'win',
+    'draw'
 );
 
 
@@ -81,7 +80,7 @@ CREATE TABLE public.match_users (
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
     balance double precision DEFAULT 100,
     elo_delta double precision DEFAULT 0,
-    result public.match_result NOT NULL
+    status public.match_status DEFAULT 'in_progress'::public.match_status NOT NULL
 );
 
 
@@ -517,4 +516,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20250626011939'),
     ('20250626021518'),
     ('20250626025110'),
-    ('20250626030106');
+    ('20250626030106'),
+    ('20250626035610');

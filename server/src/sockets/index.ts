@@ -1,6 +1,6 @@
 import { Server } from "socket.io";
-import { createMatch } from "../matchmaking/createMatch";
-import { addToQueue, getPair, removeFromQueue } from "../matchmaking/queue";
+import { addToQueue, getPair, removeFromQueue } from "./matchmaking/queue";
+import { createMatch } from "./matchmaking/createMatch";
 
 export function initSocketServer(io: Server) {
   io.of("/matchmaking").on("connection", (socket) => {

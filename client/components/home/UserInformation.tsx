@@ -9,17 +9,16 @@ export default function UserInformation({
   rankString,
 }: {
   username: string;
-  image: string;
+  image: string | null;
   rankString: string;
 }) {
   return (
     <View className="rounded-2xl p-4 border border-primary/20 bg-primary/10">
       <View className="flex flex-row items-center gap-4">
-        <Avatar className="h-16 w-16 border border-primary/20" alt="Profile">
-          {/* TODO */}
+        <Avatar className="h-14 w-14 border border-primary/20" alt="Profile">
           <AvatarImage
             source={{
-              uri: "https://www.chicagotribune.com/wp-content/uploads/2025/05/APTOPIX_Pacers_Knicks_Basketball_39878_b013f1.jpg?w=1800&resize=1800,1800",
+              uri: image || process.env.EXPO_PUBLIC_FALLBACK_IMAGE,
             }}
           />
           <AvatarFallback>
@@ -30,9 +29,7 @@ export default function UserInformation({
           <Badge>
             <Text>{rankString}</Text>
           </Badge>
-          <Text className="text-foreground font-bold text-2xl">
-            {username}
-          </Text>
+          <Text className="text-foreground font-bold text-xl">{username}</Text>
         </View>
       </View>
     </View>

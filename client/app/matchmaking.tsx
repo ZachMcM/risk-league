@@ -18,6 +18,7 @@ import { Progress } from "~/components/ui/progress";
 import { Text } from "~/components/ui/text";
 import { toast } from "sonner-native";
 import { Container } from "~/components/ui/container";
+import { useQueryClient } from "@tanstack/react-query";
 
 const messages = [
   "Matching skill levels...",
@@ -29,6 +30,7 @@ const messages = [
 
 export default function Matchmaking() {
   const router = useRouter();
+  const queryClient = useQueryClient()
 
   const { session } = useSession();
   const userId = session?.user.id!;
@@ -71,6 +73,9 @@ export default function Matchmaking() {
       setProgress(100);
       setLoadingMessage("Opponent found!");
       toast.success("Opponent found!");
+      queryClient.invalidateQueries({
+        queryKey: ["matches"]
+      })
       router.replace({
         pathname: "/matches/[id]",
         params: { id: matchId },
