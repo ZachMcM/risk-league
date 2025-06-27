@@ -21,27 +21,19 @@ export default function MatchTabs({ matches }: { matches: MatchListEntity[] }) {
       <Tabs
         value={matchStatus}
         onValueChange={setMatchStatus}
-        className="flex-col gap-6"
+        className="flex-col gap-4"
       >
         <TabsList className="flex-row w-full">
-          <TabsTrigger value="all" className="flex-1">
-            <Text>All ({matches.length})</Text>
-          </TabsTrigger>
           <TabsTrigger value="in_progress" className="flex-1">
-            <Text>Active ({inProgress.length})</Text>
+            <Text>In Progress ({inProgress.length})</Text>
           </TabsTrigger>
           <TabsTrigger value="win" className="flex-1">
-            <Text>Win ({wins.length})</Text>
+            <Text>Wins ({wins.length})</Text>
           </TabsTrigger>
           <TabsTrigger value="loss" className="flex-1">
-            <Text>Loss ({losses.length})</Text>
+            <Text>Losses ({losses.length})</Text>
           </TabsTrigger>
         </TabsList>
-        <TabsContent value="all">
-          {matches.map((match) => (
-            <MatchListItem key={match.id} match={match} />
-          ))}
-        </TabsContent>
         <TabsContent value="in_progress">
           {inProgress.map((match) => (
             <MatchListItem key={match.id} match={match} />

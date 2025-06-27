@@ -16,3 +16,6 @@ export const NAV_THEME = {
     text: 'hsl(223.8136 0.0004% 98.0256%)', // foreground
   },
 };
+
+
+export const startingBalance = 100.00

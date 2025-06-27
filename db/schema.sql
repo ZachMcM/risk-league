@@ -70,6 +70,19 @@ SET default_tablespace = '';
 SET default_table_access_method = heap;
 
 --
+-- Name: match_messages; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.match_messages (
+    id text DEFAULT gen_random_uuid() NOT NULL,
+    user_id text NOT NULL,
+    match_id text NOT NULL,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    content text NOT NULL
+);
+
+
+--
 -- Name: match_users; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -78,8 +91,8 @@ CREATE TABLE public.match_users (
     match_id text,
     user_id text,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
-    balance double precision DEFAULT 100,
-    elo_delta double precision DEFAULT 0,
+    balance double precision DEFAULT 100 NOT NULL,
+    elo_delta double precision DEFAULT 0 NOT NULL,
     status public.match_status DEFAULT 'in_progress'::public.match_status NOT NULL
 );
 
@@ -179,7 +192,8 @@ CREATE TABLE public.parlay_picks (
     parlay_id text NOT NULL,
     prop_id text NOT NULL,
     pick public.pick_type NOT NULL,
-    status public.pick_status DEFAULT 'in_progress'::public.pick_status NOT NULL
+    status public.pick_status DEFAULT 'in_progress'::public.pick_status NOT NULL,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
 );
 
 
@@ -191,7 +205,8 @@ CREATE TABLE public.parlays (
     id text DEFAULT gen_random_uuid() NOT NULL,
     match_user_id text NOT NULL,
     status public.parlay_status_type DEFAULT 'in_progress'::public.parlay_status_type NOT NULL,
-    stake double precision NOT NULL
+    stake double precision NOT NULL,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
 );
 
 
@@ -270,6 +285,14 @@ CREATE TABLE public.users (
     is_bot boolean,
     elo_rating double precision DEFAULT 1200 NOT NULL
 );
+
+
+--
+-- Name: match_messages match_messages_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.match_messages
+    ADD CONSTRAINT match_messages_pkey PRIMARY KEY (id);
 
 
 --
@@ -393,6 +416,14 @@ ALTER TABLE ONLY public.match_users
 
 
 --
+-- Name: match_messages fk_match; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.match_messages
+    ADD CONSTRAINT fk_match FOREIGN KEY (match_id) REFERENCES public.matches(id);
+
+
+--
 -- Name: parlays fk_match_user; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -457,6 +488,14 @@ ALTER TABLE ONLY public.match_users
 
 
 --
+-- Name: match_messages fk_user; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.match_messages
+    ADD CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
 -- PostgreSQL database dump complete
 --
 
@@ -517,4 +556,6 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20250626021518'),
     ('20250626025110'),
     ('20250626030106'),
-    ('20250626035610');
+    ('20250626035610'),
+    ('20250627023503'),
+    ('20250627031558');

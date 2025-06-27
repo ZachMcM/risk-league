@@ -46,14 +46,26 @@ t_users = Table(
     UniqueConstraint('username', name='users_username_key')
 )
 
+t_match_messages = Table(
+    'match_messages', metadata,
+    Column('id', Text, primary_key=True, server_default=text('gen_random_uuid()')),
+    Column('user_id', Text, nullable=False),
+    Column('match_id', Text, nullable=False),
+    Column('created_at', DateTime(True), server_default=text('CURRENT_TIMESTAMP')),
+    Column('content', Text, nullable=False),
+    ForeignKeyConstraint(['match_id'], ['matches.id'], name='fk_match'),
+    ForeignKeyConstraint(['user_id'], ['users.id'], name='fk_user'),
+    PrimaryKeyConstraint('id', name='match_messages_pkey')
+)
+
 t_match_users = Table(
     'match_users', metadata,
     Column('id', Text, primary_key=True, server_default=text('gen_random_uuid()')),
     Column('match_id', Text),
     Column('user_id', Text),
     Column('created_at', DateTime(True), server_default=text('CURRENT_TIMESTAMP')),
-    Column('balance', Double(53), server_default=text('100')),
-    Column('elo_delta', Double(53), server_default=text('0')),
+    Column('balance', Double(53), nullable=False, server_default=text('100')),
+    Column('elo_delta', Double(53), nullable=False, server_default=text('0')),
     Column('status', Enum('in_progress', 'loss', 'win', 'draw', name='match_status'), nullable=False, server_default=text("'in_progress'::match_status")),
     ForeignKeyConstraint(['match_id'], ['matches.id'], name='fk_match'),
     ForeignKeyConstraint(['user_id'], ['users.id'], name='fk_user'),
@@ -153,6 +165,7 @@ t_parlays = Table(
     Column('match_user_id', Text, nullable=False),
     Column('status', Enum('in_progress', 'hit', 'missed', name='parlay_status_type'), nullable=False, server_default=text("'in_progress'::parlay_status_type")),
     Column('stake', Double(53), nullable=False),
+    Column('created_at', DateTime(True), server_default=text('CURRENT_TIMESTAMP')),
     ForeignKeyConstraint(['match_user_id'], ['match_users.id'], name='fk_match_user'),
     PrimaryKeyConstraint('id', name='parlays_pkey')
 )
@@ -180,6 +193,7 @@ t_parlay_picks = Table(
     Column('prop_id', Text, nullable=False),
     Column('pick', Enum('over', 'under', name='pick_type'), nullable=False),
     Column('status', Enum('in_progress', 'hit', 'missed', name='pick_status'), nullable=False, server_default=text("'in_progress'::pick_status")),
+    Column('created_at', DateTime(True), server_default=text('CURRENT_TIMESTAMP')),
     ForeignKeyConstraint(['parlay_id'], ['parlays.id'], name='fk_parlay'),
     ForeignKeyConstraint(['prop_id'], ['props.id'], name='fk_prop'),
     PrimaryKeyConstraint('id', name='parlay_picks_pkey')

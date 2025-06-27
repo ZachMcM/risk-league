@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { authMiddleware } from "./auth";
 import { db } from "../db/db";
+import { getMatchStats } from "../utils/getMatchStats";
 
 export const matchesRoute = Router();
 
@@ -22,7 +23,7 @@ matchesRoute.get("/matches", authMiddleware, async (_, res) => {
         "u.username as opponentUsername",
         "u.id as opponentId",
         "u.image as opponentImage",
-        "opponent.balance as opponentBalance"
+        "opponent.balance as opponentBalance",
       ])
       .where("mu.user_id", "=", userId)
       .where("opponent.user_id", "!=", userId)
@@ -31,12 +32,27 @@ matchesRoute.get("/matches", authMiddleware, async (_, res) => {
 
     res.json(matches);
   } catch (err) {
-    res
-      .status(500)
-      .json({ err: "Server Error", message: "Something unexpected happened" });
+    console.log(err);
+    res.status(500).json({ err: "Server Error", message: err });
   }
 });
 
-matchesRoute.get("/matches", authMiddleware, async (_, res) => {
-  // TODO
+matchesRoute.get("/matches/:id/stats", authMiddleware, async (req, res) => {
+  const matchId = req.params.id;
+  const userId = res.locals.userId;
+
+  try {
+    const userStats = await getMatchStats(matchId, false, userId);
+    const opponentStats = await getMatchStats(matchId, true, userId);
+
+    res.json({
+      userStats,
+      opponentStats,
+    });
+  } catch (err) {
+    console.log(err);
+    res
+      .status(500)
+      .json({ err: "Server Error", message: "Match does not exist" });
+  }
 });

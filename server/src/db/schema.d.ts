@@ -27,10 +27,18 @@ export interface Matches {
   resolved: Generated<boolean>;
 }
 
-export interface MatchUsers {
-  balance: Generated<number | null>;
+export interface MatchMessages {
+  content: string;
   created_at: Generated<Timestamp | null>;
-  elo_delta: Generated<number | null>;
+  id: Generated<string>;
+  match_id: string;
+  user_id: string;
+}
+
+export interface MatchUsers {
+  balance: Generated<number>;
+  created_at: Generated<Timestamp | null>;
+  elo_delta: Generated<number>;
   id: Generated<string>;
   match_id: string | null;
   status: Generated<MatchStatus>;
@@ -103,6 +111,7 @@ export interface NbaPlayerStats {
 }
 
 export interface ParlayPicks {
+  created_at: Generated<Timestamp | null>;
   id: Generated<string>;
   parlay_id: string;
   pick: PickType;
@@ -111,6 +120,7 @@ export interface ParlayPicks {
 }
 
 export interface Parlays {
+  created_at: Generated<Timestamp | null>;
   id: Generated<string>;
   match_user_id: string;
   stake: number;
@@ -170,6 +180,7 @@ export interface Users {
 }
 
 export interface DB {
+  match_messages: MatchMessages;
   match_users: MatchUsers;
   matches: Matches;
   nba_games: NbaGames;

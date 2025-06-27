@@ -4,8 +4,8 @@ import { authMiddleware } from "../auth";
 
 export const ranksRoute = Router();
 
-ranksRoute.get("/users/:userId/ranks", async (req, res) => {
-  const userId = req.params.userId;
+ranksRoute.get("/users/:id/ranks", async (req, res) => {
+  const userId = req.params.id;
 
   try {
     const rankInfo = await getRank(userId);

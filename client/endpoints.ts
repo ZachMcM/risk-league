@@ -1,7 +1,7 @@
 import { deleteItemAsync, getItemAsync, setItemAsync } from "expo-secure-store";
 import { Session } from "./types/session";
 import { RankResponse } from "./types/ranks";
-import { MatchListEntity } from "./types/matches";
+import { MatchListEntity, MatchStats } from "./types/matches";
 
 export type HttpRequestParams = {
   endpoint: string;
@@ -68,7 +68,7 @@ export async function sessionRequest(): Promise<Session> {
     throw new Error(data.message);
   }
 
-  return data
+  return data;
 }
 
 export async function signInRequest({
@@ -129,32 +129,49 @@ export async function signOutRequest() {
 export async function getRank(): Promise<RankResponse> {
   const res = await httpRequest({
     endpoint: "/users/ranks",
-    method: "GET"
-  })
+    method: "GET",
+  });
 
-  const data = await res.json()
-  console.log(data)
+  const data = await res.json();
+  console.log(data);
 
   if (!res.ok) {
-    throw new Error(data.message)
+    throw new Error(data.message);
   }
 
-  return data 
+  return data;
 }
-
 
 export async function getMatches(): Promise<MatchListEntity[]> {
   const res = await httpRequest({
     endpoint: "/matches",
-    method: "GET"
-  })
+    method: "GET",
+  });
 
-  const data = await res.json()
-  console.log(data)
+  const data = await res.json();
+  console.log(data);
 
   if (!res.ok) {
-    throw new Error(data.message)
+    throw new Error(data.message);
   }
 
-  return data
+  return data;
+}
+
+export async function getMatchStats(
+  id: string,
+): Promise<MatchStats> {
+  const res = await httpRequest({
+    endpoint: `/matches/${id}/stats`,
+    method: "GET",
+  });
+
+  const data = await res.json();
+  console.log(data);
+
+  if (!res.ok) {
+    throw new Error(data);
+  }
+
+  return data;
 }

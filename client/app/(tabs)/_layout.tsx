@@ -32,6 +32,12 @@ export default function TabsLayout() {
         tabBarInactiveTintColor: isDarkColorScheme
           ? "hsl(223.8136 0% 63.0163%)" // from --muted-foreground .dark:root
           : "hsl(223.8136 0% 45.1519%)", // from --muted-foreground .root
+        headerStyle: {
+          backgroundColor: "hsl(var(--background))",
+          borderBottomColor: "hsl(var(--border))",
+          borderBottomWidth: 1,
+          paddingBottom: 10
+        }
       }}
     >
       <Tabs.Screen
@@ -54,7 +60,7 @@ export default function TabsLayout() {
         name="matches/[id]"
         options={{
           href: null,
-          headerShown: false,
+          headerShown: false
         }}
       />
     </Tabs>
