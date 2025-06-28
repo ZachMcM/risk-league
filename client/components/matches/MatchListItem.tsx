@@ -25,7 +25,7 @@ export default function MatchListItem({ match }: { match: MatchListEntity }) {
         <CardContent className="p-4">
           <View className="flex flex-row items-center justify-between">
             <View className="flex-row gap-4 items-center">
-              <Text className="text-muted-foreground text-2xl font-bold">
+              <Text className="text-muted-foreground text-2xl font-geist-bold">
                 vs
               </Text>
               <View className="flex-row gap-3">
@@ -35,7 +35,7 @@ export default function MatchListItem({ match }: { match: MatchListEntity }) {
                 />
                 <View className="flex flex-col gap-1">
                   <View className="flex flex-row gap-4">
-                    <Text className="text-xl font-bold">
+                    <Text className="text-xl font-geist-bold">
                       {match.opponentUsername}
                     </Text>
                     {match.status == "in_progress" && (
@@ -59,7 +59,7 @@ export default function MatchListItem({ match }: { match: MatchListEntity }) {
                     )}
                   </View>
                   <View className="flex flex-row items-center gap-4">
-                    <Text className="font-medium text-muted-foreground">
+                    <Text className="font-geist-medium text-muted-foreground">
                       {timeAgo(match.createdAt)}
                     </Text>
                     {match.status != "in_progress" ? (
@@ -77,7 +77,7 @@ export default function MatchListItem({ match }: { match: MatchListEntity }) {
                             match.eloDelta > 0
                               ? "text-green-600"
                               : "text-red-600",
-                            "font-medium"
+                            "font-geist-medium"
                           )}
                         >
                           {match.eloDelta}
@@ -91,7 +91,7 @@ export default function MatchListItem({ match }: { match: MatchListEntity }) {
                             : match.balance > 100
                             ? "text-green-600"
                             : "text-destructive",
-                          "font-medium"
+                          "font-geist-medium"
                         )}
                       >
                         ${match.balance}

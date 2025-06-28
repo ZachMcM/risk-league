@@ -21,7 +21,7 @@ export default function MatchStatsCard({ userStats, status, opponent }: Props) {
         <View className="flex flex-col gap-4">
           <View className="flex flex-row items-center justify-between">
             <Text
-              className={cn(!opponent && "text-primary", "text-xl font-bold")}
+              className={cn(!opponent && "text-primary", "text-xl font-geist-bold")}
             >
               {opponent ? userStats.username : "Your Performance"}
             </Text>
@@ -42,12 +42,12 @@ export default function MatchStatsCard({ userStats, status, opponent }: Props) {
               <Text
                 className={cn(
                   !opponent && "text-primary",
-                  "text-3xl font-bold"
+                  "text-3xl font-geist-bold"
                 )}
               >
                 ${userStats.balance.toPrecision(5)}
               </Text>
-              <Text className="font-semibold text-muted-foreground">
+              <Text className="font-geist-semibold text-muted-foreground">
                 Current Balance
               </Text>
             </View>
@@ -66,13 +66,13 @@ export default function MatchStatsCard({ userStats, status, opponent }: Props) {
                       ? "text-success"
                       : userStats.balance < startingBalance &&
                           "text-destructive",
-                    "font-bold text-3xl"
+                    "font-geist-bold text-3xl"
                   )}
                 >
                   {Math.abs(startingBalance - userStats.balance)}
                 </Text>
               </View>
-              <Text className="font-semibold text-muted-foreground">
+              <Text className="font-geist-semibold text-muted-foreground">
                 Change
               </Text>
             </View>
@@ -80,26 +80,26 @@ export default function MatchStatsCard({ userStats, status, opponent }: Props) {
           <View className="w-full h-[1px] bg-secondary"/>
           <View className="self-center flex flex-row gap-8 items-center">
             <View className="flex flex-col items-center">
-              <Text className="font-semibold text-2xl text-success">
+              <Text className="font-geist-semibold text-2xl text-success">
                 {userStats.parlaysWon}
               </Text>
-              <Text className="font-semibold text-base text-muted-foreground">
+              <Text className="font-geist-semibold text-base text-muted-foreground">
                 Wins
               </Text>
             </View>
             <View className="flex flex-col items-center">
-              <Text className="font-semibold text-2xl text-destructive">
+              <Text className="font-geist-semibold text-2xl text-destructive">
                 {userStats.parlaysLost}
               </Text>
-              <Text className="font-semibold text-base text-muted-foreground">
+              <Text className="font-geist-semibold text-base text-muted-foreground">
                 Losses
               </Text>
             </View>
             <View className="flex flex-col items-center">
-              <Text className="font-semibold text-2xl">
+              <Text className="font-geist-semibold text-2xl">
                 {userStats.parlaysInProgress}
               </Text>
-              <Text className="font-semibold text-base text-muted-foreground">
+              <Text className="font-geist-semibold text-base text-muted-foreground">
                 In Progress
               </Text>
             </View>

@@ -29,7 +29,7 @@ export default function Home() {
               <UserInformation
                 username={session.user.username}
                 image={session.user.image}
-                rankString={`${rankInfo.currentRank.tier} ${rankInfo.currentRank.level} `}
+                rank={`${rankInfo.currentRank.tier} ${rankInfo.currentRank.level} `}
               />
               <RankProgress rankInfo={rankInfo} />
             </View>

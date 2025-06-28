@@ -19,7 +19,7 @@ export default function PageTitle({
           <ChevronLeft size={32} className="text-foreground" />
         </Pressable>
       )}
-      <Text className="font-bold text-4xl">{title}</Text>
+      <Text className="font-geist-bold text-4xl">{title}</Text>
     </View>
   );
 }

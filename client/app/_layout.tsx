@@ -15,7 +15,7 @@ import {
   QueryClientProvider,
 } from "@tanstack/react-query";
 import * as Network from "expo-network";
-import { Stack } from "expo-router";
+import { SplashScreen, Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import * as React from "react";
 import { useEffect } from "react";
@@ -28,6 +28,7 @@ import { NAV_THEME } from "~/lib/constants";
 import { useColorScheme } from "~/lib/useColorScheme";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { useFonts } from "expo-font";
 
 onlineManager.setEventListener((setOnline) => {
   const eventSubscription = Network.addNetworkStateListener((state) => {
@@ -71,8 +72,41 @@ export default function RootLayout() {
     return () => subscription.remove();
   }, []);
 
+  SplashScreen.preventAutoHideAsync();
+
   usePlatformSpecificSetup();
   const { isDarkColorScheme } = useColorScheme();
+
+  const [fontsLoaded] = useFonts({
+    "Geist-Thin": require("~/assets/fonts/Geist/ttf/Geist-Thin.ttf"),
+    "Geist-ThinItalic": require("~/assets/fonts/Geist/ttf/Geist-ThinItalic.ttf"),
+    "Geist-ExtraLight": require("~/assets/fonts/Geist/ttf/Geist-ExtraLight.ttf"),
+    "Geist-ExtraLightItalic": require("~/assets/fonts/Geist/ttf/Geist-ExtraLightItalic.ttf"),
+    "Geist-Light": require("~/assets/fonts/Geist/ttf/Geist-Light.ttf"),
+    "Geist-LightItalic": require("~/assets/fonts/Geist/ttf/Geist-LightItalic.ttf"),
+    "Geist-Regular": require("~/assets/fonts/Geist/ttf/Geist-Regular.ttf"),
+    "Geist-RegularItalic": require("~/assets/fonts/Geist/ttf/Geist-RegularItalic.ttf"),
+    "Geist-Medium": require("~/assets/fonts/Geist/ttf/Geist-Medium.ttf"),
+    "Geist-MediumItalic": require("~/assets/fonts/Geist/ttf/Geist-MediumItalic.ttf"),
+    "Geist-SemiBold": require("~/assets/fonts/Geist/ttf/Geist-SemiBold.ttf"),
+    "Geist-SemiBoldItalic": require("~/assets/fonts/Geist/ttf/Geist-SemiBoldItalic.ttf"),
+    "Geist-Bold": require("~/assets/fonts/Geist/ttf/Geist-Bold.ttf"),
+    "Geist-BoldItalic": require("~/assets/fonts/Geist/ttf/Geist-BoldItalic.ttf"),
+    "Geist-ExtraBold": require("~/assets/fonts/Geist/ttf/Geist-ExtraBold.ttf"),
+    "Geist-ExtraBoldItalic": require("~/assets/fonts/Geist/ttf/Geist-ExtraBoldItalic.ttf"),
+    "Geist-Black": require("~/assets/fonts/Geist/ttf/Geist-Black.ttf"),
+    "Geist-BlackItalic": require("~/assets/fonts/Geist/ttf/Geist-BlackItalic.ttf"),
+  });
+
+  useEffect(() => {
+    if (fontsLoaded) {
+      SplashScreen.hideAsync();
+    }
+  }, [fontsLoaded]);
+
+  if (!fontsLoaded) {
+    return null;
+  }
 
   return (
     <SafeAreaProvider>

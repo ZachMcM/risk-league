@@ -32,13 +32,13 @@ function TabsTrigger({
   return (
     <TextClassContext.Provider
       value={cn(
-        'text-sm native:text-base font-medium text-muted-foreground web:transition-all',
+        'text-sm native:text-base font-geist-medium text-muted-foreground web:transition-all',
         value === props.value && 'text-foreground'
       )}
     >
       <TabsPrimitive.Trigger
         className={cn(
-          'inline-flex items-center justify-center web:whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium web:ring-offset-background web:transition-all web:focus-visible:outline-none web:focus-visible:ring-2 web:focus-visible:ring-ring web:focus-visible:ring-offset-2',
+          'inline-flex items-center justify-center web:whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-geist-medium web:ring-offset-background web:transition-all web:focus-visible:outline-none web:focus-visible:ring-2 web:focus-visible:ring-ring web:focus-visible:ring-offset-2',
           props.disabled && 'web:pointer-events-none opacity-50',
           props.value === value && 'bg-background',
           className

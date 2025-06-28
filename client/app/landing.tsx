@@ -24,11 +24,11 @@ export default function Landing() {
         <View className="flex-col gap-8 flex-1 justify-end p-2">
           <View className="flex-col gap-1">
             <Text>
-              <Text className="font-bold text-5xl">Play.</Text>
-              <Text className="font-bold text-5xl text-primary"> Risk.</Text>
-              <Text className="font-bold text-5xl"> Win.</Text>
+              <Text className="font-geist-bold text-5xl">Play.</Text>
+              <Text className="font-geist-bold text-5xl text-primary"> Risk.</Text>
+              <Text className="font-geist-bold text-5xl"> Win.</Text>
             </Text>
-            <Text className="text-muted-foreground font-medium text-xl">
+            <Text className="text-muted-foreground font-geist-medium text-xl">
               The ultimate competitive fantasy sports betting game. Battle 1v1,
               climb the ELO ladder, and prove you're the best.
             </Text>
@@ -40,7 +40,7 @@ export default function Landing() {
                   <Users className="w-5 h-5 text-primary" />
                 </View>
                 <View className="flex-1">
-                  <Text className="text-2xl text-card-foreground font-semibold leading-none tracking-tight">
+                  <Text className="text-2xl text-card-foreground font-geist-semibold leading-none tracking-tight">
                     1v1 Head To Head
                   </Text>
                   <Text className="text-sm text-muted-foreground">
@@ -56,7 +56,7 @@ export default function Landing() {
                   <TrendingUp className="w-5 h-5 text-primary" />
                 </View>
                 <View className="flex-1">
-                  <Text className="text-2xl text-card-foreground font-semibold leading-none tracking-tight">
+                  <Text className="text-2xl text-card-foreground font-geist-semibold leading-none tracking-tight">
                     ELO Ranking
                   </Text>
                   <Text className="text-sm text-muted-foreground">
