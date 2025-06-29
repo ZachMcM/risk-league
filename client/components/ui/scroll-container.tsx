@@ -1,7 +1,14 @@
 import { ReactNode } from "react";
 import { KeyboardAvoidingView, ScrollView, View } from "react-native";
+import { cn } from "~/lib/utils";
 
-function ScrollContainer({ children }: { children?: ReactNode }) {
+function ScrollContainer({
+  children,
+  className,
+}: {
+  children?: ReactNode;
+  className?: string;
+}) {
   return (
     <KeyboardAvoidingView className="flex-1 flex" behavior="padding">
       <ScrollView
@@ -11,7 +18,7 @@ function ScrollContainer({ children }: { children?: ReactNode }) {
           display: "flex",
         }}
       >
-        <View className="flex flex-1 py-24 px-4">{children}</View>
+        <View className={cn("flex flex-1 p-4", className)}>{children}</View>
       </ScrollView>
     </KeyboardAvoidingView>
   );

@@ -22,13 +22,17 @@ import { useEffect } from "react";
 import type { AppStateStatus } from "react-native";
 import { Appearance, AppState, Platform } from "react-native";
 import { Toaster } from "sonner-native";
-import { SessionProvider } from "~/components/providers/SessionProvider";
+import {
+  SessionProvider,
+  useSession,
+} from "~/components/providers/SessionProvider";
 import { setAndroidNavigationBar } from "~/lib/android-navigation-bar";
 import { NAV_THEME } from "~/lib/constants";
 import { useColorScheme } from "~/lib/useColorScheme";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useFonts } from "expo-font";
+import { SplashScreenController } from "~/components/ui/splash";
 
 onlineManager.setEventListener((setOnline) => {
   const eventSubscription = Network.addNetworkStateListener((state) => {
@@ -52,6 +56,8 @@ const usePlatformSpecificSetup = Platform.select({
   default: noop,
 });
 
+SplashScreen.preventAutoHideAsync();
+
 export {
   // Catch any errors thrown by the Layout component.
   ErrorBoundary,
@@ -72,12 +78,10 @@ export default function RootLayout() {
     return () => subscription.remove();
   }, []);
 
-  SplashScreen.preventAutoHideAsync();
-
   usePlatformSpecificSetup();
   const { isDarkColorScheme } = useColorScheme();
 
-  const [fontsLoaded] = useFonts({
+  useFonts({
     "Geist-Thin": require("~/assets/fonts/Geist/ttf/Geist-Thin.ttf"),
     "Geist-ThinItalic": require("~/assets/fonts/Geist/ttf/Geist-ThinItalic.ttf"),
     "Geist-ExtraLight": require("~/assets/fonts/Geist/ttf/Geist-ExtraLight.ttf"),
@@ -98,44 +102,15 @@ export default function RootLayout() {
     "Geist-BlackItalic": require("~/assets/fonts/Geist/ttf/Geist-BlackItalic.ttf"),
   });
 
-  useEffect(() => {
-    if (fontsLoaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [fontsLoaded]);
-
-  if (!fontsLoaded) {
-    return null;
-  }
-
   return (
     <SafeAreaProvider>
       <GestureHandlerRootView>
         <QueryClientProvider client={queryClient}>
           <SessionProvider>
             <ThemeProvider value={isDarkColorScheme ? DARK_THEME : LIGHT_THEME}>
+              <SplashScreenController />
+              <RootNavigatior />
               <StatusBar style={isDarkColorScheme ? "light" : "dark"} />
-              <Stack>
-                <Stack.Screen
-                  name="(tabs)"
-                  options={{
-                    headerShown: false,
-                  }}
-                />
-                <Stack.Screen
-                  name="+not-found"
-                  options={{
-                    headerShown: false,
-                  }}
-                />
-                <Stack.Screen name="landing" options={{ headerShown: false }} />
-                <Stack.Screen name="signin" options={{ headerShown: false }} />
-                <Stack.Screen name="signup" options={{ headerShown: false }} />
-                <Stack.Screen
-                  name="matchmaking"
-                  options={{ headerShown: false }}
-                />
-              </Stack>
               <PortalHost />
             </ThemeProvider>
           </SessionProvider>
@@ -155,6 +130,35 @@ export default function RootLayout() {
         </QueryClientProvider>
       </GestureHandlerRootView>
     </SafeAreaProvider>
+  );
+}
+
+export function RootNavigatior() {
+  const { session } = useSession();
+
+  return (
+    <Stack>
+      <Stack.Protected guard={session != null}>
+        <Stack.Screen
+          name="(tabs)"
+          options={{
+            headerShown: false,
+          }}
+        />
+      </Stack.Protected>
+      <Stack.Protected guard={!session}>
+        <Stack.Screen name="lobby" options={{ headerShown: false }} />
+        <Stack.Screen name="signin" options={{ headerShown: false }} />
+        <Stack.Screen name="signup" options={{ headerShown: false }} />
+      </Stack.Protected>
+      <Stack.Screen
+        name="matchmaking"
+        options={{
+          presentation: "modal",
+          headerShown: false,
+        }}
+      />
+    </Stack>
   );
 }
 

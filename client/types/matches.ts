@@ -13,19 +13,21 @@ export type MatchListEntity = {
 };
 
 export type UserStats = {
+  totalParlays: string | number | bigint;
+  balance: number;
   image: string | null;
   username: string;
-  balance: number;
-  user_id: string | null;
-  matchId: string | null;
-  parlaysWon: string | number | bigint;
-  parlaysLost: string | number | bigint;
-  parlaysInProgress: string | number | bigint;
+  userId: string;
+  matchId: string;
+  matchUserId: string;
 };
 
-export type MatchStats = {
-  userStats: UserStats,
-  opponentStats: UserStats
-}
+export type CurrentStatus = "winning" | "losing" | "tied";
 
-export type CurrentStatus = "winning" | "losing" | "tied"
+export type MatchMessage = {
+  username: string;
+  content: string;
+  createdAt: Date;
+  userId: string;
+  image: string | null;
+};

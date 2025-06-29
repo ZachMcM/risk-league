@@ -15,7 +15,6 @@ export default function Matches() {
   return (
     <ScrollContainer>
       <View className="flex flex-1 flex-col gap-6">
-        <PageTitle title="Matches"/>
         {isMatchesPending ? (
           <ActivityIndicator className="text-foreground" />
         ) : (

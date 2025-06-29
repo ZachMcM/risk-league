@@ -29,7 +29,7 @@ export interface Matches {
 
 export interface MatchMessages {
   content: string;
-  created_at: Generated<Timestamp | null>;
+  created_at: Generated<Timestamp>;
   id: Generated<string>;
   match_id: string;
   user_id: string;

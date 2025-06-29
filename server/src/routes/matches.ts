@@ -1,7 +1,6 @@
 import { Router } from "express";
 import { authMiddleware } from "./auth";
 import { db } from "../db/db";
-import { getMatchStats } from "../utils/getMatchStats";
 
 export const matchesRoute = Router();
 
@@ -39,20 +38,70 @@ matchesRoute.get("/matches", authMiddleware, async (_, res) => {
 
 matchesRoute.get("/matches/:id/stats", authMiddleware, async (req, res) => {
   const matchId = req.params.id;
-  const userId = res.locals.userId;
+  console.log(matchId);
 
   try {
-    const userStats = await getMatchStats(matchId, false, userId);
-    const opponentStats = await getMatchStats(matchId, true, userId);
+    const userStats = await db
+      .selectFrom("match_users")
+      .innerJoin("users", "users.id", "match_users.user_id")
+      .select([
+        "image",
+        "username",
+        "balance",
+        "user_id as userId",
+        "match_id as matchId",
+        "match_users.id as matchUserId",
+      ])
+      .where("match_id", "=", matchId)
+      .execute();
 
-    res.json({
-      userStats,
-      opponentStats,
-    });
+    console.log(userStats);
+
+    const results = await Promise.all(
+      userStats.map(async (user) => {
+        const parlayCounts = await db
+          .selectFrom("parlays")
+          .select(db.fn.countAll().as("totalParlays"))
+          .where("parlays.match_user_id", "=", user.matchUserId)
+          .executeTakeFirstOrThrow();
+
+        return {
+          ...user,
+          ...parlayCounts,
+        };
+      })
+    );
+
+    res.json(results);
   } catch (err) {
     console.log(err);
     res
       .status(500)
       .json({ err: "Server Error", message: "Match does not exist" });
+  }
+});
+
+matchesRoute.get("/matches/:id/messages", authMiddleware, async (req, res) => {
+  const matchId = req.params.id;
+
+  try {
+    const messages = await db
+      .selectFrom("match_messages")
+      .innerJoin("users", "users.id", "match_messages.user_id")
+      .select([
+        "content",
+        "match_messages.created_at as createdAt",
+        "user_id as userId",
+        "username",
+        "users.image as image",
+      ])
+      .where("match_messages.match_id", "=", matchId)
+      .orderBy("match_messages.created_at", "asc")
+      .execute();
+
+    res.json(messages);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: "Server Error", message: err });
   }
 });

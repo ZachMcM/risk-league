@@ -77,7 +77,7 @@ CREATE TABLE public.match_messages (
     id text DEFAULT gen_random_uuid() NOT NULL,
     user_id text NOT NULL,
     match_id text NOT NULL,
-    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     content text NOT NULL
 );
 
@@ -558,4 +558,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20250626030106'),
     ('20250626035610'),
     ('20250627023503'),
-    ('20250627031558');
+    ('20250627031558'),
+    ('20250629012546');

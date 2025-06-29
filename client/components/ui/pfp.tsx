@@ -25,7 +25,7 @@ export default function Pfp({
         }}
       />
       <AvatarFallback className="bg-primary/20">
-        <Text className="text-primary font-geist-bold text-lg">
+        <Text className="text-primary font-geist-bold text-sm">
           {username.slice(0, 2).toUpperCase()}
         </Text>
       </AvatarFallback>

@@ -1,8 +1,7 @@
-import { Pressable, View } from "react-native";
-import { Text } from "../ui/text";
+import { useRouter } from "expo-router";
 import { Zap } from "~/lib/icons/Zap";
 import { Button } from "../ui/button";
-import { Link, useRouter } from "expo-router";
+import { Text } from "../ui/text";
 
 export default function StartMatchButton() {
   const router = useRouter();

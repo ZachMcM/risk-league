@@ -17,11 +17,11 @@ interface Props {
 }
 
 export function RankProgress({ rankInfo }: Props) {
-  const { currentRank, nextRank, progressToNext, eloRating } = rankInfo;
+  const { nextRank, progressToNext } = rankInfo;
 
   return (
-    <View className="flex flex-col gap-4 p-2  ">
-      <View className="flex flex-col gap-4">
+    <Card>
+      <CardContent className="p-6 flex flex-col gap-4">
         {nextRank && (
           <View className="flex flex-row items-center gap-2.5">
             <Text className="text-primary font-geist-extrabold text-4xl">
@@ -42,14 +42,18 @@ export function RankProgress({ rankInfo }: Props) {
         <View className="flex flex-row justify-between items-center">
           <View className="flex flex-row gap-1 items-center">
             <Shield size={14} className="text-muted-foreground" />
-            <Text className="text-sm text-muted-foreground font-geist-medium">0%</Text>
+            <Text className="text-sm text-muted-foreground font-geist-medium">
+              0%
+            </Text>
           </View>
           <View className="flex flex-row gap-1 items-center">
             <Crown size={14} className="text-muted-foreground" />
-            <Text className="text-sm text-muted-foreground font-geist-medium">100%</Text>
+            <Text className="text-sm text-muted-foreground font-geist-medium">
+              100%
+            </Text>
           </View>
         </View>
-      </View>
-    </View>
+      </CardContent>
+    </Card>
   );
 }

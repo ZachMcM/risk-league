@@ -1,7 +1,7 @@
 import { deleteItemAsync, getItemAsync, setItemAsync } from "expo-secure-store";
 import { Session } from "./types/session";
 import { RankResponse } from "./types/ranks";
-import { MatchListEntity, MatchStats } from "./types/matches";
+import { MatchListEntity, MatchMessage, UserStats } from "./types/matches";
 
 export type HttpRequestParams = {
   endpoint: string;
@@ -158,11 +158,25 @@ export async function getMatches(): Promise<MatchListEntity[]> {
   return data;
 }
 
-export async function getMatchStats(
-  id: string,
-): Promise<MatchStats> {
+export async function getMatchStats(id: string): Promise<UserStats[]> {
   const res = await httpRequest({
     endpoint: `/matches/${id}/stats`,
+    method: "GET",
+  });
+
+  const data = await res.json();
+  console.log(data);
+
+  if (!res.ok) {
+    throw new Error(data);
+  }
+
+  return data;
+}
+
+export async function getMatchMessages(id: string): Promise<MatchMessage[]> {
+  const res = await httpRequest({
+    endpoint: `/matches/${id}/messages`,
     method: "GET",
   });
 

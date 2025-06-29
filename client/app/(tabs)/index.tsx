@@ -1,5 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
+import { Fragment } from "react";
 import { ActivityIndicator, View } from "react-native";
+import SignOutButton from "~/components/auth/SignOutButton";
 import { RankProgress } from "~/components/home/RankProgress";
 import StartMatchButton from "~/components/home/StartMatchButton";
 import UserInformation from "~/components/home/UserInformation";
@@ -18,25 +20,23 @@ export default function Home() {
 
   return (
     <ScrollContainer>
-      <View className="flex flex-1 flex-col gap-6">
-        <PageTitle title="Home" />
-        {isSessionPending && isRankInfoPending ? (
-          <ActivityIndicator className="text-foreground" />
-        ) : (
-          session &&
-          rankInfo && (
-            <View className="flex flex-col gap-4">
-              <UserInformation
-                username={session.user.username}
-                image={session.user.image}
-                rank={`${rankInfo.currentRank.tier} ${rankInfo.currentRank.level} `}
-              />
-              <RankProgress rankInfo={rankInfo} />
-            </View>
-          )
-        )}
-        <StartMatchButton />
-      </View>
+      {isSessionPending && isRankInfoPending ? (
+        <ActivityIndicator className="text-foreground" />
+      ) : (
+        session &&
+        rankInfo && (
+          <View className="flex flex-1 flex-col gap-6">
+            <UserInformation
+              username={session.user.username}
+              image={session.user.image}
+              rank={`${rankInfo.currentRank.tier} ${rankInfo.currentRank.level} `}
+            />
+            <RankProgress rankInfo={rankInfo} />
+            <StartMatchButton />
+            <SignOutButton />
+          </View>
+        )
+      )}
     </ScrollContainer>
   );
 }

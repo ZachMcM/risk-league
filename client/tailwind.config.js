@@ -64,7 +64,6 @@ module.exports = {
         "accordion-up": "accordion-up 0.2s ease-out",
       },
       fontFamily: {
-        sans: ["Geist-Regular"],
         "geist-thin": ["Geist-Thin"],
         "geist-thin-italic": ["Geist-ThinItalic"],
         "geist-extralight": ["Geist-ExtraLight"],

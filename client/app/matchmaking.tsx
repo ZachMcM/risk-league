@@ -30,7 +30,7 @@ const messages = [
 
 export default function Matchmaking() {
   const router = useRouter();
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
 
   const { session } = useSession();
   const userId = session?.user.id!;
@@ -74,8 +74,8 @@ export default function Matchmaking() {
       setLoadingMessage("Opponent found!");
       toast.success("Opponent found!");
       queryClient.invalidateQueries({
-        queryKey: ["matches"]
-      })
+        queryKey: ["matches"],
+      });
       router.replace({
         pathname: "/matches/[id]",
         params: { id: matchId },
@@ -98,51 +98,52 @@ export default function Matchmaking() {
   }, [userId]);
 
   return (
-    <Container>
-      <View className="flex flex-1 justify-center items-center">
-        <Card>
-          <CardHeader className="flex flex-col items-center gap-4">
-            <View className="relative mx-auto w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center">
-              <Users size={28} className="text-primary" />
-              <View className="absolute inset-0 border-2 border-primary/20 rounded-full animate-spin border-t-primary" />
-            </View>
-            <CardTitle className="font-geist-extrabold text-3xl">
-              Finding Opponent
-            </CardTitle>
-            <CardDescription className="text-xl text-center font-geist-medium">
-              We're matching you with the perfect competitor
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <View className="flex flex-col gap-4">
-              <Progress
-                value={progress}
-                className="bg-primary/10 h-3"
-                indicatorClassName="bg-primary"
-              />
-              <Text className="text-center font-geist-medium text-muted-foreground text-lg">
-                {Math.round(progress)}% complete
-              </Text>
-              <View className="flex flex-row gap-4 items-center bg-muted/50 rounded-lg p-4">
-                <Trophy size={20} className="text-primary" />
-                <Text className="font-geist-medium">{loadingMessage}</Text>
+    <Container className="pt-0 items-center">
+        <View className="rounded-2xl bg-secondary h-2 w-24" />
+        <View className="flex flex-1 justify-center items-center">
+          <Card>
+            <CardHeader className="flex flex-col items-center gap-4">
+              <View className="relative mx-auto w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center">
+                <Users size={28} className="text-primary" />
+                <View className="absolute inset-0 border-2 border-primary/20 rounded-full animate-spin border-t-primary" />
               </View>
-              <Button
-                onPress={() => {
-                  socketRef.current?.emit("cancel-search");
-                  router.replace("/(tabs)");
-                }}
-                size="lg"
-                variant="outline"
-                className="flex flex-row gap-2 items-center"
-              >
-                <X size={24} className="text-foreground" />
-                <Text>Cancel Search</Text>
-              </Button>
-            </View>
-          </CardContent>
-        </Card>
-      </View>
+              <CardTitle className="font-geist-extrabold text-3xl">
+                Finding Opponent
+              </CardTitle>
+              <CardDescription className="text-xl text-center font-geist-medium">
+                We're matching you with the perfect competitor
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <View className="flex flex-col gap-4">
+                <Progress
+                  value={progress}
+                  className="bg-primary/10 h-3"
+                  indicatorClassName="bg-primary"
+                />
+                <Text className="text-center font-geist-medium text-muted-foreground text-lg">
+                  {Math.round(progress)}% complete
+                </Text>
+                <View className="flex flex-row gap-4 items-center bg-muted/50 rounded-lg p-4">
+                  <Trophy size={20} className="text-primary" />
+                  <Text className="font-geist-medium">{loadingMessage}</Text>
+                </View>
+                <Button
+                  onPress={() => {
+                    socketRef.current?.emit("cancel-search");
+                    router.replace("/(tabs)");
+                  }}
+                  size="lg"
+                  variant="outline"
+                  className="flex flex-row gap-2 items-center"
+                >
+                  <X size={24} className="text-foreground" />
+                  <Text>Cancel Search</Text>
+                </Button>
+              </View>
+            </CardContent>
+          </Card>
+        </View>
     </Container>
   );
 }

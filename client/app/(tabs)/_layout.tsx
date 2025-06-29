@@ -1,22 +1,16 @@
-import { Redirect, Tabs } from "expo-router";
-import { ActivityIndicator, View } from "react-native";
-import { useSession } from "~/components/providers/SessionProvider";
+import { Tabs, useRouter } from "expo-router";
+import { Fragment } from "react";
+import { View } from "react-native";
+import PageTitle from "~/components/ui/page-title";
 import { Dices } from "~/lib/icons/Dices";
 import { Home } from "~/lib/icons/Home";
 import { useColorScheme } from "~/lib/useColorScheme";
 
 export default function TabsLayout() {
-  const { session, isSessionPending } = useSession();
-
   const { isDarkColorScheme } = useColorScheme();
+  const router = useRouter();
 
-  return isSessionPending ? (
-    <View className="flex flex-1 justify-center items-center">
-      <ActivityIndicator size="large" />
-    </View>
-  ) : !session ? (
-    <Redirect href="/landing" />
-  ) : (
+  return (
     <Tabs
       screenOptions={{
         tabBarStyle: {
@@ -32,35 +26,28 @@ export default function TabsLayout() {
         tabBarInactiveTintColor: isDarkColorScheme
           ? "hsl(223.8136 0% 63.0163%)" // from --muted-foreground .dark:root
           : "hsl(223.8136 0% 45.1519%)", // from --muted-foreground .root
-        headerStyle: {
-          backgroundColor: "hsl(var(--background))",
-          borderBottomColor: "hsl(var(--border))",
-          borderBottomWidth: 1,
-          paddingBottom: 10
-        }
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
           title: "Home",
-          headerShown: false,
+          header: (_) => <PageTitle title="Home" />,
           tabBarIcon: ({ color }) => <Home color={color} />,
         }}
       />
       <Tabs.Screen
-        name="matches/index"
+        name="matches"
         options={{
           title: "Matches",
           headerShown: false,
           tabBarIcon: ({ color }) => <Dices color={color} />,
         }}
-      />
-      <Tabs.Screen
-        name="matches/[id]"
-        options={{
-          href: null,
-          headerShown: false
+        listeners={{
+          tabPress: (e) => {
+            e.preventDefault();
+            router.push("/matches");
+          },
         }}
       />
     </Tabs>

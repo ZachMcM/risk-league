@@ -1,34 +1,31 @@
 import { View } from "react-native";
-import { CurrentStatus, MatchStats } from "~/types/matches";
+import { CurrentStatus, UserStats } from "~/types/matches";
 import MatchStatsCard from "./MatchStatsCard";
+import { useMatch } from "../providers/MatchProvider";
+import { useEffect } from "react";
 
-interface Props {
-  matchStats: MatchStats;
-}
-
-export default function MatchStatsView({ matchStats }: Props) {
-  const status: CurrentStatus =
-    matchStats.userStats.balance == matchStats.opponentStats.balance
-      ? "tied"
-      : matchStats.userStats.balance > matchStats.opponentStats.balance
-      ? "winning"
-      : "losing";
-
-  const opponentStatus: CurrentStatus =
-    matchStats.userStats.balance == matchStats.opponentStats.balance
-      ? "tied"
-      : matchStats.userStats.balance < matchStats.opponentStats.balance
-      ? "winning"
-      : "losing";
+export default function MatchStatsView() {
+  const { stats } = useMatch();
 
   return (
     <View className="flex flex-col gap-4">
-      <MatchStatsCard userStats={matchStats.userStats} status={status} />
-      <MatchStatsCard
-        userStats={matchStats.opponentStats}
-        status={opponentStatus}
-        opponent
-      />
+      {stats.map((userStats, i) => {
+        const otherIndex = i == 0 ? 1 : 0;
+        const status: CurrentStatus =
+          stats[i].balance == stats[otherIndex].balance
+            ? "tied"
+            : stats[i].balance > stats[otherIndex].balance
+            ? "winning"
+            : "losing";
+
+        return (
+          <MatchStatsCard
+            key={userStats.userId}
+            userStats={userStats}
+            status={status}
+          />
+        );
+      })}
     </View>
   );
 }
