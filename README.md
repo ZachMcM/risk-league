@@ -1,11 +1,11 @@
-# Risk League Docs
+# Risk League Local Setup Documentation
 
-## How To Setup Database Locally
+## Database Setup
 ```
 docker run --name local-postgres -e POSTGRES_PASSWORD=<PASSWORD> -p 5432:5432 -d postgres
 ```
 
-## Starting The Database Locally
+## Starting The Database
 ```
 docker start local-postgres
 ```
