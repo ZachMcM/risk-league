@@ -1,3 +1,4 @@
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams } from "expo-router";
 import {
   createContext,
@@ -7,15 +8,14 @@ import {
   useRef,
   useState,
 } from "react";
-import { io } from "socket.io-client";
-import { MatchMessage, UserStats } from "~/types/matches";
-import { useSession } from "./SessionProvider";
-import { toast } from "sonner-native";
 import { View } from "react-native";
+import { io } from "socket.io-client";
+import { toast } from "sonner-native";
+import { getMatchMessages, getMatchStats } from "~/endpoints";
+import { MatchMessage, UserStats } from "~/types/matches";
 import Pfp from "../ui/pfp";
 import { Text } from "../ui/text";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { getMatchMessages, getMatchStats } from "~/endpoints";
+import { useSession } from "./SessionProvider";
 
 type MatchProviderValues = {
   messages: MatchMessage[];
@@ -41,7 +41,7 @@ export function MatchProvider({ children }: { children: ReactNode }) {
 
   const socketRef = useRef<ReturnType<typeof io> | null>(null);
 
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
 
   const { data: initMessages, isPending: isMessagesPending } = useQuery({
     queryKey: ["match", "messages", id],
@@ -98,7 +98,11 @@ export function MatchProvider({ children }: { children: ReactNode }) {
       if (messageData.userId != session.user.id) {
         toast.custom(
           <View className="flex flex-row gap-3 m-8 items-center p-4 bg-card rounded-2xl">
-            <Pfp className="h-12 w-12" image={messageData.image} username={messageData.username} />
+            <Pfp
+              className="h-12 w-12"
+              image={messageData.image}
+              username={messageData.username}
+            />
             <View className="flex flex-col w-full">
               <Text className="font-bold text-lg">{messageData.username}</Text>
               <Text className="max-w-[80%]">{messageData.content}</Text>
@@ -107,8 +111,8 @@ export function MatchProvider({ children }: { children: ReactNode }) {
         );
       }
       queryClient.invalidateQueries({
-        queryKey: ["match", "messages", id]
-      })
+        queryKey: ["match", "messages", id],
+      });
     });
 
     socket.on("message-error", (error: { error: string }) => {

@@ -1,4 +1,3 @@
-import { useQuery } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Fragment } from "react";
 import { ActivityIndicator, View } from "react-native";
@@ -6,12 +5,11 @@ import MatchStatsView from "~/components/matches/MatchStatsView";
 import { useMatch } from "~/components/providers/MatchProvider";
 import { Button } from "~/components/ui/button";
 import { ScrollContainer } from "~/components/ui/scroll-container";
-import { getMatchStats } from "~/endpoints";
 import { MessageCircle } from "~/lib/icons/MessageCircle";
 
 export default function Match() {
   const { id } = useLocalSearchParams() as { id: string };
-  const { isStatsPending } = useMatch()
+  const { isStatsPending } = useMatch();
 
   const router = useRouter();
 

@@ -45,6 +45,99 @@ export interface MatchUsers {
   user_id: string | null;
 }
 
+export interface MlbGames {
+  assists: number | null;
+  at_bats: number | null;
+  balls: number | null;
+  base_on_balls: number | null;
+  batting_avg: number | null;
+  caught_stealing: number | null;
+  created_at: Generated<Timestamp | null>;
+  doubles: number | null;
+  earned_runs: number | null;
+  era: number | null;
+  errors: number | null;
+  fielding_chances: number | null;
+  game_date: Timestamp | null;
+  game_type: string;
+  hit_by_pitch: number | null;
+  hits: number | null;
+  home_runs: number | null;
+  id: string;
+  innings_pitched: number | null;
+  is_home: boolean;
+  left_on_base: number | null;
+  on_base_pct: number | null;
+  opponent_runs: number | null;
+  opponent_team_id: string | null;
+  ops: number | null;
+  passed_balls: number | null;
+  pitches_thrown: number | null;
+  pitching_hits: number | null;
+  pitching_home_runs: number | null;
+  pitching_strikeouts: number | null;
+  pitching_walks: number | null;
+  plate_appearances: number | null;
+  putouts: number | null;
+  rbi: number | null;
+  runs: number | null;
+  sac_bunts: number | null;
+  sac_flies: number | null;
+  season: string | null;
+  slugging_pct: number | null;
+  status: string | null;
+  stolen_bases: number | null;
+  strikeouts: number | null;
+  strikes: number | null;
+  team_id: string | null;
+  total_bases: number | null;
+  triples: number | null;
+  venue_id: number | null;
+  venue_name: string | null;
+  whip: number | null;
+  win_loss: string | null;
+}
+
+export interface MlbPlayerStats {
+  at_bats: number | null;
+  balls: number | null;
+  base_on_balls: number | null;
+  batting_avg: number | null;
+  caught_stealing: number | null;
+  doubles: number | null;
+  earned_runs: number | null;
+  era: number | null;
+  game_id: string;
+  hit_by_pitch: number | null;
+  hits: number | null;
+  home_runs: number | null;
+  id: Generated<string>;
+  innings_pitched: number | null;
+  left_on_base: number | null;
+  on_base_pct: number | null;
+  ops: number | null;
+  pitches_thrown: number | null;
+  pitching_hits: number | null;
+  pitching_home_runs: number | null;
+  pitching_runs: number | null;
+  pitching_strikeouts: number | null;
+  pitching_walks: number | null;
+  player_id: string;
+  position: string | null;
+  rbi: number | null;
+  runs: number | null;
+  sac_bunts: number | null;
+  sac_flies: number | null;
+  season: string | null;
+  slugging_pct: number | null;
+  stolen_bases: number | null;
+  strikeouts: number | null;
+  strikes: number | null;
+  triples: number | null;
+  updated_at: Generated<Timestamp | null>;
+  whip: number | null;
+}
+
 export interface NbaGames {
   ast: number | null;
   blk: number | null;
@@ -183,6 +276,8 @@ export interface DB {
   match_messages: MatchMessages;
   match_users: MatchUsers;
   matches: Matches;
+  mlb_games: MlbGames;
+  mlb_player_stats: MlbPlayerStats;
   nba_games: NbaGames;
   nba_player_stats: NbaPlayerStats;
   parlay_picks: ParlayPicks;

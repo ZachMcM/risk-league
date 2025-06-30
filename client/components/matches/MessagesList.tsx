@@ -1,10 +1,9 @@
 import { useEffect, useRef } from "react";
 import { ScrollView, View } from "react-native";
-import { MatchMessage } from "~/types/matches";
 import { Text } from "~/components/ui/text";
+import { cn, timeAgo } from "~/lib/utils";
 import { useMatch } from "../providers/MatchProvider";
 import { useSession } from "../providers/SessionProvider";
-import { cn, timeAgo } from "~/lib/utils";
 import Pfp from "../ui/pfp";
 
 export default function MessagesList() {
@@ -50,10 +49,7 @@ export default function MessagesList() {
                     isCurrentUser ? "rounded-br-md" : "rounded-bl-md"
                   )}
                 >
-                  <Text 
-                    className="leading-5"
-                    style={{ flexWrap: 'wrap' }}
-                  >
+                  <Text className="leading-5" style={{ flexWrap: "wrap" }}>
                     {message.content}
                   </Text>
                 </View>

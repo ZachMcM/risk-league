@@ -7,7 +7,12 @@ export default function SignOutButton() {
   const { signOut, isSignOutPending } = useSession();
 
   return (
-    <Button variant="secondary" onPress={signOut} size="lg" className="flex-row gap-2 items-center">
+    <Button
+      variant="secondary"
+      onPress={signOut}
+      size="lg"
+      className="flex-row gap-2 items-center"
+    >
       <Text>Sign Out</Text>
       {isSignOutPending && <ActivityIndicator className="text-foreground" />}
     </Button>

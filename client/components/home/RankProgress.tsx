@@ -4,10 +4,7 @@ import { Shield } from "~/lib/icons/Shield";
 import { RankResponse } from "~/types/ranks";
 import {
   Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
+  CardContent
 } from "../ui/card";
 import { Progress } from "../ui/progress";
 import { Text } from "../ui/text";

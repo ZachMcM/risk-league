@@ -1,8 +1,8 @@
+import { useState } from "react";
 import { View } from "react-native";
 import { MatchListEntity, MatchStatus } from "~/types/matches";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { Text } from "../ui/text";
-import { useState } from "react";
 import MatchListItem from "./MatchListItem";
 
 export default function MatchTabs({ matches }: { matches: MatchListEntity[] }) {

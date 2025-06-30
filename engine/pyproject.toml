@@ -17,7 +17,8 @@ dependencies = [
   "requests",
   "apscheduler",
   "black",
-  "sqlacodegen"
+  "sqlacodegen",
+  "MLB-StatsAPI"
 ]
 
 [tool.setuptools]
@@ -26,11 +27,13 @@ packages = [
   "nba.tests",
   "nba.scripts",
   "nba.scripts.prop_generation",
-  "nba.scripts.init_data",
   "nba.daemons",
   "system",
   "system.daemons",
   "shared",
+  "mlb",
+  "mlb.shared",
+  "mlb.scripts",
 ]
 
 [build-system]

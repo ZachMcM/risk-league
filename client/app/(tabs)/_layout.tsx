@@ -1,6 +1,4 @@
 import { Tabs, useRouter } from "expo-router";
-import { Fragment } from "react";
-import { View } from "react-native";
 import PageTitle from "~/components/ui/page-title";
 import { Dices } from "~/lib/icons/Dices";
 import { Home } from "~/lib/icons/Home";

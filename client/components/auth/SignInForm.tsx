@@ -9,23 +9,22 @@ import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Text } from "../ui/text";
 
-const schema = z
-  .object({
-    email: z
-      .string()
-      .min(1, { message: "Email is required" })
-      .email({ message: "Invalid email" }),
-    password: z
-      .string()
-      .min(8, { message: "Password can't be less than 8 characters" })
-      .max(50, { message: "Password can't be more than 50 characters" })
-      .regex(/[a-z]/, { message: "Password must include a lowercase letter" })
-      .regex(/[A-Z]/, { message: "Password must include an uppercase letter" })
-      .regex(/\d/, { message: "Password must include a number" })
-      .regex(/[^a-zA-Z0-9]/, {
-        message: "Password must include a special character",
-      }),
-  })
+const schema = z.object({
+  email: z
+    .string()
+    .min(1, { message: "Email is required" })
+    .email({ message: "Invalid email" }),
+  password: z
+    .string()
+    .min(8, { message: "Password can't be less than 8 characters" })
+    .max(50, { message: "Password can't be more than 50 characters" })
+    .regex(/[a-z]/, { message: "Password must include a lowercase letter" })
+    .regex(/[A-Z]/, { message: "Password must include an uppercase letter" })
+    .regex(/\d/, { message: "Password must include a number" })
+    .regex(/[^a-zA-Z0-9]/, {
+      message: "Password must include a special character",
+    }),
+});
 
 type FormValues = z.infer<typeof schema>;
 

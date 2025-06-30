@@ -1,8 +1,7 @@
 import { View } from "react-native";
-import { CurrentStatus, UserStats } from "~/types/matches";
-import MatchStatsCard from "./MatchStatsCard";
+import { CurrentStatus } from "~/types/matches";
 import { useMatch } from "../providers/MatchProvider";
-import { useEffect } from "react";
+import MatchStatsCard from "./MatchStatsCard";
 
 export default function MatchStatsView() {
   const { stats } = useMatch();

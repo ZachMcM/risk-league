@@ -49,7 +49,7 @@ export function initSocketServer(io: Server) {
     const userId = socket.handshake.query.userId as string;
     const matchId = socket.handshake.query.matchId as string;
     console.log(`User ${userId} connected to match id ${matchId} namespace`);
-    
+
     // Join both user room and match room
     socket.join(userId);
     socket.join(`match:${matchId}`);
@@ -85,8 +85,10 @@ export function initSocketServer(io: Server) {
         };
 
         // Broadcast to all users in the match room
-        io.of("/match").to(`match:${matchId}`).emit("message-received", messageData);
-        
+        io.of("/match")
+          .to(`match:${matchId}`)
+          .emit("message-received", messageData);
+
         console.log(`Message sent in match ${matchId} by user ${userId}`);
       } catch (error) {
         console.error("Error sending message:", error);

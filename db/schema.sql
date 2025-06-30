@@ -109,6 +109,109 @@ CREATE TABLE public.matches (
 
 
 --
+-- Name: mlb_games; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.mlb_games (
+    id text NOT NULL,
+    team_id text,
+    game_date timestamp with time zone,
+    game_type character varying(10) NOT NULL,
+    venue_id integer,
+    venue_name text,
+    opponent_team_id text,
+    is_home boolean NOT NULL,
+    status text,
+    runs integer,
+    opponent_runs integer,
+    win_loss character varying(1),
+    hits integer,
+    doubles integer,
+    triples integer,
+    home_runs integer,
+    rbi integer,
+    stolen_bases integer,
+    caught_stealing integer,
+    base_on_balls integer,
+    strikeouts integer,
+    left_on_base integer,
+    batting_avg double precision,
+    on_base_pct double precision,
+    slugging_pct double precision,
+    ops double precision,
+    at_bats integer,
+    plate_appearances integer,
+    total_bases integer,
+    hit_by_pitch integer,
+    sac_flies integer,
+    sac_bunts integer,
+    innings_pitched double precision,
+    earned_runs integer,
+    pitching_hits integer,
+    pitching_home_runs integer,
+    pitching_walks integer,
+    pitching_strikeouts integer,
+    era double precision,
+    whip double precision,
+    pitches_thrown integer,
+    strikes integer,
+    balls integer,
+    errors integer,
+    assists integer,
+    putouts integer,
+    fielding_chances integer,
+    passed_balls integer,
+    season text,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
+);
+
+
+--
+-- Name: mlb_player_stats; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.mlb_player_stats (
+    id text DEFAULT gen_random_uuid() NOT NULL,
+    player_id text,
+    game_id text NOT NULL,
+    "position" text,
+    at_bats integer,
+    runs integer,
+    hits integer,
+    doubles integer,
+    triples integer,
+    home_runs integer,
+    rbi integer,
+    stolen_bases integer,
+    caught_stealing integer,
+    base_on_balls integer,
+    strikeouts integer,
+    left_on_base integer,
+    hit_by_pitch integer,
+    sac_flies integer,
+    sac_bunts integer,
+    batting_avg double precision,
+    on_base_pct double precision,
+    slugging_pct double precision,
+    ops double precision,
+    innings_pitched double precision,
+    pitching_hits integer,
+    pitching_runs integer,
+    earned_runs integer,
+    pitching_walks integer,
+    pitching_strikeouts integer,
+    pitching_home_runs integer,
+    pitches_thrown integer,
+    strikes integer,
+    balls integer,
+    era double precision,
+    whip double precision,
+    season text,
+    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
+);
+
+
+--
 -- Name: nba_games; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -312,6 +415,22 @@ ALTER TABLE ONLY public.matches
 
 
 --
+-- Name: mlb_games mlb_games_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.mlb_games
+    ADD CONSTRAINT mlb_games_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: mlb_player_stats mlb_player_stats_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.mlb_player_stats
+    ADD CONSTRAINT mlb_player_stats_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: nba_games nba_games_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -408,6 +527,14 @@ ALTER TABLE ONLY public.nba_player_stats
 
 
 --
+-- Name: mlb_player_stats fk_game; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.mlb_player_stats
+    ADD CONSTRAINT fk_game FOREIGN KEY (game_id) REFERENCES public.mlb_games(id);
+
+
+--
 -- Name: match_users fk_match; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -429,6 +556,14 @@ ALTER TABLE ONLY public.match_messages
 
 ALTER TABLE ONLY public.parlays
     ADD CONSTRAINT fk_match_user FOREIGN KEY (match_user_id) REFERENCES public.match_users(id);
+
+
+--
+-- Name: mlb_games fk_opponent_team; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.mlb_games
+    ADD CONSTRAINT fk_opponent_team FOREIGN KEY (opponent_team_id) REFERENCES public.teams(id);
 
 
 --
@@ -456,6 +591,14 @@ ALTER TABLE ONLY public.props
 
 
 --
+-- Name: mlb_player_stats fk_player; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.mlb_player_stats
+    ADD CONSTRAINT fk_player FOREIGN KEY (player_id) REFERENCES public.players(id);
+
+
+--
 -- Name: parlay_picks fk_prop; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -476,6 +619,14 @@ ALTER TABLE ONLY public.nba_games
 --
 
 ALTER TABLE ONLY public.players
+    ADD CONSTRAINT fk_team FOREIGN KEY (team_id) REFERENCES public.teams(id);
+
+
+--
+-- Name: mlb_games fk_team; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.mlb_games
     ADD CONSTRAINT fk_team FOREIGN KEY (team_id) REFERENCES public.teams(id);
 
 
@@ -559,4 +710,7 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20250626035610'),
     ('20250627023503'),
     ('20250627031558'),
-    ('20250629012546');
+    ('20250629012546'),
+    ('20250629223639'),
+    ('20250630003039'),
+    ('20250630014622');

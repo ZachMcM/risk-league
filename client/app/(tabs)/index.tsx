@@ -1,12 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
-import { Fragment } from "react";
 import { ActivityIndicator, View } from "react-native";
 import SignOutButton from "~/components/auth/SignOutButton";
 import { RankProgress } from "~/components/home/RankProgress";
 import StartMatchButton from "~/components/home/StartMatchButton";
 import UserInformation from "~/components/home/UserInformation";
 import { useSession } from "~/components/providers/SessionProvider";
-import PageTitle from "~/components/ui/page-title";
 import { ScrollContainer } from "~/components/ui/scroll-container";
 import { getRank } from "~/endpoints";
 

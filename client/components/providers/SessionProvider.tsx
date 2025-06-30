@@ -1,14 +1,14 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   sessionRequest,
   signInRequest,
   signOutRequest,
   signUpRequest,
 } from "endpoints";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createContext, ReactNode, useContext } from "react";
-import { Session } from "~/types/session";
-import { toast } from 'sonner-native';
 import { useRouter } from "expo-router";
+import { createContext, ReactNode, useContext } from "react";
+import { toast } from "sonner-native";
+import { Session } from "~/types/session";
 
 type SessionProviderValues = {
   session: Session;
@@ -31,33 +31,29 @@ type SessionProviderValues = {
   isSignOutPending: boolean;
 };
 
-
 const SessionContext = createContext<SessionProviderValues | null>(null);
 
 export function SessionProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
 
-  const {
-    data: session,
-    isPending: isSessionPending,
-  } = useQuery({
+  const { data: session, isPending: isSessionPending } = useQuery({
     queryKey: ["session"],
     queryFn: sessionRequest,
   });
 
-  const router = useRouter()
+  const router = useRouter();
 
   const { mutate: signIn, isPending: isSignInPending } = useMutation({
     mutationFn: signInRequest,
     onError: (err) => {
       console.log(err);
-      toast.error(err.message)
+      toast.error(err.message);
     },
     onSuccess: (data) => {
-      console.log(data)
+      console.log(data);
       queryClient.invalidateQueries({ queryKey: ["session"] });
-      toast.success("Sign in successful")
-      router.push("/(tabs)")
+      toast.success("Sign in successful");
+      router.push("/(tabs)");
     },
   });
 
@@ -65,27 +61,27 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     mutationFn: signUpRequest,
     onError: (err) => {
       console.log(err);
-      toast.error(err.message)
+      toast.error(err.message);
     },
     onSuccess: (data) => {
-      console.log(data)
+      console.log(data);
       queryClient.invalidateQueries({ queryKey: ["session"] });
-      toast.success("Sign up successful")
-      router.push("/(tabs)")
+      toast.success("Sign up successful");
+      router.push("/(tabs)");
     },
   });
 
   const { mutate: signOut, isPending: isSignOutPending } = useMutation({
     mutationFn: signOutRequest,
     onError: (err) => {
-      console.log(err)
-      toast.error(err.message)
+      console.log(err);
+      toast.error(err.message);
     },
     onSuccess: (data) => {
-      console.log(data)
+      console.log(data);
       queryClient.invalidateQueries({ queryKey: ["session"] });
-      toast.success("Sign out successful")
-      router.push("/")
+      toast.success("Sign out successful");
+      router.push("/");
     },
   });
 

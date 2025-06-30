@@ -5,6 +5,11 @@
 docker run --name local-postgres -e POSTGRES_PASSWORD=<PASSWORD> -p 5432:5432 -d postgres
 ```
 
+## Starting The Database Locally
+```
+docker start local-postgres
+```
+
 Add to `.env`
 ```
 DATABASE_URL="postgresql://postgres:<PASSWORD>@localhost:5432/postgres?sslmode=disable"
@@ -15,30 +20,15 @@ Run in your shell of choice in the root directory
 dbmate up
 ```
 
-## Starting The Database Locally
+## Loading Initial Data
+After running `dbmate up`, load the initial data dump:
 ```
-docker start local-postgres
+psql "postgresql://postgres:<PASSWORD>@localhost:5432/postgres?sslmode=disable" -f db/initial_data.sql
 ```
 
 ## Installing Dependencies
 ```
 pip install requirements.txt
-```
-
-## Initing The Database
-
-```
-# Teams
-python init_nba_teams.py
-
-# Players
-python init_nba_players.py
-
-# Games
-python init_nba_games.py
-
-# Player Stats
-python init_nba_player_stats.py
 ```
 
 ## Install Engine
@@ -48,15 +38,16 @@ pip install -e .
 ```
 
 ## Codegen Tables for SqlAlchemy
+If `engine/shared/tables.py` does not exist run this command
 ```
 cd engine
-sqlacodegen --generator tables $DATABASE_URL > shared/tables.py
+sqlacodegen --generator tables "<DATABASE_URL>" > shared/tables.py
 ```
 
-## Running The API Server
+## Running The Backend Server
 
 ### Generating Types
-If `api/src/db/schema.d.ts` does not exist run this command
+If `server/src/db/schema.d.ts` does not exist run this command
 ```
 cd server
 npm run codegen
@@ -68,7 +59,7 @@ redis-server
 ```
 
 ### Running The Server In Dev Mode (Nodemon)
-To run the API server without transpiling into JS with the build command simply run
+To run the backend server without transpiling into JS with the build command simply run
 ```
 cd client
 npm run dev

@@ -12,7 +12,7 @@ export default function Messages() {
   const { sendMessage, isConnected } = useMatch();
   const [inputValue, setInputValue] = useState("");
 
-  const { isMessagesPending } = useMatch()
+  const { isMessagesPending } = useMatch();
 
   const handleSendMessage = () => {
     if (inputValue.trim() && isConnected) {

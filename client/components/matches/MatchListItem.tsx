@@ -1,13 +1,12 @@
+import { useRouter } from "expo-router";
 import { Pressable, View } from "react-native";
 import { TrendingUp } from "~/lib/icons/TrendingUp";
 import { cn, timeAgo } from "~/lib/utils";
-import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-import { Card, CardContent } from "../ui/card";
-import { Text } from "../ui/text";
-import { Badge } from "../ui/badge";
-import { useRouter } from "expo-router";
 import { MatchListEntity } from "~/types/matches";
+import { Badge } from "../ui/badge";
+import { Card, CardContent } from "../ui/card";
 import Pfp from "../ui/pfp";
+import { Text } from "../ui/text";
 
 export default function MatchListItem({ match }: { match: MatchListEntity }) {
   const router = useRouter();

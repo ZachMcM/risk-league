@@ -1,13 +1,13 @@
 import { View } from "react-native";
+import { startingBalance } from "~/lib/constants";
+import { TrendingDown } from "~/lib/icons/TrendingDown";
+import { TrendingUp } from "~/lib/icons/TrendingUp";
 import { cn } from "~/lib/utils";
 import { CurrentStatus, UserStats } from "~/types/matches";
+import { useSession } from "../providers/SessionProvider";
+import { Badge } from "../ui/badge";
 import { Card, CardContent } from "../ui/card";
 import { Text } from "../ui/text";
-import { Badge } from "../ui/badge";
-import { TrendingUp } from "~/lib/icons/TrendingUp";
-import { TrendingDown } from "~/lib/icons/TrendingDown";
-import { startingBalance } from "~/lib/constants";
-import { useSession } from "../providers/SessionProvider";
 
 export default function MatchStatsCard({
   userStats,

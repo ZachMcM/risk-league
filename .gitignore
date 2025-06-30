@@ -22,3 +22,6 @@ Thumbs.db
 __pycache__/
 tempCodeRunnerFile.py
 *.egg-info/
+
+# redis
+dump.rdb
