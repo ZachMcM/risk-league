@@ -1,7 +1,8 @@
 import sys
 
 import numpy as np
-from nba.constants import min_num_stats, secondary_minutes_threshold, sigma_coeff
+from nba.constants import min_num_stats, secondary_minutes_threshold
+from shared.constants import sigma_coeff
 from nba.my_types import CombinedStatType, MetricStats, StatType
 from shared.tables import t_nba_games, t_nba_player_stats, t_players
 from nba.utils import get_current_season, get_last_season

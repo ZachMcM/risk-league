@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from nba.constants import (
+from shared.constants import (
     bias_gaussian_mean,
     bias_gaussian_sd,
     bias_lower_bound,

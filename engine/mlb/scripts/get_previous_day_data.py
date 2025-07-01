@@ -9,6 +9,7 @@ from shared.tables import t_mlb_games, t_mlb_player_stats, t_players
 from sqlalchemy import Engine, create_engine, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.exc import IntegrityError
+import sys
 
 load_dotenv()
 engine = create_engine(os.getenv("DATABASE_URL"))
@@ -145,7 +146,7 @@ def process_game_data(game, season):
 
     except Exception as e:
         print(f"Error processing game {game_id}: {e}")
-        return []
+        sys.exit(1)
 
     return game_records
 
@@ -179,7 +180,7 @@ def insert_games(games_df, engine):
 
         except Exception as e:
             print(f"🚨 Insert failed due to error: {e}")
-            return
+            sys.exit(1)
 
 
 def extract_player_batting_stats(batting_stats):
@@ -301,7 +302,7 @@ def insert_player_stats(games_df, engine: Engine):
 
         except IntegrityError as e:
             print(f"🚨 Insert failed due to error:", {e})
-            return
+            sys.exit(1)
 
 
 def process_player_stats_from_game(game_id, season):
@@ -416,7 +417,7 @@ def process_player_stats_from_game(game_id, season):
 
     except Exception as e:
         print(f"Error processing player stats for game {game_id}: {e}")
-        return []
+        sys.exit(1)
 
     return player_records
 

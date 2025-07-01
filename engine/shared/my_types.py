@@ -20,3 +20,5 @@ class Team(TypedDict):
     city: str
     state: str
     year_founded: int
+    
+    

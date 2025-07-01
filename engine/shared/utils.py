@@ -1,6 +1,18 @@
 import os
 from sqlalchemy import create_engine
 from sqlalchemy.dialects.postgresql import insert as pg_insert
+import json
+import pandas as pd
+
+
+def pretty_print(data):
+    formatted_json = json.dumps(data, indent=4)
+    print(formatted_json)
+
+
+def json_to_csv(json_data, csv_path="../tmp/out.csv"):
+    df = pd.DataFrame(json_data)
+    df.to_csv(csv_path, index=False)
 
 
 def db_response_to_json(res, field=None):
@@ -33,10 +45,12 @@ def safe_float(value):
         return None
 
 
-def upsert_records(engine, table, data, conflict_columns, update_columns=None, record_type="records"):
+def upsert_records(
+    engine, table, data, conflict_columns, update_columns=None, record_type="records"
+):
     """
     Generic upsert function for inserting records with conflict resolution
-    
+
     Args:
         engine: SQLAlchemy engine
         table: SQLAlchemy table object
@@ -53,30 +67,28 @@ def upsert_records(engine, table, data, conflict_columns, update_columns=None, r
         try:
             # Use PostgreSQL's ON CONFLICT to handle duplicates
             stmt = pg_insert(table).values(data)
-            
+
             if update_columns:
                 # Update specified columns on conflict
-                update_dict = {
-                    col: stmt.excluded[col] 
-                    for col in update_columns
-                }
+                update_dict = {col: stmt.excluded[col] for col in update_columns}
             else:
                 # Update all columns except conflict columns and auto-generated ones
-                excluded_cols = set(conflict_columns + ['id', 'created_at', 'updated_at'])
+                excluded_cols = set(
+                    conflict_columns + ["id", "created_at", "updated_at"]
+                )
                 update_dict = {
-                    col.name: stmt.excluded[col.name] 
-                    for col in table.columns 
+                    col.name: stmt.excluded[col.name]
+                    for col in table.columns
                     if col.name not in excluded_cols
                 }
-            
+
             stmt = stmt.on_conflict_do_update(
-                index_elements=conflict_columns,
-                set_=update_dict
+                index_elements=conflict_columns, set_=update_dict
             )
-            
+
             conn.execute(stmt)
             print(f"✅ Upserted {len(data)} {record_type}")
-            
+
         except Exception as e:
             print(f"🚨 Insert failed due to error: {e}")
             return

@@ -34,6 +34,7 @@ packages = [
   "mlb",
   "mlb.shared",
   "mlb.scripts",
+  "mlb.scripts.prop_generation"
 ]
 
 [build-system]
