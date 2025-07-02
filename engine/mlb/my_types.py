@@ -1,13 +1,9 @@
 from datetime import datetime
 from typing import Literal, TypedDict
-from shared.my_types import Player, Team
-
-class MetricStats(TypedDict):
-    mean: float
-    sd: float
+from shared.my_types import Player, StatName
 
 
-StatType = Literal[
+stat_types_arr = [
     "pitching_strikeouts",
     "home_runs",
     "doubles",
@@ -15,23 +11,33 @@ StatType = Literal[
     "pitching_hits",
     "stolen_bases",
     "pitching_walks",
+    "walks",
     "rbi",
     "runs",
     "pitches_thrown",
-    "era",
     "hits",
     "strikeouts",
-    "earned_runs"
+    "earned_runs",
 ]
 
-class StatName(TypedDict):
-    dbname: str
-    api_name: str
-
-
-stat_name_list: list[StatName] = [
-
+Stat = Literal[
+    "pitching_strikeouts",
+    "home_runs",
+    "doubles",
+    "triples",
+    "pitching_hits",
+    "stolen_bases",
+    "pitching_walks",
+    "walks",
+    "rbi",
+    "runs",
+    "pitches_thrown",
+    "hits",
+    "strikeouts",
+    "earned_runs",
 ]
+
+stat_name_list: list[StatName] = []
 
 
 class MlbGame(TypedDict):
@@ -87,7 +93,6 @@ class MlbGame(TypedDict):
     created_at: datetime | None
 
 
-
 class MlbPlayerStats(TypedDict):
     id: str
     player_id: str | None
@@ -126,7 +131,6 @@ class MlbPlayerStats(TypedDict):
     whip: float | None
     season: str | None
     updated_at: datetime | None
-
 
 
 class PlayerData(TypedDict):

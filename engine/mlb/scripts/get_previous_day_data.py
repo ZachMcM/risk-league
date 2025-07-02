@@ -32,7 +32,7 @@ def get_team_stats_from_boxscore(team_data):
         "rbi": batting_stats.get("rbi", 0),
         "stolen_bases": batting_stats.get("stolenBases", 0),
         "caught_stealing": batting_stats.get("caughtStealing", 0),
-        "base_on_balls": batting_stats.get("baseOnBalls", 0),
+        "walks": batting_stats.get("baseOnBalls", 0),
         "strikeouts": batting_stats.get("strikeOuts", 0),
         "left_on_base": batting_stats.get("leftOnBase", 0),
         "batting_avg": float(batting_stats.get("avg", "0") or 0),
@@ -195,7 +195,7 @@ def extract_player_batting_stats(batting_stats):
         "rbi": batting_stats.get("rbi", 0),
         "stolen_bases": batting_stats.get("stolenBases", 0),
         "caught_stealing": batting_stats.get("caughtStealing", 0),
-        "base_on_balls": batting_stats.get("baseOnBalls", 0),
+        "walks": batting_stats.get("baseOnBalls", 0),
         "strikeouts": batting_stats.get("strikeOuts", 0),
         "left_on_base": batting_stats.get("leftOnBase", 0),
         "hit_by_pitch": batting_stats.get("hitByPitch", 0),
@@ -240,17 +240,7 @@ def extract_player_pitching_stats(pitching_stats):
         "pitching_home_runs": pitching_stats.get("homeRuns", 0),
         "pitches_thrown": pitching_stats.get("numberOfPitches", 0),
         "strikes": pitching_stats.get("strikes", 0),
-        "balls": pitching_stats.get("balls", 0),
-        "era": (
-            float(pitching_stats.get("era"))
-            if pitching_stats.get("era") is not None
-            else None
-        ),
-        "whip": (
-            float(pitching_stats.get("whip"))
-            if pitching_stats.get("whip") is not None
-            else None
-        ),
+        "balls": pitching_stats.get("balls", 0)
     }
 
 
@@ -346,15 +336,10 @@ def process_player_stats_from_game(game_id, season):
                 if not (is_batter or is_pitcher):
                     continue
 
-                # Get position info
-                position_data = player_info.get("position", {})
-                position = position_data.get("abbreviation", "")
-
                 # Initialize player record
                 player_record = {
                     "player_id": player_id,
                     "game_id": f"{game_id}_{team_data.get('team', {}).get('id')}",
-                    "position": position,
                     "season": season,
                 }
 
@@ -375,7 +360,7 @@ def process_player_stats_from_game(game_id, season):
                             "rbi": None,
                             "stolen_bases": None,
                             "caught_stealing": None,
-                            "base_on_balls": None,
+                            "walks": None,
                             "strikeouts": None,
                             "left_on_base": None,
                             "hit_by_pitch": None,
@@ -408,8 +393,6 @@ def process_player_stats_from_game(game_id, season):
                             "pitches_thrown": None,
                             "strikes": None,
                             "balls": None,
-                            "era": None,
-                            "whip": None,
                         }
                     )
 

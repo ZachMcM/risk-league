@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, DateTime, Double, Enum, ForeignKeyConstraint, Integer, MetaData, PrimaryKeyConstraint, String, Table, Text, UniqueConstraint, text
+from sqlalchemy import ARRAY, Boolean, Column, DateTime, Double, Enum, ForeignKeyConstraint, Integer, MetaData, PrimaryKeyConstraint, String, Table, Text, UniqueConstraint, text
 
 metadata = MetaData()
 
@@ -93,7 +93,7 @@ t_mlb_games = Table(
     Column('rbi', Integer),
     Column('stolen_bases', Integer),
     Column('caught_stealing', Integer),
-    Column('base_on_balls', Integer),
+    Column('walks', Integer),
     Column('strikeouts', Integer),
     Column('left_on_base', Integer),
     Column('batting_avg', Double(53)),
@@ -182,9 +182,8 @@ t_players = Table(
 t_mlb_player_stats = Table(
     'mlb_player_stats', metadata,
     Column('id', Text, primary_key=True, server_default=text('gen_random_uuid()')),
-    Column('player_id', Text, nullable=False),
+    Column('player_id', Text),
     Column('game_id', Text, nullable=False),
-    Column('position', Text),
     Column('at_bats', Integer),
     Column('runs', Integer),
     Column('hits', Integer),
@@ -194,7 +193,7 @@ t_mlb_player_stats = Table(
     Column('rbi', Integer),
     Column('stolen_bases', Integer),
     Column('caught_stealing', Integer),
-    Column('base_on_balls', Integer),
+    Column('walks', Integer),
     Column('strikeouts', Integer),
     Column('left_on_base', Integer),
     Column('hit_by_pitch', Integer),
@@ -214,8 +213,6 @@ t_mlb_player_stats = Table(
     Column('pitches_thrown', Integer),
     Column('strikes', Integer),
     Column('balls', Integer),
-    Column('era', Double(53)),
-    Column('whip', Double(53)),
     Column('season', Text),
     Column('updated_at', DateTime(True), server_default=text('CURRENT_TIMESTAMP')),
     ForeignKeyConstraint(['game_id'], ['mlb_games.id'], name='fk_game'),
@@ -283,6 +280,7 @@ t_props = Table(
     Column('game_start_time', DateTime(True)),
     Column('league', Enum('nba', 'nfl', 'mlb', name='league_type'), nullable=False),
     Column('resolved', Boolean, nullable=False, server_default=text('false')),
+    Column('pick_options', ARRAY(Text()), server_default=text("'{over,under}'::text[]")),
     ForeignKeyConstraint(['player_id'], ['players.id'], name='fk_player'),
     PrimaryKeyConstraint('id', name='props_pkey')
 )

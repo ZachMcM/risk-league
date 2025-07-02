@@ -5,12 +5,13 @@ from dotenv import load_dotenv
 import os
 from sqlalchemy import and_, create_engine, or_, select
 import sys
-from mlb.my_types import PlayerData, MlbGame, MlbPlayerStats
+from mlb.my_types import PlayerData, MlbGame, MlbPlayerStats, stat_types_arr
 from shared.my_types import Player
 from shared.tables import t_players, t_mlb_games, t_mlb_player_stats
 from shared.utils import db_response_to_json, json_to_csv, pretty_print
 from time import time
 from mlb.constants import n_games
+import numpy as np
 
 load_dotenv()
 engine = create_engine(os.getenv("DATABASE_URL"))
@@ -146,6 +147,18 @@ def main():
                     "game_start_time": game["game_datetime"],
                 }
             )
+            
+            
+    for player_data in player_data_list:
+        player = player_data["player"]
+        for stat in stat_types_arr:
+            print(
+                f"Processing player {player['name']} {player['id']} against team {player_data['matchup']}\n"
+            )
+            mu_stat = np.mean([game[stat] for game in player_data["last_games"]])
+            # TODO
+            # prop_eligible = 
+        
             
     print(len(player_data_list))
     json_to_csv(player_data_list)

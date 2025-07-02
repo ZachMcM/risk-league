@@ -132,7 +132,7 @@ CREATE TABLE public.mlb_games (
     rbi integer,
     stolen_bases integer,
     caught_stealing integer,
-    base_on_balls integer,
+    walks integer,
     strikeouts integer,
     left_on_base integer,
     batting_avg double precision,
@@ -174,7 +174,6 @@ CREATE TABLE public.mlb_player_stats (
     id text DEFAULT gen_random_uuid() NOT NULL,
     player_id text,
     game_id text NOT NULL,
-    "position" text,
     at_bats integer,
     runs integer,
     hits integer,
@@ -184,7 +183,7 @@ CREATE TABLE public.mlb_player_stats (
     rbi integer,
     stolen_bases integer,
     caught_stealing integer,
-    base_on_balls integer,
+    walks integer,
     strikeouts integer,
     left_on_base integer,
     hit_by_pitch integer,
@@ -204,8 +203,6 @@ CREATE TABLE public.mlb_player_stats (
     pitches_thrown integer,
     strikes integer,
     balls integer,
-    era double precision,
-    whip double precision,
     season text,
     updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
 );
@@ -344,7 +341,8 @@ CREATE TABLE public.props (
     stat_type text NOT NULL,
     game_start_time timestamp with time zone,
     league public.league_type NOT NULL,
-    resolved boolean DEFAULT false NOT NULL
+    resolved boolean DEFAULT false NOT NULL,
+    pick_options text[] DEFAULT ARRAY['over'::text, 'under'::text]
 );
 
 
@@ -713,4 +711,11 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20250629012546'),
     ('20250629223639'),
     ('20250630003039'),
-    ('20250630014622');
+    ('20250630014622'),
+    ('20250702020658'),
+    ('20250702021157'),
+    ('20250702023502'),
+    ('20250702031636'),
+    ('20250702031842'),
+    ('20250702032334'),
+    ('20250702032707');

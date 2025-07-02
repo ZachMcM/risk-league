@@ -1,11 +1,6 @@
 from datetime import datetime
 from typing import Literal, TypedDict
-from shared.my_types import Player, Team
-
-class MetricStats(TypedDict):
-    mean: float
-    sd: float
-
+from shared.my_types import Player, StatName
 
 StatType = Literal[
     "pts",
@@ -20,11 +15,6 @@ StatType = Literal[
     "pts_ast",
 ]
 CombinedStatType = Literal["pra", "reb_ast", "pts_ast"]
-
-
-class StatName(TypedDict):
-    dbname: str
-    api_name: str
 
 
 stat_name_list: list[StatName] = [

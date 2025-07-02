@@ -49,7 +49,6 @@ export interface MlbGames {
   assists: number | null;
   at_bats: number | null;
   balls: number | null;
-  base_on_balls: number | null;
   batting_avg: number | null;
   caught_stealing: number | null;
   created_at: Generated<Timestamp | null>;
@@ -94,6 +93,7 @@ export interface MlbGames {
   triples: number | null;
   venue_id: number | null;
   venue_name: string | null;
+  walks: number | null;
   whip: number | null;
   win_loss: string | null;
 }
@@ -101,12 +101,10 @@ export interface MlbGames {
 export interface MlbPlayerStats {
   at_bats: number | null;
   balls: number | null;
-  base_on_balls: number | null;
   batting_avg: number | null;
   caught_stealing: number | null;
   doubles: number | null;
   earned_runs: number | null;
-  era: number | null;
   game_id: string;
   hit_by_pitch: number | null;
   hits: number | null;
@@ -122,8 +120,7 @@ export interface MlbPlayerStats {
   pitching_runs: number | null;
   pitching_strikeouts: number | null;
   pitching_walks: number | null;
-  player_id: string;
-  position: string | null;
+  player_id: string | null;
   rbi: number | null;
   runs: number | null;
   sac_bunts: number | null;
@@ -135,7 +132,7 @@ export interface MlbPlayerStats {
   strikes: number | null;
   triples: number | null;
   updated_at: Generated<Timestamp | null>;
-  whip: number | null;
+  walks: number | null;
 }
 
 export interface NbaGames {
@@ -239,6 +236,7 @@ export interface Props {
   id: Generated<string>;
   league: LeagueType;
   line: number;
+  pick_options: Generated<string[] | null>;
   player_id: string;
   raw_game_id: string;
   resolved: Generated<boolean>;

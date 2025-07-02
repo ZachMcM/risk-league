@@ -3,11 +3,12 @@ import sys
 import numpy as np
 from nba.constants import min_num_stats, secondary_minutes_threshold
 from shared.constants import sigma_coeff
-from nba.my_types import CombinedStatType, MetricStats, StatType
+from nba.my_types import CombinedStatType, StatType
 from shared.tables import t_nba_games, t_nba_player_stats, t_players
 from nba.utils import get_current_season, get_last_season
 from shared.utils import db_response_to_json
 from sqlalchemy import Engine, or_, select
+from shared.my_types import MetricStats
 
 _metric_stats_cache: dict[tuple[str, str], MetricStats] = {}
 

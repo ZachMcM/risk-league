@@ -22,3 +22,10 @@ class Team(TypedDict):
     year_founded: int
     
     
+class StatName(TypedDict):
+    dbname: str
+    api_name: str
+    
+class MetricStats(TypedDict):
+    mean: float
+    sd: float
