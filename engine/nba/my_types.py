@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Literal, TypedDict
 from shared.my_types import Player, StatName
 
-StatType = Literal[
+Stat = Literal[
     "pts",
     "reb",
     "ast",
@@ -14,7 +14,7 @@ StatType = Literal[
     "reb_ast",
     "pts_ast",
 ]
-CombinedStatType = Literal["pra", "reb_ast", "pts_ast"]
+CombinedStat = Literal["pra", "reb_ast", "pts_ast"]
 
 
 stat_name_list: list[StatName] = [

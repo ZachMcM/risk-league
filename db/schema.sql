@@ -338,7 +338,7 @@ CREATE TABLE public.props (
     raw_game_id text NOT NULL,
     player_id text NOT NULL,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
-    stat_type text NOT NULL,
+    stat text NOT NULL,
     game_start_time timestamp with time zone,
     league public.league_type NOT NULL,
     resolved boolean DEFAULT false NOT NULL,
@@ -718,4 +718,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20250702031636'),
     ('20250702031842'),
     ('20250702032334'),
-    ('20250702032707');
+    ('20250702032707'),
+    ('20250702033938');

@@ -276,11 +276,11 @@ t_props = Table(
     Column('raw_game_id', Text, nullable=False),
     Column('player_id', Text, nullable=False),
     Column('created_at', DateTime(True), server_default=text('CURRENT_TIMESTAMP')),
-    Column('stat_type', Text, nullable=False),
+    Column('stat', Text, nullable=False),
     Column('game_start_time', DateTime(True)),
     Column('league', Enum('nba', 'nfl', 'mlb', name='league_type'), nullable=False),
     Column('resolved', Boolean, nullable=False, server_default=text('false')),
-    Column('pick_options', ARRAY(Text()), server_default=text("'{over,under}'::text[]")),
+    Column('pick_options', ARRAY(Text()), server_default=text("ARRAY['over'::text, 'under'::text]")),
     ForeignKeyConstraint(['player_id'], ['players.id'], name='fk_player'),
     PrimaryKeyConstraint('id', name='props_pkey')
 )

@@ -10,10 +10,11 @@ import numpy as np
 
 _metric_stats_cache: dict[tuple[str, str], MetricStats] = {}
 
-
+# for this particular function we call what we typically call "stat", "metric" because we use stats to describe the "descriptive statistics of the metri"
 def get_metric_stats(
     engine: Engine, metric: Stat, position: str, use_postseason: bool
 ) -> MetricStats:
+    """Gets the league mean and standard deviation of a specific stat"""
     cache_key = (metric, position)
     if cache_key in _metric_stats_cache:
         return _metric_stats_cache[cache_key]

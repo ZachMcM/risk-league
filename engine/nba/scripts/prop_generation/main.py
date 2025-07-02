@@ -193,7 +193,7 @@ def get_player_last_games(player_id) -> list[NbaPlayerStats] | None:
 
 # inserts a prop into the database
 def insert_prop(
-    line: float, game_id: str, player_id: str, stat_type: str, game_start_time: datetime
+    line: float, game_id: str, player_id: str, stat: str, game_start_time: datetime
 ):
     try:
         with engine.begin() as conn:
@@ -201,7 +201,7 @@ def insert_prop(
                 line=line,
                 raw_game_id=game_id,
                 player_id=player_id,
-                stat_type=stat_type,
+                stat=stat,
                 game_start_time=game_start_time,
                 league="nba"
             )
@@ -212,7 +212,7 @@ def insert_prop(
                     "line",
                     "raw_game_id",
                     "player_id",
-                    "stat_type",
+                    "stat",
                     "game_start_time",
                     "league"
                 ]

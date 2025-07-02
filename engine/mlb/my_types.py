@@ -3,7 +3,7 @@ from typing import Literal, TypedDict
 from shared.my_types import Player, StatName
 
 
-stat_types_arr = [
+stats_arr = [
     "pitching_strikeouts",
     "home_runs",
     "doubles",

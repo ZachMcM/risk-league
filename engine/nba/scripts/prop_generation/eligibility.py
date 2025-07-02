@@ -3,7 +3,7 @@ import sys
 import numpy as np
 from nba.constants import min_num_stats, secondary_minutes_threshold
 from shared.constants import sigma_coeff
-from nba.my_types import CombinedStatType, StatType
+from nba.my_types import CombinedStat, Stat
 from shared.tables import t_nba_games, t_nba_player_stats, t_players
 from nba.utils import get_current_season, get_last_season
 from shared.utils import db_response_to_json
@@ -13,10 +13,11 @@ from shared.my_types import MetricStats
 _metric_stats_cache: dict[tuple[str, str], MetricStats] = {}
 
 
-# gets the league mean and standard deviation of a specific stat
+# for this particular function we call what we typically call "stat", "metric" because we use stats to describe the "descriptive statistics of the metri"
 def get_metric_stats(
     engine: Engine, metric: str, position: str, use_playoffs: bool
 ) -> MetricStats:
+    """Gets the league mean and standard deviation of a specific stat"""
     cache_key = (metric, position)
     if cache_key in _metric_stats_cache:
         return _metric_stats_cache[cache_key]
@@ -162,13 +163,13 @@ def get_combined_metric_stats(
 # Determines if a player is eligible for a prop on a certain stat
 def is_prop_eligible(
     engine: Engine,
-    stat_type: StatType,
+    stat: Stat,
     player_stat_average: float,
     position: str,
     mpg: float,
     use_playoffs=False,
 ) -> bool:
-    stat_desc = get_metric_stats(engine, stat_type, position, use_playoffs)
+    stat_desc = get_metric_stats(engine, stat, position, use_playoffs)
     return (
         mpg > secondary_minutes_threshold
         and player_stat_average >= stat_desc["mean"] - sigma_coeff * stat_desc["sd"]
@@ -178,18 +179,18 @@ def is_prop_eligible(
 # checks if a player is eligible for a prop generation for a combined metric
 def is_combined_stat_prop_eligible(
     engine: Engine,
-    stat_type: CombinedStatType,
+    stat: CombinedStat,
     player_stat_average: float,
     position: str,
     mpg: float,
     use_playoffs=False,
 ) -> bool:
     combined_metric_list: list[str] = []
-    if stat_type == "pra":
+    if stat == "pra":
         combined_metric_list = ["pts", "reb", "ast"]
-    elif stat_type == "pts_ast":
+    elif stat == "pts_ast":
         combined_metric_list = ["pts", "ast"]
-    elif stat_type == "reb_ast":
+    elif stat == "reb_ast":
         combined_metric_list = ["reb", "ast"]
 
     stat_desc = get_combined_metric_stats(

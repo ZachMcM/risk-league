@@ -240,7 +240,7 @@ export interface Props {
   player_id: string;
   raw_game_id: string;
   resolved: Generated<boolean>;
-  stat_type: string;
+  stat: string;
 }
 
 export interface SchemaMigrations {

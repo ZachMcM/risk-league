@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 import os
 from sqlalchemy import and_, create_engine, or_, select
 import sys
-from mlb.my_types import PlayerData, MlbGame, MlbPlayerStats, stat_types_arr
+from mlb.my_types import PlayerData, MlbGame, MlbPlayerStats, stats_arr
 from shared.my_types import Player
 from shared.tables import t_players, t_mlb_games, t_mlb_player_stats
 from shared.utils import db_response_to_json, json_to_csv, pretty_print
@@ -151,7 +151,7 @@ def main():
             
     for player_data in player_data_list:
         player = player_data["player"]
-        for stat in stat_types_arr:
+        for stat in stats_arr:
             print(
                 f"Processing player {player['name']} {player['id']} against team {player_data['matchup']}\n"
             )
