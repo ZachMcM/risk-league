@@ -12,7 +12,7 @@ export default function Messages() {
   const { sendMessage, isConnected } = useMatch();
   const [inputValue, setInputValue] = useState("");
 
-  const { isMessagesPending } = useMatch();
+  const { messagesPending } = useMatch();
 
   const handleSendMessage = () => {
     if (inputValue.trim() && isConnected) {
@@ -25,7 +25,7 @@ export default function Messages() {
     <Container className="p-0">
       <View className="flex-1 flex flex-col gap-8 items-center">
         <View className="rounded-2xl bg-secondary h-2 w-24" />
-        {isMessagesPending ? (
+        {messagesPending ? (
           <ActivityIndicator className="text-foreground" />
         ) : (
           <MessagesList />
@@ -41,7 +41,7 @@ export default function Messages() {
           value={inputValue}
           onChangeText={setInputValue}
           onSubmitEditing={handleSendMessage}
-          editable={isConnected && !isMessagesPending}
+          editable={isConnected && !messagesPending}
           placeholder={isConnected ? "Type a message..." : "Connecting..."}
           returnKeyType="send"
         />

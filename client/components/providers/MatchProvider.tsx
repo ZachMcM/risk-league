@@ -18,14 +18,14 @@ import { Text } from "../ui/text";
 import { useSession } from "./SessionProvider";
 
 type MatchProviderValues = {
-  messages: MatchMessage[];
-  setMessages: React.Dispatch<React.SetStateAction<MatchMessage[]>>;
-  stats: UserStats[];
-  setStats: React.Dispatch<React.SetStateAction<UserStats[]>>;
+  messages: MatchMessage[] | undefined;
+  stats: UserStats | undefined;
+  opponentStats: UserStats | undefined;
   sendMessage: (content: string) => void;
   isConnected: boolean;
-  isMessagesPending: boolean;
-  isStatsPending: boolean;
+  messagesPending: boolean;
+  statsPending: boolean;
+  opponentStatsPending: boolean;
 };
 
 const MatchContext = createContext<MatchProviderValues | null>(null);
@@ -34,36 +34,26 @@ export function MatchProvider({ children }: { children: ReactNode }) {
   const { id } = useLocalSearchParams() as { id: string };
   const { session } = useSession();
 
-  const [messages, setMessages] = useState<MatchMessage[]>([]);
   const [isConnected, setIsConnected] = useState(false);
-
-  const [stats, setStats] = useState<UserStats[]>([]);
 
   const socketRef = useRef<ReturnType<typeof io> | null>(null);
 
   const queryClient = useQueryClient();
 
-  const { data: initMessages, isPending: isMessagesPending } = useQuery({
+  const { data: messages, isPending: messagesPending } = useQuery({
     queryKey: ["match", "messages", id],
     queryFn: async () => getMatchMessages(id),
   });
 
-  useEffect(() => {
-    if (initMessages) {
-      setMessages(initMessages);
-    }
-  }, [isMessagesPending]);
-
-  const { data: initStats, isPending: isStatsPending } = useQuery({
-    queryKey: ["match", "stats", id],
-    queryFn: async () => getMatchStats(id),
+  const { data: stats, isPending: statsPending } = useQuery({
+    queryKey: ["match", id, "my_stats"],
+    queryFn: async () => getMatchStats(id, false),
   });
 
-  useEffect(() => {
-    if (initStats) {
-      setStats(initStats);
-    }
-  }, [isStatsPending]);
+  const { data: opponentStats, isPending: opponentStatsPending } = useQuery({
+    queryKey: ["match", id, "opponent_stats"],
+    queryFn: async () => getMatchStats(id, true),
+  });
 
   function sendMessage(content: string) {
     if (socketRef.current && content.trim()) {
@@ -94,7 +84,10 @@ export function MatchProvider({ children }: { children: ReactNode }) {
 
     // Message events
     socket.on("message-received", (messageData: MatchMessage) => {
-      setMessages((prev) => [...prev, messageData]);
+      queryClient.setQueryData(
+        ["match", "messages", id],
+        (prev: MatchMessage[]) => [...prev, messageData]
+      );
       if (messageData.userId != session.user.id) {
         toast.custom(
           <View className="flex flex-row gap-3 m-8 items-center p-4 bg-card rounded-2xl">
@@ -129,13 +122,13 @@ export function MatchProvider({ children }: { children: ReactNode }) {
     <MatchContext.Provider
       value={{
         messages,
-        setMessages,
         sendMessage,
         isConnected,
         stats,
-        setStats,
-        isMessagesPending,
-        isStatsPending,
+        messagesPending,
+        statsPending,
+        opponentStats,
+        opponentStatsPending,
       }}
     >
       {children}

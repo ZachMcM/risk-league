@@ -38,7 +38,10 @@ matchesRoute.get("/matches", authMiddleware, async (_, res) => {
 
 matchesRoute.get("/matches/:id/stats", authMiddleware, async (req, res) => {
   const matchId = req.params.id;
-  console.log(matchId);
+  const opponent = req.query.opponent === "true";
+  const userId = res.locals.userId;
+
+  console.log(opponent)
 
   try {
     const userStats = await db
@@ -53,26 +56,21 @@ matchesRoute.get("/matches/:id/stats", authMiddleware, async (req, res) => {
         "match_users.id as matchUserId",
       ])
       .where("match_id", "=", matchId)
-      .execute();
+      .where("match_users.user_id", opponent ? "!=" : "=", userId)
+      .executeTakeFirstOrThrow();
 
     console.log(userStats);
 
-    const results = await Promise.all(
-      userStats.map(async (user) => {
-        const parlayCounts = await db
-          .selectFrom("parlays")
-          .select(db.fn.countAll().as("totalParlays"))
-          .where("parlays.match_user_id", "=", user.matchUserId)
-          .executeTakeFirstOrThrow();
+    const parlayCounts = await db
+      .selectFrom("parlays")
+      .select(db.fn.countAll().as("totalParlays"))
+      .where("parlays.match_user_id", "=", userStats.matchUserId)
+      .executeTakeFirstOrThrow();
 
-        return {
-          ...user,
-          ...parlayCounts,
-        };
-      })
-    );
-
-    res.json(results);
+    res.json({
+      ...userStats,
+      ...parlayCounts,
+    });
   } catch (err) {
     console.log(err);
     res

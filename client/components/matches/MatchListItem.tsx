@@ -43,7 +43,7 @@ export default function MatchListItem({ match }: { match: MatchListEntity }) {
                           match.opponentBalance > match.balance
                             ? "destructive"
                             : match.opponentBalance == match.balance
-                            ? "secondary"
+                            ? "outline"
                             : "success"
                         }
                       >

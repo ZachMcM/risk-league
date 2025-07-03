@@ -1,7 +1,7 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Fragment } from "react";
 import { ActivityIndicator, View } from "react-native";
-import MatchStatsView from "~/components/matches/MatchStatsView";
+import MatchStatsCard from "~/components/matches/MatchStatsCard";
 import { useMatch } from "~/components/providers/MatchProvider";
 import { Button } from "~/components/ui/button";
 import { ScrollContainer } from "~/components/ui/scroll-container";
@@ -9,7 +9,8 @@ import { MessageCircle } from "~/lib/icons/MessageCircle";
 
 export default function Match() {
   const { id } = useLocalSearchParams() as { id: string };
-  const { isStatsPending } = useMatch();
+  const { statsPending, opponentStatsPending, stats, opponentStats } =
+    useMatch();
 
   const router = useRouter();
 
@@ -17,10 +18,13 @@ export default function Match() {
     <Fragment>
       <ScrollContainer>
         <View className="flex flex-1 flex-col gap-6">
-          {isStatsPending ? (
+          {statsPending && opponentStatsPending ? (
             <ActivityIndicator className="text-foreground" />
           ) : (
-            <MatchStatsView />
+            <View className="flex flex-col gap-4">
+              {stats && <MatchStatsCard stats={stats} />}
+              {opponentStats && <MatchStatsCard stats={opponentStats} />}
+            </View>
           )}
         </View>
       </ScrollContainer>

@@ -22,7 +22,7 @@ export default function MessagesList() {
       className="flex-1 p-8 w-full"
       showsVerticalScrollIndicator={false}
     >
-      {messages.map((message, index) => {
+      {messages?.map((message, index) => {
         const isCurrentUser = message.userId === session?.user.id;
 
         return (

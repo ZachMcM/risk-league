@@ -158,9 +158,9 @@ export async function getMatches(): Promise<MatchListEntity[]> {
   return data;
 }
 
-export async function getMatchStats(id: string): Promise<UserStats[]> {
+export async function getMatchStats(matchId: string, opponent: boolean): Promise<UserStats> {
   const res = await httpRequest({
-    endpoint: `/matches/${id}/stats`,
+    endpoint: `/matches/${matchId}/stats?opponent=${opponent}`,
     method: "GET",
   });
 

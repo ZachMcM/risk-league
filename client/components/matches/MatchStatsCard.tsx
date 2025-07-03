@@ -9,50 +9,32 @@ import { Badge } from "../ui/badge";
 import { Card, CardContent } from "../ui/card";
 import { Text } from "../ui/text";
 
-export default function MatchStatsCard({
-  userStats,
-  status,
-}: {
-  userStats: UserStats;
-  status: CurrentStatus;
-}) {
-  const { session } = useSession();
-
-  const currentUser = session?.user.id == userStats.userId;
+export default function MatchStatsCard({ stats }: { stats: UserStats }) {
+  const { session } = useSession()
+  const opponent = session?.user.id != stats.userId
 
   return (
-    <Card className={cn(currentUser && "border-primary/20 bg-primary/10")}>
+    <Card className={cn(!opponent && "border-primary/20 bg-primary/10")}>
       <CardContent className="p-6 flex flex-col gap-4">
         <View className="flex flex-row items-center justify-between">
           <Text
             className={cn(
-              currentUser && "text-primary",
+              !opponent && "text-primary",
               "text-xl font-geist-bold"
             )}
           >
-            {!currentUser ? userStats.username : "Your Performance"}
+            {opponent ? stats.username : "Your Performance"}
           </Text>
-          <Badge
-            variant={
-              status == "tied"
-                ? "secondary"
-                : status == "winning"
-                ? "success"
-                : "destructive"
-            }
-          >
-            <Text className="text-base capitalize">{status}</Text>
-          </Badge>
         </View>
         <View className="flex flex-row items-center justify-between">
           <View className="flex flex-col items-center">
             <Text
               className={cn(
-                currentUser && "text-primary",
+                stats && "text-primary",
                 "text-3xl font-geist-bold"
               )}
             >
-              ${userStats.balance.toPrecision(5)}
+              ${stats.balance.toPrecision(5)}
             </Text>
             <Text className="font-geist-semibold text-muted-foreground">
               Current Balance
@@ -60,7 +42,7 @@ export default function MatchStatsCard({
           </View>
           <View className="flex flex-col items-center">
             <Text className="font-geist-bold text-3xl">
-              {userStats.totalParlays}
+              {stats?.totalParlays}
             </Text>
             <Text className="font-geist-semibold text-muted-foreground">
               Parlays
@@ -68,22 +50,22 @@ export default function MatchStatsCard({
           </View>
           <View className="flex flex-col items-center">
             <View className="flex flex-row items-center gap-2">
-              {userStats.balance > startingBalance ? (
+              {stats.balance > startingBalance ? (
                 <TrendingUp size={24} className="text-success" />
               ) : (
-                userStats.balance < startingBalance && (
+                stats.balance < startingBalance && (
                   <TrendingDown size={24} className="text-destructive" />
                 )
               )}
               <Text
                 className={cn(
-                  userStats.balance > startingBalance
+                  stats?.balance > startingBalance
                     ? "text-success"
-                    : userStats.balance < startingBalance && "text-destructive",
+                    : stats?.balance < startingBalance && "text-destructive",
                   "font-geist-bold text-3xl"
                 )}
               >
-                {Math.abs(startingBalance - userStats.balance)}
+                {Math.abs(startingBalance - stats.balance)}
               </Text>
             </View>
             <Text className="font-geist-semibold text-muted-foreground">

@@ -9,7 +9,7 @@ export default function Layout() {
         <Stack.Screen
           name="index"
           options={{
-            header: (_) => <PageTitle title="Match" back="/matches" />,
+            header: (_) => <PageTitle title="Match" back />,
           }}
         />
         <Stack.Screen
