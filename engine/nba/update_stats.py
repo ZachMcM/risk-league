@@ -11,11 +11,11 @@ from nba_api.stats.endpoints import (
     leaguegamefinder,
 )
 from nba_api.stats.static.players import get_active_players
-from nba.constants import req_pause_time
+from constants import req_pause_time
 from shared.tables import t_nba_games, t_nba_player_stats
 from sqlalchemy import create_engine, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
-from nba.utils import clean_minutes, get_current_season, get_game_type
+from utils import clean_minutes, get_current_season, get_game_type
 
 # This script updates the database with all the NBA games from the past day
 

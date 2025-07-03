@@ -5,12 +5,12 @@ import pandas as pd
 from dotenv import load_dotenv
 from nba_api.stats.endpoints import commonteamroster
 from nba_api.stats.static import teams
-from nba.constants import req_pause_time
+from constants import req_pause_time
 from shared.tables import t_players
 from sqlalchemy import create_engine
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.exc import IntegrityError
-from nba.utils import get_current_season
+from utils import get_current_season
 
 # Load environment variables
 load_dotenv()

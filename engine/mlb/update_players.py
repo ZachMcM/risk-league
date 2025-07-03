@@ -3,7 +3,7 @@ import pandas as pd
 import statsapi
 from dotenv import load_dotenv
 from shared.tables import t_players
-from sqlalchemy import create_engine, insert
+from sqlalchemy import create_engine
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 

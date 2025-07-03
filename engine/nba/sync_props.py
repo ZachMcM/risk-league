@@ -5,7 +5,7 @@ from datetime import datetime
 from shared.tables import t_props
 from apscheduler.schedulers.background import BackgroundScheduler
 from dotenv import load_dotenv
-from nba.my_types import StatType, stat_name_list
+from my_types import Stat, stat_name_list
 from nba_api.live.nba.endpoints import BoxScore, ScoreBoard
 from sqlalchemy import create_engine, update
 
@@ -36,12 +36,12 @@ def get_player_stats(game_id: str):
 
 
 # updates a given prop
-def update_prop(stat_type: StatType, player_id: str, raw_game_id: str, updated_value):
+def update_prop(stat: Stat, player_id: str, raw_game_id: str, updated_value):
     try:
         with engine.begin() as conn:
             stmt = (
                 update(t_props)
-                .where(t_props.c.stat_type == stat_type)
+                .where(t_props.c.stat == stat)
                 .where(t_props.c.game_id == raw_game_id)
                 .where(t_props.c.player_id == player_id)
                 .values(current_value=updated_value)
@@ -49,7 +49,7 @@ def update_prop(stat_type: StatType, player_id: str, raw_game_id: str, updated_v
 
             result = conn.execute(stmt)
             if result.rowcount != 0:
-                print(f"✅ Updated {stat_type} for player {player_id}\n")
+                print(f"✅ Updated {stat} for player {player_id}\n")
     except Exception as e:
         print(f"⚠️ There was an error updating the prop: {e}")
 

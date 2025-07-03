@@ -25,16 +25,10 @@ dependencies = [
 packages = [
   "nba",
   "nba.tests",
-  "nba.scripts",
-  "nba.scripts.prop_generation",
-  "nba.daemons",
   "system",
-  "system.daemons",
   "shared",
   "mlb",
-  "mlb.shared",
-  "mlb.scripts",
-  "mlb.scripts.prop_generation"
+  "mlb.tests"
 ]
 
 [build-system]
