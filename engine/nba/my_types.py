@@ -2,6 +2,19 @@ from datetime import datetime
 from typing import Literal, TypedDict
 from shared.my_types import Player, StatName
 
+stats_arr = [
+    "pts",
+    "reb",
+    "ast",
+    "three_pm",
+    "blk",
+    "stl",
+    "tov",
+    "pra",
+    "reb_ast",
+    "pts_ast"
+]
+
 Stat = Literal[
     "pts",
     "reb",

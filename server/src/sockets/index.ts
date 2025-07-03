@@ -1,7 +1,7 @@
 import { Server } from "socket.io";
-import { addToQueue, getPair, removeFromQueue } from "./matchmaking/queue";
+import { createMessage } from "./match/createMessage";
 import { createMatch } from "./matchmaking/createMatch";
-import { db } from "../db/db";
+import { addToQueue, getPair, removeFromQueue } from "./matchmaking/queue";
 
 export function initSocketServer(io: Server) {
   io.of("/matchmaking").on("connection", (socket) => {
@@ -11,7 +11,7 @@ export function initSocketServer(io: Server) {
 
     addToQueue(userId);
 
-    const tryMatch = async () => {
+    const tryMatchmaking = async () => {
       const pair = await getPair();
 
       if (pair) {
@@ -32,7 +32,7 @@ export function initSocketServer(io: Server) {
       }
     };
 
-    tryMatch();
+    tryMatchmaking();
 
     socket.on("disconnect", () => {
       console.log(`User ${userId} disconnected`);
@@ -51,39 +51,12 @@ export function initSocketServer(io: Server) {
     console.log(`User ${userId} connected to match id ${matchId} namespace`);
 
     // Join both user room and match room
-    socket.join(userId);
     socket.join(`match:${matchId}`);
 
     // Handle sending messages
     socket.on("send-message", async (data: { content: string }) => {
       try {
-        // Insert message into database
-        const newMessage = await db
-          .insertInto("match_messages")
-          .values({
-            user_id: userId,
-            match_id: matchId,
-            content: data.content,
-          })
-          .returning(["id", "created_at"])
-          .executeTakeFirstOrThrow();
-
-        // Get user info for the message
-        const user = await db
-          .selectFrom("users")
-          .select(["username", "image"])
-          .where("id", "=", userId)
-          .executeTakeFirstOrThrow();
-
-        const messageData = {
-          id: newMessage.id,
-          userId,
-          username: user.username,
-          image: user.image,
-          content: data.content,
-          createdAt: newMessage.created_at,
-        };
-
+        const messageData = createMessage(data.content, userId, matchId);
         // Broadcast to all users in the match room
         io.of("/match")
           .to(`match:${matchId}`)

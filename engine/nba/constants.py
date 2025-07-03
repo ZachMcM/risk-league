@@ -12,3 +12,4 @@ n_games = int(os.getenv("NBA_N_GAMES"))
 secondary_minutes_threshold = float(os.getenv("SECONDARY_MINUTES_THRESHOLD"))
 
 min_num_stats = float(os.getenv("NBA_MIN_NUM_STATS"))
+sigma_coeff = float(os.getenv("NBA_SIGMA_COEFF"))

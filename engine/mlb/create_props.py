@@ -1,28 +1,34 @@
-from datetime import datetime
-import statsapi
-import pandas as pd
-from dotenv import load_dotenv
 import os
-from sqlalchemy import and_, create_engine, or_, select
 import sys
-from my_types import PlayerData, MlbGame, MlbPlayerStats, stats_arr, Stat
-from shared.my_types import Player
-from shared.tables import t_players, t_mlb_games, t_mlb_player_stats
-from shared.utils import db_response_to_json, json_to_csv, pretty_print
+from datetime import datetime
 from time import time
-from constants import n_games, min_num_stats
+
 import numpy as np
-from shared.my_types import MetricStats
+import pandas as pd
+import statsapi
+from constants import min_num_stats, n_games
+from dotenv import load_dotenv
+from my_types import MlbGame, MlbPlayerStats, PlayerData, Stat, stats_arr
+from constants import sigma_coeff
+from shared.my_types import MetricStats, Player
+from shared.tables import t_mlb_games, t_mlb_player_stats, t_players
+from shared.utils import db_response_to_json, json_to_csv, pretty_print
+from sqlalchemy import create_engine, or_, select
+from sklearn.linear_model import LinearRegression
 
 load_dotenv()
 engine = create_engine(os.getenv("DATABASE_URL"))
 
+
 _metric_stats_cache: dict[tuple[str, str], MetricStats] = {}
 
+# Deciding implementation
+def generate_prop(explanatory_vars: pd.DataFrame, response_var: pd.Series) -> float:
+    model = LinearRegression().fit(explanatory_vars, response_var)
 
-# for this particular function we call what we typically call "stat", "metric" because we use stats to describe the "descriptive statistics of the metri"
-def get_metric_stats(metric: Stat, position: str, use_postseason: bool
-) -> MetricStats:
+def is_prop_eligible(
+    metric: Stat, player_stat_average: float, position: str, use_postseason: bool
+) -> bool:
     """Gets the league mean and standard deviation of a specific stat"""
     cache_key = (metric, position)
     if cache_key in _metric_stats_cache:
@@ -84,7 +90,11 @@ def get_metric_stats(metric: Stat, position: str, use_postseason: bool
             stats = db_response_to_json(result, metric)
             metric_stats = {"mean": np.mean(stats), "sd": np.std(stats)}
             _metric_stats_cache[cache_key] = metric_stats
-            return metric_stats
+
+            return (
+                player_stat_average
+                >= metric_stats["mean"] - sigma_coeff * metric_stats["sd"]
+            )
 
     except Exception as e:
         print(f"⚠️ Error getting stats for metric {metric}, {e}")
@@ -229,8 +239,9 @@ def main():
                 f"Processing player {player['name']} {player['id']} against team {player_data['matchup']}\n"
             )
             mu_stat = np.mean([game[stat] for game in player_data["last_games"]])
-            # TODO
-            # prop_eligible =
+            prop_eligible = is_prop_eligible(
+                stat, mu_stat, player["position"], use_postseason=regular_season_only
+            )
 
     print(len(player_data_list))
     json_to_csv(player_data_list)
