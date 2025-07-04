@@ -33,7 +33,7 @@ export default function RiskLeagueLanding() {
             </Badge>
             <div className="space-y-4 max-w-4xl">
               <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl lg:text-7xl">
-                Play. Risk. <span className="gradient-text">Win.</span>
+                Play. <span className="gradient-text">Risk. </span>Win.
               </h1>
               <p className="mx-auto max-w-[700px] text-muted-foreground text-lg md:text-xl">
                 Experience the thrill of competitive sports betting without the

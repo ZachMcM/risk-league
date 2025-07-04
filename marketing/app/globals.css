@@ -56,6 +56,7 @@
 @layer components {
   .gradient-text {
     @apply bg-gradient-to-r from-primary to-pink-400 bg-clip-text text-transparent;
+    line-height: 1.2;
   }
 
   .hero-gradient {
