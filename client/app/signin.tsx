@@ -9,8 +9,8 @@ export default function SignIn() {
     <Container>
       <View className="flex flex-1 w-full justify-center items-center gap-4 p-6">
         <View className="flex flex-col items-center gap-1">
-          <Text className="text-4xl font-geist-bold">Sign In</Text>
-          <Text className="text-muted-foreground text-xl font-geist-semibold">
+          <Text className="text-4xl font-bold">Sign In</Text>
+          <Text className="text-muted-foreground text-xl font-semibold">
             Sign in to your Risk League account
           </Text>
         </View>

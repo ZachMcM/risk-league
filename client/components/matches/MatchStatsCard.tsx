@@ -20,7 +20,7 @@ export default function MatchStatsCard({ stats }: { stats: UserStats }) {
           <Text
             className={cn(
               !opponent && "text-primary",
-              "text-xl font-geist-bold"
+              "text-xl font-bold"
             )}
           >
             {opponent ? stats.username : "Your Performance"}
@@ -31,20 +31,20 @@ export default function MatchStatsCard({ stats }: { stats: UserStats }) {
             <Text
               className={cn(
                 stats && "text-primary",
-                "text-3xl font-geist-bold"
+                "text-3xl font-bold"
               )}
             >
               ${stats.balance.toPrecision(5)}
             </Text>
-            <Text className="font-geist-semibold text-muted-foreground">
+            <Text className="font-semibold text-muted-foreground">
               Current Balance
             </Text>
           </View>
           <View className="flex flex-col items-center">
-            <Text className="font-geist-bold text-3xl">
+            <Text className="font-bold text-3xl">
               {stats?.totalParlays}
             </Text>
-            <Text className="font-geist-semibold text-muted-foreground">
+            <Text className="font-semibold text-muted-foreground">
               Parlays
             </Text>
           </View>
@@ -62,13 +62,13 @@ export default function MatchStatsCard({ stats }: { stats: UserStats }) {
                   stats?.balance > startingBalance
                     ? "text-success"
                     : stats?.balance < startingBalance && "text-destructive",
-                  "font-geist-bold text-3xl"
+                  "font-bold text-3xl"
                 )}
               >
                 {Math.abs(startingBalance - stats.balance)}
               </Text>
             </View>
-            <Text className="font-geist-semibold text-muted-foreground">
+            <Text className="font-semibold text-muted-foreground">
               Change
             </Text>
           </View>

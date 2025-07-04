@@ -4,12 +4,18 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 import json
 import pandas as pd
 import numpy as np
-from shared.constants import (
-    bias_gaussian_mean,
-    bias_gaussian_sd,
-    bias_lower_bound,
-    bias_upper_bound,
-)
+
+
+def calculate_weighted_arithmetic_mean(values: list[float]) -> float:
+    numerator = 0
+    denominator = 0
+
+    for i, value in enumerate(values):
+        weight = i + 1
+        numerator += weight * value
+        denominator += weight
+
+    return numerator / denominator
 
 
 def pretty_print(data):
@@ -55,9 +61,3 @@ def safe_float(value):
 # rounds props to 0.5
 def round_prop(line) -> float:
     return round(round(line / 0.5) * 0.5, 1)
-
-
-def get_bias() -> float:
-    bias = np.random.normal(bias_gaussian_mean, bias_gaussian_sd)
-    bias = np.clip(bias, bias_lower_bound, bias_upper_bound)
-    return bias

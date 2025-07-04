@@ -81,27 +81,6 @@ export default function RootLayout() {
   usePlatformSpecificSetup();
   const { isDarkColorScheme } = useColorScheme();
 
-  useFonts({
-    "Geist-Thin": require("~/assets/fonts/Geist/ttf/Geist-Thin.ttf"),
-    "Geist-ThinItalic": require("~/assets/fonts/Geist/ttf/Geist-ThinItalic.ttf"),
-    "Geist-ExtraLight": require("~/assets/fonts/Geist/ttf/Geist-ExtraLight.ttf"),
-    "Geist-ExtraLightItalic": require("~/assets/fonts/Geist/ttf/Geist-ExtraLightItalic.ttf"),
-    "Geist-Light": require("~/assets/fonts/Geist/ttf/Geist-Light.ttf"),
-    "Geist-LightItalic": require("~/assets/fonts/Geist/ttf/Geist-LightItalic.ttf"),
-    "Geist-Regular": require("~/assets/fonts/Geist/ttf/Geist-Regular.ttf"),
-    "Geist-RegularItalic": require("~/assets/fonts/Geist/ttf/Geist-RegularItalic.ttf"),
-    "Geist-Medium": require("~/assets/fonts/Geist/ttf/Geist-Medium.ttf"),
-    "Geist-MediumItalic": require("~/assets/fonts/Geist/ttf/Geist-MediumItalic.ttf"),
-    "Geist-SemiBold": require("~/assets/fonts/Geist/ttf/Geist-SemiBold.ttf"),
-    "Geist-SemiBoldItalic": require("~/assets/fonts/Geist/ttf/Geist-SemiBoldItalic.ttf"),
-    "Geist-Bold": require("~/assets/fonts/Geist/ttf/Geist-Bold.ttf"),
-    "Geist-BoldItalic": require("~/assets/fonts/Geist/ttf/Geist-BoldItalic.ttf"),
-    "Geist-ExtraBold": require("~/assets/fonts/Geist/ttf/Geist-ExtraBold.ttf"),
-    "Geist-ExtraBoldItalic": require("~/assets/fonts/Geist/ttf/Geist-ExtraBoldItalic.ttf"),
-    "Geist-Black": require("~/assets/fonts/Geist/ttf/Geist-Black.ttf"),
-    "Geist-BlackItalic": require("~/assets/fonts/Geist/ttf/Geist-BlackItalic.ttf"),
-  });
-
   return (
     <SafeAreaProvider>
       <GestureHandlerRootView>
@@ -147,7 +126,7 @@ export function RootNavigatior() {
         />
       </Stack.Protected>
       <Stack.Protected guard={!session}>
-        <Stack.Screen name="lobby" options={{ headerShown: false }} />
+        <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="signin" options={{ headerShown: false }} />
         <Stack.Screen name="signup" options={{ headerShown: false }} />
       </Stack.Protected>

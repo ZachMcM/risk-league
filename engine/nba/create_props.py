@@ -11,15 +11,22 @@ from nba.constants import (
     minutes_threshold,
     n_games,
     secondary_minutes_threshold,
-    sigma_coeff
+    sigma_coeff,
+    bias,
 )
 from dotenv import load_dotenv
 from my_types import CombinedStat, NbaGame, NbaPlayerStats, PlayerData, Stat, stats_arr
 from nba.utils import get_game_type
 from shared.my_types import MetricStats, Player
 from shared.tables import t_nba_games, t_nba_player_stats, t_players, t_props
-from shared.utils import db_response_to_json, get_bias, round_prop
-from sklearn.linear_model import LinearRegression
+from shared.utils import (
+    db_response_to_json,
+    round_prop,
+    calculate_weighted_arithmetic_mean,
+)
+from sklearn.linear_model import Ridge, PoissonRegressor
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
 from sqlalchemy import and_, create_engine, or_, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from utils import get_current_season, get_last_season
@@ -62,26 +69,35 @@ def generate_prop(
             ]
         ]
         y_values = data["pts"]
-        model = LinearRegression().fit(x_values, y_values)
+
+        model = make_pipeline(StandardScaler(), Ridge(alpha=1))
+        model.fit(x_values, y_values)
+
         next_game_features = pd.DataFrame(
             [
                 {
-                    "min": np.mean(data["min"]),
-                    "fga": np.mean(data["fga"]),
-                    "three_pa": np.mean(data["three_pa"]),
-                    "true_shooting": np.mean(data["true_shooting"]),
-                    "pace": np.mean(data["pace"]),
-                    "usage_rate": np.mean(data["usage_rate"]),
-                    "opp_def_rating": np.mean(
+                    "min": calculate_weighted_arithmetic_mean(data["min"]),
+                    "fga": calculate_weighted_arithmetic_mean(data["fga"]),
+                    "three_pa": calculate_weighted_arithmetic_mean(data["three_pa"]),
+                    "true_shooting": calculate_weighted_arithmetic_mean(
+                        data["true_shooting"]
+                    ),
+                    "pace": calculate_weighted_arithmetic_mean(data["pace"]),
+                    "usage_rate": calculate_weighted_arithmetic_mean(
+                        data["usage_rate"]
+                    ),
+                    "opp_def_rating": calculate_weighted_arithmetic_mean(
                         [game["def_rating"] for game in matchup_last_games]
                     ),
-                    "team_off_rating": np.mean(data["team_off_rating"]),
+                    "team_off_rating": calculate_weighted_arithmetic_mean(
+                        data["team_off_rating"]
+                    ),
                 }
             ]
         )
         predicted_value = model.predict(next_game_features)[0]
         sd = np.std(data["pts"], ddof=1)
-        
+
     elif stat == "reb":
         data = pd.DataFrame(
             {
@@ -101,27 +117,32 @@ def generate_prop(
             ["min", "reb_pct", "dreb_pct", "oreb_pct", "opp_fg_pct", "opp_pace"]
         ]
         y_values = data["reb"]
-        model = LinearRegression().fit(x_values, y_values)
+
+        model = make_pipeline(StandardScaler(), Ridge(alpha=1))
+        model.fit(x_values, y_values)
+
         next_game_features = pd.DataFrame(
             [
                 {
-                    "min": np.mean(data["min"]),
-                    "reb_pct": np.mean(data["reb_pct"]),
-                    "dreb_pct": np.mean(data["dreb_pct"]),
-                    "oreb_pct": np.mean(data["oreb_pct"]),
-                    "opp_fg_pct": np.mean(
+                    "min": calculate_weighted_arithmetic_mean(data["min"]),
+                    "reb_pct": calculate_weighted_arithmetic_mean(data["reb_pct"]),
+                    "dreb_pct": calculate_weighted_arithmetic_mean(data["dreb_pct"]),
+                    "oreb_pct": calculate_weighted_arithmetic_mean(data["oreb_pct"]),
+                    "opp_fg_pct": calculate_weighted_arithmetic_mean(
                         [
                             0 if game["fga"] == 0 else (game["fgm"] / game["fga"]) * 100
                             for game in matchup_last_games
                         ]
                     ),
-                    "opp_pace": np.mean([game["pace"] for game in matchup_last_games]),
+                    "opp_pace": calculate_weighted_arithmetic_mean(
+                        [game["pace"] for game in matchup_last_games]
+                    ),
                 }
             ]
         )
         predicted_value = model.predict(next_game_features)[0]
         sd = np.std(data["reb"], ddof=1)
-        
+
     elif stat == "ast":
         data = pd.DataFrame(
             {
@@ -150,17 +171,24 @@ def generate_prop(
             ]
         ]
         y_values = data["ast"]
-        model = LinearRegression().fit(x_values, y_values)
+        model = make_pipeline(StandardScaler(), Ridge(alpha=1))
+        model.fit(x_values, y_values)
         next_game_features = pd.DataFrame(
             [
                 {
-                    "min": np.mean(data["min"]),
-                    "ast_pct": np.mean(data["ast_pct"]),
-                    "ast_ratio": np.mean(data["ast_ratio"]),
-                    "team_fg_pct": np.mean(data["team_fg_pct"]),
-                    "usage_rate": np.mean(data["usage_rate"]),
-                    "team_off_rating": np.mean(data["team_off_rating"]),
-                    "opp_def_rating": np.mean(
+                    "min": calculate_weighted_arithmetic_mean(data["min"]),
+                    "ast_pct": calculate_weighted_arithmetic_mean(data["ast_pct"]),
+                    "ast_ratio": calculate_weighted_arithmetic_mean(data["ast_ratio"]),
+                    "team_fg_pct": calculate_weighted_arithmetic_mean(
+                        data["team_fg_pct"]
+                    ),
+                    "usage_rate": calculate_weighted_arithmetic_mean(
+                        data["usage_rate"]
+                    ),
+                    "team_off_rating": calculate_weighted_arithmetic_mean(
+                        data["team_off_rating"]
+                    ),
+                    "opp_def_rating": calculate_weighted_arithmetic_mean(
                         [game["def_rating"] for game in matchup_last_games]
                     ),
                 }
@@ -168,7 +196,7 @@ def generate_prop(
         )
         predicted_value = model.predict(next_game_features)[0]
         sd = np.std(data["ast"], ddof=1)
-        
+
     elif stat == "three_pm":
         data = pd.DataFrame(
             {
@@ -199,24 +227,29 @@ def generate_prop(
             ]
         ]
         y_values = data["three_pm"]
-        model = LinearRegression().fit(x_values, y_values)
+        model = make_pipeline(StandardScaler(), Ridge(alpha=1))
+        model.fit(x_values, y_values)
         next_game_features = pd.DataFrame(
             [
                 {
-                    "min": np.mean(data["min"]),
-                    "team_off_rating": np.mean(data["team_off_rating"]),
-                    "opp_def_rating": np.mean(
+                    "min": calculate_weighted_arithmetic_mean(data["min"]),
+                    "team_off_rating": calculate_weighted_arithmetic_mean(
+                        data["team_off_rating"]
+                    ),
+                    "opp_def_rating": calculate_weighted_arithmetic_mean(
                         [game["def_rating"] for game in matchup_last_games]
                     ),
-                    "usage_rate": np.mean(data["usage_rate"]),
-                    "three_pa": np.mean(data["three_pa"]),
-                    "three_pct": np.mean(data["three_pct"]),
+                    "usage_rate": calculate_weighted_arithmetic_mean(
+                        data["usage_rate"]
+                    ),
+                    "three_pa": calculate_weighted_arithmetic_mean(data["three_pa"]),
+                    "three_pct": calculate_weighted_arithmetic_mean(data["three_pct"]),
                 }
             ]
         )
         predicted_value = model.predict(next_game_features)[0]
         sd = np.std(data["three_pm"], ddof=1)
-        
+
     elif stat == "blk":
         data = pd.DataFrame(
             {
@@ -239,23 +272,27 @@ def generate_prop(
             ["min", "pct_blk_a", "opp_pace", "opp_off_rating", "team_def_rating"]
         ]
         y_values = data["blk"]
-        model = LinearRegression().fit(x_values, y_values)
+        model = make_pipeline(
+            StandardScaler(),
+            PoissonRegressor(alpha=1)
+        )
+        model.fit(x_values, y_values)
         next_game_features = pd.DataFrame(
             [
                 {
-                    "min": np.mean(data["min"]),
-                    "pct_blk_a": np.mean(data["pct_blk_a"]),
-                    "opp_pace": np.mean([game["pace"] for game in matchup_last_games]),
-                    "opp_off_rating": np.mean(
+                    "min": calculate_weighted_arithmetic_mean(data["min"]),
+                    "pct_blk_a": calculate_weighted_arithmetic_mean(data["pct_blk_a"]),
+                    "opp_pace": calculate_weighted_arithmetic_mean([game["pace"] for game in matchup_last_games]),
+                    "opp_off_rating": calculate_weighted_arithmetic_mean(
                         [game["off_rating"] for game in matchup_last_games]
                     ),
-                    "team_def_rating": np.mean(data["team_def_rating"]),
+                    "team_def_rating": calculate_weighted_arithmetic_mean(data["team_def_rating"]),
                 }
             ]
         )
         predicted_value = model.predict(next_game_features)[0]
         sd = np.std(data["blk"], ddof=1)
-        
+
     elif stat == "stl":
         data = pd.DataFrame(
             {
@@ -290,22 +327,26 @@ def generate_prop(
             ]
         ]
         y_values = data["stl"]
-        model = LinearRegression().fit(x_values, y_values)
+        model = make_pipeline(
+            StandardScaler(),
+            PoissonRegressor(alpha=1)
+        )
+        model.fit(x_values, y_values)
         next_game_features = pd.DataFrame(
             [
                 {
-                    "min": np.mean(data["min"]),
-                    "team_def_rating": np.mean(data["team_def_rating"]),
-                    "opp_off_rating": np.mean(
+                    "min": calculate_weighted_arithmetic_mean(data["min"]),
+                    "team_def_rating": calculate_weighted_arithmetic_mean(data["team_def_rating"]),
+                    "opp_off_rating": calculate_weighted_arithmetic_mean(
                         [game["off_rating"] for game in matchup_last_games]
                     ),
-                    "opp_pace": np.mean([game["pace"] for game in matchup_last_games]),
-                    "pct_stl_a": np.mean(data["pct_stl_a"]),
-                    "opp_tov": np.mean([game["tov"] for game in matchup_last_games]),
-                    "opp_tov_ratio": np.mean(
+                    "opp_pace": calculate_weighted_arithmetic_mean([game["pace"] for game in matchup_last_games]),
+                    "pct_stl_a": calculate_weighted_arithmetic_mean(data["pct_stl_a"]),
+                    "opp_tov": calculate_weighted_arithmetic_mean([game["tov"] for game in matchup_last_games]),
+                    "opp_tov_ratio": calculate_weighted_arithmetic_mean(
                         [game["tov_ratio"] for game in matchup_last_games]
                     ),
-                    "opp_tov_pct": np.mean(
+                    "opp_tov_pct": calculate_weighted_arithmetic_mean(
                         [game["tov_pct"] for game in matchup_last_games]
                     ),
                 }
@@ -313,7 +354,7 @@ def generate_prop(
         )
         predicted_value = model.predict(next_game_features)[0]
         sd = np.std(data["stl"], ddof=1)
-        
+
     elif stat == "tov":
         data = pd.DataFrame(
             {
@@ -337,28 +378,31 @@ def generate_prop(
             ]
         ]
         y_values = data["tov"]
-        model = LinearRegression().fit(x_values, y_values)
+        model = make_pipeline(
+            StandardScaler(),
+            Ridge(alpha=1)
+        )
+        model.fit(x_values, y_values)
         next_game_features = pd.DataFrame(
             [
                 {
-                    "min": np.mean(data["min"]),
-                    "usage_rate": np.mean(data["usage_rate"]),
-                    "team_off_rating": np.mean(data["team_off_rating"]),
-                    "opp_def_rating": np.mean(
+                    "min": calculate_weighted_arithmetic_mean(data["min"]),
+                    "usage_rate": calculate_weighted_arithmetic_mean(data["usage_rate"]),
+                    "team_off_rating": calculate_weighted_arithmetic_mean(data["team_off_rating"]),
+                    "opp_def_rating": calculate_weighted_arithmetic_mean(
                         [game["def_rating"] for game in matchup_last_games]
                     ),
-                    "tov_ratio": np.mean(data["tov_ratio"]),
-                    "opp_stl": np.mean([game["stl"] for game in matchup_last_games]),
+                    "tov_ratio": calculate_weighted_arithmetic_mean(data["tov_ratio"]),
+                    "opp_stl": calculate_weighted_arithmetic_mean([game["stl"] for game in matchup_last_games]),
                 }
             ]
         )
         predicted_value = model.predict(next_game_features)[0]
         sd = np.std(data["tov"], ddof=1)
-        
+
     else:
         raise ValueError(f"Unknown stat: {stat}")
-    
-    bias = get_bias()
+
     final_prop = predicted_value + bias * sd
     return round_prop(final_prop)
 
@@ -836,7 +880,9 @@ def main():
         # Calculate means for all stats
         stat_means = {}
         for stat in ["pts", "reb", "ast", "three_pm", "blk", "stl", "tov"]:
-            stat_means[stat] = np.mean([game[stat] for game in player_data["last_games"]])
+            stat_means[stat] = np.mean(
+                [game[stat] for game in player_data["last_games"]]
+            )
 
         # Calculate combined stat means
         stat_means["pra"] = np.mean(
@@ -885,12 +931,12 @@ def main():
 
         # Generate props using the stats_arr
         generated_props = {}
-        
+
         # Generate individual stat props
         for stat in stats_arr:
             if stat in ["pra", "reb_ast", "pts_ast"]:
                 continue  # Handle combined stats separately
-            
+
             if stat_eligibility[stat]:
                 line = generate_prop(
                     stat,
@@ -936,7 +982,9 @@ def main():
                     team_last_games,
                     team_opp_games,
                 )
-            pra_line = round_prop(generated_props["pts"] + generated_props["reb"] + generated_props["ast"])
+            pra_line = round_prop(
+                generated_props["pts"] + generated_props["reb"] + generated_props["ast"]
+            )
             if pra_line > 0:
                 insert_prop(
                     pra_line,

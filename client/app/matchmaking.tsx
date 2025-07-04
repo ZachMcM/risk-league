@@ -107,10 +107,10 @@ export default function Matchmaking() {
               <Users size={28} className="text-primary" />
               <View className="absolute inset-0 border-2 border-primary/20 rounded-full animate-spin border-t-primary" />
             </View>
-            <CardTitle className="font-geist-extrabold text-3xl">
+            <CardTitle className="font-extrabold text-3xl">
               Finding Opponent
             </CardTitle>
-            <CardDescription className="text-xl text-center font-geist-medium">
+            <CardDescription className="text-xl text-center font-medium">
               We're matching you with the perfect competitor
             </CardDescription>
           </CardHeader>
@@ -121,12 +121,12 @@ export default function Matchmaking() {
                 className="bg-primary/10 h-3"
                 indicatorClassName="bg-primary"
               />
-              <Text className="text-center font-geist-medium text-muted-foreground text-lg">
+              <Text className="text-center font-medium text-muted-foreground text-lg">
                 {Math.round(progress)}% complete
               </Text>
               <View className="flex flex-row gap-4 items-center bg-muted/50 rounded-lg p-4">
                 <Trophy size={20} className="text-primary" />
-                <Text className="font-geist-medium">{loadingMessage}</Text>
+                <Text className="font-medium">{loadingMessage}</Text>
               </View>
               <Button
                 onPress={() => {

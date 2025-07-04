@@ -15,7 +15,7 @@ export default function UserInformation({
   return (
     <View className="flex flex-col items-center gap-2">
       <Pfp username={username} image={image} className="h-20 w-20" />
-      <Text className="font-geist-bold text-3xl">{username}</Text>
+      <Text className="font-bold text-3xl">{username}</Text>
       <Badge variant="secondary">
         <Text className="text-base">{rank}</Text>
       </Badge>

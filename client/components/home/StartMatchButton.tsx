@@ -12,7 +12,7 @@ export default function StartMatchButton() {
       className="gap-2 flex flex-row"
       onPress={() => router.push("/matchmaking")}
     >
-      <Text className="font-geist-semibold">Start Game</Text>
+      <Text className="font-semibold">Start Game</Text>
       <Zap size={24} className="text-foreground" />
     </Button>
   );

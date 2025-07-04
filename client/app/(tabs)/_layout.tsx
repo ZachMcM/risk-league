@@ -32,9 +32,6 @@ export default function TabsLayout() {
           title: "Home",
           header: (_) => <PageTitle title="Home" />,
           tabBarIcon: ({ color }) => <Home color={color} />,
-          tabBarLabelStyle: {
-            fontFamily: "geist",
-          },
         }}
       />
       <Tabs.Screen
@@ -43,9 +40,6 @@ export default function TabsLayout() {
           title: "Matches",
           headerShown: false,
           tabBarIcon: ({ color }) => <Dices color={color} />,
-          tabBarLabelStyle: {
-            fontFamily: "geist",
-          },
         }}
       />
     </Tabs>
