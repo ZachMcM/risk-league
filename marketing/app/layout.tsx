@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import Link from "next/link";
 import Image from "next/image";
+import { LogoIcon } from "@/components/ui/logo-icon";
 
 export const metadata: Metadata = {
   title: "Risk League",
@@ -29,7 +30,7 @@ export default function RootLayout({
             <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
               <div className="container flex h-16 items-center justify-between">
                 <div className="flex items-center space-x-2">
-                  {/* TODO LOGO HERE */}
+                  <LogoIcon className="h-6 w-6 text-primary"/>
                   <span className="text-xl font-bold gradient-text">
                     Risk League
                   </span>
@@ -62,7 +63,7 @@ export default function RootLayout({
                 <div className="grid gap-8 md:grid-cols-4">
                   <div className="space-y-4">
                     <div className="flex items-center space-x-2">
-                      {/* TODO LOGO HERE */}
+                      <LogoIcon className="h-6 w-6 text-primary"/>
                       <span className="text-xl font-bold gradient-text">
                         Risk League
                       </span>

@@ -178,9 +178,20 @@ def get_opposing_team_games(id_list: list[str]) -> list[MlbGame]:
         conditions.append(
             and_(
                 t_mlb_games.c.id.startswith(game_prefix),
-                t_mlb_games.c.id != raw_game_id,
+                t_mlb_games.c.id != game_id,
             )
         )
+        
+    try:
+        with engine.connect() as conn:
+            stmt = (
+                select(t_mlb_games)
+                .where(or_(*conditions))
+            )
+    except Exception as e:
+        print(f"⚠️ There was an error fetching opposing team games {e}")
+        sys.exit(1)
+
 
 
 def get_player_last_games(player_id: str) -> list[MlbPlayerStats] | None:

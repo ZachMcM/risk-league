@@ -1,5 +1,9 @@
 import { Tabs, useRouter } from "expo-router";
+import { View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { LogoIcon } from "~/components/ui/logo-icon";
 import PageTitle from "~/components/ui/page-title";
+import { Text } from "~/components/ui/text";
 import { Dices } from "~/lib/icons/Dices";
 import { Home } from "~/lib/icons/Home";
 import { useColorScheme } from "~/lib/useColorScheme";
@@ -7,6 +11,7 @@ import { useColorScheme } from "~/lib/useColorScheme";
 export default function TabsLayout() {
   const { isDarkColorScheme } = useColorScheme();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   return (
     <Tabs
@@ -30,7 +35,17 @@ export default function TabsLayout() {
         name="index"
         options={{
           title: "Home",
-          header: (_) => <PageTitle title="Home" />,
+          header: (_) => (
+            <View
+              style={{ marginTop: insets.top }}
+              className="flex flex-row justify-center gap-2 p-4"
+            >
+              <View className="flex flex-row  items-center gap-2">
+                <LogoIcon className="h-6 w-6 text-primary"/>
+                <Text className="font-extrabold text-xl text-primary">Risk League</Text>
+              </View>
+            </View>
+          ),
           tabBarIcon: ({ color }) => <Home color={color} />,
         }}
       />
