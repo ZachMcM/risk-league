@@ -9,7 +9,7 @@ export default function SignUp() {
     <Container>
       <View className="flex flex-1 w-full justify-center items-center gap-4 p-6">
         <View className="flex flex-col items-center gap-1">
-          <Text className="text-4xl font-bold">Sign Up</Text>
+          <Text className="text-5xl font-bold">Sign Up</Text>
           <Text className="text-muted-foreground text-xl font-semibold">
             Create a Risk League account
           </Text>

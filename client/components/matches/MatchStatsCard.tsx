@@ -30,7 +30,7 @@ export default function MatchStatsCard({ stats }: { stats: UserStats }) {
           <View className="flex flex-col items-center">
             <Text
               className={cn(
-                stats && "text-primary",
+                !opponent && "text-primary",
                 "text-3xl font-bold"
               )}
             >

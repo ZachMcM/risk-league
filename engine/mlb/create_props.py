@@ -13,7 +13,7 @@ from constants import sigma_coeff
 from shared.my_types import MetricStats, Player
 from shared.tables import t_mlb_games, t_mlb_player_stats, t_players
 from shared.utils import db_response_to_json, json_to_csv, pretty_print
-from sqlalchemy import create_engine, or_, select
+from sqlalchemy import create_engine, or_, select, and_
 from sklearn.linear_model import LinearRegression
 
 load_dotenv()
@@ -22,9 +22,11 @@ engine = create_engine(os.getenv("DATABASE_URL"))
 
 _metric_stats_cache: dict[tuple[str, str], MetricStats] = {}
 
+
 # Deciding implementation
 def generate_prop(explanatory_vars: pd.DataFrame, response_var: pd.Series) -> float:
     model = LinearRegression().fit(explanatory_vars, response_var)
+
 
 def is_prop_eligible(
     metric: Stat, player_stat_average: float, position: str, use_postseason: bool
@@ -146,6 +148,41 @@ def get_game_players(game_id) -> list[Player]:
         sys.exit(1)
 
 
+def get_team_last_games(team_id: str) -> list[MlbGame] | None:
+    try:
+        with engine.connect() as conn:
+            stmt = (
+                select(t_mlb_games)
+                .where(t_mlb_games.c.team_id == team_id)
+                .where(
+                    or_(t_mlb_games.c.game_type == "R", t_mlb_games.c.game_type == "P")
+                )
+                .order_by(t_mlb_games.c.game_date.desc())
+                .limit(n_games)
+            )
+
+            result = conn.execute(stmt).fetchall()
+            last_games = db_response_to_json(result)
+            return last_games
+    except Exception as e:
+        print(f"⚠️  There was an error fetching the last games for team {team_id}, {e}")
+        sys.exit(1)
+        
+        
+def get_opposing_team_games(id_list: list[str]) -> list[MlbGame]:
+    conditions = []
+    for game_id in id_list:
+        raw_game_id, _ = game_id.split("_")
+        game_prefix = f"{raw_game_id}_"
+
+        conditions.append(
+            and_(
+                t_mlb_games.c.id.startswith(game_prefix),
+                t_mlb_games.c.id != raw_game_id,
+            )
+        )
+
+
 def get_player_last_games(player_id: str) -> list[MlbPlayerStats] | None:
     try:
         with engine.connect() as conn:
@@ -234,14 +271,38 @@ def main():
 
     for player_data in player_data_list:
         player = player_data["player"]
+        stat_eligibility = {}
         for stat in stats_arr:
             print(
                 f"Processing player {player['name']} {player['id']} against team {player_data['matchup']}\n"
             )
             mu_stat = np.mean([game[stat] for game in player_data["last_games"]])
-            prop_eligible = is_prop_eligible(
+            stat_eligibility[stat] = is_prop_eligible(
                 stat, mu_stat, player["position"], use_postseason=regular_season_only
             )
+
+        # Skip if no props are eligible
+        if not any(stat_eligibility.values()):
+            print(
+                f"🚨 Skipping player {player['name']}, {player['id']}. Not eligible by stats but passed minutes threshold.\n"
+            )
+            continue
+
+        # we get the last n games for the opposing team
+        if player_data["matchup"] not in team_games_cache:
+            team_games_cache[player_data["matchup"]] = get_team_last_games(
+                player_data["matchup"]
+            )
+        matchup_last_games = team_games_cache[player_data["matchup"]]
+
+        # we get full team stats for the player's last n games
+        # we use the get games by id function to make sure we aren't getting games the player didn't play in
+
+        games_id_list = [game["game_id"] for game in player_data["last_games"]]
+
+        team_last_games = get_games_by_id(games_id_list)
+
+        team_opp_games = get_opposing_team_games(games_id_list)
 
     print(len(player_data_list))
     json_to_csv(player_data_list)

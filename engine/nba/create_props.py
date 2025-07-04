@@ -649,16 +649,18 @@ def get_games_by_id(id_list: list[str]) -> list[NbaGame]:
         sys.exit(1)
 
 
-def get_opposing_team_games_for_games(id_list: list[str]) -> list[NbaGame]:
+def get_opposing_team_games(id_list: list[str]) -> list[NbaGame]:
+    _, team_id = id_list[0].split("-")
+    
     conditions = []
     for game_id in id_list:
         raw_game_id, _ = game_id.split("-")
         game_prefix = f"{raw_game_id}-"
-
+        
         conditions.append(
             and_(
                 t_nba_games.c.id.startswith(game_prefix),
-                t_nba_games.c.id != raw_game_id,
+                t_nba_games.c.id != game_id,
             )
         )
 
@@ -678,7 +680,8 @@ def get_opposing_team_games_for_games(id_list: list[str]) -> list[NbaGame]:
             )
 
             result = conn.execute(stmt).fetchall()
-            return db_response_to_json(result)
+            res = db_response_to_json(result)
+            return res
     except Exception as e:
         print(f"⚠️ There was an error fetching opposing team games {e}")
         sys.exit(1)
@@ -875,7 +878,7 @@ def main():
 
         team_last_games = get_games_by_id(games_id_list)
 
-        team_opp_games = get_opposing_team_games_for_games(games_id_list)
+        team_opp_games = get_opposing_team_games(games_id_list)
 
         # Calculate means for all stats
         stat_means = {}
