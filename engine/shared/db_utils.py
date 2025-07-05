@@ -372,31 +372,39 @@ def get_props_by_game(engine: Engine, raw_game_id: str) -> list[Prop]:
 
 
 def update_parlay_picks(engine: Engine, raw_game_id: str):
-    """Updates a parlay pick's status based on a raw_game_id
+    """Updates a all parlays for a prop based on a raw_game_id
 
     Args:
         engine: SQLAlchemy database engine
         raw_game_id: ID of the game
     """
 
-    props: list[Prop] = get_props_by_game(raw_game_id)
+    props: list[Prop] = get_props_by_game(engine, raw_game_id)
     try:
         with engine.begin() as conn:
             for prop in props:
                 prop_final_status = (
                     "over" if prop["current_value"] > prop["line"] else "under"
                 )
-                value = (
-                    "hit" if t_parlay_picks.c.pick == prop_final_status else "missed"
-                )
-
-                stmt = (
+                
+                # Update picks that match the winning outcome to "hit"
+                hit_stmt = (
                     update(t_parlay_picks)
                     .where(t_parlay_picks.c.prop_id == prop["id"])
-                    .values(status=value)
+                    .where(t_parlay_picks.c.pick == prop_final_status)
+                    .values(status="hit")
+                )
+                
+                # Update picks that don't match the winning outcome to "missed"
+                missed_stmt = (
+                    update(t_parlay_picks)
+                    .where(t_parlay_picks.c.prop_id == prop["id"])
+                    .where(t_parlay_picks.c.pick != prop_final_status)
+                    .values(status="missed")
                 )
 
-                conn.execute(stmt)
+                conn.execute(hit_stmt)
+                conn.execute(missed_stmt)
     except Exception as e:
-        print(f"There was an error updating the parlay picks")
+        print(f"⚠️ There was an error updating the parlay picks: {e}")
         sys.exit(1)

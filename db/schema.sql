@@ -34,13 +34,13 @@ CREATE TYPE public.match_status AS ENUM (
 
 
 --
--- Name: parlay_status_type; Type: TYPE; Schema: public; Owner: -
+-- Name: parlay_status; Type: TYPE; Schema: public; Owner: -
 --
 
-CREATE TYPE public.parlay_status_type AS ENUM (
-    'in_progress',
+CREATE TYPE public.parlay_status AS ENUM (
     'hit',
-    'missed'
+    'missed',
+    'not_resolved'
 );
 
 
@@ -49,9 +49,9 @@ CREATE TYPE public.parlay_status_type AS ENUM (
 --
 
 CREATE TYPE public.pick_status AS ENUM (
-    'in_progress',
     'hit',
-    'missed'
+    'missed',
+    'not_resolved'
 );
 
 
@@ -292,7 +292,7 @@ CREATE TABLE public.parlay_picks (
     parlay_id text NOT NULL,
     prop_id text NOT NULL,
     pick public.pick_type NOT NULL,
-    status public.pick_status DEFAULT 'in_progress'::public.pick_status NOT NULL,
+    status public.pick_status DEFAULT 'not_resolved'::public.pick_status NOT NULL,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -304,7 +304,7 @@ CREATE TABLE public.parlay_picks (
 CREATE TABLE public.parlays (
     id text DEFAULT gen_random_uuid() NOT NULL,
     match_user_id text NOT NULL,
-    status public.parlay_status_type DEFAULT 'in_progress'::public.parlay_status_type NOT NULL,
+    status public.parlay_status DEFAULT 'not_resolved'::public.parlay_status NOT NULL,
     stake double precision NOT NULL,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
 );
@@ -736,4 +736,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20250702032334'),
     ('20250702032707'),
     ('20250702033938'),
-    ('20250705004954');
+    ('20250705004954'),
+    ('20250705132829');

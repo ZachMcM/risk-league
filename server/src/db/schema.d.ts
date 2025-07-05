@@ -13,9 +13,9 @@ export type LeagueType = "mlb" | "nba" | "nfl";
 
 export type MatchStatus = "draw" | "in_progress" | "loss" | "win";
 
-export type ParlayStatusType = "hit" | "in_progress" | "missed";
+export type ParlayStatus = "hit" | "missed" | "not_resolved";
 
-export type PickStatus = "hit" | "in_progress" | "missed";
+export type PickStatus = "hit" | "missed" | "not_resolved";
 
 export type PickType = "over" | "under";
 
@@ -214,7 +214,7 @@ export interface Parlays {
   id: Generated<string>;
   match_user_id: string;
   stake: number;
-  status: Generated<ParlayStatusType>;
+  status: Generated<ParlayStatus>;
 }
 
 export interface Players {

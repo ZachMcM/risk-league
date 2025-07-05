@@ -7,7 +7,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from dotenv import load_dotenv
 from nba.my_types import stat_name_list
 from nba_api.live.nba.endpoints import BoxScore, ScoreBoard
-from shared.db_utils import update_prop
+from shared.db_utils import update_prop, update_parlay_picks
 from sqlalchemy import create_engine
 
 load_dotenv()
@@ -107,6 +107,9 @@ def sync_props():
                 league="nba",
                 is_final=game["gameStatusText"] == "Final",
             )
+            
+        if game["gameStatusText"] == "Final":
+            update_parlay_picks(engine, game["gameId"])
 
     print(f"✅ Successfully updated props\n")
     engine.dispose()
