@@ -54,3 +54,13 @@ def safe_float(value):
 # rounds props to 0.5
 def round_prop(line) -> float:
     return round(round(line / 0.5) * 0.5, 1)
+
+def deduplicate_by_key(items, key):
+    seen = set()
+    result = []
+    for item in items:
+        value = item[key]
+        if value not in seen:
+            seen.add(value)
+            result.append(item)
+    return result

@@ -212,7 +212,8 @@ def insert_prop(
     player_id: str,
     stat: str,
     game_start_time: datetime,
-    league: Leagues
+    league: Leagues,
+    pick_options = ["over", "under"]
 ):
     try:
         with engine.begin() as conn:
@@ -223,6 +224,7 @@ def insert_prop(
                 stat=stat,
                 game_start_time=game_start_time,
                 league=league,
+                pick_options=pick_options
             )
 
             update_cols = {

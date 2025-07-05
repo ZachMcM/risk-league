@@ -6,7 +6,7 @@ import pandas as pd
 import statsapi
 from dotenv import load_dotenv
 from shared.tables import t_mlb_games, t_mlb_player_stats, t_players
-from sqlalchemy import Engine, create_engine, select
+from sqlalchemy import Engine, create_engine, select, delete
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.exc import IntegrityError
 import sys
@@ -284,7 +284,7 @@ def insert_player_stats(games_df, engine: Engine):
             }
 
             stmt = stmt.on_conflict_do_update(
-                index_elements=["id"], set_=update_columns
+                index_elements=["player_id", "game_id"], set_=update_columns
             )
 
             conn.execute(stmt)
@@ -405,6 +405,32 @@ def process_player_stats_from_game(game_id, season):
     return player_records
 
 
+def remove_duplicates():
+    try:
+        with engine.begin() as conn:
+            # Subquery to get the IDs we want to keep (most recent for each player_id, game_id pair)
+            subquery = (
+                select(t_mlb_player_stats.c.id)
+                .distinct(t_mlb_player_stats.c.player_id, t_mlb_player_stats.c.game_id)
+                .order_by(
+                    t_mlb_player_stats.c.player_id,
+                    t_mlb_player_stats.c.game_id,
+                    t_mlb_player_stats.c.updated_at.desc()
+                )
+            )
+            
+            # Delete records whose ID is not in the subquery
+            stmt = delete(t_mlb_player_stats).where(
+                t_mlb_player_stats.c.id.notin_(subquery)
+            )
+            
+            result = conn.execute(stmt)
+            print(f"✅ Removed {result.rowcount} duplicate MLB player stats records")
+
+    except Exception as e:
+        print(f"🚨 There was an error trying to delete duplicates: {e}")
+
+
 def main():
     """Initialize MLB games data for a date range"""
 
@@ -475,6 +501,7 @@ def main():
     else:
         print("No player stats found to insert")
 
+    remove_duplicates()
     engine.dispose()
 
 

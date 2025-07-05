@@ -493,6 +493,22 @@ ALTER TABLE ONLY public.schema_migrations
 
 
 --
+-- Name: mlb_player_stats unique_mlb_player_game; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.mlb_player_stats
+    ADD CONSTRAINT unique_mlb_player_game UNIQUE (player_id, game_id);
+
+
+--
+-- Name: nba_player_stats unique_nba_player_game; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.nba_player_stats
+    ADD CONSTRAINT unique_nba_player_game UNIQUE (player_id, game_id);
+
+
+--
 -- Name: users users_email_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -719,4 +735,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20250702031842'),
     ('20250702032334'),
     ('20250702032707'),
-    ('20250702033938');
+    ('20250702033938'),
+    ('20250705004954');

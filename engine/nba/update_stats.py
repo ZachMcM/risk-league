@@ -13,7 +13,7 @@ from nba_api.stats.endpoints import (
 from nba_api.stats.static.players import get_active_players
 from constants import req_pause_time
 from shared.tables import t_nba_games, t_nba_player_stats
-from sqlalchemy import create_engine, update
+from sqlalchemy import create_engine, update, delete, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from utils import clean_minutes, get_current_season, get_game_type
 
@@ -201,12 +201,37 @@ def insert_player_stats(stats_df, engine, nba_player_stats):
                     "season",
                 ]
             }
-            stmt = stmt.on_conflict_do_update(index_elements=["id"], set_=update_cols)
+            stmt = stmt.on_conflict_do_update(index_elements=["player_id", "game_id"], set_=update_cols)
             conn.execute(stmt)
             print(f"✅ Upserted {len(data)} player stats\n")
         except Exception as e:
             print(f"⚠️ Upsert failed: {e}")
             sys.exit(1)
+
+def remove_duplicates():
+    try:
+        with engine.begin() as conn:
+            # Subquery to get the IDs we want to keep (most recent for each player_id, game_id pair)
+            subquery = (
+                select(t_nba_player_stats.c.id)
+                .distinct(t_nba_player_stats.c.player_id, t_nba_player_stats.c.game_id)
+                .order_by(
+                    t_nba_player_stats.c.player_id,
+                    t_nba_player_stats.c.game_id,
+                    t_nba_player_stats.c.updated_at.desc()
+                )
+            )
+            
+            # Delete records whose ID is not in the subquery
+            stmt = delete(t_nba_player_stats).where(
+                t_nba_player_stats.c.id.notin_(subquery)
+            )
+            
+            result = conn.execute(stmt)
+            print(f"✅ Removed {result.rowcount} duplicate NBA player stats records")
+
+    except Exception as e:
+        print(f"🚨 There was an error trying to delete duplicates: {e}")      
 
 
 # inserts team advanced stats into the db
@@ -428,7 +453,8 @@ def main():
                 row["assistRatio"],
                 row["turnoverRatio"],
             )
-
+            
+    remove_duplicates()
     engine.dispose()  # Close the database connection
 
 

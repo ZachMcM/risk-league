@@ -24,6 +24,7 @@ from shared.utils import (
     db_response_to_json,
     round_prop,
     json_to_csv,
+    deduplicate_by_key
 )
 from sklearn.linear_model import PoissonRegressor, Ridge
 from sklearn.pipeline import make_pipeline
@@ -32,6 +33,7 @@ from sqlalchemy import and_, create_engine, or_, select
 
 load_dotenv()
 engine = create_engine(os.getenv("DATABASE_URL"))
+
 
 # Deciding implementation
 def generate_prop(
@@ -664,10 +666,10 @@ def generate_prop(
 
     predicted_value = model.predict(next_game_inputs)[0]
     final_prop = predicted_value + bias * sd
-    
+
     if np.isnan(final_prop) or np.isinf(final_prop):
-        raise ValueError(f"Model prediction resulted in invalid value: {final_prop}")
-    
+        return 0
+
     return round_prop(final_prop)
 
 
@@ -676,7 +678,7 @@ def is_prop_eligible(metric: Stat, position: str) -> bool:
     if position == "Pitcher":
         if metric in [
             "pitching_hits",
-            "pitching_walks", 
+            "pitching_walks",
             "pitches_thrown",
             "earned_runs",
             "pitching_strikeouts",
@@ -685,7 +687,7 @@ def is_prop_eligible(metric: Stat, position: str) -> bool:
         else:
             print("Skip due to position incompatibility\n")
             return False
-    
+
     # For two-way players, allow all stats
     if position == "Two-Way Player":
         return True
@@ -709,7 +711,7 @@ def is_prop_eligible(metric: Stat, position: str) -> bool:
             print("Skip due to position incompatibility\n")
             return False
         return True
-    
+
     return True
 
 
@@ -783,10 +785,8 @@ def main():
         for player in players:
             player_last_games = get_player_last_games(
                 engine, player["id"], "mlb", n_games
-            )
-
-            if player_last_games == None:
-                continue
+            )                
+                        
             matchup = ""
             if player["team_id"] == home_team_id:
                 matchup = away_team_id
@@ -804,8 +804,8 @@ def main():
             )
 
     for player_data in player_data_list:
-        if player_data["player"]["name"] != "Walker Buehler":
-            continue
+        # if player_data["player"]['name'] != "Walker Buehler":
+        #     continue
         print(
             f"Processing player {player['name']} {player['id']} against team {player_data['matchup']}\n"
         )
@@ -835,16 +835,10 @@ def main():
 
         games_id_list = [game["game_id"] for game in player_data["last_games"]]
 
-        team_last_games = get_games_by_id(engine, games_id_list, "mlb")
-
-        if len(team_last_games) != len(player_data["last_games"]):
-            print(
-                f"Skipping player {player['name']} due to incompatible sample sizes\n"
-            )
-            continue
+        team_last_games = get_games_by_id(engine, games_id_list, "mlb", sample_size)
 
         team_opp_games = get_opposing_team_last_games(
-            engine, games_id_list, "mlb"
+            engine, games_id_list, "mlb", sample_size
         )
 
         for stat in stats_arr:
@@ -857,6 +851,11 @@ def main():
                     team_opp_games,
                 )
                 if line > 0:
+                    pick_options = []
+                    if stat in ["pitching_hits", "earned_runs", "pitches_thrown", "pitching_strikeouts"]:
+                        pick_options.append("over")
+                    else:
+                        pick_options.extend(["over", "under"])
                     insert_prop(
                         engine,
                         line,
