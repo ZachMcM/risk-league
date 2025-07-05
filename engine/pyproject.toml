@@ -18,7 +18,9 @@ dependencies = [
   "apscheduler",
   "black",
   "sqlacodegen",
-  "MLB-StatsAPI"
+  "MLB-StatsAPI",
+  "websockets",
+  "asyncio"
 ]
 
 [tool.setuptools]
@@ -27,6 +29,7 @@ packages = [
   "nba.tests",
   "system",
   "shared",
+  "shared.tests",
   "mlb",
   "mlb.tests"
 ]

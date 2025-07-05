@@ -15,6 +15,8 @@ from shared.my_types import Prop
 from shared.utils import db_response_to_json
 from sqlalchemy import Engine, and_, or_, select, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
+import asyncio
+from shared.socket_utils import send_message
 
 
 def get_player_last_games(
@@ -310,7 +312,7 @@ def insert_prop(
         sys.exit(1)
 
 
-def update_prop(
+def update_prop_and_picks(
     engine: Engine,
     stat: str,
     player_id: str,
@@ -319,7 +321,11 @@ def update_prop(
     league: Leagues,
     is_final=False,
 ):
-    """Update a given prop with current game data.
+    """Update a given prop and its parlay_picks with current game data. 
+    
+    First updates the actual prop in the database,
+    then updates the status of the parlay_pick if the game is final,
+    then finally sends a message to the server for the client to handle.
 
     Args:
         engine: SQLAlchemy database engine
@@ -339,72 +345,72 @@ def update_prop(
                 .where(t_props.c.player_id == player_id)
                 .where(t_props.c.league == league)
                 .values(current_value=updated_value, resolved=is_final)
+                .returning(t_props)
             )
 
-            result = conn.execute(stmt)
-            if result.rowcount != 0:
+            result = conn.execute(stmt).first()
+            if result is not None:
+                prop: Prop = db_response_to_json(result)
+                
+                # This finds all the parlay picks that choose over and under and respectively updates the status
+                if prop["resolved"]:
+                    prop_final_status = (
+                        "over" if prop["current_value"] > prop["line"] else "under"
+                    )
+
+                    # Update picks that match the winning outcome to "hit"
+                    hit_stmt = (
+                        update(t_parlay_picks)
+                        .where(t_parlay_picks.c.prop_id == prop["id"])
+                        .where(t_parlay_picks.c.pick == prop_final_status)
+                        .values(status="hit")
+                    )
+
+                    # Update picks that don't match the winning outcome to "missed"
+                    missed_stmt = (
+                        update(t_parlay_picks)
+                        .where(t_parlay_picks.c.prop_id == prop["id"])
+                        .where(t_parlay_picks.c.pick != prop_final_status)
+                        .values(status="missed")
+                    )
+
+                    conn.execute(hit_stmt)
+                    conn.execute(missed_stmt)
+
+                select_stmt = (
+                    select(
+                        t_parlay_picks.c.id,
+                        t_props.c.current_value,
+                        t_parlay_picks.c.status,
+                    )
+                    .select_from(
+                        t_parlay_picks.join(
+                            t_props, t_props.c.id == t_parlay_picks.c.prop_id
+                        )
+                    )
+                    .where(t_props.c.id == prop["id"])
+                )
+
+                result = conn.execute(select_stmt).fetchall()
+                picks = db_response_to_json(result)
+                
+                async def send_updates():
+                    for pick in picks:
+                        await send_message(
+                            namespace="/parlay_pick",
+                            message="pick-updated",
+                            data={
+                                "current_value": pick["current_value"],
+                                "status": pick["status"],
+                            },
+                            query_params={"parlayPickId": pick["id"]},
+                        )
+
+                # Run the async function. Running it asynchronously gives control back to the event loop because we don't care to wait for this too process.
+                asyncio.run(send_updates())
+                
                 print(f"✅ Updated {stat} for player {player_id}\n")
+
     except Exception as e:
         print(f"⚠️ There was an error updating the prop: {e}")
-        sys.exit(1)
-
-
-def get_props_by_game(engine: Engine, raw_game_id: str) -> list[Prop]:
-    """Get all props for a specific game.
-
-    Args:
-        engine: SQLAlchemy database engine
-        raw_game_id: ID of the game
-
-    Returns:
-        List of Prop objects for the game
-    """
-    try:
-        with engine.connect() as conn:
-            stmt = select(t_props).where(t_props.raw_game_id == raw_game_id)
-
-            result = conn.execute(stmt).fetchall()
-            return db_response_to_json(result)
-
-    except Exception as e:
-        print(f"🚨 There was an error updating the parlay picks")
-        sys.exit(1)
-
-
-def update_parlay_picks(engine: Engine, raw_game_id: str):
-    """Updates a all parlays for a prop based on a raw_game_id
-
-    Args:
-        engine: SQLAlchemy database engine
-        raw_game_id: ID of the game
-    """
-
-    props: list[Prop] = get_props_by_game(engine, raw_game_id)
-    try:
-        with engine.begin() as conn:
-            for prop in props:
-                prop_final_status = (
-                    "over" if prop["current_value"] > prop["line"] else "under"
-                )
-                
-                # Update picks that match the winning outcome to "hit"
-                hit_stmt = (
-                    update(t_parlay_picks)
-                    .where(t_parlay_picks.c.prop_id == prop["id"])
-                    .where(t_parlay_picks.c.pick == prop_final_status)
-                    .values(status="hit")
-                )
-                
-                # Update picks that don't match the winning outcome to "missed"
-                missed_stmt = (
-                    update(t_parlay_picks)
-                    .where(t_parlay_picks.c.prop_id == prop["id"])
-                    .where(t_parlay_picks.c.pick != prop_final_status)
-                    .values(status="missed")
-                )
-
-                conn.execute(hit_stmt)
-                conn.execute(missed_stmt)
-    except Exception as e:
-        print(f"⚠️ There was an error updating the parlay picks: {e}")
         sys.exit(1)

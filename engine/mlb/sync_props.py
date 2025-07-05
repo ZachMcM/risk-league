@@ -7,7 +7,7 @@ import statsapi
 from apscheduler.schedulers.background import BackgroundScheduler
 from dotenv import load_dotenv
 from mlb.my_types import stats_arr
-from shared.db_utils import update_prop, update_parlay_picks
+from shared.db_utils import update_prop_and_picks
 from sqlalchemy import create_engine
 
 load_dotenv()
@@ -159,7 +159,7 @@ def sync_props():
             # Update props for each MLB stat
             for stat in stats_arr:
                 if stat in player:
-                    update_prop(
+                    update_prop_and_picks(
                         engine,
                         stat,
                         str(player["player_id"]),
@@ -168,9 +168,6 @@ def sync_props():
                         "mlb",
                         is_final=game["status"] == "Final",
                     )
-                    
-        if game["status"] == "Final":
-            update_parlay_picks(engine, game["game_id"])
 
     print(f"✅ Successfully updated props")
     engine.dispose()

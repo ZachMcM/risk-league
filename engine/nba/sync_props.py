@@ -7,7 +7,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from dotenv import load_dotenv
 from nba.my_types import stat_name_list
 from nba_api.live.nba.endpoints import BoxScore, ScoreBoard
-from shared.db_utils import update_prop, update_parlay_picks
+from shared.db_utils import update_prop_and_picks
 from sqlalchemy import create_engine
 
 load_dotenv()
@@ -65,7 +65,7 @@ def sync_props():
 
             # loop through all the non combined stats
             for stat_name in stat_name_list:
-                update_prop(
+                update_prop_and_picks(
                     engine,
                     stat_name["db_name"],
                     str(player["personId"]),
@@ -76,7 +76,7 @@ def sync_props():
                 )
 
             pra = stats["points"] + stats["reboundsTotal"] + stats["assists"]
-            update_prop(
+            update_prop_and_picks(
                 engine,
                 "pra",
                 str(player["personId"]),
@@ -87,7 +87,7 @@ def sync_props():
             )
 
             pts_ast = stats["points"] + stats["assists"]
-            update_prop(
+            update_prop_and_picks(
                 engine,
                 "pts_ast",
                 str(player["personId"]),
@@ -98,7 +98,7 @@ def sync_props():
             )
 
             reb_ast = stats["reboundsTotal"] + stats["assists"]
-            update_prop(
+            update_prop_and_picks(
                 engine,
                 "reb_ast",
                 str(player["personId"]),
@@ -107,9 +107,6 @@ def sync_props():
                 league="nba",
                 is_final=game["gameStatusText"] == "Final",
             )
-            
-        if game["gameStatusText"] == "Final":
-            update_parlay_picks(engine, game["gameId"])
 
     print(f"✅ Successfully updated props\n")
     engine.dispose()
@@ -120,6 +117,7 @@ def main():
 
     Starts a background scheduler that syncs props every 60 seconds.
     """
+    sync_props()
     scheduler = BackgroundScheduler()
     scheduler.add_job(sync_props, "interval", seconds=60)
     scheduler.start()

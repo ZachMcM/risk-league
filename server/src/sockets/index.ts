@@ -73,4 +73,11 @@ export function initSocketServer(io: Server) {
       console.log(`User ${userId} disconnected from match ${matchId}`);
     });
   });
+
+  io.of("/parlay_pick").on("connection", (socket) => {
+    const parlayPickId = socket.handshake.query.parlayPickId as string
+    console.log(`User connected to parlayPick id ${parlayPickId} namespace`);
+
+    socket.join(`parlayPick:${parlayPickId}`)
+  })
 }
