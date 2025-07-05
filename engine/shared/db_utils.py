@@ -11,7 +11,7 @@ from shared.tables import (
     t_props,
 )
 from shared.utils import db_response_to_json
-from sqlalchemy import Engine, and_, or_, select
+from sqlalchemy import Engine, and_, or_, select, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 
@@ -213,7 +213,7 @@ def insert_prop(
     stat: str,
     game_start_time: datetime,
     league: Leagues,
-    pick_options = ["over", "under"]
+    pick_options=["over", "under"],
 ):
     try:
         with engine.begin() as conn:
@@ -224,7 +224,7 @@ def insert_prop(
                 stat=stat,
                 game_start_time=game_start_time,
                 league=league,
-                pick_options=pick_options
+                pick_options=pick_options,
             )
 
             update_cols = {
@@ -244,3 +244,25 @@ def insert_prop(
     except Exception as e:
         print(f"⚠️ There was an error inserting the prop, {e}")
         sys.exit(1)
+
+
+# updates a given prop
+def update_prop(
+    engine: Engine, stat: str, player_id: str, raw_game_id: str, updated_value, league: Leagues
+):
+    try:
+        with engine.begin() as conn:
+            stmt = (
+                update(t_props)
+                .where(t_props.c.stat == stat)
+                .where(t_props.c.raw_game_id == raw_game_id)
+                .where(t_props.c.player_id == player_id)
+                .where(t_props.c.league == league)
+                .values(current_value=updated_value)
+            )
+
+            result = conn.execute(stmt)
+            if result.rowcount != 0:
+                print(f"✅ Updated {stat} for player {player_id}\n")
+    except Exception as e:
+        print(f"⚠️ There was an error updating the prop: {e}")

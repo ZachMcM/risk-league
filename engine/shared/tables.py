@@ -217,7 +217,8 @@ t_mlb_player_stats = Table(
     Column('updated_at', DateTime(True), server_default=text('CURRENT_TIMESTAMP')),
     ForeignKeyConstraint(['game_id'], ['mlb_games.id'], name='fk_game'),
     ForeignKeyConstraint(['player_id'], ['players.id'], name='fk_player'),
-    PrimaryKeyConstraint('id', name='mlb_player_stats_pkey')
+    PrimaryKeyConstraint('id', name='mlb_player_stats_pkey'),
+    UniqueConstraint('player_id', 'game_id', name='unique_mlb_player_game')
 )
 
 t_nba_player_stats = Table(
@@ -254,7 +255,8 @@ t_nba_player_stats = Table(
     Column('tov_ratio', Double(53)),
     ForeignKeyConstraint(['game_id'], ['nba_games.id'], name='fk_game'),
     ForeignKeyConstraint(['player_id'], ['players.id'], name='fk_player'),
-    PrimaryKeyConstraint('id', name='nba_player_stats_pkey')
+    PrimaryKeyConstraint('id', name='nba_player_stats_pkey'),
+    UniqueConstraint('player_id', 'game_id', name='unique_nba_player_game')
 )
 
 t_parlays = Table(

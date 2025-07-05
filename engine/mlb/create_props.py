@@ -23,12 +23,11 @@ from shared.utils import (
     calculate_weighted_arithmetic_mean,
     db_response_to_json,
     round_prop,
-    dump_json,
 )
 from sklearn.linear_model import PoissonRegressor, Ridge
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
-from sqlalchemy import and_, create_engine, or_, select
+from sqlalchemy import create_engine, select
 
 load_dotenv()
 engine = create_engine(os.getenv("DATABASE_URL"))

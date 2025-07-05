@@ -7,7 +7,8 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from dotenv import load_dotenv
 from my_types import Stat, stat_name_list
 from nba_api.live.nba.endpoints import BoxScore, ScoreBoard
-from sqlalchemy import create_engine, update
+from sqlalchemy import create_engine
+from shared.db_utils import update_prop
 
 load_dotenv()
 engine = create_engine(os.getenv("DATABASE_URL"))
@@ -35,25 +36,6 @@ def get_player_stats(game_id: str):
     return home_players + away_players
 
 
-# updates a given prop
-def update_prop(stat: Stat, player_id: str, raw_game_id: str, updated_value):
-    try:
-        with engine.begin() as conn:
-            stmt = (
-                update(t_props)
-                .where(t_props.c.stat == stat)
-                .where(t_props.c.game_id == raw_game_id)
-                .where(t_props.c.player_id == player_id)
-                .values(current_value=updated_value)
-            )
-
-            result = conn.execute(stmt)
-            if result.rowcount != 0:
-                print(f"✅ Updated {stat} for player {player_id}\n")
-    except Exception as e:
-        print(f"⚠️ There was an error updating the prop: {e}")
-
-
 def sync_props():
     games = get_today_games()
 
@@ -68,10 +50,12 @@ def sync_props():
             # loop through all the non combined stats
             for stat_name in stat_name_list:
                 update_prop(
+                    engine,
                     stat_name["db_name"],
                     str(player["personId"]),
                     str(game["gameId"]),
                     stats[stat_name["api_name"]],
+                    league="nba"
                 )
 
             pra = stats["points"] + stats["reboundsTotal"] + stats["assists"]
