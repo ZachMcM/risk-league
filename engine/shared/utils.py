@@ -1,9 +1,7 @@
-import os
-from sqlalchemy import create_engine
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 import json
 import pandas as pd
-import numpy as np
+
 
 
 def calculate_weighted_arithmetic_mean(values: list[float]) -> float:
@@ -41,11 +39,6 @@ def db_response_to_json(res, field=None):
         return [dict(row._mapping)[field] for row in res]
     else:
         return [dict(row._mapping) for row in res]
-
-
-def setup_database_connection():
-    """Set up and return a database engine using environment variables"""
-    return create_engine(os.getenv("DATABASE_URL"))
 
 
 def safe_float(value):

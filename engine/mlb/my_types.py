@@ -4,20 +4,17 @@ from shared.my_types import Player, StatName
 
 
 stats_arr = [
-    "pitching_strikeouts",
+    "hits",
     "home_runs",
     "doubles",
     "triples",
-    "pitching_hits",
-    "stolen_bases",
-    "pitching_walks",
-    "walks",
     "rbi",
-    "runs",
-    "pitches_thrown",
-    "hits",
     "strikeouts",
+    "pitching_hits",
+    "pitching_walks",
+    "pitches_thrown",
     "earned_runs",
+    "pitching_strikeouts",
 ]
 
 Stat = Literal[
@@ -26,11 +23,8 @@ Stat = Literal[
     "doubles",
     "triples",
     "pitching_hits",
-    "stolen_bases",
     "pitching_walks",
-    "walks",
     "rbi",
-    "runs",
     "pitches_thrown",
     "hits",
     "strikeouts",
@@ -60,7 +54,7 @@ class MlbGame(TypedDict):
     rbi: int | None
     stolen_bases: int | None
     caught_stealing: int | None
-    base_on_balls: int | None
+    walks: int | None
     strikeouts: int | None
     left_on_base: int | None
     batting_avg: float | None
@@ -107,7 +101,7 @@ class MlbPlayerStats(TypedDict):
     rbi: int | None
     stolen_bases: int | None
     caught_stealing: int | None
-    base_on_balls: int | None
+    walks: int | None
     strikeouts: int | None
     left_on_base: int | None
     hit_by_pitch: int | None

@@ -6,30 +6,30 @@ from time import time
 import numpy as np
 import pandas as pd
 import requests
-from nba.constants import (
-    min_num_stats,
-    minutes_threshold,
-    n_games,
-    secondary_minutes_threshold,
-    sigma_coeff,
-    bias,
-)
 from dotenv import load_dotenv
 from my_types import CombinedStat, NbaGame, NbaPlayerStats, PlayerData, Stat, stats_arr
-from nba.utils import get_game_type
-from shared.my_types import MetricStats, Player
-from shared.tables import t_nba_games, t_nba_player_stats, t_players, t_props
+from nba.constants import min_num_stats, minutes_threshold, n_games, sigma_coeff
+from shared.constants import bias
+from nba.utils import get_current_season, get_game_type, get_last_season
+from shared.db_utils import (
+    get_games_by_id,
+    get_opposing_team_last_games,
+    get_player_last_games,
+    get_players_from_team,
+    get_team_last_games,
+    insert_prop,
+)
+from shared.my_types import MetricStats
+from shared.tables import t_nba_games, t_nba_player_stats, t_players
 from shared.utils import (
+    calculate_weighted_arithmetic_mean,
     db_response_to_json,
     round_prop,
-    calculate_weighted_arithmetic_mean,
 )
-from sklearn.linear_model import Ridge, PoissonRegressor
+from sklearn.linear_model import PoissonRegressor, Ridge
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
-from sqlalchemy import and_, create_engine, or_, select
-from sqlalchemy.dialects.postgresql import insert as pg_insert
-from utils import get_current_season, get_last_season
+from sqlalchemy import create_engine, or_, select
 
 load_dotenv()
 engine = create_engine(os.getenv("DATABASE_URL"))
@@ -73,7 +73,7 @@ def generate_prop(
         model = make_pipeline(StandardScaler(), Ridge(alpha=1))
         model.fit(x_values, y_values)
 
-        next_game_features = pd.DataFrame(
+        next_game_inputs = pd.DataFrame(
             [
                 {
                     "min": calculate_weighted_arithmetic_mean(data["min"]),
@@ -95,7 +95,6 @@ def generate_prop(
                 }
             ]
         )
-        predicted_value = model.predict(next_game_features)[0]
         sd = np.std(data["pts"], ddof=1)
 
     elif stat == "reb":
@@ -121,7 +120,7 @@ def generate_prop(
         model = make_pipeline(StandardScaler(), Ridge(alpha=1))
         model.fit(x_values, y_values)
 
-        next_game_features = pd.DataFrame(
+        next_game_inputs = pd.DataFrame(
             [
                 {
                     "min": calculate_weighted_arithmetic_mean(data["min"]),
@@ -140,7 +139,6 @@ def generate_prop(
                 }
             ]
         )
-        predicted_value = model.predict(next_game_features)[0]
         sd = np.std(data["reb"], ddof=1)
 
     elif stat == "ast":
@@ -173,7 +171,7 @@ def generate_prop(
         y_values = data["ast"]
         model = make_pipeline(StandardScaler(), Ridge(alpha=1))
         model.fit(x_values, y_values)
-        next_game_features = pd.DataFrame(
+        next_game_inputs = pd.DataFrame(
             [
                 {
                     "min": calculate_weighted_arithmetic_mean(data["min"]),
@@ -194,7 +192,6 @@ def generate_prop(
                 }
             ]
         )
-        predicted_value = model.predict(next_game_features)[0]
         sd = np.std(data["ast"], ddof=1)
 
     elif stat == "three_pm":
@@ -229,7 +226,7 @@ def generate_prop(
         y_values = data["three_pm"]
         model = make_pipeline(StandardScaler(), Ridge(alpha=1))
         model.fit(x_values, y_values)
-        next_game_features = pd.DataFrame(
+        next_game_inputs = pd.DataFrame(
             [
                 {
                     "min": calculate_weighted_arithmetic_mean(data["min"]),
@@ -247,7 +244,6 @@ def generate_prop(
                 }
             ]
         )
-        predicted_value = model.predict(next_game_features)[0]
         sd = np.std(data["three_pm"], ddof=1)
 
     elif stat == "blk":
@@ -272,25 +268,25 @@ def generate_prop(
             ["min", "pct_blk_a", "opp_pace", "opp_off_rating", "team_def_rating"]
         ]
         y_values = data["blk"]
-        model = make_pipeline(
-            StandardScaler(),
-            PoissonRegressor(alpha=1)
-        )
+        model = make_pipeline(StandardScaler(), PoissonRegressor(alpha=1))
         model.fit(x_values, y_values)
-        next_game_features = pd.DataFrame(
+        next_game_inputs = pd.DataFrame(
             [
                 {
                     "min": calculate_weighted_arithmetic_mean(data["min"]),
                     "pct_blk_a": calculate_weighted_arithmetic_mean(data["pct_blk_a"]),
-                    "opp_pace": calculate_weighted_arithmetic_mean([game["pace"] for game in matchup_last_games]),
+                    "opp_pace": calculate_weighted_arithmetic_mean(
+                        [game["pace"] for game in matchup_last_games]
+                    ),
                     "opp_off_rating": calculate_weighted_arithmetic_mean(
                         [game["off_rating"] for game in matchup_last_games]
                     ),
-                    "team_def_rating": calculate_weighted_arithmetic_mean(data["team_def_rating"]),
+                    "team_def_rating": calculate_weighted_arithmetic_mean(
+                        data["team_def_rating"]
+                    ),
                 }
             ]
         )
-        predicted_value = model.predict(next_game_features)[0]
         sd = np.std(data["blk"], ddof=1)
 
     elif stat == "stl":
@@ -327,22 +323,25 @@ def generate_prop(
             ]
         ]
         y_values = data["stl"]
-        model = make_pipeline(
-            StandardScaler(),
-            PoissonRegressor(alpha=1)
-        )
+        model = make_pipeline(StandardScaler(), PoissonRegressor(alpha=1))
         model.fit(x_values, y_values)
-        next_game_features = pd.DataFrame(
+        next_game_inputs = pd.DataFrame(
             [
                 {
                     "min": calculate_weighted_arithmetic_mean(data["min"]),
-                    "team_def_rating": calculate_weighted_arithmetic_mean(data["team_def_rating"]),
+                    "team_def_rating": calculate_weighted_arithmetic_mean(
+                        data["team_def_rating"]
+                    ),
                     "opp_off_rating": calculate_weighted_arithmetic_mean(
                         [game["off_rating"] for game in matchup_last_games]
                     ),
-                    "opp_pace": calculate_weighted_arithmetic_mean([game["pace"] for game in matchup_last_games]),
+                    "opp_pace": calculate_weighted_arithmetic_mean(
+                        [game["pace"] for game in matchup_last_games]
+                    ),
                     "pct_stl_a": calculate_weighted_arithmetic_mean(data["pct_stl_a"]),
-                    "opp_tov": calculate_weighted_arithmetic_mean([game["tov"] for game in matchup_last_games]),
+                    "opp_tov": calculate_weighted_arithmetic_mean(
+                        [game["tov"] for game in matchup_last_games]
+                    ),
                     "opp_tov_ratio": calculate_weighted_arithmetic_mean(
                         [game["tov_ratio"] for game in matchup_last_games]
                     ),
@@ -352,7 +351,6 @@ def generate_prop(
                 }
             ]
         )
-        predicted_value = model.predict(next_game_features)[0]
         sd = np.std(data["stl"], ddof=1)
 
     elif stat == "tov":
@@ -378,31 +376,34 @@ def generate_prop(
             ]
         ]
         y_values = data["tov"]
-        model = make_pipeline(
-            StandardScaler(),
-            Ridge(alpha=1)
-        )
+        model = make_pipeline(StandardScaler(), Ridge(alpha=1))
         model.fit(x_values, y_values)
-        next_game_features = pd.DataFrame(
+        next_game_inputs = pd.DataFrame(
             [
                 {
                     "min": calculate_weighted_arithmetic_mean(data["min"]),
-                    "usage_rate": calculate_weighted_arithmetic_mean(data["usage_rate"]),
-                    "team_off_rating": calculate_weighted_arithmetic_mean(data["team_off_rating"]),
+                    "usage_rate": calculate_weighted_arithmetic_mean(
+                        data["usage_rate"]
+                    ),
+                    "team_off_rating": calculate_weighted_arithmetic_mean(
+                        data["team_off_rating"]
+                    ),
                     "opp_def_rating": calculate_weighted_arithmetic_mean(
                         [game["def_rating"] for game in matchup_last_games]
                     ),
                     "tov_ratio": calculate_weighted_arithmetic_mean(data["tov_ratio"]),
-                    "opp_stl": calculate_weighted_arithmetic_mean([game["stl"] for game in matchup_last_games]),
+                    "opp_stl": calculate_weighted_arithmetic_mean(
+                        [game["stl"] for game in matchup_last_games]
+                    ),
                 }
             ]
         )
-        predicted_value = model.predict(next_game_features)[0]
         sd = np.std(data["tov"], ddof=1)
 
     else:
         raise ValueError(f"Unknown stat: {stat}")
 
+    predicted_value = model.predict(next_game_inputs)[0]
     final_prop = predicted_value + bias * sd
     return round_prop(final_prop)
 
@@ -565,7 +566,7 @@ def is_prop_eligible(
 ) -> bool:
     stat_desc = get_metric_stats(stat, position, use_playoffs)
     return (
-        mpg > secondary_minutes_threshold
+        mpg > minutes_threshold
         and player_stat_average >= stat_desc["mean"] - sigma_coeff * stat_desc["sd"]
     )
 
@@ -589,7 +590,7 @@ def is_combined_stat_prop_eligible(
     stat_desc = get_combined_metric_stats(combined_metric_list, position, use_playoffs)
 
     return (
-        mpg > secondary_minutes_threshold
+        mpg > minutes_threshold
         and player_stat_average >= stat_desc["mean"] - sigma_coeff * stat_desc["sd"]
     )
 
@@ -610,186 +611,6 @@ def get_today_games(test_date=None):
             return date["games"]
 
     return []
-
-
-# get a list of all the player_ids from a team
-def get_players_from_team(team_id: str) -> list[Player]:
-    try:
-        with engine.connect() as conn:
-            stmt = select(t_players).where(
-                t_players.c.team_id == str(team_id),
-            )
-            result = conn.execute(stmt).fetchall()
-            return db_response_to_json(result)
-    except Exception as e:
-        print(f"⚠️ Error fetching roster for team {team_id}: {e}")
-        sys.exit(1)
-
-
-def get_games_by_id(id_list: list[str]) -> list[NbaGame]:
-    try:
-        with engine.connect() as conn:
-            stmt = (
-                select(t_nba_games)
-                .where(t_nba_games.c.id.in_(id_list))
-                .where(
-                    or_(
-                        t_nba_games.c.game_type == "regular_season",
-                        t_nba_games.c.game_type == "playoffs",
-                    )
-                )
-                .order_by(t_nba_games.c.game_date.desc())
-                .limit(n_games)
-            )
-
-            result = conn.execute(stmt).fetchall()
-            return db_response_to_json(result)
-    except Exception as e:
-        print(f"⚠️ There was an error fetching games by id, {e}")
-        sys.exit(1)
-
-
-def get_opposing_team_games(id_list: list[str]) -> list[NbaGame]:
-    _, team_id = id_list[0].split("-")
-    
-    conditions = []
-    for game_id in id_list:
-        raw_game_id, _ = game_id.split("-")
-        game_prefix = f"{raw_game_id}-"
-        
-        conditions.append(
-            and_(
-                t_nba_games.c.id.startswith(game_prefix),
-                t_nba_games.c.id != game_id,
-            )
-        )
-
-    try:
-        with engine.connect() as conn:
-            stmt = (
-                select(t_nba_games)
-                .where(or_(*conditions))
-                .where(
-                    or_(
-                        t_nba_games.c.game_type == "regular_season",
-                        t_nba_games.c.game_type == "playoffs",
-                    )
-                )
-                .order_by(t_nba_games.c.game_date.desc())
-                .limit(n_games)
-            )
-
-            result = conn.execute(stmt).fetchall()
-            res = db_response_to_json(result)
-            return res
-    except Exception as e:
-        print(f"⚠️ There was an error fetching opposing team games {e}")
-        sys.exit(1)
-
-
-# gets the last n_games games for a team
-def get_team_last_games(team_id: str) -> list[NbaGame] | list[str]:
-    try:
-        with engine.connect() as conn:
-            stmt = (
-                select(t_nba_games)
-                .where(t_nba_games.c.team_id == str(team_id))
-                .where(
-                    or_(
-                        t_nba_games.c.game_type == "regular_season",
-                        t_nba_games.c.game_type == "playoffs",
-                    )
-                )
-                .order_by(t_nba_games.c.game_date.desc())
-                .limit(n_games)
-            )
-
-            result = conn.execute(stmt).fetchall()
-            last_games = db_response_to_json(result)
-            return last_games
-    except Exception as e:
-        print(f"⚠️  There was an error fetching the last games for team {team_id}, {e}")
-        sys.exit(1)
-
-
-# returns a players last n_games games if they are eligible for a prop
-def get_player_last_games(player_id) -> list[NbaPlayerStats] | None:
-    try:
-        with engine.connect() as conn:
-            j = t_nba_player_stats.join(
-                t_nba_games, t_nba_player_stats.c.game_id == t_nba_games.c.id
-            )
-
-            stmt = (
-                select(t_nba_player_stats)
-                .select_from(j)
-                .where(
-                    or_(
-                        t_nba_games.c.game_type == "regular_season",
-                        t_nba_games.c.game_type == "playoffs",
-                    )
-                )
-                .where(t_nba_player_stats.c.player_id == str(player_id))
-                .order_by(t_nba_games.c.game_date.desc())
-                .limit(n_games)
-            )
-
-            result = conn.execute(stmt).fetchall()
-            last_games = db_response_to_json(result)
-
-            # if no games were found or
-            # the player didn't play enough out of the teams last n games
-            # or the player doesn't average enough minutes we return null to skip this player
-
-            avg_minutes = (
-                0
-                if len(last_games) == 0
-                else sum(game["min"] for game in last_games) / len(last_games)
-            )
-
-            if len(last_games) != n_games or avg_minutes < minutes_threshold:
-                print(f"🚨 Skipping player {player_id}\n")
-                return None
-            else:
-                return last_games
-
-    except Exception as e:
-        print(f"⚠️ Error fetching eligible players: {e}")
-        sys.exit(1)
-
-
-# inserts a prop into the database
-def insert_prop(
-    line: float, game_id: str, player_id: str, stat: str, game_start_time: datetime
-):
-    try:
-        with engine.begin() as conn:
-            stmt = pg_insert(t_props).values(
-                line=line,
-                raw_game_id=game_id,
-                player_id=player_id,
-                stat=stat,
-                game_start_time=game_start_time,
-                league="nba",
-            )
-
-            update_cols = {
-                col: stmt.excluded[col]
-                for col in [
-                    "line",
-                    "raw_game_id",
-                    "player_id",
-                    "stat",
-                    "game_start_time",
-                    "league",
-                ]
-            }
-
-            stmt = stmt.on_conflict_do_update(index_elements=["id"], set_=update_cols)
-            conn.execute(stmt)
-    except Exception as e:
-        print(f"⚠️ There was an error inserting the prop, {e}")
-        sys.exit(1)
 
 
 def main():
@@ -831,14 +652,17 @@ def main():
         home_team_id = today_game["homeTeam"]["teamId"]
         away_team_id = today_game["awayTeam"]["teamId"]
 
-        home_team_players = get_players_from_team(home_team_id)
-        away_team_players = get_players_from_team(away_team_id)
+        home_team_players = get_players_from_team(engine, home_team_id)
+        away_team_players = get_players_from_team(engine, away_team_id)
         all_game_players = home_team_players + away_team_players
 
         for player in all_game_players:
-            player_last_games = get_player_last_games(player["id"])
+            player_last_games = get_player_last_games(
+                engine, player["id"], "nba", n_games
+            )
 
-            if player_last_games == None:
+            if len(player_last_games) != n_games:
+                print(f"🚨 Skipping player {player}\n")
                 continue
 
             matchup = ""
@@ -867,7 +691,7 @@ def main():
         # we get the last n games for the opposing team
         if player_data["matchup"] not in team_games_cache:
             team_games_cache[player_data["matchup"]] = get_team_last_games(
-                player_data["matchup"]
+                engine, player_data["matchup"], "nba", n_games
             )
         matchup_last_games = team_games_cache[player_data["matchup"]]
 
@@ -876,9 +700,11 @@ def main():
 
         games_id_list = [game["game_id"] for game in player_data["last_games"]]
 
-        team_last_games = get_games_by_id(games_id_list)
+        team_last_games = get_games_by_id(engine, games_id_list, "nba", n_games)
 
-        team_opp_games = get_opposing_team_games(games_id_list)
+        team_opp_games = get_opposing_team_last_games(
+            engine, games_id_list, "nba", n_games
+        )
 
         # Calculate means for all stats
         stat_means = {}
@@ -951,11 +777,13 @@ def main():
                 if line > 0:
                     generated_props[stat] = line
                     insert_prop(
+                        engine,
                         line,
                         player_data["game_id"],
                         player["id"],
                         stat,
                         player_data["game_start_time"],
+                        "nba"
                     )
                     total_props_generated += 1
 
@@ -990,11 +818,13 @@ def main():
             )
             if pra_line > 0:
                 insert_prop(
+                    engine,
                     pra_line,
                     player_data["game_id"],
                     player["id"],
                     "pra",
                     player_data["game_start_time"],
+                    "nba"
                 )
                 total_props_generated += 1
 
@@ -1018,11 +848,13 @@ def main():
             pts_ast_line = round_prop(generated_props["pts"] + generated_props["ast"])
             if pts_ast_line > 0:
                 insert_prop(
+                    engine,
                     pts_ast_line,
                     player_data["game_id"],
                     player["id"],
                     "pts_ast",
                     player_data["game_start_time"],
+                    "nba"
                 )
                 total_props_generated += 1
 
@@ -1046,11 +878,13 @@ def main():
             reb_ast_line = round_prop(generated_props["reb"] + generated_props["ast"])
             if reb_ast_line > 0:
                 insert_prop(
+                    engine,
                     reb_ast_line,
                     player_data["game_id"],
                     player["id"],
                     "reb_ast",
                     player_data["game_start_time"],
+                    "nba"
                 )
                 total_props_generated += 1
 

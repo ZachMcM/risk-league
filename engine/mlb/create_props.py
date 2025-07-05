@@ -6,101 +6,711 @@ from time import time
 import numpy as np
 import pandas as pd
 import statsapi
-from constants import min_num_stats, n_games
+from constants import n_games
 from dotenv import load_dotenv
 from my_types import MlbGame, MlbPlayerStats, PlayerData, Stat, stats_arr
-from constants import sigma_coeff
-from shared.my_types import MetricStats, Player
-from shared.tables import t_mlb_games, t_mlb_player_stats, t_players
-from shared.utils import db_response_to_json, json_to_csv, pretty_print
-from sqlalchemy import create_engine, or_, select, and_
-from sklearn.linear_model import LinearRegression
+from shared.constants import bias
+from shared.db_utils import (
+    get_games_by_id,
+    get_opposing_team_last_games,
+    get_player_last_games,
+    get_team_last_games,
+    insert_prop,
+)
+from shared.my_types import Player
+from shared.tables import t_players
+from shared.utils import (
+    calculate_weighted_arithmetic_mean,
+    db_response_to_json,
+    round_prop,
+    json_to_csv,
+)
+from sklearn.linear_model import PoissonRegressor, Ridge
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
+from sqlalchemy import and_, create_engine, or_, select
 
 load_dotenv()
 engine = create_engine(os.getenv("DATABASE_URL"))
 
-
-_metric_stats_cache: dict[tuple[str, str], MetricStats] = {}
-
-
 # Deciding implementation
-def generate_prop(explanatory_vars: pd.DataFrame, response_var: pd.Series) -> float:
-    model = LinearRegression().fit(explanatory_vars, response_var)
+def generate_prop(
+    stat: Stat,
+    last_games: list[MlbPlayerStats],
+    matchup_last_games: list[MlbGame],
+    team_last_games: list[MlbGame],
+    team_opp_last_games: list[MlbGame],
+) -> float:
+    if stat == "home_runs":
+        data = pd.DataFrame(
+            {
+                "at_bats": [game["at_bats"] for game in last_games],
+                "slugging_pct": [game["slugging_pct"] for game in last_games],
+                "ops": [game["ops"] for game in last_games],
+                "batting_avg": [game["batting_avg"] for game in last_games],
+                "opp_pitching_home_runs": [
+                    game["pitching_home_runs"] for game in team_opp_last_games
+                ],
+                "opp_pitching_strikeouts": [
+                    game["pitching_strikeouts"] for game in team_opp_last_games
+                ],
+                "opp_pitching_walks": [
+                    game["pitching_walks"] for game in team_opp_last_games
+                ],
+                "home_runs": [game["home_runs"] for game in last_games],
+            }
+        )
+        x_values = data[
+            [
+                "at_bats",
+                "slugging_pct",
+                "ops",
+                "batting_avg",
+                "opp_pitching_home_runs",
+                "opp_pitching_strikeouts",
+                "opp_pitching_walks",
+            ]
+        ]
+        y_values = data["home_runs"]
+        model = make_pipeline(StandardScaler(), PoissonRegressor(alpha=1))
+        model.fit(x_values, y_values)
 
+        next_game_inputs = pd.DataFrame(
+            [
+                {
+                    "at_bats": calculate_weighted_arithmetic_mean(data["at_bats"]),
+                    "slugging_pct": calculate_weighted_arithmetic_mean(
+                        data["slugging_pct"]
+                    ),
+                    "ops": calculate_weighted_arithmetic_mean(data["ops"]),
+                    "batting_avg": calculate_weighted_arithmetic_mean(
+                        data["batting_avg"]
+                    ),
+                    "opp_pitching_home_runs": calculate_weighted_arithmetic_mean(
+                        [game["pitching_home_runs"] for game in matchup_last_games]
+                    ),
+                    "opp_pitching_strikeouts": calculate_weighted_arithmetic_mean(
+                        [game["pitching_strikeouts"] for game in matchup_last_games]
+                    ),
+                    "opp_pitching_walks": calculate_weighted_arithmetic_mean(
+                        [game["pitching_walks"] for game in matchup_last_games]
+                    ),
+                }
+            ]
+        )
+        sd = np.std(data["home_runs"], ddof=1)
 
-def is_prop_eligible(
-    metric: Stat, player_stat_average: float, position: str, use_postseason: bool
-) -> bool:
-    """Gets the league mean and standard deviation of a specific stat"""
-    cache_key = (metric, position)
-    if cache_key in _metric_stats_cache:
-        return _metric_stats_cache[cache_key]
+    elif stat == "doubles":
+        data = pd.DataFrame(
+            {
+                "hits": [game["hits"] for game in last_games],
+                "at_bats": [game["at_bats"] for game in last_games],
+                "slugging_pct": [game["slugging_pct"] for game in last_games],
+                "ops": [game["ops"] for game in last_games],
+                "batting_avg": [game["batting_avg"] for game in last_games],
+                "opp_pitching_hits": [
+                    game["pitching_hits"] for game in team_opp_last_games
+                ],
+                "opp_pitching_strikeouts": [
+                    game["pitching_strikeouts"] for game in team_opp_last_games
+                ],
+                "opp_pitching_walks": [
+                    game["pitching_walks"] for game in team_opp_last_games
+                ],
+                "doubles": [game["doubles"] for game in last_games],
+            }
+        )
+        x_values = data[
+            [
+                "hits",
+                "at_bats",
+                "slugging_pct",
+                "ops",
+                "batting_avg",
+                "opp_pitching_hits",
+                "opp_pitching_strikeouts",
+                "opp_pitching_walks",
+            ]
+        ]
+        y_values = data["doubles"]
+        model = make_pipeline(StandardScaler(), PoissonRegressor(alpha=1))
+        model.fit(x_values, y_values)
 
-    def build_stmt(game_type_filter, season_filter):
-        if position == "Pitcher" or position == "Two-Way Player":
-            position_clause = t_players.c.position.in_(["Pitcher", "Two-Way Player"])
-        else:
-            position_clause = t_players.c.position != "Pitcher"
-
-        return (
-            select(getattr(t_mlb_player_stats.c, metric))
-            .select_from(
-                t_mlb_player_stats.join(
-                    t_mlb_games, t_mlb_player_stats.c.game_id == t_mlb_games.c.id
-                ).join(t_players, t_mlb_player_stats.c.player_id == t_players.c.id)
-            )
-            .where(*game_type_filter)
-            .where(position_clause)
-            .where(*season_filter)
-            .where(t_mlb_player_stats.c.player_id.is_not(None))
+        next_game_inputs = pd.DataFrame(
+            [
+                {
+                    "hits": calculate_weighted_arithmetic_mean(data["hits"]),
+                    "at_bats": calculate_weighted_arithmetic_mean(data["at_bats"]),
+                    "slugging_pct": calculate_weighted_arithmetic_mean(
+                        data["slugging_pct"]
+                    ),
+                    "ops": calculate_weighted_arithmetic_mean(data["ops"]),
+                    "batting_avg": calculate_weighted_arithmetic_mean(
+                        data["batting_avg"]
+                    ),
+                    "opp_pitching_hits": calculate_weighted_arithmetic_mean(
+                        [game["pitching_hits"] for game in matchup_last_games]
+                    ),
+                    "opp_pitching_strikeouts": calculate_weighted_arithmetic_mean(
+                        [game["pitching_strikeouts"] for game in matchup_last_games]
+                    ),
+                    "opp_pitching_walks": calculate_weighted_arithmetic_mean(
+                        [game["pitching_walks"] for game in matchup_last_games]
+                    ),
+                }
+            ]
         )
 
-    try:
-        with engine.connect() as conn:
-            season = str(datetime.now().year)
+        sd = np.std(data["doubles"], ddof=1)
 
-            # Primary filters
-            game_type = "P" if use_postseason else "R"
-            stmt = build_stmt(
-                [t_mlb_games.c.game_type == game_type],
-                [t_mlb_player_stats.c.season == season],
-            )
+    elif stat == "hits":
+        data = pd.DataFrame(
+            {
+                "at_bats": [game["at_bats"] for game in last_games],
+                "slugging_pct": [game["slugging_pct"] for game in last_games],
+                "ops": [game["ops"] for game in last_games],
+                "batting_avg": [game["batting_avg"] for game in last_games],
+                "opp_pitching_hits": [
+                    game["pitching_hits"] for game in team_opp_last_games
+                ],
+                "opp_pitching_strikeouts": [
+                    game["pitching_strikeouts"] for game in team_opp_last_games
+                ],
+                "opp_pitching_walks": [
+                    game["pitching_walks"] for game in team_opp_last_games
+                ],
+                "hits": [game["hits"] for game in last_games],
+            }
+        )
+        x_values = data[
+            [
+                "at_bats",
+                "slugging_pct",
+                "ops",
+                "batting_avg",
+                "opp_pitching_hits",
+                "opp_pitching_strikeouts",
+                "opp_pitching_walks",
+            ]
+        ]
+        y_values = data["hits"]
+        model = make_pipeline(StandardScaler(), PoissonRegressor(alpha=1))
+        model.fit(x_values, y_values)
 
-            result = conn.execute(stmt).fetchall()
-            if len(result) < min_num_stats:
-                if use_postseason:
-                    # Combine regular and playoffs for current season
-                    game_type_filter = [
-                        or_(
-                            t_mlb_games.c.game_type == "R",
-                            t_mlb_games.c.game_type == "P",
-                        )
-                    ]
-                    season_filter = [t_mlb_player_stats.c.season == season]
-                else:
-                    game_type_filter = [t_mlb_games.c.game_type == "R"]
-                    season_filter = [
-                        or_(
-                            t_mlb_player_stats.c.season == season,
-                            t_mlb_player_stats.c.season == str(datetime.now().year),
-                        )
-                    ]
+        next_game_inputs = pd.DataFrame(
+            [
+                {
+                    "at_bats": calculate_weighted_arithmetic_mean(data["at_bats"]),
+                    "slugging_pct": calculate_weighted_arithmetic_mean(
+                        data["slugging_pct"]
+                    ),
+                    "ops": calculate_weighted_arithmetic_mean(data["ops"]),
+                    "batting_avg": calculate_weighted_arithmetic_mean(
+                        data["batting_avg"]
+                    ),
+                    "opp_pitching_hits": calculate_weighted_arithmetic_mean(
+                        [game["pitching_hits"] for game in matchup_last_games]
+                    ),
+                    "opp_pitching_strikeouts": calculate_weighted_arithmetic_mean(
+                        [game["pitching_strikeouts"] for game in matchup_last_games]
+                    ),
+                    "opp_pitching_walks": calculate_weighted_arithmetic_mean(
+                        [game["pitching_walks"] for game in matchup_last_games]
+                    ),
+                }
+            ]
+        )
 
-                stmt = build_stmt(game_type_filter, season_filter)
-                result = conn.execute(stmt).fetchall()
+        sd = np.std(data["hits"], ddof=1)
 
-            stats = db_response_to_json(result, metric)
-            metric_stats = {"mean": np.mean(stats), "sd": np.std(stats)}
-            _metric_stats_cache[cache_key] = metric_stats
+    elif stat == "triples":
+        data = pd.DataFrame(
+            {
+                "hits": [game["hits"] for game in last_games],
+                "at_bats": [game["at_bats"] for game in last_games],
+                "slugging_pct": [game["slugging_pct"] for game in last_games],
+                "ops": [game["ops"] for game in last_games],
+                "batting_avg": [game["batting_avg"] for game in last_games],
+                "opp_pitching_hits": [
+                    game["pitching_hits"] for game in team_opp_last_games
+                ],
+                "opp_pitching_strikeouts": [
+                    game["pitching_strikeouts"] for game in team_opp_last_games
+                ],
+                "opp_pitching_walks": [
+                    game["pitching_walks"] for game in team_opp_last_games
+                ],
+                "triples": [game["triples"] for game in last_games],
+            }
+        )
+        x_values = data[
+            [
+                "hits",
+                "at_bats",
+                "slugging_pct",
+                "ops",
+                "batting_avg",
+                "opp_pitching_hits",
+                "opp_pitching_strikeouts",
+                "opp_pitching_walks",
+            ]
+        ]
+        y_values = data["triples"]
+        model = make_pipeline(StandardScaler(), PoissonRegressor(alpha=1))
+        model.fit(x_values, y_values)
 
-            return (
-                player_stat_average
-                >= metric_stats["mean"] - sigma_coeff * metric_stats["sd"]
-            )
+        next_game_inputs = pd.DataFrame(
+            [
+                {
+                    "hits": calculate_weighted_arithmetic_mean(data["hits"]),
+                    "at_bats": calculate_weighted_arithmetic_mean(data["at_bats"]),
+                    "slugging_pct": calculate_weighted_arithmetic_mean(
+                        data["slugging_pct"]
+                    ),
+                    "ops": calculate_weighted_arithmetic_mean(data["ops"]),
+                    "batting_avg": calculate_weighted_arithmetic_mean(
+                        data["batting_avg"]
+                    ),
+                    "opp_pitching_hits": calculate_weighted_arithmetic_mean(
+                        [game["pitching_hits"] for game in matchup_last_games]
+                    ),
+                    "opp_pitching_strikeouts": calculate_weighted_arithmetic_mean(
+                        [game["pitching_strikeouts"] for game in matchup_last_games]
+                    ),
+                    "opp_pitching_walks": calculate_weighted_arithmetic_mean(
+                        [game["pitching_walks"] for game in matchup_last_games]
+                    ),
+                }
+            ]
+        )
 
-    except Exception as e:
-        print(f"⚠️ Error getting stats for metric {metric}, {e}")
-        sys.exit(1)
+        sd = np.std(data["triples"], ddof=1)
+
+    elif stat == "rbi":
+        data = pd.DataFrame(
+            {
+                "hits": [game["hits"] for game in last_games],
+                "home_runs": [game["home_runs"] for game in last_games],
+                "at_bats": [game["at_bats"] for game in last_games],
+                "slugging_pct": [game["slugging_pct"] for game in last_games],
+                "sac_flies": [game["sac_flies"] for game in last_games],
+                "team_runs": [game["runs"] for game in team_last_games],
+                "opp_pitching_strikeouts": [
+                    game["pitching_strikeouts"] for game in team_opp_last_games
+                ],
+                "rbi": [game["rbi"] for game in last_games],
+            }
+        )
+        x_values = data[
+            [
+                "hits",
+                "home_runs",
+                "at_bats",
+                "slugging_pct",
+                "sac_flies",
+                "team_runs",
+                "opp_pitching_strikeouts",
+            ]
+        ]
+        y_values = data["rbi"]
+        model = make_pipeline(StandardScaler(), PoissonRegressor(alpha=1))
+        model.fit(x_values, y_values)
+
+        next_game_inputs = pd.DataFrame(
+            [
+                {
+                    "hits": calculate_weighted_arithmetic_mean(data["hits"]),
+                    "home_runs": calculate_weighted_arithmetic_mean(data["home_runs"]),
+                    "at_bats": calculate_weighted_arithmetic_mean(data["at_bats"]),
+                    "slugging_pct": calculate_weighted_arithmetic_mean(
+                        data["slugging_pct"]
+                    ),
+                    "sac_flies": calculate_weighted_arithmetic_mean(data["sac_flies"]),
+                    "team_runs": calculate_weighted_arithmetic_mean(data["team_runs"]),
+                    "opp_pitching_strikeouts": calculate_weighted_arithmetic_mean(
+                        [game["pitching_strikeouts"] for game in matchup_last_games]
+                    ),
+                }
+            ]
+        )
+        sd = np.std(data["rbi"], ddof=1)
+
+    elif stat == "strikeouts":
+        data = pd.DataFrame(
+            {
+                "at_bats": [game["at_bats"] for game in last_games],
+                "ops": [game["ops"] for game in last_games],
+                "opp_pitching_strikeouts": [
+                    game["pitching_strikeouts"] for game in team_opp_last_games
+                ],
+                "opp_strikes": [game["strikes"] for game in team_opp_last_games],
+                "opp_pitches_thrown": [
+                    game["pitches_thrown"] for game in team_opp_last_games
+                ],
+                "opp_pitching_hits": [
+                    game["pitching_hits"] for game in team_opp_last_games
+                ],
+                "strikeouts": [game["strikeouts"] for game in last_games],
+            }
+        )
+        x_values = data[
+            [
+                "at_bats",
+                "ops",
+                "opp_pitching_strikeouts",
+                "opp_strikes",
+                "opp_pitches_thrown",
+                "opp_pitching_hits",
+            ]
+        ]
+        y_values = data["strikeouts"]
+        model = make_pipeline(StandardScaler(), PoissonRegressor(alpha=1))
+        model.fit(x_values, y_values)
+        next_game_inputs = pd.DataFrame(
+            [
+                {
+                    "at_bats": calculate_weighted_arithmetic_mean(data["at_bats"]),
+                    "ops": calculate_weighted_arithmetic_mean(data["ops"]),
+                    "opp_pitching_strikeouts": calculate_weighted_arithmetic_mean(
+                        [game["pitching_strikeouts"] for game in matchup_last_games]
+                    ),
+                    "opp_strikes": calculate_weighted_arithmetic_mean(
+                        [game["strikes"] for game in matchup_last_games]
+                    ),
+                    "opp_pitches_thrown": calculate_weighted_arithmetic_mean(
+                        [game["pitches_thrown"] for game in matchup_last_games]
+                    ),
+                    "opp_pitching_hits": calculate_weighted_arithmetic_mean(
+                        [game["pitching_hits"] for game in matchup_last_games]
+                    ),
+                }
+            ]
+        )
+        sd = np.std(data["strikeouts"], ddof=1)
+
+    elif stat == "pitching_strikeouts":
+        data = pd.DataFrame(
+            {
+                "innings_pitched": [game["innings_pitched"] for game in last_games],
+                "pitches_thrown": [game["pitches_thrown"] for game in last_games],
+                "strikes": [game["strikes"] for game in last_games],
+                "opp_strikeouts": [game["strikeouts"] for game in team_opp_last_games],
+                "opp_batting_avg": [
+                    game["batting_avg"] for game in team_opp_last_games
+                ],
+                "pitching_strikeouts": [
+                    game["pitching_strikeouts"] for game in last_games
+                ],
+            }
+        )
+        x_values = data[
+            [
+                "innings_pitched",
+                "pitches_thrown",
+                "strikes",
+                "opp_strikeouts",
+                "opp_batting_avg",
+            ]
+        ]
+        y_values = data["pitching_strikeouts"]
+        model = make_pipeline(StandardScaler(), Ridge(alpha=1))
+        model.fit(x_values, y_values)
+        next_game_inputs = pd.DataFrame(
+            [
+                {
+                    "innings_pitched": calculate_weighted_arithmetic_mean(
+                        data["innings_pitched"]
+                    ),
+                    "pitches_thrown": calculate_weighted_arithmetic_mean(
+                        data["pitches_thrown"]
+                    ),
+                    "strikes": calculate_weighted_arithmetic_mean(data["strikes"]),
+                    "opp_strikeouts": calculate_weighted_arithmetic_mean(
+                        [game["strikeouts"] for game in matchup_last_games]
+                    ),
+                    "opp_batting_avg": calculate_weighted_arithmetic_mean(
+                        [game["batting_avg"] for game in matchup_last_games]
+                    ),
+                }
+            ]
+        )
+        sd = np.std(data["pitching_strikeouts"], ddof=1)
+
+    elif stat == "pitches_thrown":
+        data = pd.DataFrame(
+            {
+                "innings_pitched": [game["innings_pitched"] for game in last_games],
+                "pitching_strikeouts": [
+                    game["pitching_strikeouts"] for game in last_games
+                ],
+                "pitching_walks": [game["pitching_walks"] for game in last_games],
+                "pitching_hits": [game["pitching_hits"] for game in last_games],
+                "opp_ops": [game["ops"] for game in team_opp_last_games],
+                "opp_slugging_pct": [
+                    game["slugging_pct"] for game in team_opp_last_games
+                ],
+                "opp_runs": [game["runs"] for game in team_opp_last_games],
+                "pitches_thrown": [game["pitches_thrown"] for game in last_games],
+            }
+        )
+        x_values = data[
+            [
+                "innings_pitched",
+                "pitching_strikeouts",
+                "pitching_walks",
+                "pitching_hits",
+                "opp_ops",
+                "opp_slugging_pct",
+                "opp_runs",
+            ]
+        ]
+        y_values = data["pitches_thrown"]
+        model = make_pipeline(StandardScaler(), Ridge(alpha=1))
+        model.fit(x_values, y_values)
+        next_game_inputs = pd.DataFrame(
+            [
+                {
+                    "innings_pitched": calculate_weighted_arithmetic_mean(
+                        data["innings_pitched"]
+                    ),
+                    "pitching_strikeouts": calculate_weighted_arithmetic_mean(
+                        data["pitching_strikeouts"]
+                    ),
+                    "pitching_walks": calculate_weighted_arithmetic_mean(
+                        data["pitching_walks"]
+                    ),
+                    "pitching_hits": calculate_weighted_arithmetic_mean(
+                        data["pitching_hits"]
+                    ),
+                    "opp_ops": calculate_weighted_arithmetic_mean(
+                        [game["ops"] for game in matchup_last_games]
+                    ),
+                    "opp_slugging_pct": calculate_weighted_arithmetic_mean(
+                        [game["slugging_pct"] for game in matchup_last_games]
+                    ),
+                    "opp_runs": calculate_weighted_arithmetic_mean(
+                        [game["runs"] for game in matchup_last_games]
+                    ),
+                }
+            ]
+        )
+        sd = np.std(data["pitches_thrown"], ddof=1)
+
+    elif stat == "earned_runs":
+        data = pd.DataFrame(
+            {
+                "innings_pitched": [game["innings_pitched"] for game in last_games],
+                "pitching_hits": [game["pitching_hits"] for game in last_games],
+                "pitching_walks": [game["pitching_walks"] for game in last_games],
+                "pitching_home_runs": [
+                    game["pitching_home_runs"] for game in last_games
+                ],
+                "opp_runs": [game["runs"] for game in team_opp_last_games],
+                "opp_ops": [game["ops"] for game in team_opp_last_games],
+                "opp_slugging_pct": [
+                    game["slugging_pct"] for game in team_opp_last_games
+                ],
+                "earned_runs": [game["earned_runs"] for game in last_games],
+            }
+        )
+        x_values = data[
+            [
+                "innings_pitched",
+                "pitching_hits",
+                "pitching_walks",
+                "pitching_home_runs",
+                "opp_runs",
+                "opp_ops",
+                "opp_slugging_pct",
+            ]
+        ]
+        y_values = data["earned_runs"]
+        model = make_pipeline(StandardScaler(), Ridge(alpha=1))
+        model.fit(x_values, y_values)
+        next_game_inputs = pd.DataFrame(
+            [
+                {
+                    "innings_pitched": calculate_weighted_arithmetic_mean(
+                        data["innings_pitched"]
+                    ),
+                    "pitching_hits": calculate_weighted_arithmetic_mean(
+                        data["pitching_hits"]
+                    ),
+                    "pitching_walks": calculate_weighted_arithmetic_mean(
+                        data["pitching_walks"]
+                    ),
+                    "pitching_home_runs": calculate_weighted_arithmetic_mean(
+                        data["pitching_home_runs"]
+                    ),
+                    "opp_runs": calculate_weighted_arithmetic_mean(
+                        [game["runs"] for game in matchup_last_games]
+                    ),
+                    "opp_ops": calculate_weighted_arithmetic_mean(
+                        [game["ops"] for game in matchup_last_games]
+                    ),
+                    "opp_slugging_pct": calculate_weighted_arithmetic_mean(
+                        [game["slugging_pct"] for game in matchup_last_games]
+                    ),
+                }
+            ]
+        )
+        sd = np.std(data["earned_runs"], ddof=1)
+
+    elif stat == "pitching_hits":
+        data = pd.DataFrame(
+            {
+                "innings_pitched": [game["innings_pitched"] for game in last_games],
+                "pitches_thrown": [game["pitches_thrown"] for game in last_games],
+                "pitching_strikeouts": [
+                    game["pitching_strikeouts"] for game in last_games
+                ],
+                "opp_batting_avg": [
+                    game["batting_avg"] for game in team_opp_last_games
+                ],
+                "opp_slugging_pct": [
+                    game["slugging_pct"] for game in team_opp_last_games
+                ],
+                "opp_ops": [game["ops"] for game in team_opp_last_games],
+                "pitching_hits": [game["pitching_hits"] for game in last_games],
+            }
+        )
+        x_values = data[
+            [
+                "innings_pitched",
+                "pitches_thrown",
+                "pitching_strikeouts",
+                "opp_batting_avg",
+                "opp_slugging_pct",
+                "opp_ops",
+            ]
+        ]
+        y_values = data["pitching_hits"]
+        model = make_pipeline(StandardScaler(), Ridge(alpha=1))
+        model.fit(x_values, y_values)
+        next_game_inputs = pd.DataFrame(
+            [
+                {
+                    "innings_pitched": calculate_weighted_arithmetic_mean(
+                        data["innings_pitched"]
+                    ),
+                    "pitches_thrown": calculate_weighted_arithmetic_mean(
+                        data["pitches_thrown"]
+                    ),
+                    "pitching_strikeouts": calculate_weighted_arithmetic_mean(
+                        data["pitching_strikeouts"]
+                    ),
+                    "opp_batting_avg": calculate_weighted_arithmetic_mean(
+                        [game["batting_avg"] for game in matchup_last_games]
+                    ),
+                    "opp_slugging_pct": calculate_weighted_arithmetic_mean(
+                        [game["slugging_pct"] for game in matchup_last_games]
+                    ),
+                    "opp_ops": calculate_weighted_arithmetic_mean(
+                        [game["ops"] for game in matchup_last_games]
+                    ),
+                }
+            ]
+        )
+        sd = np.std(data["pitching_hits"], ddof=1)
+
+    elif stat == "pitching_walks":
+        data = pd.DataFrame(
+            {
+                "innings_pitched": [game["innings_pitched"] for game in last_games],
+                "pitches_thrown": [game["pitches_thrown"] for game in last_games],
+                "balls": [game["balls"] for game in last_games],
+                "opp_on_base_pct": [
+                    game["on_base_pct"] for game in team_opp_last_games
+                ],
+                "opp_walks": [game["walks"] for game in team_opp_last_games],
+                "pitching_walks": [game["pitching_walks"] for game in last_games],
+            }
+        )
+        x_values = data[
+            [
+                "innings_pitched",
+                "pitches_thrown",
+                "balls",
+                "opp_on_base_pct",
+                "opp_walks",
+            ]
+        ]
+        y_values = data["pitching_walks"]
+        model = make_pipeline(StandardScaler(), PoissonRegressor(alpha=1))
+        model.fit(x_values, y_values)
+        next_game_inputs = pd.DataFrame(
+            [
+                {
+                    "innings_pitched": calculate_weighted_arithmetic_mean(
+                        data["innings_pitched"]
+                    ),
+                    "pitches_thrown": calculate_weighted_arithmetic_mean(
+                        data["pitches_thrown"]
+                    ),
+                    "balls": calculate_weighted_arithmetic_mean(data["balls"]),
+                    "opp_on_base_pct": calculate_weighted_arithmetic_mean(
+                        [game["on_base_pct"] for game in matchup_last_games]
+                    ),
+                    "opp_walks": calculate_weighted_arithmetic_mean(
+                        [game["walks"] for game in matchup_last_games]
+                    ),
+                }
+            ]
+        )
+        sd = np.std(data["pitching_walks"], ddof=1)
+
+    else:
+        raise ValueError(f"Unknown stat: {stat}")
+
+    predicted_value = model.predict(next_game_inputs)[0]
+    final_prop = predicted_value + bias * sd
+    
+    if np.isnan(final_prop) or np.isinf(final_prop):
+        raise ValueError(f"Model prediction resulted in invalid value: {final_prop}")
+    
+    return round_prop(final_prop)
+
+
+def is_prop_eligible(metric: Stat, position: str) -> bool:
+    # For pitchers, only allow pitching stats
+    if position == "Pitcher":
+        if metric in [
+            "pitching_hits",
+            "pitching_walks", 
+            "pitches_thrown",
+            "earned_runs",
+            "pitching_strikeouts",
+        ]:
+            return True
+        else:
+            print("Skip due to position incompatibility\n")
+            return False
+    
+    # For two-way players, allow all stats
+    if position == "Two-Way Player":
+        return True
+
+    # For batting stats, exclude pitchers
+    if metric in ["hits", "home_runs", "doubles", "triples", "rbi", "strikeouts"]:
+        if position == "Pitcher":
+            print("Skip due to position incompatibility\n")
+            return False
+        return True
+
+    # For pitching stats, only allow pitchers and two-way players
+    if metric in [
+        "pitching_hits",
+        "pitching_walks",
+        "pitches_thrown",
+        "earned_runs",
+        "pitching_strikeouts",
+    ]:
+        if position != "Two-Way Player" and position != "Pitcher":
+            print("Skip due to position incompatibility\n")
+            return False
+        return True
+    
+    return True
 
 
 def get_player_from_db(id: str) -> Player:
@@ -148,91 +758,6 @@ def get_game_players(game_id) -> list[Player]:
         sys.exit(1)
 
 
-def get_team_last_games(team_id: str) -> list[MlbGame] | None:
-    try:
-        with engine.connect() as conn:
-            stmt = (
-                select(t_mlb_games)
-                .where(t_mlb_games.c.team_id == team_id)
-                .where(
-                    or_(t_mlb_games.c.game_type == "R", t_mlb_games.c.game_type == "P")
-                )
-                .order_by(t_mlb_games.c.game_date.desc())
-                .limit(n_games)
-            )
-
-            result = conn.execute(stmt).fetchall()
-            last_games = db_response_to_json(result)
-            return last_games
-    except Exception as e:
-        print(f"⚠️  There was an error fetching the last games for team {team_id}, {e}")
-        sys.exit(1)
-        
-        
-def get_opposing_team_games(id_list: list[str]) -> list[MlbGame]:
-    conditions = []
-    for game_id in id_list:
-        raw_game_id, _ = game_id.split("_")
-        game_prefix = f"{raw_game_id}_"
-
-        conditions.append(
-            and_(
-                t_mlb_games.c.id.startswith(game_prefix),
-                t_mlb_games.c.id != game_id,
-            )
-        )
-        
-    try:
-        with engine.connect() as conn:
-            stmt = (
-                select(t_mlb_games)
-                .where(or_(*conditions))
-            )
-    except Exception as e:
-        print(f"⚠️ There was an error fetching opposing team games {e}")
-        sys.exit(1)
-
-
-
-def get_player_last_games(player_id: str) -> list[MlbPlayerStats] | None:
-    try:
-        with engine.connect() as conn:
-            j = t_mlb_player_stats.join(
-                t_mlb_games, t_mlb_player_stats.c.game_id == t_mlb_games.c.id
-            )
-
-            stmt = (
-                select(t_mlb_player_stats)
-                .select_from(j)
-                .where(
-                    or_(
-                        t_mlb_games.c.game_type == "R",
-                        t_mlb_games.c.game_type == "P",
-                    )
-                )
-                .where(t_mlb_player_stats.c.player_id == str(player_id))
-                .order_by(t_mlb_games.c.game_date.desc())
-                .limit(n_games)
-            )
-
-            result = conn.execute(stmt).fetchall()
-            last_games = db_response_to_json(result)
-
-            # if no games were found or
-            # the player didn't play enough out of the teams last n games
-            # we return null to skip this player
-
-            if len(last_games) != n_games:
-                print(f"🚨 Skipping player {player_id}\n")
-                return None
-            else:
-                return last_games
-
-    except Exception as e:
-        print(f"⚠️ Error fetching eligible players: {e}")
-        sys.exit(1)
-
-
 def main():
     start = time()
     today = datetime.today().strftime("%Y-%m-%d")
@@ -246,21 +771,19 @@ def main():
     team_games_cache: dict[str, list[MlbGame]] = {}
     total_props_generated = 0
 
-    regular_season_only = True
-
     for i, game in enumerate(schedule):
         print(
             f"Getting initial game data for game {game['game_id']} {i + 1}/{len(schedule)}\n"
         )
-        if regular_season_only == True and game["game_type"] == "R":
-            regular_season_only = False
 
         home_team_id = game["home_id"]
         away_team_id = game["away_id"]
         players = get_game_players(game["game_id"])
 
         for player in players:
-            player_last_games = get_player_last_games(player["id"])
+            player_last_games = get_player_last_games(
+                engine, player["id"], "mlb", n_games
+            )
 
             if player_last_games == None:
                 continue
@@ -281,28 +804,29 @@ def main():
             )
 
     for player_data in player_data_list:
+        if player_data["player"]["name"] != "Walker Buehler":
+            continue
+        print(
+            f"Processing player {player['name']} {player['id']} against team {player_data['matchup']}\n"
+        )
         player = player_data["player"]
         stat_eligibility = {}
         for stat in stats_arr:
-            print(
-                f"Processing player {player['name']} {player['id']} against team {player_data['matchup']}\n"
-            )
-            mu_stat = np.mean([game[stat] for game in player_data["last_games"]])
-            stat_eligibility[stat] = is_prop_eligible(
-                stat, mu_stat, player["position"], use_postseason=regular_season_only
-            )
+            stat_eligibility[stat] = is_prop_eligible(stat, player["position"])
 
         # Skip if no props are eligible
         if not any(stat_eligibility.values()):
             print(
-                f"🚨 Skipping player {player['name']}, {player['id']}. Not eligible by stats but passed minutes threshold.\n"
+                f"🚨 Skipping player {player['name']}, {player['id']}. Not eligible by stats.\n"
             )
             continue
+
+        sample_size = len(player_last_games)
 
         # we get the last n games for the opposing team
         if player_data["matchup"] not in team_games_cache:
             team_games_cache[player_data["matchup"]] = get_team_last_games(
-                player_data["matchup"]
+                engine, player_data["matchup"], "mlb", sample_size
             )
         matchup_last_games = team_games_cache[player_data["matchup"]]
 
@@ -311,18 +835,43 @@ def main():
 
         games_id_list = [game["game_id"] for game in player_data["last_games"]]
 
-        team_last_games = get_games_by_id(games_id_list)
+        team_last_games = get_games_by_id(engine, games_id_list, "mlb")
 
-        team_opp_games = get_opposing_team_games(games_id_list)
+        if len(team_last_games) != len(player_data["last_games"]):
+            print(
+                f"Skipping player {player['name']} due to incompatible sample sizes\n"
+            )
+            continue
 
-    print(len(player_data_list))
-    json_to_csv(player_data_list)
+        team_opp_games = get_opposing_team_last_games(
+            engine, games_id_list, "mlb"
+        )
+
+        for stat in stats_arr:
+            if stat_eligibility[stat]:
+                line = generate_prop(
+                    stat,
+                    player_data["last_games"],
+                    matchup_last_games,
+                    team_last_games,
+                    team_opp_games,
+                )
+                if line > 0:
+                    insert_prop(
+                        engine,
+                        line,
+                        player_data["game_id"],
+                        player["id"],
+                        stat,
+                        player_data["game_start_time"],
+                        "mlb",
+                    )
+                    total_props_generated += 1
 
     end = time()
     print(
         f"✅ Script finished executing in {end - start:.2f} seconds. A total of {total_props_generated} props were generated"
     )
-
     engine.dispose()
 
 

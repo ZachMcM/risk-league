@@ -204,22 +204,22 @@ def extract_player_batting_stats(batting_stats):
         "batting_avg": (
             float(batting_stats.get("avg"))
             if batting_stats.get("avg") is not None
-            else None
+            else 0
         ),
         "on_base_pct": (
             float(batting_stats.get("obp"))
             if batting_stats.get("obp") is not None
-            else None
+            else 0
         ),
         "slugging_pct": (
             float(batting_stats.get("slg"))
             if batting_stats.get("slg") is not None
-            else None
+            else 0
         ),
         "ops": (
             float(batting_stats.get("ops"))
             if batting_stats.get("ops") is not None
-            else None
+            else 0
         ),
     }
 
@@ -230,7 +230,7 @@ def extract_player_pitching_stats(pitching_stats):
         "innings_pitched": (
             float(pitching_stats.get("inningsPitched"))
             if pitching_stats.get("inningsPitched") is not None
-            else None
+            else 0
         ),
         "pitching_hits": pitching_stats.get("hits", 0),
         "pitching_runs": pitching_stats.get("runs", 0),
@@ -348,28 +348,28 @@ def process_player_stats_from_game(game_id, season):
                     batting_stats = extract_player_batting_stats(stats_data["batting"])
                     player_record.update(batting_stats)
                 else:
-                    # Set batting stats to 0/None for pitchers who didn't bat
+                    # Set batting stats to 0 for pitchers who didn't bat
                     player_record.update(
                         {
-                            "at_bats": None,
-                            "runs": None,
-                            "hits": None,
-                            "doubles": None,
-                            "triples": None,
-                            "home_runs": None,
-                            "rbi": None,
-                            "stolen_bases": None,
-                            "caught_stealing": None,
-                            "walks": None,
-                            "strikeouts": None,
-                            "left_on_base": None,
-                            "hit_by_pitch": None,
-                            "sac_flies": None,
-                            "sac_bunts": None,
-                            "batting_avg": None,
-                            "on_base_pct": None,
-                            "slugging_pct": None,
-                            "ops": None,
+                            "at_bats": 0,
+                            "runs": 0,
+                            "hits": 0,
+                            "doubles": 0,
+                            "triples": 0,
+                            "home_runs": 0,
+                            "rbi": 0,
+                            "stolen_bases": 0,
+                            "caught_stealing": 0,
+                            "walks": 0,
+                            "strikeouts": 0,
+                            "left_on_base": 0,
+                            "hit_by_pitch": 0,
+                            "sac_flies": 0,
+                            "sac_bunts": 0,
+                            "batting_avg": 0,
+                            "on_base_pct": 0,
+                            "slugging_pct": 0,
+                            "ops": 0,
                         }
                     )
 
@@ -380,19 +380,19 @@ def process_player_stats_from_game(game_id, season):
                     )
                     player_record.update(pitching_stats)
                 else:
-                    # Set pitching stats to 0/None for batters who didn't pitch
+                    # Set pitching stats to 0 for batters who didn't pitch
                     player_record.update(
                         {
-                            "innings_pitched": None,
-                            "pitching_hits": None,
-                            "pitching_runs": None,
-                            "earned_runs": None,
-                            "pitching_walks": None,
-                            "pitching_strikeouts": None,
-                            "pitching_home_runs": None,
-                            "pitches_thrown": None,
-                            "strikes": None,
-                            "balls": None,
+                            "innings_pitched": 0,
+                            "pitching_hits": 0,
+                            "pitching_runs": 0,
+                            "earned_runs": 0,
+                            "pitching_walks": 0,
+                            "pitching_strikeouts": 0,
+                            "pitching_home_runs": 0,
+                            "pitches_thrown": 0,
+                            "strikes": 0,
+                            "balls": 0,
                         }
                     )
 
@@ -464,12 +464,12 @@ def main():
         if initial_count != final_count:
             print(f"⚠️ Removed {initial_count - final_count} duplicate records")
 
-        # Replace any remaining NaN values with None for proper database insertion
-        stats_df = stats_df.where(pd.notna(stats_df), None)
+        # Replace any remaining NaN values with 0 for proper database insertion
+        stats_df = stats_df.where(pd.notna(stats_df), 0)
 
         # Also replace any float('nan') values that might have slipped through
 
-        stats_df = stats_df.replace([np.nan, float("nan")], None)
+        stats_df = stats_df.replace([np.nan, float("nan")], 0)
 
         insert_player_stats(stats_df, engine)
     else:

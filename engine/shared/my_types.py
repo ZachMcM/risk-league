@@ -1,4 +1,4 @@
-from typing import TypedDict
+from typing import TypedDict, Literal
 from datetime import datetime
 
 class Player(TypedDict):
@@ -29,3 +29,5 @@ class StatName(TypedDict):
 class MetricStats(TypedDict):
     mean: float
     sd: float
+    
+Leagues = Literal["nba", "mlb"]
