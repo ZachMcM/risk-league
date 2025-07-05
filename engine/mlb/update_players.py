@@ -12,6 +12,12 @@ engine = create_engine(os.getenv("DATABASE_URL"))
 
 
 def insert_players(players_df, engine):
+    """Insert MLB players into the database.
+    
+    Args:
+        players_df: DataFrame containing player data
+        engine: SQLAlchemy database engine
+    """
     data = players_df.to_dict(orient="records")
     if not data:
         print("No data to insert.")
@@ -45,6 +51,10 @@ def insert_players(players_df, engine):
 
 
 def main():
+    """Main function to update MLB players.
+    
+    Fetches current rosters for all MLB teams and updates the database.
+    """
     # Get all MLB teams first
     teams_data = statsapi.get("teams", {"sportId": 1})["teams"]
 

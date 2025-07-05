@@ -1,6 +1,21 @@
 from typing import TypedDict, Literal
 from datetime import datetime
 
+
+class Prop(TypedDict):
+    id: str
+    line: float
+    current_value: float
+    raw_game_id: str
+    player_id: str
+    created_at: datetime
+    stat: str
+    game_start_time: datetime
+    league: str
+    resolved: bool
+    pick_options: list[str]
+
+
 class Player(TypedDict):
     id: str
     name: str
@@ -20,14 +35,16 @@ class Team(TypedDict):
     city: str
     state: str
     year_founded: int
-    
-    
+
+
 class StatName(TypedDict):
     dbname: str
     api_name: str
-    
+
+
 class MetricStats(TypedDict):
     mean: float
     sd: float
-    
+
+
 Leagues = Literal["nba", "mlb"]

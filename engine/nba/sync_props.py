@@ -14,8 +14,12 @@ load_dotenv()
 engine = create_engine(os.getenv("DATABASE_URL"))
 
 
-# gets all the games for today
 def get_today_games():
+    """Get all NBA games for today from the API.
+
+    Returns:
+        List of today's NBA games
+    """
     today = datetime.now().strftime("%Y-%m-%d")
     try:
         scoreboard = ScoreBoard()
@@ -28,8 +32,15 @@ def get_today_games():
         sys.exit(1)
 
 
-# gets all the player stats for a given live game
 def get_player_stats(game_id: str):
+    """Get all player stats for a given live NBA game.
+
+    Args:
+        game_id: The ID of the game
+
+    Returns:
+        List of player statistics for both teams
+    """
     boxscore = BoxScore(game_id).game.get_dict()
     home_players = boxscore["homeTeam"]["players"]
     away_players = boxscore["awayTeam"]["players"]
@@ -37,6 +48,11 @@ def get_player_stats(game_id: str):
 
 
 def sync_props():
+    """Sync prop values with live NBA game data.
+
+    Updates database props with current live game statistics
+    for all today's games.
+    """
     games = get_today_games()
 
     for i, game in enumerate(games):
@@ -56,19 +72,40 @@ def sync_props():
                     str(game["gameId"]),
                     stats[stat_name["api_name"]],
                     league="nba",
+                    is_final=game["gameStatusText"] == "Final",
                 )
 
             pra = stats["points"] + stats["reboundsTotal"] + stats["assists"]
-            update_prop("pra", str(player["personId"]), str(game["gameId"]), pra)
+            update_prop(
+                engine,
+                "pra",
+                str(player["personId"]),
+                str(game["gameId"]),
+                pra,
+                league="nba",
+                is_final=game["gameStatusText"] == "Final",
+            )
 
             pts_ast = stats["points"] + stats["assists"]
             update_prop(
-                "pts_ast", str(player["personId"]), str(game["gameId"]), pts_ast
+                engine,
+                "pts_ast",
+                str(player["personId"]),
+                str(game["gameId"]),
+                pts_ast,
+                league="nba",
+                is_final=game["gameStatusText"] == "Final",
             )
 
             reb_ast = stats["reboundsTotal"] + stats["assists"]
             update_prop(
-                "reb_ast", str(player["personId"]), str(game["gameId"]), reb_ast
+                engine,
+                "reb_ast",
+                str(player["personId"]),
+                str(game["gameId"]),
+                reb_ast,
+                league="nba",
+                is_final=game["gameStatusText"] == "Final",
             )
 
     print(f"✅ Successfully updated props\n")
@@ -76,6 +113,10 @@ def sync_props():
 
 
 def main():
+    """Main function that runs the NBA props sync scheduler.
+
+    Starts a background scheduler that syncs props every 60 seconds.
+    """
     scheduler = BackgroundScheduler()
     scheduler.add_job(sync_props, "interval", seconds=60)
     scheduler.start()

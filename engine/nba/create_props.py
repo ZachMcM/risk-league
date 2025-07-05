@@ -42,6 +42,25 @@ def generate_prop(
     team_last_games: list[NbaGame],
     team_opp_games: list[NbaGame],
 ) -> float:
+    """Generate a prop line for a specific NBA stat using machine learning models.
+    
+    Uses different regression models based on the stat type to predict the player's
+    performance in the next game. Incorporates player historical performance,
+    team performance, and opponent defensive/offensive metrics.
+    
+    Args:
+        stat: The statistic to generate a prop for (e.g., 'pts', 'reb', 'ast').
+        last_games: List of the player's recent game statistics.
+        matchup_last_games: List of the opposing team's recent game statistics.
+        team_last_games: List of the player's team's recent game statistics.
+        team_opp_games: List of statistics from teams that played against the player's team.
+        
+    Returns:
+        The predicted prop line value, adjusted for bias and rounded appropriately.
+        
+    Raises:
+        ValueError: If the stat parameter is not recognized.
+    """
     if stat == "pts":
         data = pd.DataFrame(
             {
@@ -564,6 +583,21 @@ def is_prop_eligible(
     mpg: float,
     use_playoffs=False,
 ) -> bool:
+    """Determine if a player is eligible for a prop on a specific stat.
+    
+    Checks if the player meets the minimum requirements for prop generation
+    based on their average performance, position, and minutes played.
+    
+    Args:
+        stat: The statistic to check eligibility for.
+        player_stat_average: The player's average performance in this stat.
+        position: The player's position (e.g., 'PG', 'SG', 'SF', 'PF', 'C').
+        mpg: The player's minutes per game average.
+        use_playoffs: Whether to use playoff stats for comparison. Defaults to False.
+        
+    Returns:
+        True if the player is eligible for this prop, False otherwise.
+    """
     stat_desc = get_metric_stats(stat, position, use_playoffs)
     return (
         mpg > minutes_threshold
@@ -579,6 +613,21 @@ def is_combined_stat_prop_eligible(
     mpg: float,
     use_playoffs=False,
 ) -> bool:
+    """Check if a player is eligible for a combined stat prop.
+    
+    Evaluates eligibility for combined statistics like PRA (Points + Rebounds + Assists),
+    Points + Assists, or Rebounds + Assists based on league averages.
+    
+    Args:
+        stat: The combined statistic to check ('pra', 'pts_ast', or 'reb_ast').
+        player_stat_average: The player's average performance in this combined stat.
+        position: The player's position (e.g., 'PG', 'SG', 'SF', 'PF', 'C').
+        mpg: The player's minutes per game average.
+        use_playoffs: Whether to use playoff stats for comparison. Defaults to False.
+        
+    Returns:
+        True if the player is eligible for this combined stat prop, False otherwise.
+    """
     combined_metric_list: list[str] = []
     if stat == "pra":
         combined_metric_list = ["pts", "reb", "ast"]
@@ -597,6 +646,17 @@ def is_combined_stat_prop_eligible(
 
 # gets all the games for today
 def get_today_games(test_date=None):
+    """Fetch NBA games scheduled for today from the NBA API.
+    
+    Retrieves the complete schedule and filters for games on the current date
+    or a specified test date.
+    
+    Args:
+        test_date: Optional test date in MM/DD/YYYY format. If None, uses today's date.
+        
+    Returns:
+        List of games scheduled for the specified date, or empty list if no games.
+    """
     url = "https://cdn.nba.com/static/json/staticData/scheduleLeagueV2.json"
     res = requests.get(url)
     data = res.json()
@@ -614,6 +674,17 @@ def get_today_games(test_date=None):
 
 
 def main():
+    """Main function to generate NBA props for today's games.
+    
+    Orchestrates the entire prop generation process:
+    1. Fetches today's NBA games
+    2. Processes each player in each game
+    3. Checks eligibility for various stats
+    4. Generates prop lines using machine learning models
+    5. Stores props in the database
+    
+    Supports a test_date command line argument for historical analysis.
+    """
     # start timing the execution
     start = time()
 

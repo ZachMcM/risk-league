@@ -16,7 +16,14 @@ engine = create_engine(os.getenv("DATABASE_URL"))
 
 
 def get_team_stats_from_boxscore(team_data):
-    """Extract team stats from boxscore data"""
+    """Extract team stats from boxscore data.
+    
+    Args:
+        team_data: Dictionary containing team boxscore data
+        
+    Returns:
+        Dictionary containing extracted team statistics
+    """
     team_stats = team_data.get("teamStats", {})
 
     batting_stats = team_stats.get("batting", {})
@@ -67,7 +74,15 @@ def get_team_stats_from_boxscore(team_data):
 
 
 def process_game_data(game, season):
-    """Process a single game and return records for both teams"""
+    """Process a single game and return records for both teams.
+    
+    Args:
+        game: Dictionary containing game data
+        season: Integer representing the season year
+        
+    Returns:
+        List of game records for both teams
+    """
     game_id = str(game["game_id"])
     game_records = []
 
@@ -152,7 +167,12 @@ def process_game_data(game, season):
 
 
 def insert_games(games_df, engine):
-    """Insert games data into database with upsert capability"""
+    """Insert games data into database with upsert capability.
+    
+    Args:
+        games_df: DataFrame containing game data
+        engine: SQLAlchemy database engine
+    """
     data = games_df.to_dict(orient="records")
 
     if not data:
@@ -184,7 +204,14 @@ def insert_games(games_df, engine):
 
 
 def extract_player_batting_stats(batting_stats):
-    """Extract batting stats from player boxscore data"""
+    """Extract batting stats from player boxscore data.
+    
+    Args:
+        batting_stats: Dictionary containing batting statistics
+        
+    Returns:
+        Dictionary containing extracted batting stats
+    """
     return {
         "at_bats": batting_stats.get("atBats", 0),
         "runs": batting_stats.get("runs", 0),
@@ -225,7 +252,14 @@ def extract_player_batting_stats(batting_stats):
 
 
 def extract_player_pitching_stats(pitching_stats):
-    """Extract pitching stats from player boxscore data"""
+    """Extract pitching stats from player boxscore data.
+    
+    Args:
+        pitching_stats: Dictionary containing pitching statistics
+        
+    Returns:
+        Dictionary containing extracted pitching stats
+    """
     return {
         "innings_pitched": (
             float(pitching_stats.get("inningsPitched"))
@@ -245,7 +279,12 @@ def extract_player_pitching_stats(pitching_stats):
 
 
 def insert_player_stats(games_df, engine: Engine):
-    """Insert games data into database with upsert capability"""
+    """Insert player stats data into database with upsert capability.
+    
+    Args:
+        games_df: DataFrame containing player stats data
+        engine: SQLAlchemy database engine
+    """
     data = games_df.to_dict(orient="records")
 
     if not data:
@@ -296,7 +335,15 @@ def insert_player_stats(games_df, engine: Engine):
 
 
 def process_player_stats_from_game(game_id, season):
-    """Process player stats from a single game"""
+    """Process player stats from a single game.
+    
+    Args:
+        game_id: ID of the game
+        season: Integer representing the season year
+        
+    Returns:
+        List of player stat records for the game
+    """
     player_records = []
 
     try:
@@ -406,6 +453,10 @@ def process_player_stats_from_game(game_id, season):
 
 
 def remove_duplicates():
+    """Remove duplicate MLB player stats records.
+    
+    Keeps the most recent record for each player-game combination.
+    """
     try:
         with engine.begin() as conn:
             # Subquery to get the IDs we want to keep (most recent for each player_id, game_id pair)
@@ -432,7 +483,10 @@ def remove_duplicates():
 
 
 def main():
-    """Initialize MLB games data for a date range"""
+    """Initialize MLB games data for a date range.
+    
+    Processes previous day's games and updates both team and player stats.
+    """
 
     previous_date = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
 

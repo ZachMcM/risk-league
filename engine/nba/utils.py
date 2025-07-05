@@ -2,6 +2,14 @@ from datetime import datetime, timezone
 
 
 def clean_minutes(min_str):
+    """Clean minute string format and convert to integer.
+    
+    Args:
+        min_str: String in format "MM:SS" or other format
+        
+    Returns:
+        Integer minutes value
+    """
     if isinstance(min_str, str) and ":" in min_str:
         mins, _ = min_str.split(":")
         return int(mins)
@@ -9,6 +17,11 @@ def clean_minutes(min_str):
 
 
 def get_current_season():
+    """Get the current NBA season string.
+    
+    Returns:
+        String in format "YYYY-YY" representing the current season
+    """
     now = datetime.now()
     year = now.year
     month = now.month
@@ -22,6 +35,11 @@ def get_current_season():
     return f"{start_year}-{str(start_year + 1)[-2:]}"
 
 def get_last_season():
+    """Get the last NBA season string.
+    
+    Returns:
+        String in format "YYYY-YY" representing the previous season
+    """
     now = datetime.now()
     year = now.year
     month = now.month
@@ -36,12 +54,28 @@ def get_last_season():
 
 
 def remove_decimals_from_string_id(s):
+    """Remove decimal points from string IDs.
+    
+    Args:
+        s: String ID that may contain decimal points
+        
+    Returns:
+        String with decimal points removed
+    """
     if "." in s:
         s = s.split(".")[0]
     return s
 
 
 def get_game_type(code):
+    """Get game type from NBA API code.
+    
+    Args:
+        code: Three-digit game type code
+        
+    Returns:
+        String representing the game type
+    """
     if code == "001":
         return "preseason"
     elif code == "002":
@@ -53,6 +87,14 @@ def get_game_type(code):
     
     
 def get_season_bounds(season_str: str):
+    """Get season start and end dates from season string.
+    
+    Args:
+        season_str: Season string in format "YYYY-YY"
+        
+    Returns:
+        Tuple of (season_start, season_end) datetime objects
+    """
     start_year, end_year = map(int, season_str.split("-"))
     season_start = datetime(start_year, 10, 1, tzinfo=timezone.utc)
     season_end = datetime(end_year, 6, 30, 23, 59, 59, tzinfo=timezone.utc)

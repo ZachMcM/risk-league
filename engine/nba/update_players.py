@@ -20,6 +20,15 @@ engine = create_engine(os.getenv("DATABASE_URL"))
 
 
 def get_team_players(team_id, season):
+    """Get roster data for an NBA team.
+
+    Args:
+        team_id: NBA team ID
+        season: Season string (e.g., "2023-24")
+
+    Returns:
+        DataFrame containing team roster data
+    """
     try:
         roster = commonteamroster.CommonTeamRoster(team_id=team_id, season=season)
         return roster.get_data_frames()[0]
@@ -29,6 +38,12 @@ def get_team_players(team_id, season):
 
 
 def insert_team_players(data, engine):
+    """Insert NBA team players into the database.
+
+    Args:
+        data: DataFrame containing player data
+        engine: SQLAlchemy database engine
+    """
     records = data.to_dict(orient="records")
 
     with engine.begin() as conn:
@@ -60,6 +75,10 @@ def insert_team_players(data, engine):
 
 
 def main():
+    """Main function to update NBA players.
+
+    Fetches current rosters for all NBA teams and updates the database.
+    """
     season = get_current_season()
     team_list = teams.get_teams()
 

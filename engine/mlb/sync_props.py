@@ -1,4 +1,5 @@
 import os
+import signal
 import sys
 from datetime import datetime
 
@@ -14,7 +15,11 @@ engine = create_engine(os.getenv("DATABASE_URL"))
 
 
 def get_today_games():
-    """Get all MLB games for today"""
+    """Get all MLB games for today.
+
+    Returns:
+        List of today's MLB games from the API
+    """
     today = datetime.now().strftime("%Y-%m-%d")
     try:
         schedule = statsapi.schedule(start_date=today, end_date=today)
@@ -27,7 +32,14 @@ def get_today_games():
 
 
 def get_player_stats(game_id: str):
-    """Get all player stats for a given live game"""
+    """Get all player stats for a given live MLB game.
+
+    Args:
+        game_id: ID of the game
+
+    Returns:
+        List of player statistics for all players in the game
+    """
     try:
         game_data = statsapi.get("game", {"gamePk": game_id})
 
@@ -119,7 +131,11 @@ def get_player_stats(game_id: str):
 
 
 def sync_props():
-    """Sync props with live game data"""
+    """Sync props with live MLB game data.
+
+    Updates database props with current live game statistics
+    for all today's games.
+    """
     games = get_today_games()
 
     if not games:
@@ -150,6 +166,7 @@ def sync_props():
                         str(player["raw_game_id"]),
                         player[stat],
                         "mlb",
+                        is_final=game["status"] == "Final",
                     )
 
     print(f"✅ Successfully updated props")
@@ -157,20 +174,25 @@ def sync_props():
 
 
 def main():
-    sync_props()
-    # scheduler = BackgroundScheduler()
-    # scheduler.add_job(sync_props, "interval", seconds=60)
-    # scheduler.start()
+    """Main function that runs the MLB props sync scheduler.
 
-    # try:
-    #     signal.pause()
-    # except (KeyboardInterrupt, SystemExit):
-    #     print("Exiting...")
-    #     scheduler.shutdown()
-    # except Exception as e:
-    #     print(f"Unhandled exception: {e}")
-    #     scheduler.shutdown()
-    #     sys.exit(1)
+    Runs sync once immediately, then starts a background scheduler
+    that syncs props every 60 seconds.
+    """
+    sync_props()
+    scheduler = BackgroundScheduler()
+    scheduler.add_job(sync_props, "interval", seconds=60)
+    scheduler.start()
+
+    try:
+        signal.pause()
+    except (KeyboardInterrupt, SystemExit):
+        print("Exiting...")
+        scheduler.shutdown()
+    except Exception as e:
+        print(f"Unhandled exception: {e}")
+        scheduler.shutdown()
+        sys.exit(1)
 
 
 if __name__ == "__main__":

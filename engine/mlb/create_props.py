@@ -41,6 +41,26 @@ def generate_prop(
     team_last_games: list[MlbGame],
     team_opp_last_games: list[MlbGame],
 ) -> float:
+    """Generate a prop line for a specific MLB stat using machine learning models.
+    
+    Uses different regression models (Ridge or Poisson) based on the stat type
+    to predict the player's performance in the next game. Incorporates player
+    historical performance, team performance, and opponent metrics.
+    
+    Args:
+        stat: The statistic to generate a prop for (e.g., 'hits', 'home_runs', 'strikeouts').
+        last_games: List of the player's recent game statistics.
+        matchup_last_games: List of the opposing team's recent game statistics.
+        team_last_games: List of the player's team's recent game statistics.
+        team_opp_last_games: List of statistics from teams that played against the player's team.
+        
+    Returns:
+        The predicted prop line value, adjusted for bias and rounded appropriately.
+        Returns 0 if the prediction is NaN or infinite.
+        
+    Raises:
+        ValueError: If the stat parameter is not recognized.
+    """
     if stat == "home_runs":
         data = pd.DataFrame(
             {
@@ -672,6 +692,19 @@ def generate_prop(
 
 
 def is_prop_eligible(metric: Stat, position: str) -> bool:
+    """Determine if a player is eligible for a prop based on their position.
+    
+    Validates that the requested stat is appropriate for the player's position.
+    Pitchers are only eligible for pitching stats, while position players are
+    eligible for batting stats. Two-way players are eligible for all stats.
+    
+    Args:
+        metric: The statistic to check eligibility for.
+        position: The player's position ('Pitcher', 'Two-Way Player', or position player).
+        
+    Returns:
+        True if the player is eligible for this prop based on position, False otherwise.
+    """
     # For pitchers, only allow pitching stats
     if position == "Pitcher":
         if metric in [
@@ -714,6 +747,20 @@ def is_prop_eligible(metric: Stat, position: str) -> bool:
 
 
 def get_player_from_db(id: str) -> Player:
+    """Fetch a player's information from the database.
+    
+    Retrieves complete player data including name, position, and team information
+    from the players table.
+    
+    Args:
+        id: The unique player identifier.
+        
+    Returns:
+        Player dictionary containing player information, or None if not found.
+        
+    Raises:
+        SystemExit: If database query fails.
+    """
     try:
         with engine.connect() as conn:
             stmt = select(t_players).where(
@@ -729,6 +776,22 @@ def get_player_from_db(id: str) -> Player:
 
 
 def get_game_players(game_id, probable_pitchers: list[str]) -> list[Player]:
+    """Get all eligible players for a specific MLB game.
+    
+    Fetches player data from the MLB API boxscore and filters out bench players.
+    For pitchers, only includes probable pitchers. For position players, includes
+    all active players (not on bench).
+    
+    Args:
+        game_id: The MLB game identifier.
+        probable_pitchers: List of probable pitcher names for the game.
+        
+    Returns:
+        List of Player objects eligible for prop generation.
+        
+    Raises:
+        SystemExit: If the API call or data processing fails.
+    """
     """Returns a list of all players (PlayerData dict) for a given game"""
     try:
         game_data = statsapi.get("game", {"gamePk": game_id})
@@ -766,6 +829,18 @@ def get_game_players(game_id, probable_pitchers: list[str]) -> list[Player]:
 
 
 def main():
+    """Main function to generate MLB props for today's games.
+    
+    Orchestrates the entire MLB prop generation process:
+    1. Fetches today's MLB games from the statsapi
+    2. Processes each player in each game
+    3. Checks position-based eligibility for various stats
+    4. Generates prop lines using machine learning models
+    5. Stores props in the database with appropriate pick options
+    
+    The function handles both batting and pitching props, with different
+    pick options (over/under vs over only) based on the stat type.
+    """
     start = time()
     today = datetime.today().strftime("%Y-%m-%d")
     print("Fetching today's MLB games")

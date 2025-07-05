@@ -24,8 +24,15 @@ load_dotenv()
 engine = create_engine(os.getenv("DATABASE_URL"))
 
 
-# gets all the games from the previous day
 def get_previous_day_games(test=None):
+    """Get all NBA games from the previous day.
+    
+    Args:
+        test: Optional test date string for testing purposes
+        
+    Returns:
+        Pandas DataFrame containing game data from previous day
+    """
     season = get_current_season()
     yesterday = datetime.now() - timedelta(days=1)
     yesterday_str = yesterday.strftime("%m/%d/%Y")  # Format: MM/DD/YYYY
@@ -54,8 +61,14 @@ def get_previous_day_games(test=None):
     return pd.concat(dfs, ignore_index=True)
 
 
-# inserts games into the db
 def insert_games(games_df, engine, nba_games):
+    """Insert NBA games into the database.
+    
+    Args:
+        games_df: DataFrame containing game data
+        engine: SQLAlchemy database engine
+        nba_games: NBA games table reference
+    """
     data = games_df.to_dict(orient="records")
 
     if not data:
@@ -103,6 +116,14 @@ def insert_games(games_df, engine, nba_games):
 
 
 def get_boxscore(game_id):
+    """Get traditional boxscore data for a game.
+    
+    Args:
+        game_id: ID of the game
+        
+    Returns:
+        DataFrame containing traditional boxscore data
+    """
     try:
         boxscore = boxscoretraditionalv3.BoxScoreTraditionalV3(game_id=game_id)
         return boxscore.get_data_frames()[0]
@@ -112,6 +133,14 @@ def get_boxscore(game_id):
 
 
 def get_boxscore_advanced(game_id):
+    """Get advanced boxscore data for a game.
+    
+    Args:
+        game_id: ID of the game
+        
+    Returns:
+        DataFrame containing advanced boxscore data
+    """
     try:
         boxscore = boxscoreadvancedv3.BoxScoreAdvancedV3(game_id=game_id)
         return boxscore.get_data_frames()[0]
@@ -121,6 +150,14 @@ def get_boxscore_advanced(game_id):
 
 
 def get_team_advanced(game_id):
+    """Get team advanced stats for a game.
+    
+    Args:
+        game_id: ID of the game
+        
+    Returns:
+        DataFrame containing team advanced stats
+    """
     try:
         boxscore = boxscoreadvancedv3.BoxScoreAdvancedV3(game_id=game_id)
         return boxscore.get_data_frames()[1]
@@ -129,7 +166,6 @@ def get_team_advanced(game_id):
         sys.exit(1)
 
 
-# inserts player advanced stats into the db
 def insert_player_advanced_stats(
     id: str,
     true_shooting: float,
@@ -141,6 +177,19 @@ def insert_player_advanced_stats(
     ast_ratio: float,
     tov_ratio: float,
 ):
+    """Insert player advanced stats into the database.
+    
+    Args:
+        id: Player record ID
+        true_shooting: True shooting percentage
+        usage_rate: Usage rate percentage
+        reb_pct: Rebound percentage
+        dreb_pct: Defensive rebound percentage
+        oreb_pct: Offensive rebound percentage
+        ast_pct: Assist percentage
+        ast_ratio: Assist ratio
+        tov_ratio: Turnover ratio
+    """
     try:
         with engine.begin() as conn:
             stmt = (
@@ -165,8 +214,14 @@ def insert_player_advanced_stats(
         sys.exit(1)
 
 
-# inserts the basic player stats into the db
 def insert_player_stats(stats_df, engine, nba_player_stats):
+    """Insert basic player stats into the database.
+    
+    Args:
+        stats_df: DataFrame containing player stats
+        engine: SQLAlchemy database engine
+        nba_player_stats: NBA player stats table reference
+    """
     data = stats_df.to_dict(orient="records")
     if not data:
         print("⚠️ No data to insert.")
@@ -212,6 +267,10 @@ def insert_player_stats(stats_df, engine, nba_player_stats):
 
 
 def remove_duplicates():
+    """Remove duplicate NBA player stats records.
+    
+    Keeps the most recent record for each player-game combination.
+    """
     try:
         with engine.begin() as conn:
             # Subquery to get the IDs we want to keep (most recent for each player_id, game_id pair)
@@ -237,7 +296,6 @@ def remove_duplicates():
         print(f"🚨 There was an error trying to delete duplicates: {e}")
 
 
-# inserts team advanced stats into the db
 def insert_team_advanced_stats(
     pace: float,
     tov_ratio: float,
@@ -246,6 +304,16 @@ def insert_team_advanced_stats(
     def_rating: float,
     game_id: str,
 ):
+    """Insert team advanced stats into the database.
+    
+    Args:
+        pace: Team pace statistic
+        tov_ratio: Turnover ratio
+        tov_pct: Turnover percentage
+        off_rating: Offensive rating
+        def_rating: Defensive rating
+        game_id: ID of the game
+    """
     try:
         with engine.begin() as conn:
             stmt = (
@@ -268,6 +336,10 @@ def insert_team_advanced_stats(
 
 
 def main():
+    """Main function to update NBA stats.
+    
+    Processes previous day's games and updates both team and player stats.
+    """
     test_date = None
     if len(sys.argv) == 2:
         test_date = sys.argv[1]
