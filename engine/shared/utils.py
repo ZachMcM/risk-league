@@ -24,6 +24,11 @@ def pretty_print(data):
 def json_to_csv(json_data, csv_path="../tmp/out.csv"):
     df = pd.DataFrame(json_data)
     df.to_csv(csv_path, index=False)
+    
+    
+def dump_json(json_data, path="../tmp/json"):
+    with open(path, 'w') as json_file:
+        json.dump(json_data, json_file, indent=4, default=str)
 
 
 def db_response_to_json(res, field=None):
@@ -54,13 +59,3 @@ def safe_float(value):
 # rounds props to 0.5
 def round_prop(line) -> float:
     return round(round(line / 0.5) * 0.5, 1)
-
-def deduplicate_by_key(items, key):
-    seen = set()
-    result = []
-    for item in items:
-        value = item[key]
-        if value not in seen:
-            seen.add(value)
-            result.append(item)
-    return result

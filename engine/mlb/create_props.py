@@ -23,8 +23,7 @@ from shared.utils import (
     calculate_weighted_arithmetic_mean,
     db_response_to_json,
     round_prop,
-    json_to_csv,
-    deduplicate_by_key
+    dump_json,
 )
 from sklearn.linear_model import PoissonRegressor, Ridge
 from sklearn.pipeline import make_pipeline
@@ -730,7 +729,7 @@ def get_player_from_db(id: str) -> Player:
         sys.exit(1)
 
 
-def get_game_players(game_id) -> list[Player]:
+def get_game_players(game_id, probable_pitchers: list[str]) -> list[Player]:
     """Returns a list of all players (PlayerData dict) for a given game"""
     try:
         game_data = statsapi.get("game", {"gamePk": game_id})
@@ -743,15 +742,22 @@ def get_game_players(game_id) -> list[Player]:
                 continue
 
             team_data = teams_data[team_side]
-
+            
             players_data = team_data.get("players", {})
             for player_key, _ in players_data.items():
                 if not player_key.startswith("ID"):
                     continue
                 player_id = player_key.replace("ID", "")
+                if player_id in [str(id) for id in team_data["bench"]]:
+                    print("Bench player skipped\n")
+                    continue
                 player_data = get_player_from_db(player_id)
                 if player_data is not None:
-                    players.append(player_data)
+                    if player_data["position"] != "Pitcher":
+                        players.append(player_data)
+                    else:
+                        if player_data["name"] in probable_pitchers:
+                            players.append(player_data)
 
         return players
 
@@ -763,7 +769,7 @@ def get_game_players(game_id) -> list[Player]:
 def main():
     start = time()
     today = datetime.today().strftime("%Y-%m-%d")
-    print("Fetching today's MLB games from")
+    print("Fetching today's MLB games")
 
     # Get schedule for date range
     schedule = statsapi.schedule(start_date=today, end_date=today)
@@ -780,13 +786,16 @@ def main():
 
         home_team_id = game["home_id"]
         away_team_id = game["away_id"]
-        players = get_game_players(game["game_id"])
-
+        players = get_game_players(
+            game["game_id"],
+            [game["home_probable_pitcher"], game["away_probable_pitcher"]],
+        )
+        
         for player in players:
             player_last_games = get_player_last_games(
                 engine, player["id"], "mlb", n_games
-            )                
-                        
+            )
+
             matchup = ""
             if player["team_id"] == home_team_id:
                 matchup = away_team_id
@@ -804,8 +813,6 @@ def main():
             )
 
     for player_data in player_data_list:
-        # if player_data["player"]['name'] != "Walker Buehler":
-        #     continue
         print(
             f"Processing player {player['name']} {player['id']} against team {player_data['matchup']}\n"
         )
@@ -821,7 +828,7 @@ def main():
             )
             continue
 
-        sample_size = len(player_last_games)
+        sample_size = len(player_data["last_games"])
 
         # we get the last n games for the opposing team
         if player_data["matchup"] not in team_games_cache:
@@ -834,13 +841,14 @@ def main():
         # we use the get games by id function to make sure we aren't getting games the player didn't play in
 
         games_id_list = [game["game_id"] for game in player_data["last_games"]]
+        
 
         team_last_games = get_games_by_id(engine, games_id_list, "mlb", sample_size)
 
         team_opp_games = get_opposing_team_last_games(
             engine, games_id_list, "mlb", sample_size
         )
-
+        
         for stat in stats_arr:
             if stat_eligibility[stat]:
                 line = generate_prop(
@@ -852,7 +860,12 @@ def main():
                 )
                 if line > 0:
                     pick_options = []
-                    if stat in ["pitching_hits", "earned_runs", "pitches_thrown", "pitching_strikeouts"]:
+                    if stat in [
+                        "pitching_hits",
+                        "earned_runs",
+                        "pitches_thrown",
+                        "pitching_strikeouts",
+                    ]:
                         pick_options.append("over")
                     else:
                         pick_options.extend(["over", "under"])
