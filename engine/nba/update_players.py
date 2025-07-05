@@ -3,9 +3,9 @@ import time
 
 import pandas as pd
 from dotenv import load_dotenv
+from nba.constants import req_pause_time
 from nba_api.stats.endpoints import commonteamroster
 from nba_api.stats.static import teams
-from constants import req_pause_time
 from shared.tables import t_players
 from sqlalchemy import create_engine
 from sqlalchemy.dialects.postgresql import insert as pg_insert
@@ -37,7 +37,15 @@ def insert_team_players(data, engine):
 
             update_cols = {
                 col: stmt.excluded[col]
-                for col in ["name", "team_id", "position", "height", "weight", "number", "league"]
+                for col in [
+                    "name",
+                    "team_id",
+                    "position",
+                    "height",
+                    "weight",
+                    "number",
+                    "league",
+                ]
             }
 
             stmt = stmt.on_conflict_do_update(

@@ -6,9 +6,9 @@ from time import time
 import numpy as np
 import pandas as pd
 import statsapi
-from constants import n_games
 from dotenv import load_dotenv
-from my_types import MlbGame, MlbPlayerStats, PlayerData, Stat, stats_arr
+from mlb.constants import n_games
+from mlb.my_types import MlbGame, MlbPlayerStats, PlayerData, Stat, stats_arr
 from shared.constants import bias
 from shared.db_utils import (
     get_games_by_id,
@@ -741,7 +741,7 @@ def get_game_players(game_id, probable_pitchers: list[str]) -> list[Player]:
                 continue
 
             team_data = teams_data[team_side]
-            
+
             players_data = team_data.get("players", {})
             for player_key, _ in players_data.items():
                 if not player_key.startswith("ID"):
@@ -789,7 +789,7 @@ def main():
             game["game_id"],
             [game["home_probable_pitcher"], game["away_probable_pitcher"]],
         )
-        
+
         for player in players:
             player_last_games = get_player_last_games(
                 engine, player["id"], "mlb", n_games
@@ -840,14 +840,13 @@ def main():
         # we use the get games by id function to make sure we aren't getting games the player didn't play in
 
         games_id_list = [game["game_id"] for game in player_data["last_games"]]
-        
 
         team_last_games = get_games_by_id(engine, games_id_list, "mlb", sample_size)
 
         team_opp_games = get_opposing_team_last_games(
             engine, games_id_list, "mlb", sample_size
         )
-        
+
         for stat in stats_arr:
             if stat_eligibility[stat]:
                 line = generate_prop(
@@ -865,9 +864,9 @@ def main():
                         "pitches_thrown",
                         "pitching_strikeouts",
                     ]:
-                        pick_options.append("over")
-                    else:
                         pick_options.extend(["over", "under"])
+                    else:
+                        pick_options.append("over")
                     insert_prop(
                         engine,
                         line,

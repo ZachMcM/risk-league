@@ -2,13 +2,13 @@ import os
 import signal
 import sys
 from datetime import datetime
-from shared.tables import t_props
+
 from apscheduler.schedulers.background import BackgroundScheduler
 from dotenv import load_dotenv
-from my_types import Stat, stat_name_list
+from nba.my_types import stat_name_list
 from nba_api.live.nba.endpoints import BoxScore, ScoreBoard
-from sqlalchemy import create_engine
 from shared.db_utils import update_prop
+from sqlalchemy import create_engine
 
 load_dotenv()
 engine = create_engine(os.getenv("DATABASE_URL"))
@@ -55,7 +55,7 @@ def sync_props():
                     str(player["personId"]),
                     str(game["gameId"]),
                     stats[stat_name["api_name"]],
-                    league="nba"
+                    league="nba",
                 )
 
             pra = stats["points"] + stats["reboundsTotal"] + stats["assists"]

@@ -5,17 +5,17 @@ from datetime import datetime, timedelta
 
 import pandas as pd
 from dotenv import load_dotenv
+from nba.constants import req_pause_time
+from nba.utils import clean_minutes, get_current_season, get_game_type
 from nba_api.stats.endpoints import (
     boxscoreadvancedv3,
     boxscoretraditionalv3,
     leaguegamefinder,
 )
 from nba_api.stats.static.players import get_active_players
-from constants import req_pause_time
 from shared.tables import t_nba_games, t_nba_player_stats
-from sqlalchemy import create_engine, update, delete, select
+from sqlalchemy import create_engine, delete, select, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
-from utils import clean_minutes, get_current_season, get_game_type
 
 # This script updates the database with all the NBA games from the past day
 
@@ -201,12 +201,15 @@ def insert_player_stats(stats_df, engine, nba_player_stats):
                     "season",
                 ]
             }
-            stmt = stmt.on_conflict_do_update(index_elements=["player_id", "game_id"], set_=update_cols)
+            stmt = stmt.on_conflict_do_update(
+                index_elements=["player_id", "game_id"], set_=update_cols
+            )
             conn.execute(stmt)
             print(f"✅ Upserted {len(data)} player stats\n")
         except Exception as e:
             print(f"⚠️ Upsert failed: {e}")
             sys.exit(1)
+
 
 def remove_duplicates():
     try:
@@ -218,20 +221,20 @@ def remove_duplicates():
                 .order_by(
                     t_nba_player_stats.c.player_id,
                     t_nba_player_stats.c.game_id,
-                    t_nba_player_stats.c.updated_at.desc()
+                    t_nba_player_stats.c.updated_at.desc(),
                 )
             )
-            
+
             # Delete records whose ID is not in the subquery
             stmt = delete(t_nba_player_stats).where(
                 t_nba_player_stats.c.id.notin_(subquery)
             )
-            
+
             result = conn.execute(stmt)
             print(f"✅ Removed {result.rowcount} duplicate NBA player stats records")
 
     except Exception as e:
-        print(f"🚨 There was an error trying to delete duplicates: {e}")      
+        print(f"🚨 There was an error trying to delete duplicates: {e}")
 
 
 # inserts team advanced stats into the db
@@ -453,7 +456,7 @@ def main():
                 row["assistRatio"],
                 row["turnoverRatio"],
             )
-            
+
     remove_duplicates()
     engine.dispose()  # Close the database connection
 
