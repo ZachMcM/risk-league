@@ -5,7 +5,7 @@ from datetime import datetime
 from apscheduler.schedulers.background import BackgroundScheduler
 from nba.my_types import stat_name_list
 from nba_api.live.nba.endpoints import BoxScore, ScoreBoard
-from shared.db_utils import update_prop_and_picks
+from shared.db_utils import update_prop
 from shared.db_session import get_db_session
 
 
@@ -62,7 +62,7 @@ def sync_props():
 
                 # loop through all the non combined stats
                 for stat_name in stat_name_list:
-                    update_prop_and_picks(
+                    update_prop(
                         session,
                         stat_name["db_name"],
                         str(player["personId"]),
@@ -73,7 +73,7 @@ def sync_props():
                     )
 
                 pra = stats["points"] + stats["reboundsTotal"] + stats["assists"]
-                update_prop_and_picks(
+                update_prop(
                     session,
                     "pra",
                     str(player["personId"]),
@@ -84,7 +84,7 @@ def sync_props():
                 )
 
                 pts_ast = stats["points"] + stats["assists"]
-                update_prop_and_picks(
+                update_prop(
                     session,
                     "pts_ast",
                     str(player["personId"]),
@@ -95,7 +95,7 @@ def sync_props():
                 )
 
                 reb_ast = stats["reboundsTotal"] + stats["assists"]
-                update_prop_and_picks(
+                update_prop(
                     session,
                     "reb_ast",
                     str(player["personId"]),

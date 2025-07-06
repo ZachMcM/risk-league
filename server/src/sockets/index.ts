@@ -75,9 +75,14 @@ export function initSocketServer(io: Server) {
   });
 
   io.of("/parlay_pick").on("connection", (socket) => {
-    const parlayPickId = socket.handshake.query.parlayPickId as string
-    console.log(`User connected to parlayPick id ${parlayPickId} namespace`);
+    const parlayPickId = socket.handshake.query.parlay_pick_id as string
+    console.log(`User connected to parlay pick id ${parlayPickId} namespace`);
 
     socket.join(`parlayPick:${parlayPickId}`)
+  })
+
+  io.of("/parlay").on("connection", (socket) => {
+    const parlayId = socket.handshake.query.parlay_id as string
+    console.log(`User connected to parlay id ${parlayId} namespace`)
   })
 }

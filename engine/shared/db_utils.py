@@ -1,11 +1,8 @@
 import sys
-import asyncio
 from datetime import datetime
 
-from sqlalchemy.orm import Session
-from sqlalchemy import and_, or_, select, update, desc
-
 from shared.my_types import Leagues
+from shared.pubsub_utils import publish_message
 from shared.tables import (
     MlbGames,
     MlbPlayerStats,
@@ -13,9 +10,9 @@ from shared.tables import (
     NbaPlayerStats,
     Players,
     Props,
-    ParlayPicks,
 )
-from shared.socket_utils import send_message
+from sqlalchemy import and_, desc, or_, select
+from sqlalchemy.orm import Session
 
 
 def get_player_last_games(
@@ -47,7 +44,12 @@ def get_player_last_games(
                 select(NbaPlayerStats)
                 .join(NbaGames, NbaPlayerStats.game_id == NbaGames.id)
                 .where(NbaPlayerStats.player_id == player_id)
-                .where(or_(NbaGames.game_type == "regular_season", NbaGames.game_type == "playoffs"))
+                .where(
+                    or_(
+                        NbaGames.game_type == "regular_season",
+                        NbaGames.game_type == "playoffs",
+                    )
+                )
                 .order_by(desc(NbaGames.game_date))
                 .limit(n_games)
             )
@@ -89,7 +91,12 @@ def get_team_last_games(
             query = (
                 select(NbaGames)
                 .where(NbaGames.team_id == str(team_id))
-                .where(or_(NbaGames.game_type == "regular_season", NbaGames.game_type == "playoffs"))
+                .where(
+                    or_(
+                        NbaGames.game_type == "regular_season",
+                        NbaGames.game_type == "playoffs",
+                    )
+                )
                 .order_by(desc(NbaGames.game_date))
                 .limit(n_games)
             )
@@ -152,7 +159,12 @@ def get_opposing_team_last_games(
             query = (
                 select(NbaGames)
                 .where(or_(*conditions))
-                .where(or_(NbaGames.game_type == "regular_season", NbaGames.game_type == "playoffs"))
+                .where(
+                    or_(
+                        NbaGames.game_type == "regular_season",
+                        NbaGames.game_type == "playoffs",
+                    )
+                )
                 .order_by(desc(NbaGames.game_date))
                 .limit(n_games)
             )
@@ -206,7 +218,12 @@ def get_games_by_id(
             query = (
                 select(NbaGames)
                 .where(NbaGames.id.in_(id_list))
-                .where(or_(NbaGames.game_type == "regular_season", NbaGames.game_type == "playoffs"))
+                .where(
+                    or_(
+                        NbaGames.game_type == "regular_season",
+                        NbaGames.game_type == "playoffs",
+                    )
+                )
                 .order_by(desc(NbaGames.game_date))
                 .limit(n_games)
             )
@@ -291,7 +308,7 @@ def insert_prop(
         sys.exit(1)
 
 
-def update_prop_and_picks(
+def update_prop(
     session: Session,
     stat: str,
     player_id: str,
@@ -332,49 +349,10 @@ def update_prop_and_picks(
         prop.current_value = updated_value
         prop.resolved = is_final
 
-        # Update parlay picks if the game is final
-        if prop.resolved:
-            prop_final_status = "over" if prop.current_value > prop.line else "under"
-
-            # Update picks that match the winning outcome to "hit"
-            session.execute(
-                update(ParlayPicks)
-                .where(ParlayPicks.prop_id == prop.id)
-                .where(ParlayPicks.pick == prop_final_status)
-                .values(status="hit")
-            )
-
-            # Update picks that don't match the winning outcome to "missed"
-            session.execute(
-                update(ParlayPicks)
-                .where(ParlayPicks.prop_id == prop.id)
-                .where(ParlayPicks.pick != prop_final_status)
-                .values(status="missed")
-            )
-
         session.commit()
 
-        # Get updated picks to send notifications
-        picks = session.execute(
-            select(ParlayPicks.id, Props.current_value, ParlayPicks.status)
-            .select_from(ParlayPicks.join(Props, Props.id == ParlayPicks.prop_id))
-            .where(Props.id == prop.id)
-        ).all()
-
-        async def send_updates():
-            for pick_id, current_value, status in picks:
-                await send_message(
-                    namespace="/parlay_pick",
-                    message="pick-updated",
-                    data={
-                        "current_value": current_value,
-                        "status": status,
-                    },
-                    query_params={"parlayPickId": pick_id},
-                )
-
-        # Run the async function
-        asyncio.run(send_updates())
+        if prop.resolved:
+            publish_message("prop_resolved", {"prop_id": str(prop.id)})
 
         print(f"✅ Updated {stat} for player {player_id}\n")
 
