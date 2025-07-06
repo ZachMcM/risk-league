@@ -31,6 +31,7 @@ packages = [
   "nba.tests",
   "system",
   "shared",
+  "shared.prop_generation",
   "shared.tests",
   "mlb",
   "mlb.tests"

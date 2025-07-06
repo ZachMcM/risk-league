@@ -4,7 +4,7 @@ from typing import Any
 
 import statsapi
 from apscheduler.schedulers.background import BackgroundScheduler
-from mlb.my_types import stats_arr
+from mlb.prop_configs import get_mlb_stats_list
 from shared.db_session import get_db_session
 from shared.db_utils import update_prop
 from shared.get_today_games import get_today_mlb_games as get_today_games
@@ -139,7 +139,8 @@ def sync_props() -> None:
                 )
 
                 # Update props for each MLB stat
-                for stat in stats_arr:
+                mlb_stats = get_mlb_stats_list()
+                for stat in mlb_stats:
                     if stat in player:
                         update_prop(
                             session,

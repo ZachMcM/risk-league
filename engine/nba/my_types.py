@@ -5,31 +5,8 @@ from shared.my_types import StatName
 from shared.tables import Players, NbaPlayerStats
 
 
-stats_arr: list[str] = [
-    "pts",
-    "reb",
-    "ast",
-    "three_pm",
-    "blk",
-    "stl",
-    "tov",
-    "pra",
-    "reb_ast",
-    "pts_ast"
-]
-
-Stat = Literal[
-    "pts",
-    "reb",
-    "ast",
-    "three_pm",
-    "blk",
-    "stl",
-    "tov",
-    "pra",
-    "reb_ast",
-    "pts_ast",
-]
+# Note: stats_arr and Stat Literal types have been replaced by the auto-registration system
+# Use get_nba_stats_list() from nba.prop_configs_new instead
 CombinedStat = Literal["pra", "reb_ast", "pts_ast"]
 
 
