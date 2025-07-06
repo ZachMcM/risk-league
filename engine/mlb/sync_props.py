@@ -1,31 +1,13 @@
 import signal
 import sys
-from datetime import datetime
 from typing import Any
 
 import statsapi
 from apscheduler.schedulers.background import BackgroundScheduler
-
 from mlb.my_types import stats_arr
 from shared.db_session import get_db_session
 from shared.db_utils import update_prop
-
-
-def get_today_games() -> list[dict[str, Any]]:
-    """Get all MLB games for today.
-
-    Returns:
-        List of today's MLB games from the API
-    """
-    today = datetime.now().strftime("%Y-%m-%d")
-    try:
-        schedule = statsapi.schedule(start_date=today, end_date=today)
-        if not schedule:
-            print("⚠️ No games found today, no props to sync!")
-        return schedule
-    except Exception as e:
-        print(f"⚠️ Error fetching today's games: {e}")
-        sys.exit(1)
+from shared.get_today_games import get_today_mlb_games as get_today_games
 
 
 def get_player_stats(game_id: str) -> list[dict[str, Any]]:
@@ -159,7 +141,6 @@ def sync_props() -> None:
                 # Update props for each MLB stat
                 for stat in stats_arr:
                     if stat in player:
-                        game_status = game.get("status")
                         update_prop(
                             session,
                             stat,
@@ -167,7 +148,7 @@ def sync_props() -> None:
                             str(player["raw_game_id"]),
                             player[stat],
                             "mlb",
-                            is_final=game_status.get("statusCode") == "F",
+                            is_final=game.get("status").get("statusCode") == "F",
                         )
 
         print(f"✅ Successfully updated props")

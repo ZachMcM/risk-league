@@ -4,27 +4,10 @@ from datetime import datetime
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from nba.my_types import stat_name_list
-from nba_api.live.nba.endpoints import BoxScore, ScoreBoard
+from nba_api.live.nba.endpoints import BoxScore
+from shared.get_today_games import get_today_nba_games as get_today_games
 from shared.db_utils import update_prop
 from shared.db_session import get_db_session
-
-
-def get_today_games():
-    """Get all NBA games for today from the API.
-
-    Returns:
-        List of today's NBA games
-    """
-    today = datetime.now().strftime("%Y-%m-%d")
-    try:
-        scoreboard = ScoreBoard()
-        games = ScoreBoard().games.get_dict()
-        if scoreboard.score_board_date != today:
-            print("⚠️ No games found today, no props to generate!")
-        return games
-    except Exception as e:
-        print(f"⚠️ Error fetching today's games: {e}")
-        sys.exit(1)
 
 
 def get_player_stats(game_id: str):

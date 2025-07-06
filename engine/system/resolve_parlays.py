@@ -1,9 +1,9 @@
 from shared.db_session import get_db_session
 from shared.pubsub_utils import listen_for_messages
-from shared.tables import Parlays, ParlayPicks, MatchUsers
+from shared.tables import Parlays, ParlayPicks
 from sqlalchemy.orm import Session
-from sqlalchemy import select, and_, or_
-from shared.constants import parlay_multipliers
+from sqlalchemy import select
+from system.constants import parlay_multipliers
 import asyncio
 from shared.socket_utils import send_message as send_socket_message
 
@@ -46,7 +46,7 @@ def resolve_parlay(session: Session, pick_id: str):
     asyncio.run(
         send_socket_message(
             namespace="parlay",
-            message="parlay_updated",
+            message="parlay-resolved",
             data={
                 "delta": delta,
                 "status": parlay.status,

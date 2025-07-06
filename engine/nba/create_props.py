@@ -641,7 +641,7 @@ def is_combined_stat_prop_eligible(
     )
 
 
-def get_today_games(test_date: str = None) -> list[dict[str, Any]]:
+def get_today_schedule(test_date: str = None) -> list[dict[str, Any]]:
     """Fetch NBA games scheduled for today from the NBA API.
     
     Retrieves the complete schedule and filters for games on the current date
@@ -691,7 +691,7 @@ def main() -> None:
     # we are gonna have a data structure with player and basic game data for future lookups
     print(f"Currently getting games for {'today' if test_date is None else test_date}")
 
-    todays_games = get_today_games(test_date=test_date)
+    todays_games = get_today_schedule(test_date=test_date)
 
     print(
         f"Finished getting games for {'today' if test_date is None else test_date} ✅\n"
