@@ -174,23 +174,10 @@ def pts_config() -> PropConfig:
 
 #### Ridge Regression
 **Use Case**: Continuous statistics (points, rebounds, assists)
-**Mathematical Model**: 
-$$\hat{y} = X\beta + \epsilon$$
-$$\beta = \argmin_\beta \|y - X\beta\|_2^2 + \alpha\|\beta\|_2^2$$
-
-Where:
-- $\alpha$ = regularization parameter
-- $\|\beta\|_2^2$ = L2 penalty term
-- Prevents overfitting with small sample sizes
 
 #### Poisson Regression
 **Use Case**: Count-based statistics (home runs, blocks, steals)
-**Mathematical Model**:
-$$\log(\lambda) = X\beta$$
-$$P(Y = k) = \frac{\lambda^k e^{-\lambda}}{k!}$$
 
-Where:
-- $\lambda$ = expected count (rate parameter)
 - Better suited for discrete, non-negative counts
 
 ### Feature Engineering
@@ -275,35 +262,6 @@ $$E_A = \frac{1}{1 + 10^{(R_B - R_A)/400}}$$
 - Larger rating differences = smaller adjustments for favorites
 - 400-point difference ≈ 90% win probability
 
-#### Business Logic:
-```python
-# Winner determination
-def determine_winner(player_balances: Dict[str, float]) -> str:
-    # Filter players who met minimum betting requirement
-    eligible_players = [p for p in players if total_bet_amount[p] >= min_bet_threshold]
-    
-    if not eligible_players:
-        return "no_contest"  # All players disqualified
-    
-    # Highest balance wins
-    return max(eligible_players, key=lambda p: player_balances[p])
-```
-
-### Parlay Pick Resolution (`resolve_parlay_picks.py`)
-
-**Purpose**: Resolves individual parlay picks when props are finalized.
-
-#### Resolution Logic:
-```python
-def resolve_pick(prop_line: float, current_value: float, pick_type: str) -> str:
-    if pick_type == "over":
-        return "hit" if current_value > prop_line else "miss"
-    elif pick_type == "under":
-        return "hit" if current_value < prop_line else "miss"
-    else:
-        return "push"  # Exact tie (rare)
-```
-
 #### Data Flow:
 1. **Redis Pub/Sub**: Receives prop resolution messages
 2. **Bulk Updates**: Updates all picks for resolved prop
@@ -326,19 +284,6 @@ PARLAY_MULTIPLIERS = {
 }
 ```
 
-#### Payout Calculation:
-```python
-def calculate_payout(stake: float, num_picks: int, result: str) -> float:
-    multiplier = PARLAY_MULTIPLIERS.get(num_picks, 1.0)
-    
-    if result == "hit":
-        return stake * multiplier  # Win: return stake × multiplier
-    elif result == "miss":
-        return -stake              # Loss: lose stake
-    else:
-        return 0.0                 # Push: no change
-```
-
 #### Resolution Requirements:
 - **All picks must be resolved** before parlay can be determined
 - **Single miss = entire parlay loss** (no partial payouts)
@@ -353,47 +298,47 @@ def calculate_payout(stake: float, num_picks: int, result: str) -> float:
 #### 1. Update Historical Data
 ```bash
 # Update yesterday's NBA games and stats
-python nba/update_stats.py
+PYTHONPATH=. python nba/update_stats.py
 
 # Update yesterday's MLB games and stats  
-python mlb/update_stats.py
+PYTHONPATH=. python mlb/update_stats.py
 
 # Update team rosters (weekly)
-python nba/update_players.py
-python mlb/update_players.py
+PYTHONPATH=. python nba/update_players.py
+PYTHONPATH=. python mlb/update_players.py
 ```
 
 #### 2. Generate Props for Today
 ```bash
 # Generate NBA props for today's games
-python nba/create_props.py
+PYTHONPATH=. python nba/create_props.py
 
 # Generate MLB props for today's games
-python mlb/create_props.py
+PYTHONPATH=. python mlb/create_props.py
 
 # Generate for specific test date
-python nba/create_props.py "01/15/2024"
+PYTHONPATH=. python nba/create_props.py "01/15/2024"
 ```
 
 #### 3. Real-time Monitoring
 ```bash
 # Start NBA prop synchronization (runs continuously)
-python nba/sync_props.py
+PYTHONPATH=. python nba/sync_props.py
 
 # Start MLB prop synchronization (runs continuously)
-python mlb/sync_props.py
+PYTHONPATH=. python mlb/sync_props.py
 ```
 
 #### 4. Resolution (Automated)
 ```bash
 # Runs automatically when props resolve
-python system/resolve_parlay_picks.py
+PYTHONPATH=. python system/resolve_parlay_picks.py
 
 # Runs automatically when parlays resolve  
-python system/resolve_parlays.py
+PYTHONPATH=. python system/resolve_parlays.py
 
 # Runs automatically when all games complete
-python system/resolve_matches.py
+PYTHONPATH=. python system/resolve_matches.py
 ```
 
 ### Adding New Statistics
@@ -532,23 +477,6 @@ Where $\lambda_i = \exp(x_i^T\beta)$ is the expected count.
 
 ### Common Issues
 
-#### 1. Insufficient Data
-```python
-if len(player_last_games) < min_num_stats:
-    print(f"🚨 Skipping player {player.name} - insufficient data")
-    continue
-```
-
-#### 2. API Rate Limits
-```python
-try:
-    response = requests.get(api_url)
-    response.raise_for_status()
-except requests.exceptions.RequestException as e:
-    print(f"API error: {e}")
-    time.sleep(api_delay)
-```
-
 #### 3. Invalid Predictions
 ```python
 if np.isnan(final_prop) or np.isinf(final_prop) or final_prop <= 0:
@@ -558,162 +486,4 @@ if np.isnan(final_prop) or np.isinf(final_prop) or final_prop <= 0:
 
 ---
 
-## Configuration
-
-### Environment Variables
-
-```bash
-# Database Configuration
-DATABASE_URL=postgresql://user:pass@localhost/riskleague
-
-# Redis Configuration (for pub/sub)
-REDIS_URL=redis://localhost:6379
-
-# API Rate Limiting
-NBA_API_DELAY=1.0
-MLB_API_DELAY=0.5
-
-# Model Parameters
-BIAS_COEFFICIENT=0.15
-MIN_GAMES_THRESHOLD=10
-CONFIDENCE_INTERVAL=0.95
-```
-
-### Constants
-
-Located in `shared/constants.py`:
-```python
-# Model bias adjustment
-bias = 0.15
-
-# Minimum sample sizes
-min_num_stats = 10
-n_games = 20  # Historical games to consider
-
-# Statistical thresholds
-sigma_coeff = 1.5  # Standard deviation multiplier
-minutes_threshold = 15  # Minimum minutes per game
-```
-
----
-
-## Performance Considerations
-
-### Database Optimization
-- **Indexes**: All foreign keys and frequently queried columns
-- **Connection Pooling**: SQLAlchemy connection pools
-- **Batch Operations**: Bulk inserts for historical data
-
-### Caching Strategy
-- **Redis**: Pub/sub messaging and temporary data storage
-- **In-Memory**: Frequently accessed configurations
-- **Query Optimization**: Minimize database round trips
-
-### Real-time Processing
-- **Async Operations**: Non-blocking I/O for live data
-- **Error Handling**: Graceful degradation for API failures
-- **Rate Limiting**: Respect API rate limits
-
----
-
-## Testing
-
-### Unit Tests
-```bash
-# Run all tests
-pytest tests/
-
-# Run specific component tests
-pytest tests/test_prop_generation.py
-pytest tests/test_resolution.py
-```
-
-### Integration Tests
-```bash
-# Test complete pipeline with sample data
-python tests/integration/test_full_pipeline.py
-```
-
-### Performance Tests
-```bash
-# Benchmark prop generation speed
-python tests/performance/benchmark_props.py
-```
-
----
-
-## Deployment
-
-### Docker Compose
-```yaml
-version: '3.8'
-services:
-  risk-league-engine:
-    build: .
-    environment:
-      - DATABASE_URL=${DATABASE_URL}
-      - REDIS_URL=${REDIS_URL}
-    depends_on:
-      - postgres
-      - redis
-      
-  postgres:
-    image: postgres:15
-    environment:
-      - POSTGRES_DB=riskleague
-      - POSTGRES_USER=${DB_USER}
-      - POSTGRES_PASSWORD=${DB_PASSWORD}
-      
-  redis:
-    image: redis:7-alpine
-```
-
-### Monitoring
-- **Logs**: Structured logging with timestamps
-- **Metrics**: Prop generation success rates, API response times
-- **Alerts**: Failed prop generation, database connection issues
-
----
-
-## Contributing
-
-### Development Setup
-```bash
-# Clone repository
-git clone https://github.com/your-org/risk-league-engine.git
-cd risk-league-engine
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Set up database
-python setup_database.py
-
-# Run tests
-pytest
-```
-
-### Code Style
-- **Black**: Code formatting
-- **isort**: Import sorting  
-- **mypy**: Type checking
-- **Docstrings**: All public functions documented
-
----
-
-## License
-
-MIT License - see LICENSE file for details.
-
----
-
-## Support
-
-For questions or issues:
-- **GitHub Issues**: Bug reports and feature requests
-- **Documentation**: Additional examples and guides
-- **Email**: support@riskleague.com
-
----
-
-*Risk League Engine v2.0 - Sophisticated sports betting with machine learning*
+*Risk League Engine v0.0.1 - Sophisticated sports betting with machine learning*
