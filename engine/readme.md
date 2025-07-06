@@ -74,7 +74,7 @@ Prop Resolution -> Pick Updates -> Parlay Resolution -> Match Resolution -> ELO 
 **Purpose**: Updates database with previous day's game statistics from official league APIs.
 
 #### NBA Implementation
-- **Data Source**: NBA API (`leaguegamefinder`)
+- **Data Source**: NBA API (`nba_api`)
 - **Statistics Updated**:
   - Basic stats: Points, rebounds, assists, steals, blocks
   - Advanced stats: True shooting percentage, usage rate, rebounding percentages
