@@ -5,7 +5,7 @@ This eliminates the need to manually update multiple places when adding new stat
 
 from typing import Any, Callable, Dict, Generic, List, TypeVar
 
-from .base import PropConfig
+from shared.prop_generation.base import PropConfig
 
 T = TypeVar("T")
 

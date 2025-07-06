@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Generic, TypeVar, Protocol
+from typing import Any, Generic, TypeVar
 from enum import Enum
 import pandas as pd
 from sklearn.base import BaseEstimator

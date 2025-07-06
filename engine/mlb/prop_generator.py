@@ -1,7 +1,7 @@
 from shared.prop_generation.generator import BasePropGenerator
 from shared.prop_generation.base import GameData
 from shared.tables import MlbPlayerStats, MlbGames
-from .prop_configs import get_mlb_prop_configs, get_mlb_stats_list
+from mlb.prop_configs import get_mlb_prop_configs, get_mlb_stats_list
 
 class MlbPropGenerator(BasePropGenerator[MlbPlayerStats, MlbGames]):
     """MLB-specific prop generator using auto-registration system"""

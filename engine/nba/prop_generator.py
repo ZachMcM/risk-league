@@ -2,7 +2,7 @@ import pandas as pd
 from shared.prop_generation.generator import BasePropGenerator
 from shared.prop_generation.base import PropConfig, GameData
 from shared.tables import NbaPlayerStats, NbaGames
-from .prop_configs import get_nba_prop_configs, get_nba_stats_list
+from nba.prop_configs import get_nba_prop_configs, get_nba_stats_list
 
 class NbaPropGenerator(BasePropGenerator[NbaPlayerStats, NbaGames]):
     """NBA-specific prop generator using auto-registration system"""

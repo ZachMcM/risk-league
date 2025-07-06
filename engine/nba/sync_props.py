@@ -1,6 +1,5 @@
 import signal
 import sys
-from datetime import datetime
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from nba.my_types import stat_name_list

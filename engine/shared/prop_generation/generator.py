@@ -9,8 +9,8 @@ from sklearn.linear_model import PoissonRegressor, Ridge
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
-from .base import GameData, ModelType, PropConfig, PropGenerator
-from .features import FeatureExtractor
+from shared.prop_generation.base import GameData, ModelType, PropConfig, PropGenerator
+from shared.prop_generation.features import FeatureExtractor
 
 PlayerStatsType = TypeVar("PlayerStatsType")
 TeamStatsType = TypeVar("TeamStatsType")
