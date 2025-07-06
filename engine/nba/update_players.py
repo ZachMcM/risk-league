@@ -1,20 +1,14 @@
-import os
 import time
 
 import pandas as pd
-from dotenv import load_dotenv
 from nba.constants import req_pause_time
 from nba_api.stats.endpoints import commonteamroster
 from nba_api.stats.static import teams
-from shared.tables import t_players
-from sqlalchemy import create_engine
+from shared.tables import Players
+from shared.db_session import get_db_session
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.exc import IntegrityError
-from utils import get_current_season
-
-# Load environment variables
-load_dotenv()
-engine = create_engine(os.getenv("DATABASE_URL"))
+from nba.utils import get_current_season
 
 # This script is to be ran periodically to update the players with the latest nba rosters.
 
@@ -37,41 +31,42 @@ def get_team_players(team_id, season):
         return pd.DataFrame()
 
 
-def insert_team_players(data, engine):
+def insert_team_players(data, session):
     """Insert NBA team players into the database.
 
     Args:
         data: DataFrame containing player data
-        engine: SQLAlchemy database engine
+        session: SQLAlchemy database session
     """
     records = data.to_dict(orient="records")
 
-    with engine.begin() as conn:
-        try:
-            stmt = pg_insert(t_players).values(records)
+    try:
+        stmt = pg_insert(Players).values(records)
 
-            update_cols = {
-                col: stmt.excluded[col]
-                for col in [
-                    "name",
-                    "team_id",
-                    "position",
-                    "height",
-                    "weight",
-                    "number",
-                    "league",
-                ]
-            }
+        update_cols = {
+            col: stmt.excluded[col]
+            for col in [
+                "name",
+                "team_id",
+                "position",
+                "height",
+                "weight",
+                "number",
+                "league",
+            ]
+        }
 
-            stmt = stmt.on_conflict_do_update(
-                index_elements=["id"],  # primary key or unique constraint
-                set_=update_cols,
-            )
+        stmt = stmt.on_conflict_do_update(
+            index_elements=["id"],  # primary key or unique constraint
+            set_=update_cols,
+        )
 
-            conn.execute(stmt)
-            print(f"✅ Upserted {len(data)} players")
-        except IntegrityError as e:
-            print(f"⚠️ Upsert failed due to integrity error: {e._message}")
+        session.execute(stmt)
+        session.commit()
+        print(f"✅ Upserted {len(data)} players")
+    except IntegrityError as e:
+        session.rollback()
+        print(f"⚠️ Upsert failed due to integrity error: {e._message}")
 
 
 def main():
@@ -81,28 +76,30 @@ def main():
     """
     season = get_current_season()
     team_list = teams.get_teams()
+    session = get_db_session()
+    
+    try:
+        for team in team_list:
+            team_id = team["id"]
+            players_df = get_team_players(team_id, season)
+            players_df["league"] = "nba"
 
-    for team in team_list:
-        team_id = team["id"]
-        players_df = get_team_players(team_id, season)
-        players_df["league"] = "nba"
+            data = players_df.rename(
+                columns={
+                    "PLAYER_ID": "id",
+                    "PLAYER": "name",
+                    "TeamID": "team_id",
+                    "POSITION": "position",
+                    "HEIGHT": "height",
+                    "WEIGHT": "weight",
+                    "NUM": "number",
+                }
+            )[["id", "name", "team_id", "position", "height", "weight", "number", "league"]]
 
-        data = players_df.rename(
-            columns={
-                "PLAYER_ID": "id",
-                "PLAYER": "name",
-                "TeamID": "team_id",
-                "POSITION": "position",
-                "HEIGHT": "height",
-                "WEIGHT": "weight",
-                "NUM": "number",
-            }
-        )[["id", "name", "team_id", "position", "height", "weight", "number", "league"]]
-
-        insert_team_players(data, engine)
-        time.sleep(req_pause_time)
-
-    engine.dispose()
+            insert_team_players(data, session)
+            time.sleep(req_pause_time)
+    finally:
+        session.close()
 
 
 if __name__ == "__main__":

@@ -1,17 +1,12 @@
-import os
 import signal
 import sys
 from datetime import datetime
 
 from apscheduler.schedulers.background import BackgroundScheduler
-from dotenv import load_dotenv
 from nba.my_types import stat_name_list
 from nba_api.live.nba.endpoints import BoxScore, ScoreBoard
 from shared.db_utils import update_prop_and_picks
-from sqlalchemy import create_engine
-
-load_dotenv()
-engine = create_engine(os.getenv("DATABASE_URL"))
+from shared.db_session import get_db_session
 
 
 def get_today_games():
@@ -54,62 +49,65 @@ def sync_props():
     for all today's games.
     """
     games = get_today_games()
+    session = get_db_session()
+    
+    try:
+        for i, game in enumerate(games):
+            print(f"Processing game {i + 1}/{len(games)}\n")
+            player_stats = get_player_stats(game["gameId"])
 
-    for i, game in enumerate(games):
-        print(f"Processing game {i + 1}/{len(games)}\n")
-        player_stats = get_player_stats(game["gameId"])
+            for j, player in enumerate(player_stats):
+                print(f"Processing player {player['name']} {j + 1}/{len(player_stats)}\n")
+                stats = player["statistics"]
 
-        for j, player in enumerate(player_stats):
-            print(f"Processing player {player['name']} {j + 1}/{len(player_stats)}\n")
-            stats = player["statistics"]
+                # loop through all the non combined stats
+                for stat_name in stat_name_list:
+                    update_prop_and_picks(
+                        session,
+                        stat_name["db_name"],
+                        str(player["personId"]),
+                        str(game["gameId"]),
+                        stats[stat_name["api_name"]],
+                        league="nba",
+                        is_final=game["gameStatusText"] == "Final",
+                    )
 
-            # loop through all the non combined stats
-            for stat_name in stat_name_list:
+                pra = stats["points"] + stats["reboundsTotal"] + stats["assists"]
                 update_prop_and_picks(
-                    engine,
-                    stat_name["db_name"],
+                    session,
+                    "pra",
                     str(player["personId"]),
                     str(game["gameId"]),
-                    stats[stat_name["api_name"]],
+                    pra,
                     league="nba",
                     is_final=game["gameStatusText"] == "Final",
                 )
 
-            pra = stats["points"] + stats["reboundsTotal"] + stats["assists"]
-            update_prop_and_picks(
-                engine,
-                "pra",
-                str(player["personId"]),
-                str(game["gameId"]),
-                pra,
-                league="nba",
-                is_final=game["gameStatusText"] == "Final",
-            )
+                pts_ast = stats["points"] + stats["assists"]
+                update_prop_and_picks(
+                    session,
+                    "pts_ast",
+                    str(player["personId"]),
+                    str(game["gameId"]),
+                    pts_ast,
+                    league="nba",
+                    is_final=game["gameStatusText"] == "Final",
+                )
 
-            pts_ast = stats["points"] + stats["assists"]
-            update_prop_and_picks(
-                engine,
-                "pts_ast",
-                str(player["personId"]),
-                str(game["gameId"]),
-                pts_ast,
-                league="nba",
-                is_final=game["gameStatusText"] == "Final",
-            )
+                reb_ast = stats["reboundsTotal"] + stats["assists"]
+                update_prop_and_picks(
+                    session,
+                    "reb_ast",
+                    str(player["personId"]),
+                    str(game["gameId"]),
+                    reb_ast,
+                    league="nba",
+                    is_final=game["gameStatusText"] == "Final",
+                )
 
-            reb_ast = stats["reboundsTotal"] + stats["assists"]
-            update_prop_and_picks(
-                engine,
-                "reb_ast",
-                str(player["personId"]),
-                str(game["gameId"]),
-                reb_ast,
-                league="nba",
-                is_final=game["gameStatusText"] == "Final",
-            )
-
-    print(f"✅ Successfully updated props\n")
-    engine.dispose()
+        print(f"✅ Successfully updated props\n")
+    finally:
+        session.close()
 
 
 def main():

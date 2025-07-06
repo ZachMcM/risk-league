@@ -1,10 +1,8 @@
-import os
 import sys
 import time
 from datetime import datetime, timedelta
 
 import pandas as pd
-from dotenv import load_dotenv
 from nba.constants import req_pause_time
 from nba.utils import clean_minutes, get_current_season, get_game_type
 from nba_api.stats.endpoints import (
@@ -13,15 +11,14 @@ from nba_api.stats.endpoints import (
     leaguegamefinder,
 )
 from nba_api.stats.static.players import get_active_players
-from shared.tables import t_nba_games, t_nba_player_stats
-from sqlalchemy import create_engine, delete, select, update
+from shared.tables import NbaGames, NbaPlayerStats
+from shared.db_session import get_db_session
+from sqlalchemy import delete, select, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 # This script updates the database with all the NBA games from the past day
 
 step_sleep_time = 3
-load_dotenv()
-engine = create_engine(os.getenv("DATABASE_URL"))
 
 
 def get_previous_day_games(test=None):
@@ -61,13 +58,12 @@ def get_previous_day_games(test=None):
     return pd.concat(dfs, ignore_index=True)
 
 
-def insert_games(games_df, engine, nba_games):
+def insert_games(games_df, session):
     """Insert NBA games into the database.
     
     Args:
         games_df: DataFrame containing game data
-        engine: SQLAlchemy database engine
-        nba_games: NBA games table reference
+        session: SQLAlchemy database session
     """
     data = games_df.to_dict(orient="records")
 
@@ -75,44 +71,45 @@ def insert_games(games_df, engine, nba_games):
         print("No data to insert.")
         return
 
-    with engine.begin() as conn:
-        try:
-            stmt = pg_insert(nba_games).values(data)
-            update_cols = {
-                col: stmt.excluded[col]
-                for col in [
-                    "id",
-                    "team_id",
-                    "game_type",
-                    "pts",
-                    "game_date",
-                    "wl",
-                    "matchup",
-                    "min",
-                    "fgm",
-                    "fga",
-                    "fta",
-                    "ftm",
-                    "three_pa",
-                    "three_pm",
-                    "oreb",
-                    "dreb",
-                    "reb",
-                    "ast",
-                    "stl",
-                    "blk",
-                    "tov",
-                    "pf",
-                    "plus_minus",
-                    "season",
-                ]
-            }
-            stmt = stmt.on_conflict_do_update(index_elements=["id"], set_=update_cols)
-            conn.execute(stmt)
-            print(f"✅ Inserted {len(data)} games\n")
-        except Exception as e:
-            print(f"⚠️ Insert failed due to error: {e}")
-            sys.exit(1)
+    try:
+        stmt = pg_insert(NbaGames).values(data)
+        update_cols = {
+            col: stmt.excluded[col]
+            for col in [
+                "id",
+                "team_id",
+                "game_type",
+                "pts",
+                "game_date",
+                "wl",
+                "matchup",
+                "min",
+                "fgm",
+                "fga",
+                "fta",
+                "ftm",
+                "three_pa",
+                "three_pm",
+                "oreb",
+                "dreb",
+                "reb",
+                "ast",
+                "stl",
+                "blk",
+                "tov",
+                "pf",
+                "plus_minus",
+                "season",
+            ]
+        }
+        stmt = stmt.on_conflict_do_update(index_elements=["id"], set_=update_cols)
+        session.execute(stmt)
+        session.commit()
+        print(f"✅ Inserted {len(data)} games\n")
+    except Exception as e:
+        session.rollback()
+        print(f"⚠️ Insert failed due to error: {e}")
+        sys.exit(1)
 
 
 def get_boxscore(game_id):
@@ -167,6 +164,7 @@ def get_team_advanced(game_id):
 
 
 def insert_player_advanced_stats(
+    session,
     id: str,
     true_shooting: float,
     usage_rate: float,
@@ -180,6 +178,7 @@ def insert_player_advanced_stats(
     """Insert player advanced stats into the database.
     
     Args:
+        session: SQLAlchemy database session
         id: Player record ID
         true_shooting: True shooting percentage
         usage_rate: Usage rate percentage
@@ -191,290 +190,47 @@ def insert_player_advanced_stats(
         tov_ratio: Turnover ratio
     """
     try:
-        with engine.begin() as conn:
-            stmt = (
-                update(t_nba_player_stats)
-                .where(t_nba_player_stats.c.id == id)
-                .values(
-                    true_shooting=true_shooting,
-                    usage_rate=usage_rate,
-                    reb_pct=reb_pct,
-                    dreb_pct=dreb_pct,
-                    oreb_pct=oreb_pct,
-                    ast_pct=ast_pct,
-                    ast_ratio=ast_ratio,
-                    tov_ratio=tov_ratio,
-                )
+        stmt = (
+            update(NbaPlayerStats)
+            .where(NbaPlayerStats.id == id)
+            .values(
+                true_shooting=true_shooting,
+                usage_rate=usage_rate,
+                reb_pct=reb_pct,
+                dreb_pct=dreb_pct,
+                oreb_pct=oreb_pct,
+                ast_pct=ast_pct,
+                ast_ratio=ast_ratio,
+                tov_ratio=tov_ratio,
             )
+        )
 
-            conn.execute(stmt)
-            print(f"✅ Inserted player {id} advanced stats\n")
+        session.execute(stmt)
+        session.commit()
+        print(f"✅ Inserted player {id} advanced stats\n")
     except Exception as e:
+        session.rollback()
         print(f"⚠️ There was an error inserting advanced stats for game {id}, {e}")
         sys.exit(1)
 
 
-def insert_player_stats(stats_df, engine, nba_player_stats):
+def insert_player_stats(stats_df, session):
     """Insert basic player stats into the database.
     
     Args:
         stats_df: DataFrame containing player stats
-        engine: SQLAlchemy database engine
-        nba_player_stats: NBA player stats table reference
+        session: SQLAlchemy database session
     """
     data = stats_df.to_dict(orient="records")
     if not data:
         print("⚠️ No data to insert.")
         sys.exit(1)
 
-    with engine.begin() as conn:
-        try:
-            stmt = pg_insert(nba_player_stats).values(data)
-            update_cols = {
-                col: stmt.excluded[col]
-                for col in [
-                    "player_id",
-                    "game_id",
-                    "pts",
-                    "min",
-                    "fgm",
-                    "fga",
-                    "fta",
-                    "ftm",
-                    "three_pa",
-                    "three_pm",
-                    "oreb",
-                    "dreb",
-                    "reb",
-                    "ast",
-                    "stl",
-                    "blk",
-                    "tov",
-                    "pf",
-                    "plus_minus",
-                    "id",
-                    "season",
-                ]
-            }
-            stmt = stmt.on_conflict_do_update(
-                index_elements=["player_id", "game_id"], set_=update_cols
-            )
-            conn.execute(stmt)
-            print(f"✅ Upserted {len(data)} player stats\n")
-        except Exception as e:
-            print(f"⚠️ Upsert failed: {e}")
-            sys.exit(1)
-
-
-def remove_duplicates():
-    """Remove duplicate NBA player stats records.
-    
-    Keeps the most recent record for each player-game combination.
-    """
     try:
-        with engine.begin() as conn:
-            # Subquery to get the IDs we want to keep (most recent for each player_id, game_id pair)
-            subquery = (
-                select(t_nba_player_stats.c.id)
-                .distinct(t_nba_player_stats.c.player_id, t_nba_player_stats.c.game_id)
-                .order_by(
-                    t_nba_player_stats.c.player_id,
-                    t_nba_player_stats.c.game_id,
-                    t_nba_player_stats.c.updated_at.desc(),
-                )
-            )
-
-            # Delete records whose ID is not in the subquery
-            stmt = delete(t_nba_player_stats).where(
-                t_nba_player_stats.c.id.notin_(subquery)
-            )
-
-            result = conn.execute(stmt)
-            print(f"✅ Removed {result.rowcount} duplicate NBA player stats records")
-
-    except Exception as e:
-        print(f"🚨 There was an error trying to delete duplicates: {e}")
-
-
-def insert_team_advanced_stats(
-    pace: float,
-    tov_ratio: float,
-    tov_pct: float,
-    off_rating: float,
-    def_rating: float,
-    game_id: str,
-):
-    """Insert team advanced stats into the database.
-    
-    Args:
-        pace: Team pace statistic
-        tov_ratio: Turnover ratio
-        tov_pct: Turnover percentage
-        off_rating: Offensive rating
-        def_rating: Defensive rating
-        game_id: ID of the game
-    """
-    try:
-        with engine.begin() as conn:
-            stmt = (
-                update(t_nba_games)
-                .where(t_nba_games.c.id == game_id)
-                .values(
-                    pace=pace,
-                    tov_ratio=tov_ratio,
-                    tov_pct=tov_pct,
-                    off_rating=off_rating,
-                    def_rating=def_rating,
-                )
-            )
-
-            conn.execute(stmt)
-            print(f"✅ Inserted game {game_id} advanced stats\n")
-    except Exception as e:
-        print(f"⚠️ There was an error inserting, {e}")
-        sys.exit(1)
-
-
-def main():
-    """Main function to update NBA stats.
-    
-    Processes previous day's games and updates both team and player stats.
-    """
-    test_date = None
-    if len(sys.argv) == 2:
-        test_date = sys.argv[1]
-
-    games = get_previous_day_games(test_date)
-
-    game_ids = games["GAME_ID"].unique().tolist()
-
-    # inserts regular team game stats
-    games["game_type"] = games["GAME_ID"].astype(str).str[:3].apply(get_game_type)
-    games["id"] = games["GAME_ID"].astype(str) + "-" + games["TEAM_ID"].astype(str)
-    games["season"] = get_current_season()
-
-    games = games.rename(
-        columns={
-            "TEAM_ID": "team_id",
-            "PTS": "pts",
-            "GAME_DATE": "game_date",
-            "WL": "wl",
-            "MATCHUP": "matchup",
-            "MIN": "min",
-            "FGM": "fgm",
-            "FGA": "fga",
-            "FTA": "fta",
-            "FTM": "ftm",
-            "FG3A": "three_pa",
-            "FG3M": "three_pm",
-            "OREB": "oreb",
-            "DREB": "dreb",
-            "REB": "reb",
-            "AST": "ast",
-            "STL": "stl",
-            "BLK": "blk",
-            "TOV": "tov",
-            "PF": "pf",
-            "PLUS_MINUS": "plus_minus",
-        }
-    )[
-        [
-            "id",
-            "team_id",
-            "pts",
-            "game_date",
-            "wl",
-            "matchup",
-            "min",
-            "fgm",
-            "fga",
-            "fta",
-            "ftm",
-            "three_pa",
-            "three_pm",
-            "oreb",
-            "dreb",
-            "reb",
-            "ast",
-            "stl",
-            "blk",
-            "tov",
-            "pf",
-            "plus_minus",
-            "game_type",
-            "season",
-        ]
-    ]
-
-    games["min"] = games["min"]
-    games["game_date"] = pd.to_datetime(games["game_date"], errors="coerce")
-    insert_games(games, engine, t_nba_games)
-
-    time.sleep(step_sleep_time)
-
-    # inserts team advanced stats per game
-    i = 0
-    for _, row in games.iterrows():
-        print(f"Processing advanced stats for game {row['id']} {i + 1}/{len(games)}")
-        game_id = row["id"][: row["id"].find("-")]
-        team_id = row["team_id"]
-
-        advanced_df = get_team_advanced(game_id)
-        time.sleep(req_pause_time)
-        team_row = advanced_df[advanced_df["teamId"] == team_id].iloc[0]
-
-        insert_team_advanced_stats(
-            float(team_row["pace"]),
-            float(team_row["turnoverRatio"]),
-            float(team_row["estimatedTeamTurnoverPercentage"]),
-            float(team_row["offensiveRating"]),
-            float(team_row["defensiveRating"]),
-            row["id"],
-        )
-        i = i + 1
-
-    time.sleep(step_sleep_time)
-
-    # Inserts the player stats without advanced stats first
-
-    active_players = get_active_players()
-    player_ids = set(player["id"] for player in active_players)
-
-    for i, game_id in enumerate(game_ids):
-        print(f"Processing game {i + 1}/{len(game_ids)}: {game_id}")
-        df = get_boxscore(game_id)
-        time.sleep(req_pause_time)
-        if df is None or df.empty:
-            break  # Means connection timed out so we stop processing
-
-        df["minutes"] = df["minutes"].apply(clean_minutes)
-        df["game_id"] = game_id + "-" + df["teamId"].astype(str)
-        df["id"] = df["game_id"] + "-" + df["personId"].astype(str)
-        df["season"] = get_current_season()
-
-        stat_df = df.rename(
-            columns={
-                "personId": "player_id",
-                "minutes": "min",
-                "points": "pts",
-                "assists": "ast",
-                "steals": "stl",
-                "blocks": "blk",
-                "turnovers": "tov",
-                "fieldGoalsAttempted": "fga",
-                "fieldGoalsMade": "fgm",
-                "freeThrowsAttempted": "fta",
-                "freeThrowsMade": "ftm",
-                "threePointersAttempted": "three_pa",
-                "threePointersMade": "three_pm",
-                "plusMinusPoints": "plus_minus",
-                "reboundsOffensive": "oreb",
-                "reboundsDefensive": "dreb",
-                "reboundsTotal": "reb",
-                "foulsPersonal": "pf",
-            }
-        )[
-            [
+        stmt = pg_insert(NbaPlayerStats).values(data)
+        update_cols = {
+            col: stmt.excluded[col]
+            for col in [
                 "player_id",
                 "game_id",
                 "pts",
@@ -497,40 +253,296 @@ def main():
                 "id",
                 "season",
             ]
+        }
+        stmt = stmt.on_conflict_do_update(
+            index_elements=["player_id", "game_id"], set_=update_cols
+        )
+        session.execute(stmt)
+        session.commit()
+        print(f"✅ Upserted {len(data)} player stats\n")
+    except Exception as e:
+        session.rollback()
+        print(f"⚠️ Upsert failed: {e}")
+        sys.exit(1)
+
+
+def remove_duplicates(session):
+    """Remove duplicate NBA player stats records.
+    
+    Args:
+        session: SQLAlchemy database session
+    
+    Keeps the most recent record for each player-game combination.
+    """
+    try:
+        # Subquery to get the IDs we want to keep (most recent for each player_id, game_id pair)
+        subquery = (
+            select(NbaPlayerStats.id)
+            .distinct(NbaPlayerStats.player_id, NbaPlayerStats.game_id)
+            .order_by(
+                NbaPlayerStats.player_id,
+                NbaPlayerStats.game_id,
+                NbaPlayerStats.updated_at.desc(),
+            )
+        )
+
+        # Delete records whose ID is not in the subquery
+        stmt = delete(NbaPlayerStats).where(
+            NbaPlayerStats.id.notin_(subquery)
+        )
+
+        result = session.execute(stmt)
+        session.commit()
+        print(f"✅ Removed {result.rowcount} duplicate NBA player stats records")
+
+    except Exception as e:
+        session.rollback()
+        print(f"🚨 There was an error trying to delete duplicates: {e}")
+
+
+def insert_team_advanced_stats(
+    session,
+    pace: float,
+    tov_ratio: float,
+    tov_pct: float,
+    off_rating: float,
+    def_rating: float,
+    game_id: str,
+):
+    """Insert team advanced stats into the database.
+    
+    Args:
+        session: SQLAlchemy database session
+        pace: Team pace statistic
+        tov_ratio: Turnover ratio
+        tov_pct: Turnover percentage
+        off_rating: Offensive rating
+        def_rating: Defensive rating
+        game_id: ID of the game
+    """
+    try:
+        stmt = (
+            update(NbaGames)
+            .where(NbaGames.id == game_id)
+            .values(
+                pace=pace,
+                tov_ratio=tov_ratio,
+                tov_pct=tov_pct,
+                off_rating=off_rating,
+                def_rating=def_rating,
+            )
+        )
+
+        session.execute(stmt)
+        session.commit()
+        print(f"✅ Inserted game {game_id} advanced stats\n")
+    except Exception as e:
+        session.rollback()
+        print(f"⚠️ There was an error inserting, {e}")
+        sys.exit(1)
+
+
+def main():
+    """Main function to update NBA stats.
+    
+    Processes previous day's games and updates both team and player stats.
+    """
+    test_date = None
+    if len(sys.argv) == 2:
+        test_date = sys.argv[1]
+
+    games = get_previous_day_games(test_date)
+
+    game_ids = games["GAME_ID"].unique().tolist()
+    session = get_db_session()
+    
+    try:
+        # inserts regular team game stats
+        games["game_type"] = games["GAME_ID"].astype(str).str[:3].apply(get_game_type)
+        games["id"] = games["GAME_ID"].astype(str) + "-" + games["TEAM_ID"].astype(str)
+        games["season"] = get_current_season()
+
+        games = games.rename(
+            columns={
+                "TEAM_ID": "team_id",
+                "PTS": "pts",
+                "GAME_DATE": "game_date",
+                "WL": "wl",
+                "MATCHUP": "matchup",
+                "MIN": "min",
+                "FGM": "fgm",
+                "FGA": "fga",
+                "FTA": "fta",
+                "FTM": "ftm",
+                "FG3A": "three_pa",
+                "FG3M": "three_pm",
+                "OREB": "oreb",
+                "DREB": "dreb",
+                "REB": "reb",
+                "AST": "ast",
+                "STL": "stl",
+                "BLK": "blk",
+                "TOV": "tov",
+                "PF": "pf",
+                "PLUS_MINUS": "plus_minus",
+            }
+        )[
+            [
+                "id",
+                "team_id",
+                "pts",
+                "game_date",
+                "wl",
+                "matchup",
+                "min",
+                "fgm",
+                "fga",
+                "fta",
+                "ftm",
+                "three_pa",
+                "three_pm",
+                "oreb",
+                "dreb",
+                "reb",
+                "ast",
+                "stl",
+                "blk",
+                "tov",
+                "pf",
+                "plus_minus",
+                "game_type",
+                "season",
+            ]
         ]
 
-        stat_df["player_id"] = stat_df["player_id"].apply(
-            lambda x: x if x in player_ids else None
-        )
-        stat_df["player_id"] = stat_df["player_id"].astype("Int64")
+        games["min"] = games["min"]
+        games["game_date"] = pd.to_datetime(games["game_date"], errors="coerce")
+        insert_games(games, session)
 
-        insert_player_stats(stat_df, engine, t_nba_player_stats)
+        time.sleep(step_sleep_time)
 
-    time.sleep(step_sleep_time)
+        # inserts team advanced stats per game
+        i = 0
+        for _, row in games.iterrows():
+            print(f"Processing advanced stats for game {row['id']} {i + 1}/{len(games)}")
+            game_id = row["id"][: row["id"].find("-")]
+            team_id = row["team_id"]
 
-    # inserts the advanced stats after regular stats are inserted
-    for i, game_id in enumerate(game_ids):
-        print(f"Processing advanced stats game {i + 1}/{len(game_ids)}: {game_id}")
-        advanced_df = get_boxscore_advanced(game_id)
-        time.sleep(req_pause_time)
+            advanced_df = get_team_advanced(game_id)
+            time.sleep(req_pause_time)
+            team_row = advanced_df[advanced_df["teamId"] == team_id].iloc[0]
 
-        for _, row in advanced_df.iterrows():
-
-            id = game_id + "-" + str(row["teamId"]) + "-" + str(row["personId"])
-            insert_player_advanced_stats(
-                id,
-                row["trueShootingPercentage"],
-                row["usagePercentage"],
-                row["reboundPercentage"],
-                row["defensiveReboundPercentage"],
-                row["offensiveReboundPercentage"],
-                row["assistPercentage"],
-                row["assistRatio"],
-                row["turnoverRatio"],
+            insert_team_advanced_stats(
+                session,
+                float(team_row["pace"]),
+                float(team_row["turnoverRatio"]),
+                float(team_row["estimatedTeamTurnoverPercentage"]),
+                float(team_row["offensiveRating"]),
+                float(team_row["defensiveRating"]),
+                row["id"],
             )
+            i = i + 1
 
-    remove_duplicates()
-    engine.dispose()  # Close the database connection
+        time.sleep(step_sleep_time)
+
+        # Inserts the player stats without advanced stats first
+
+        active_players = get_active_players()
+        player_ids = set(player["id"] for player in active_players)
+
+        for i, game_id in enumerate(game_ids):
+            print(f"Processing game {i + 1}/{len(game_ids)}: {game_id}")
+            df = get_boxscore(game_id)
+            time.sleep(req_pause_time)
+            if df is None or df.empty:
+                break  # Means connection timed out so we stop processing
+
+            df["minutes"] = df["minutes"].apply(clean_minutes)
+            df["game_id"] = game_id + "-" + df["teamId"].astype(str)
+            df["id"] = df["game_id"] + "-" + df["personId"].astype(str)
+            df["season"] = get_current_season()
+
+            stat_df = df.rename(
+                columns={
+                    "personId": "player_id",
+                    "minutes": "min",
+                    "points": "pts",
+                    "assists": "ast",
+                    "steals": "stl",
+                    "blocks": "blk",
+                    "turnovers": "tov",
+                    "fieldGoalsAttempted": "fga",
+                    "fieldGoalsMade": "fgm",
+                    "freeThrowsAttempted": "fta",
+                    "freeThrowsMade": "ftm",
+                    "threePointersAttempted": "three_pa",
+                    "threePointersMade": "three_pm",
+                    "plusMinusPoints": "plus_minus",
+                    "reboundsOffensive": "oreb",
+                    "reboundsDefensive": "dreb",
+                    "reboundsTotal": "reb",
+                    "foulsPersonal": "pf",
+                }
+            )[
+                [
+                    "player_id",
+                    "game_id",
+                    "pts",
+                    "min",
+                    "fgm",
+                    "fga",
+                    "fta",
+                    "ftm",
+                    "three_pa",
+                    "three_pm",
+                    "oreb",
+                    "dreb",
+                    "reb",
+                    "ast",
+                    "stl",
+                    "blk",
+                    "tov",
+                    "pf",
+                    "plus_minus",
+                    "id",
+                    "season",
+                ]
+            ]
+
+            stat_df["player_id"] = stat_df["player_id"].apply(
+                lambda x: x if x in player_ids else None
+            )
+            stat_df["player_id"] = stat_df["player_id"].astype("Int64")
+
+            insert_player_stats(stat_df, session)
+
+        time.sleep(step_sleep_time)
+
+        # inserts the advanced stats after regular stats are inserted
+        for i, game_id in enumerate(game_ids):
+            print(f"Processing advanced stats game {i + 1}/{len(game_ids)}: {game_id}")
+            advanced_df = get_boxscore_advanced(game_id)
+            time.sleep(req_pause_time)
+
+            for _, row in advanced_df.iterrows():
+
+                id = game_id + "-" + str(row["teamId"]) + "-" + str(row["personId"])
+                insert_player_advanced_stats(
+                    session,
+                    id,
+                    row["trueShootingPercentage"],
+                    row["usagePercentage"],
+                    row["reboundPercentage"],
+                    row["defensiveReboundPercentage"],
+                    row["offensiveReboundPercentage"],
+                    row["assistPercentage"],
+                    row["assistRatio"],
+                    row["turnoverRatio"],
+                )
+
+        remove_duplicates(session)
+    finally:
+        session.close()
 
 
 if __name__ == "__main__":
