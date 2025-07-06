@@ -1,20 +1,17 @@
-import os
 import signal
 import sys
 from datetime import datetime
+from typing import Any
 
 import statsapi
 from apscheduler.schedulers.background import BackgroundScheduler
-from dotenv import load_dotenv
+
 from mlb.my_types import stats_arr
+from shared.db_session import get_db_session
 from shared.db_utils import update_prop_and_picks
-from sqlalchemy import create_engine
-
-load_dotenv()
-engine = create_engine(os.getenv("DATABASE_URL"))
 
 
-def get_today_games():
+def get_today_games() -> list[dict[str, Any]]:
     """Get all MLB games for today.
 
     Returns:
@@ -31,7 +28,7 @@ def get_today_games():
         sys.exit(1)
 
 
-def get_player_stats(game_id: str):
+def get_player_stats(game_id: str) -> list[dict[str, Any]]:
     """Get all player stats for a given live MLB game.
 
     Args:
@@ -130,7 +127,7 @@ def get_player_stats(game_id: str):
         return []
 
 
-def sync_props():
+def sync_props() -> None:
     """Sync props with live MLB game data.
 
     Updates database props with current live game statistics
@@ -139,41 +136,45 @@ def sync_props():
     games = get_today_games()
 
     if not games:
+        print("No games currently\n")
         return
 
-    for i, game in enumerate(games):
-        print(f"Processing game {i + 1}/{len(games)}: {game['summary']}")
+    session = get_db_session()
+    try:
+        for i, game in enumerate(games):
+            print(f"Processing game {i + 1}/{len(games)}: {game['summary']}")
 
-        # Only process games that are in progress or final
-        if game["status"] not in ["In Progress", "Final"]:
-            print(f"Skipping game {game['game_id']} - status: {game['status']}")
-            continue
+            # Only process games that are in progress or final
+            if game["status"] not in ["In Progress", "Final"]:
+                print(f"Skipping game {game['game_id']} - status: {game['status']}")
+                continue
 
-        player_stats = get_player_stats(game["game_id"])
+            player_stats = get_player_stats(game["game_id"])
 
-        for j, player in enumerate(player_stats):
-            print(
-                f"Processing player {player['player_id']} {j + 1}/{len(player_stats)}"
-            )
+            for j, player in enumerate(player_stats):
+                print(
+                    f"Processing player {player['player_id']} {j + 1}/{len(player_stats)}"
+                )
 
-            # Update props for each MLB stat
-            for stat in stats_arr:
-                if stat in player:
-                    update_prop_and_picks(
-                        engine,
-                        stat,
-                        str(player["player_id"]),
-                        str(player["raw_game_id"]),
-                        player[stat],
-                        "mlb",
-                        is_final=game["status"] == "Final",
-                    )
+                # Update props for each MLB stat
+                for stat in stats_arr:
+                    if stat in player:
+                        update_prop_and_picks(
+                            session,
+                            stat,
+                            str(player["player_id"]),
+                            str(player["raw_game_id"]),
+                            player[stat],
+                            "mlb",
+                            is_final=game["status"] == "Final",
+                        )
 
-    print(f"✅ Successfully updated props")
-    engine.dispose()
+        print(f"✅ Successfully updated props")
+    finally:
+        session.close()
 
 
-def main():
+def main() -> None:
     """Main function that runs the MLB props sync scheduler.
 
     Runs sync once immediately, then starts a background scheduler

@@ -20,7 +20,8 @@ dependencies = [
   "sqlacodegen",
   "MLB-StatsAPI",
   "websockets",
-  "asyncio"
+  "asyncio",
+  "mypy"
 ]
 
 [tool.setuptools]

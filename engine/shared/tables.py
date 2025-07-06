@@ -1,301 +1,392 @@
-from sqlalchemy import ARRAY, Boolean, Column, DateTime, Double, Enum, ForeignKeyConstraint, Integer, MetaData, PrimaryKeyConstraint, String, Table, Text, UniqueConstraint, text
+from typing import List, Optional
 
-metadata = MetaData()
+from sqlalchemy import ARRAY, Boolean, DateTime, Double, Enum, ForeignKeyConstraint, Integer, PrimaryKeyConstraint, String, Text, UniqueConstraint, text
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+import datetime
+
+class Base(DeclarativeBase):
+    pass
 
 
-t_matches = Table(
-    'matches', metadata,
-    Column('id', Text, primary_key=True, server_default=text('gen_random_uuid()')),
-    Column('created_at', DateTime(True), server_default=text('CURRENT_TIMESTAMP')),
-    Column('resolved', Boolean, nullable=False, server_default=text('false')),
-    PrimaryKeyConstraint('id', name='matches_pkey')
-)
+class Matches(Base):
+    __tablename__ = 'matches'
+    __table_args__ = (
+        PrimaryKeyConstraint('id', name='matches_pkey'),
+    )
 
-t_schema_migrations = Table(
-    'schema_migrations', metadata,
-    Column('version', String, primary_key=True),
-    PrimaryKeyConstraint('version', name='schema_migrations_pkey')
-)
+    id: Mapped[str] = mapped_column(Text, primary_key=True, server_default=text('gen_random_uuid()'))
+    resolved: Mapped[bool] = mapped_column(Boolean, server_default=text('false'))
+    created_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime(True), server_default=text('CURRENT_TIMESTAMP'))
 
-t_teams = Table(
-    'teams', metadata,
-    Column('id', Text, primary_key=True),
-    Column('full_name', Text),
-    Column('abbreviation', Text),
-    Column('nickname', Text),
-    Column('city', Text),
-    Column('state', Text),
-    Column('year_founded', Integer),
-    Column('league', Enum('nba', 'nfl', 'mlb', name='league_type'), nullable=False),
-    PrimaryKeyConstraint('id', name='nba_teams_pkey')
-)
+    match_messages: Mapped[List['MatchMessages']] = relationship('MatchMessages', back_populates='match')
+    match_users: Mapped[List['MatchUsers']] = relationship('MatchUsers', back_populates='match')
 
-t_users = Table(
-    'users', metadata,
-    Column('id', Text, primary_key=True, server_default=text('gen_random_uuid()')),
-    Column('username', Text, nullable=False),
-    Column('email', Text, nullable=False),
-    Column('password_hash', Text, nullable=False),
-    Column('created_at', DateTime(True), server_default=text('CURRENT_TIMESTAMP')),
-    Column('image', Text),
-    Column('name', Text),
-    Column('is_bot', Boolean),
-    Column('elo_rating', Double(53), nullable=False, server_default=text('1200')),
-    PrimaryKeyConstraint('id', name='users_pkey'),
-    UniqueConstraint('email', name='users_email_key'),
-    UniqueConstraint('username', name='users_username_key')
-)
 
-t_match_messages = Table(
-    'match_messages', metadata,
-    Column('id', Text, primary_key=True, server_default=text('gen_random_uuid()')),
-    Column('user_id', Text, nullable=False),
-    Column('match_id', Text, nullable=False),
-    Column('created_at', DateTime(True), nullable=False, server_default=text('CURRENT_TIMESTAMP')),
-    Column('content', Text, nullable=False),
-    ForeignKeyConstraint(['match_id'], ['matches.id'], name='fk_match'),
-    ForeignKeyConstraint(['user_id'], ['users.id'], name='fk_user'),
-    PrimaryKeyConstraint('id', name='match_messages_pkey')
-)
+class SchemaMigrations(Base):
+    __tablename__ = 'schema_migrations'
+    __table_args__ = (
+        PrimaryKeyConstraint('version', name='schema_migrations_pkey'),
+    )
 
-t_match_users = Table(
-    'match_users', metadata,
-    Column('id', Text, primary_key=True, server_default=text('gen_random_uuid()')),
-    Column('match_id', Text),
-    Column('user_id', Text),
-    Column('created_at', DateTime(True), server_default=text('CURRENT_TIMESTAMP')),
-    Column('balance', Double(53), nullable=False, server_default=text('100')),
-    Column('elo_delta', Double(53), nullable=False, server_default=text('0')),
-    Column('status', Enum('in_progress', 'loss', 'win', 'draw', name='match_status'), nullable=False, server_default=text("'in_progress'::match_status")),
-    ForeignKeyConstraint(['match_id'], ['matches.id'], name='fk_match'),
-    ForeignKeyConstraint(['user_id'], ['users.id'], name='fk_user'),
-    PrimaryKeyConstraint('id', name='match_users_pkey')
-)
+    version: Mapped[str] = mapped_column(String, primary_key=True)
 
-t_mlb_games = Table(
-    'mlb_games', metadata,
-    Column('id', Text, primary_key=True),
-    Column('team_id', Text),
-    Column('game_date', DateTime(True)),
-    Column('game_type', String(10), nullable=False),
-    Column('venue_id', Integer),
-    Column('venue_name', Text),
-    Column('opponent_team_id', Text),
-    Column('is_home', Boolean, nullable=False),
-    Column('status', Text),
-    Column('runs', Integer),
-    Column('opponent_runs', Integer),
-    Column('win_loss', String(1)),
-    Column('hits', Integer),
-    Column('doubles', Integer),
-    Column('triples', Integer),
-    Column('home_runs', Integer),
-    Column('rbi', Integer),
-    Column('stolen_bases', Integer),
-    Column('caught_stealing', Integer),
-    Column('walks', Integer),
-    Column('strikeouts', Integer),
-    Column('left_on_base', Integer),
-    Column('batting_avg', Double(53)),
-    Column('on_base_pct', Double(53)),
-    Column('slugging_pct', Double(53)),
-    Column('ops', Double(53)),
-    Column('at_bats', Integer),
-    Column('plate_appearances', Integer),
-    Column('total_bases', Integer),
-    Column('hit_by_pitch', Integer),
-    Column('sac_flies', Integer),
-    Column('sac_bunts', Integer),
-    Column('innings_pitched', Double(53)),
-    Column('earned_runs', Integer),
-    Column('pitching_hits', Integer),
-    Column('pitching_home_runs', Integer),
-    Column('pitching_walks', Integer),
-    Column('pitching_strikeouts', Integer),
-    Column('era', Double(53)),
-    Column('whip', Double(53)),
-    Column('pitches_thrown', Integer),
-    Column('strikes', Integer),
-    Column('balls', Integer),
-    Column('errors', Integer),
-    Column('assists', Integer),
-    Column('putouts', Integer),
-    Column('fielding_chances', Integer),
-    Column('passed_balls', Integer),
-    Column('season', Text),
-    Column('created_at', DateTime(True), server_default=text('CURRENT_TIMESTAMP')),
-    ForeignKeyConstraint(['opponent_team_id'], ['teams.id'], name='fk_opponent_team'),
-    ForeignKeyConstraint(['team_id'], ['teams.id'], name='fk_team'),
-    PrimaryKeyConstraint('id', name='mlb_games_pkey')
-)
 
-t_nba_games = Table(
-    'nba_games', metadata,
-    Column('id', Text, primary_key=True),
-    Column('team_id', Text),
-    Column('pts', Integer),
-    Column('game_date', DateTime(True)),
-    Column('wl', Text),
-    Column('matchup', Text),
-    Column('min', Integer),
-    Column('fgm', Integer),
-    Column('fga', Integer),
-    Column('fta', Integer),
-    Column('ftm', Integer),
-    Column('three_pa', Integer),
-    Column('three_pm', Integer),
-    Column('oreb', Integer),
-    Column('dreb', Integer),
-    Column('reb', Integer),
-    Column('ast', Integer),
-    Column('stl', Integer),
-    Column('blk', Integer),
-    Column('tov', Integer),
-    Column('pf', Integer),
-    Column('plus_minus', Integer),
-    Column('game_type', String(20), nullable=False),
-    Column('season', Text),
-    Column('pace', Double(53)),
-    Column('tov_ratio', Double(53)),
-    Column('tov_pct', Double(53)),
-    Column('off_rating', Double(53)),
-    Column('def_rating', Double(53)),
-    ForeignKeyConstraint(['team_id'], ['teams.id'], name='fk_team'),
-    PrimaryKeyConstraint('id', name='nba_games_pkey')
-)
+class Teams(Base):
+    __tablename__ = 'teams'
+    __table_args__ = (
+        PrimaryKeyConstraint('id', name='nba_teams_pkey'),
+    )
 
-t_players = Table(
-    'players', metadata,
-    Column('id', Text, primary_key=True),
-    Column('name', Text),
-    Column('team_id', Text),
-    Column('position', Text),
-    Column('updated_at', DateTime(True), server_default=text('CURRENT_TIMESTAMP')),
-    Column('height', Text),
-    Column('weight', Text),
-    Column('number', Text),
-    Column('league', Enum('nba', 'nfl', 'mlb', name='league_type'), nullable=False),
-    ForeignKeyConstraint(['team_id'], ['teams.id'], name='fk_team'),
-    PrimaryKeyConstraint('id', name='nba_players_pkey')
-)
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    league: Mapped[str] = mapped_column(Enum('nba', 'nfl', 'mlb', name='league_type'))
+    full_name: Mapped[Optional[str]] = mapped_column(Text)
+    abbreviation: Mapped[Optional[str]] = mapped_column(Text)
+    nickname: Mapped[Optional[str]] = mapped_column(Text)
+    city: Mapped[Optional[str]] = mapped_column(Text)
+    state: Mapped[Optional[str]] = mapped_column(Text)
+    year_founded: Mapped[Optional[int]] = mapped_column(Integer)
 
-t_mlb_player_stats = Table(
-    'mlb_player_stats', metadata,
-    Column('id', Text, primary_key=True, server_default=text('gen_random_uuid()')),
-    Column('player_id', Text),
-    Column('game_id', Text, nullable=False),
-    Column('at_bats', Integer),
-    Column('runs', Integer),
-    Column('hits', Integer),
-    Column('doubles', Integer),
-    Column('triples', Integer),
-    Column('home_runs', Integer),
-    Column('rbi', Integer),
-    Column('stolen_bases', Integer),
-    Column('caught_stealing', Integer),
-    Column('walks', Integer),
-    Column('strikeouts', Integer),
-    Column('left_on_base', Integer),
-    Column('hit_by_pitch', Integer),
-    Column('sac_flies', Integer),
-    Column('sac_bunts', Integer),
-    Column('batting_avg', Double(53)),
-    Column('on_base_pct', Double(53)),
-    Column('slugging_pct', Double(53)),
-    Column('ops', Double(53)),
-    Column('innings_pitched', Double(53)),
-    Column('pitching_hits', Integer),
-    Column('pitching_runs', Integer),
-    Column('earned_runs', Integer),
-    Column('pitching_walks', Integer),
-    Column('pitching_strikeouts', Integer),
-    Column('pitching_home_runs', Integer),
-    Column('pitches_thrown', Integer),
-    Column('strikes', Integer),
-    Column('balls', Integer),
-    Column('season', Text),
-    Column('updated_at', DateTime(True), server_default=text('CURRENT_TIMESTAMP')),
-    ForeignKeyConstraint(['game_id'], ['mlb_games.id'], name='fk_game'),
-    ForeignKeyConstraint(['player_id'], ['players.id'], name='fk_player'),
-    PrimaryKeyConstraint('id', name='mlb_player_stats_pkey'),
-    UniqueConstraint('player_id', 'game_id', name='unique_mlb_player_game')
-)
+    mlb_games: Mapped[List['MlbGames']] = relationship('MlbGames', foreign_keys='[MlbGames.opponent_team_id]', back_populates='opponent_team')
+    mlb_games_: Mapped[List['MlbGames']] = relationship('MlbGames', foreign_keys='[MlbGames.team_id]', back_populates='team')
+    nba_games: Mapped[List['NbaGames']] = relationship('NbaGames', back_populates='team')
+    players: Mapped[List['Players']] = relationship('Players', back_populates='team')
 
-t_nba_player_stats = Table(
-    'nba_player_stats', metadata,
-    Column('id', Text, primary_key=True),
-    Column('player_id', Text),
-    Column('game_id', Text),
-    Column('pts', Integer),
-    Column('min', Integer),
-    Column('fgm', Integer),
-    Column('fga', Integer),
-    Column('fta', Integer),
-    Column('ftm', Integer),
-    Column('three_pa', Integer),
-    Column('three_pm', Integer),
-    Column('oreb', Integer),
-    Column('dreb', Integer),
-    Column('reb', Integer),
-    Column('ast', Integer),
-    Column('stl', Integer),
-    Column('blk', Integer),
-    Column('tov', Integer),
-    Column('pf', Integer),
-    Column('plus_minus', Integer),
-    Column('updated_at', DateTime(True), server_default=text('CURRENT_TIMESTAMP')),
-    Column('season', Text),
-    Column('true_shooting', Double(53)),
-    Column('usage_rate', Double(53)),
-    Column('reb_pct', Double(53)),
-    Column('dreb_pct', Double(53)),
-    Column('oreb_pct', Double(53)),
-    Column('ast_pct', Double(53)),
-    Column('ast_ratio', Double(53)),
-    Column('tov_ratio', Double(53)),
-    ForeignKeyConstraint(['game_id'], ['nba_games.id'], name='fk_game'),
-    ForeignKeyConstraint(['player_id'], ['players.id'], name='fk_player'),
-    PrimaryKeyConstraint('id', name='nba_player_stats_pkey'),
-    UniqueConstraint('player_id', 'game_id', name='unique_nba_player_game')
-)
 
-t_parlays = Table(
-    'parlays', metadata,
-    Column('id', Text, primary_key=True, server_default=text('gen_random_uuid()')),
-    Column('match_user_id', Text, nullable=False),
-    Column('status', Enum('hit', 'missed', 'not_resolved', name='parlay_status'), nullable=False, server_default=text("'not_resolved'::parlay_status")),
-    Column('stake', Double(53), nullable=False),
-    Column('created_at', DateTime(True), server_default=text('CURRENT_TIMESTAMP')),
-    ForeignKeyConstraint(['match_user_id'], ['match_users.id'], name='fk_match_user'),
-    PrimaryKeyConstraint('id', name='parlays_pkey')
-)
+class Users(Base):
+    __tablename__ = 'users'
+    __table_args__ = (
+        PrimaryKeyConstraint('id', name='users_pkey'),
+        UniqueConstraint('email', name='users_email_key'),
+        UniqueConstraint('username', name='users_username_key')
+    )
 
-t_props = Table(
-    'props', metadata,
-    Column('id', Text, primary_key=True, server_default=text('gen_random_uuid()')),
-    Column('line', Double(53), nullable=False),
-    Column('current_value', Double(53), nullable=False, server_default=text('0')),
-    Column('raw_game_id', Text, nullable=False),
-    Column('player_id', Text, nullable=False),
-    Column('created_at', DateTime(True), server_default=text('CURRENT_TIMESTAMP')),
-    Column('stat', Text, nullable=False),
-    Column('game_start_time', DateTime(True)),
-    Column('league', Enum('nba', 'nfl', 'mlb', name='league_type'), nullable=False),
-    Column('resolved', Boolean, nullable=False, server_default=text('false')),
-    Column('pick_options', ARRAY(Text()), server_default=text("ARRAY['over'::text, 'under'::text]")),
-    ForeignKeyConstraint(['player_id'], ['players.id'], name='fk_player'),
-    PrimaryKeyConstraint('id', name='props_pkey')
-)
+    id: Mapped[str] = mapped_column(Text, primary_key=True, server_default=text('gen_random_uuid()'))
+    username: Mapped[str] = mapped_column(Text)
+    email: Mapped[str] = mapped_column(Text)
+    password_hash: Mapped[str] = mapped_column(Text)
+    elo_rating: Mapped[float] = mapped_column(Double(53), server_default=text('1200'))
+    created_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime(True), server_default=text('CURRENT_TIMESTAMP'))
+    image: Mapped[Optional[str]] = mapped_column(Text)
+    name: Mapped[Optional[str]] = mapped_column(Text)
+    is_bot: Mapped[Optional[bool]] = mapped_column(Boolean)
 
-t_parlay_picks = Table(
-    'parlay_picks', metadata,
-    Column('id', Text, primary_key=True, server_default=text('gen_random_uuid()')),
-    Column('parlay_id', Text, nullable=False),
-    Column('prop_id', Text, nullable=False),
-    Column('pick', Enum('over', 'under', name='pick_type'), nullable=False),
-    Column('status', Enum('hit', 'missed', 'not_resolved', name='pick_status'), nullable=False, server_default=text("'not_resolved'::pick_status")),
-    Column('created_at', DateTime(True), server_default=text('CURRENT_TIMESTAMP')),
-    ForeignKeyConstraint(['parlay_id'], ['parlays.id'], name='fk_parlay'),
-    ForeignKeyConstraint(['prop_id'], ['props.id'], name='fk_prop'),
-    PrimaryKeyConstraint('id', name='parlay_picks_pkey')
-)
+    match_messages: Mapped[List['MatchMessages']] = relationship('MatchMessages', back_populates='user')
+    match_users: Mapped[List['MatchUsers']] = relationship('MatchUsers', back_populates='user')
+
+
+class MatchMessages(Base):
+    __tablename__ = 'match_messages'
+    __table_args__ = (
+        ForeignKeyConstraint(['match_id'], ['matches.id'], name='fk_match'),
+        ForeignKeyConstraint(['user_id'], ['users.id'], name='fk_user'),
+        PrimaryKeyConstraint('id', name='match_messages_pkey')
+    )
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True, server_default=text('gen_random_uuid()'))
+    user_id: Mapped[str] = mapped_column(Text)
+    match_id: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime.datetime] = mapped_column(DateTime(True), server_default=text('CURRENT_TIMESTAMP'))
+    content: Mapped[str] = mapped_column(Text)
+
+    match: Mapped['Matches'] = relationship('Matches', back_populates='match_messages')
+    user: Mapped['Users'] = relationship('Users', back_populates='match_messages')
+
+
+class MatchUsers(Base):
+    __tablename__ = 'match_users'
+    __table_args__ = (
+        ForeignKeyConstraint(['match_id'], ['matches.id'], name='fk_match'),
+        ForeignKeyConstraint(['user_id'], ['users.id'], name='fk_user'),
+        PrimaryKeyConstraint('id', name='match_users_pkey')
+    )
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True, server_default=text('gen_random_uuid()'))
+    balance: Mapped[float] = mapped_column(Double(53), server_default=text('100'))
+    elo_delta: Mapped[float] = mapped_column(Double(53), server_default=text('0'))
+    status: Mapped[str] = mapped_column(Enum('in_progress', 'loss', 'win', 'draw', name='match_status'), server_default=text("'in_progress'::match_status"))
+    match_id: Mapped[Optional[str]] = mapped_column(Text)
+    user_id: Mapped[Optional[str]] = mapped_column(Text)
+    created_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime(True), server_default=text('CURRENT_TIMESTAMP'))
+
+    match: Mapped[Optional['Matches']] = relationship('Matches', back_populates='match_users')
+    user: Mapped[Optional['Users']] = relationship('Users', back_populates='match_users')
+    parlays: Mapped[List['Parlays']] = relationship('Parlays', back_populates='match_user')
+
+
+class MlbGames(Base):
+    __tablename__ = 'mlb_games'
+    __table_args__ = (
+        ForeignKeyConstraint(['opponent_team_id'], ['teams.id'], name='fk_opponent_team'),
+        ForeignKeyConstraint(['team_id'], ['teams.id'], name='fk_team'),
+        PrimaryKeyConstraint('id', name='mlb_games_pkey')
+    )
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    game_type: Mapped[str] = mapped_column(String(10))
+    is_home: Mapped[bool] = mapped_column(Boolean)
+    team_id: Mapped[Optional[str]] = mapped_column(Text)
+    game_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime(True))
+    venue_id: Mapped[Optional[int]] = mapped_column(Integer)
+    venue_name: Mapped[Optional[str]] = mapped_column(Text)
+    opponent_team_id: Mapped[Optional[str]] = mapped_column(Text)
+    status: Mapped[Optional[str]] = mapped_column(Text)
+    runs: Mapped[Optional[int]] = mapped_column(Integer)
+    opponent_runs: Mapped[Optional[int]] = mapped_column(Integer)
+    win_loss: Mapped[Optional[str]] = mapped_column(String(1))
+    hits: Mapped[Optional[int]] = mapped_column(Integer)
+    doubles: Mapped[Optional[int]] = mapped_column(Integer)
+    triples: Mapped[Optional[int]] = mapped_column(Integer)
+    home_runs: Mapped[Optional[int]] = mapped_column(Integer)
+    rbi: Mapped[Optional[int]] = mapped_column(Integer)
+    stolen_bases: Mapped[Optional[int]] = mapped_column(Integer)
+    caught_stealing: Mapped[Optional[int]] = mapped_column(Integer)
+    walks: Mapped[Optional[int]] = mapped_column(Integer)
+    strikeouts: Mapped[Optional[int]] = mapped_column(Integer)
+    left_on_base: Mapped[Optional[int]] = mapped_column(Integer)
+    batting_avg: Mapped[Optional[float]] = mapped_column(Double(53))
+    on_base_pct: Mapped[Optional[float]] = mapped_column(Double(53))
+    slugging_pct: Mapped[Optional[float]] = mapped_column(Double(53))
+    ops: Mapped[Optional[float]] = mapped_column(Double(53))
+    at_bats: Mapped[Optional[int]] = mapped_column(Integer)
+    plate_appearances: Mapped[Optional[int]] = mapped_column(Integer)
+    total_bases: Mapped[Optional[int]] = mapped_column(Integer)
+    hit_by_pitch: Mapped[Optional[int]] = mapped_column(Integer)
+    sac_flies: Mapped[Optional[int]] = mapped_column(Integer)
+    sac_bunts: Mapped[Optional[int]] = mapped_column(Integer)
+    innings_pitched: Mapped[Optional[float]] = mapped_column(Double(53))
+    earned_runs: Mapped[Optional[int]] = mapped_column(Integer)
+    pitching_hits: Mapped[Optional[int]] = mapped_column(Integer)
+    pitching_home_runs: Mapped[Optional[int]] = mapped_column(Integer)
+    pitching_walks: Mapped[Optional[int]] = mapped_column(Integer)
+    pitching_strikeouts: Mapped[Optional[int]] = mapped_column(Integer)
+    era: Mapped[Optional[float]] = mapped_column(Double(53))
+    whip: Mapped[Optional[float]] = mapped_column(Double(53))
+    pitches_thrown: Mapped[Optional[int]] = mapped_column(Integer)
+    strikes: Mapped[Optional[int]] = mapped_column(Integer)
+    balls: Mapped[Optional[int]] = mapped_column(Integer)
+    errors: Mapped[Optional[int]] = mapped_column(Integer)
+    assists: Mapped[Optional[int]] = mapped_column(Integer)
+    putouts: Mapped[Optional[int]] = mapped_column(Integer)
+    fielding_chances: Mapped[Optional[int]] = mapped_column(Integer)
+    passed_balls: Mapped[Optional[int]] = mapped_column(Integer)
+    season: Mapped[Optional[str]] = mapped_column(Text)
+    created_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime(True), server_default=text('CURRENT_TIMESTAMP'))
+
+    opponent_team: Mapped[Optional['Teams']] = relationship('Teams', foreign_keys=[opponent_team_id], back_populates='mlb_games')
+    team: Mapped[Optional['Teams']] = relationship('Teams', foreign_keys=[team_id], back_populates='mlb_games_')
+    mlb_player_stats: Mapped[List['MlbPlayerStats']] = relationship('MlbPlayerStats', back_populates='game')
+
+
+class NbaGames(Base):
+    __tablename__ = 'nba_games'
+    __table_args__ = (
+        ForeignKeyConstraint(['team_id'], ['teams.id'], name='fk_team'),
+        PrimaryKeyConstraint('id', name='nba_games_pkey')
+    )
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    game_type: Mapped[str] = mapped_column(String(20))
+    team_id: Mapped[Optional[str]] = mapped_column(Text)
+    pts: Mapped[Optional[int]] = mapped_column(Integer)
+    game_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime(True))
+    wl: Mapped[Optional[str]] = mapped_column(Text)
+    matchup: Mapped[Optional[str]] = mapped_column(Text)
+    min: Mapped[Optional[int]] = mapped_column(Integer)
+    fgm: Mapped[Optional[int]] = mapped_column(Integer)
+    fga: Mapped[Optional[int]] = mapped_column(Integer)
+    fta: Mapped[Optional[int]] = mapped_column(Integer)
+    ftm: Mapped[Optional[int]] = mapped_column(Integer)
+    three_pa: Mapped[Optional[int]] = mapped_column(Integer)
+    three_pm: Mapped[Optional[int]] = mapped_column(Integer)
+    oreb: Mapped[Optional[int]] = mapped_column(Integer)
+    dreb: Mapped[Optional[int]] = mapped_column(Integer)
+    reb: Mapped[Optional[int]] = mapped_column(Integer)
+    ast: Mapped[Optional[int]] = mapped_column(Integer)
+    stl: Mapped[Optional[int]] = mapped_column(Integer)
+    blk: Mapped[Optional[int]] = mapped_column(Integer)
+    tov: Mapped[Optional[int]] = mapped_column(Integer)
+    pf: Mapped[Optional[int]] = mapped_column(Integer)
+    plus_minus: Mapped[Optional[int]] = mapped_column(Integer)
+    season: Mapped[Optional[str]] = mapped_column(Text)
+    pace: Mapped[Optional[float]] = mapped_column(Double(53))
+    tov_ratio: Mapped[Optional[float]] = mapped_column(Double(53))
+    tov_pct: Mapped[Optional[float]] = mapped_column(Double(53))
+    off_rating: Mapped[Optional[float]] = mapped_column(Double(53))
+    def_rating: Mapped[Optional[float]] = mapped_column(Double(53))
+
+    team: Mapped[Optional['Teams']] = relationship('Teams', back_populates='nba_games')
+    nba_player_stats: Mapped[List['NbaPlayerStats']] = relationship('NbaPlayerStats', back_populates='game')
+
+
+class Players(Base):
+    __tablename__ = 'players'
+    __table_args__ = (
+        ForeignKeyConstraint(['team_id'], ['teams.id'], name='fk_team'),
+        PrimaryKeyConstraint('id', name='nba_players_pkey')
+    )
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    league: Mapped[str] = mapped_column(Enum('nba', 'nfl', 'mlb', name='league_type'))
+    name: Mapped[Optional[str]] = mapped_column(Text)
+    team_id: Mapped[Optional[str]] = mapped_column(Text)
+    position: Mapped[Optional[str]] = mapped_column(Text)
+    updated_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime(True), server_default=text('CURRENT_TIMESTAMP'))
+    height: Mapped[Optional[str]] = mapped_column(Text)
+    weight: Mapped[Optional[str]] = mapped_column(Text)
+    number: Mapped[Optional[str]] = mapped_column(Text)
+
+    team: Mapped[Optional['Teams']] = relationship('Teams', back_populates='players')
+    mlb_player_stats: Mapped[List['MlbPlayerStats']] = relationship('MlbPlayerStats', back_populates='player')
+    nba_player_stats: Mapped[List['NbaPlayerStats']] = relationship('NbaPlayerStats', back_populates='player')
+    props: Mapped[List['Props']] = relationship('Props', back_populates='player')
+
+
+class MlbPlayerStats(Base):
+    __tablename__ = 'mlb_player_stats'
+    __table_args__ = (
+        ForeignKeyConstraint(['game_id'], ['mlb_games.id'], name='fk_game'),
+        ForeignKeyConstraint(['player_id'], ['players.id'], name='fk_player'),
+        PrimaryKeyConstraint('id', name='mlb_player_stats_pkey'),
+        UniqueConstraint('player_id', 'game_id', name='unique_mlb_player_game')
+    )
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True, server_default=text('gen_random_uuid()'))
+    game_id: Mapped[str] = mapped_column(Text)
+    player_id: Mapped[Optional[str]] = mapped_column(Text)
+    at_bats: Mapped[Optional[int]] = mapped_column(Integer)
+    runs: Mapped[Optional[int]] = mapped_column(Integer)
+    hits: Mapped[Optional[int]] = mapped_column(Integer)
+    doubles: Mapped[Optional[int]] = mapped_column(Integer)
+    triples: Mapped[Optional[int]] = mapped_column(Integer)
+    home_runs: Mapped[Optional[int]] = mapped_column(Integer)
+    rbi: Mapped[Optional[int]] = mapped_column(Integer)
+    stolen_bases: Mapped[Optional[int]] = mapped_column(Integer)
+    caught_stealing: Mapped[Optional[int]] = mapped_column(Integer)
+    walks: Mapped[Optional[int]] = mapped_column(Integer)
+    strikeouts: Mapped[Optional[int]] = mapped_column(Integer)
+    left_on_base: Mapped[Optional[int]] = mapped_column(Integer)
+    hit_by_pitch: Mapped[Optional[int]] = mapped_column(Integer)
+    sac_flies: Mapped[Optional[int]] = mapped_column(Integer)
+    sac_bunts: Mapped[Optional[int]] = mapped_column(Integer)
+    batting_avg: Mapped[Optional[float]] = mapped_column(Double(53))
+    on_base_pct: Mapped[Optional[float]] = mapped_column(Double(53))
+    slugging_pct: Mapped[Optional[float]] = mapped_column(Double(53))
+    ops: Mapped[Optional[float]] = mapped_column(Double(53))
+    innings_pitched: Mapped[Optional[float]] = mapped_column(Double(53))
+    pitching_hits: Mapped[Optional[int]] = mapped_column(Integer)
+    pitching_runs: Mapped[Optional[int]] = mapped_column(Integer)
+    earned_runs: Mapped[Optional[int]] = mapped_column(Integer)
+    pitching_walks: Mapped[Optional[int]] = mapped_column(Integer)
+    pitching_strikeouts: Mapped[Optional[int]] = mapped_column(Integer)
+    pitching_home_runs: Mapped[Optional[int]] = mapped_column(Integer)
+    pitches_thrown: Mapped[Optional[int]] = mapped_column(Integer)
+    strikes: Mapped[Optional[int]] = mapped_column(Integer)
+    balls: Mapped[Optional[int]] = mapped_column(Integer)
+    season: Mapped[Optional[str]] = mapped_column(Text)
+    updated_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime(True), server_default=text('CURRENT_TIMESTAMP'))
+
+    game: Mapped['MlbGames'] = relationship('MlbGames', back_populates='mlb_player_stats')
+    player: Mapped[Optional['Players']] = relationship('Players', back_populates='mlb_player_stats')
+
+
+class NbaPlayerStats(Base):
+    __tablename__ = 'nba_player_stats'
+    __table_args__ = (
+        ForeignKeyConstraint(['game_id'], ['nba_games.id'], name='fk_game'),
+        ForeignKeyConstraint(['player_id'], ['players.id'], name='fk_player'),
+        PrimaryKeyConstraint('id', name='nba_player_stats_pkey'),
+        UniqueConstraint('player_id', 'game_id', name='unique_nba_player_game')
+    )
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    player_id: Mapped[Optional[str]] = mapped_column(Text)
+    game_id: Mapped[Optional[str]] = mapped_column(Text)
+    pts: Mapped[Optional[int]] = mapped_column(Integer)
+    min: Mapped[Optional[int]] = mapped_column(Integer)
+    fgm: Mapped[Optional[int]] = mapped_column(Integer)
+    fga: Mapped[Optional[int]] = mapped_column(Integer)
+    fta: Mapped[Optional[int]] = mapped_column(Integer)
+    ftm: Mapped[Optional[int]] = mapped_column(Integer)
+    three_pa: Mapped[Optional[int]] = mapped_column(Integer)
+    three_pm: Mapped[Optional[int]] = mapped_column(Integer)
+    oreb: Mapped[Optional[int]] = mapped_column(Integer)
+    dreb: Mapped[Optional[int]] = mapped_column(Integer)
+    reb: Mapped[Optional[int]] = mapped_column(Integer)
+    ast: Mapped[Optional[int]] = mapped_column(Integer)
+    stl: Mapped[Optional[int]] = mapped_column(Integer)
+    blk: Mapped[Optional[int]] = mapped_column(Integer)
+    tov: Mapped[Optional[int]] = mapped_column(Integer)
+    pf: Mapped[Optional[int]] = mapped_column(Integer)
+    plus_minus: Mapped[Optional[int]] = mapped_column(Integer)
+    updated_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime(True), server_default=text('CURRENT_TIMESTAMP'))
+    season: Mapped[Optional[str]] = mapped_column(Text)
+    true_shooting: Mapped[Optional[float]] = mapped_column(Double(53))
+    usage_rate: Mapped[Optional[float]] = mapped_column(Double(53))
+    reb_pct: Mapped[Optional[float]] = mapped_column(Double(53))
+    dreb_pct: Mapped[Optional[float]] = mapped_column(Double(53))
+    oreb_pct: Mapped[Optional[float]] = mapped_column(Double(53))
+    ast_pct: Mapped[Optional[float]] = mapped_column(Double(53))
+    ast_ratio: Mapped[Optional[float]] = mapped_column(Double(53))
+    tov_ratio: Mapped[Optional[float]] = mapped_column(Double(53))
+
+    game: Mapped[Optional['NbaGames']] = relationship('NbaGames', back_populates='nba_player_stats')
+    player: Mapped[Optional['Players']] = relationship('Players', back_populates='nba_player_stats')
+
+
+class Parlays(Base):
+    __tablename__ = 'parlays'
+    __table_args__ = (
+        ForeignKeyConstraint(['match_user_id'], ['match_users.id'], name='fk_match_user'),
+        PrimaryKeyConstraint('id', name='parlays_pkey')
+    )
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True, server_default=text('gen_random_uuid()'))
+    match_user_id: Mapped[str] = mapped_column(Text)
+    status: Mapped[str] = mapped_column(Enum('hit', 'missed', 'not_resolved', name='parlay_status'), server_default=text("'not_resolved'::parlay_status"))
+    stake: Mapped[float] = mapped_column(Double(53))
+    created_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime(True), server_default=text('CURRENT_TIMESTAMP'))
+
+    match_user: Mapped['MatchUsers'] = relationship('MatchUsers', back_populates='parlays')
+    parlay_picks: Mapped[List['ParlayPicks']] = relationship('ParlayPicks', back_populates='parlay')
+
+
+class Props(Base):
+    __tablename__ = 'props'
+    __table_args__ = (
+        ForeignKeyConstraint(['player_id'], ['players.id'], name='fk_player'),
+        PrimaryKeyConstraint('id', name='props_pkey')
+    )
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True, server_default=text('gen_random_uuid()'))
+    line: Mapped[float] = mapped_column(Double(53))
+    current_value: Mapped[float] = mapped_column(Double(53), server_default=text('0'))
+    raw_game_id: Mapped[str] = mapped_column(Text)
+    player_id: Mapped[str] = mapped_column(Text)
+    stat: Mapped[str] = mapped_column(Text)
+    league: Mapped[str] = mapped_column(Enum('nba', 'nfl', 'mlb', name='league_type'))
+    resolved: Mapped[bool] = mapped_column(Boolean, server_default=text('false'))
+    created_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime(True), server_default=text('CURRENT_TIMESTAMP'))
+    game_start_time: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime(True))
+    pick_options: Mapped[Optional[list]] = mapped_column(ARRAY(Text()), server_default=text("ARRAY['over'::text, 'under'::text]"))
+
+    player: Mapped['Players'] = relationship('Players', back_populates='props')
+    parlay_picks: Mapped[List['ParlayPicks']] = relationship('ParlayPicks', back_populates='prop')
+
+
+class ParlayPicks(Base):
+    __tablename__ = 'parlay_picks'
+    __table_args__ = (
+        ForeignKeyConstraint(['parlay_id'], ['parlays.id'], name='fk_parlay'),
+        ForeignKeyConstraint(['prop_id'], ['props.id'], name='fk_prop'),
+        PrimaryKeyConstraint('id', name='parlay_picks_pkey')
+    )
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True, server_default=text('gen_random_uuid()'))
+    parlay_id: Mapped[str] = mapped_column(Text)
+    prop_id: Mapped[str] = mapped_column(Text)
+    pick: Mapped[str] = mapped_column(Enum('over', 'under', name='pick_type'))
+    status: Mapped[str] = mapped_column(Enum('hit', 'missed', 'not_resolved', name='pick_status'), server_default=text("'not_resolved'::pick_status"))
+    created_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime(True), server_default=text('CURRENT_TIMESTAMP'))
+
+    parlay: Mapped['Parlays'] = relationship('Parlays', back_populates='parlay_picks')
+    prop: Mapped['Props'] = relationship('Props', back_populates='parlay_picks')

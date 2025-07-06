@@ -1,31 +1,30 @@
 import sys
+import asyncio
 from datetime import datetime
 
-from shared.my_types import Leagues, Player
+from sqlalchemy.orm import Session
+from sqlalchemy import and_, or_, select, update, desc
+
+from shared.my_types import Leagues
 from shared.tables import (
-    t_mlb_games,
-    t_mlb_player_stats,
-    t_nba_games,
-    t_nba_player_stats,
-    t_players,
-    t_props,
-    t_parlay_picks,
+    MlbGames,
+    MlbPlayerStats,
+    NbaGames,
+    NbaPlayerStats,
+    Players,
+    Props,
+    ParlayPicks,
 )
-from shared.my_types import Prop
-from shared.utils import db_response_to_json
-from sqlalchemy import Engine, and_, or_, select, update
-from sqlalchemy.dialects.postgresql import insert as pg_insert
-import asyncio
 from shared.socket_utils import send_message
 
 
 def get_player_last_games(
-    engine: Engine, player_id: str, league: Leagues, n_games: int
-):
+    session: Session, player_id: str, league: Leagues, n_games: int
+) -> list[MlbPlayerStats | NbaPlayerStats]:
     """Retrieve the last n games for a specific player.
 
     Args:
-        engine: SQLAlchemy database engine
+        session: SQLAlchemy database session
         player_id: ID of the player
         league: League type ("mlb" or "nba")
         n_games: Number of games to retrieve
@@ -33,56 +32,43 @@ def get_player_last_games(
     Returns:
         List of player stats from the last n games
     """
-
     try:
-        with engine.connect() as conn:
-            if league == "mlb":
-                j = t_mlb_player_stats.join(
-                    t_mlb_games, t_mlb_player_stats.c.game_id == t_mlb_games.c.id
-                )
-                or_conditions = [
-                    t_mlb_games.c.game_type == "R",
-                    t_mlb_games.c.game_type == "P",
-                ]
-                where_clause = t_mlb_player_stats.c.player_id == player_id
-                order_by = t_mlb_games.c.game_date.desc()
-                table = t_mlb_player_stats
-            elif league == "nba":
-                j = t_nba_player_stats.join(
-                    t_nba_games, t_nba_player_stats.c.game_id == t_nba_games.c.id
-                )
-                or_conditions = [
-                    t_nba_games.c.game_type == "regular_season",
-                    t_nba_games.c.game_type == "playoffs",
-                ]
-                where_clause = t_nba_player_stats.c.player_id == player_id
-                order_by = t_nba_games.c.game_date.desc()
-                table = t_nba_player_stats
-
-            stmt = (
-                select(table)
-                .select_from(j)
-                .where(or_(*or_conditions))
-                .where(where_clause)
-                .order_by(order_by)
+        if league == "mlb":
+            query = (
+                select(MlbPlayerStats)
+                .join(MlbGames, MlbPlayerStats.game_id == MlbGames.id)
+                .where(MlbPlayerStats.player_id == player_id)
+                .where(or_(MlbGames.game_type == "R", MlbGames.game_type == "P"))
+                .order_by(desc(MlbGames.game_date))
                 .limit(n_games)
             )
+        elif league == "nba":
+            query = (
+                select(NbaPlayerStats)
+                .join(NbaGames, NbaPlayerStats.game_id == NbaGames.id)
+                .where(NbaPlayerStats.player_id == player_id)
+                .where(or_(NbaGames.game_type == "regular_season", NbaGames.game_type == "playoffs"))
+                .order_by(desc(NbaGames.game_date))
+                .limit(n_games)
+            )
+        else:
+            raise ValueError(f"Invalid league: {league}")
 
-            result = conn.execute(stmt).fetchall()
-            last_games = db_response_to_json(result)
-
-            return last_games
+        result = session.execute(query).scalars().all()
+        return list(result)
 
     except Exception as e:
         print(f"⚠️ Error fetching eligible players: {e}")
         sys.exit(1)
 
 
-def get_team_last_games(engine: Engine, team_id: str, league: Leagues, n_games: int):
+def get_team_last_games(
+    session: Session, team_id: str, league: Leagues, n_games: int
+) -> list[MlbGames | NbaGames]:
     """Get the last n games for a team.
 
     Args:
-        engine: SQLAlchemy database engine
+        session: SQLAlchemy database session
         team_id: ID of the team
         league: League type ("mlb" or "nba")
         n_games: Number of games to retrieve
@@ -90,48 +76,41 @@ def get_team_last_games(engine: Engine, team_id: str, league: Leagues, n_games: 
     Returns:
         List of team game records from the last n games
     """
-    if league == "mlb":
-        or_conditions = [
-            t_mlb_games.c.game_type == "R",
-            t_mlb_games.c.game_type == "P",
-        ]
-        where_clause = t_mlb_games.c.team_id == str(team_id)
-        order_by = t_mlb_games.c.game_date.desc()
-        table = t_mlb_games
-    elif league == "nba":
-        or_conditions = [
-            t_nba_games.c.game_type == "regular_season",
-            t_nba_games.c.game_type == "playoffs",
-        ]
-        where_clause = t_nba_games.c.team_id == str(team_id)
-        order_by = t_nba_games.c.game_date.desc()
-        table = t_nba_games
-
     try:
-        with engine.connect() as conn:
-            stmt = (
-                select(table)
-                .where(where_clause)
-                .where(or_(*or_conditions))
-                .order_by(order_by)
+        if league == "mlb":
+            query = (
+                select(MlbGames)
+                .where(MlbGames.team_id == str(team_id))
+                .where(or_(MlbGames.game_type == "R", MlbGames.game_type == "P"))
+                .order_by(desc(MlbGames.game_date))
                 .limit(n_games)
             )
+        elif league == "nba":
+            query = (
+                select(NbaGames)
+                .where(NbaGames.team_id == str(team_id))
+                .where(or_(NbaGames.game_type == "regular_season", NbaGames.game_type == "playoffs"))
+                .order_by(desc(NbaGames.game_date))
+                .limit(n_games)
+            )
+        else:
+            raise ValueError(f"Invalid league: {league}")
 
-            result = conn.execute(stmt).fetchall()
-            last_games = db_response_to_json(result)
-            return last_games
+        result = session.execute(query).scalars().all()
+        return list(result)
+
     except Exception as e:
-        print(f"⚠️  There was an error fetching the last games for team {team_id}, {e}")
+        print(f"⚠️ There was an error fetching the last games for team {team_id}, {e}")
         sys.exit(1)
 
 
 def get_opposing_team_last_games(
-    engine: Engine, id_list: list[str], league: Leagues, n_games: int
-):
+    session: Session, id_list: list[str], league: Leagues, n_games: int
+) -> list[MlbGames | NbaGames]:
     """Get opposing team games from a list of game IDs.
 
     Args:
-        engine: SQLAlchemy database engine
+        session: SQLAlchemy database session
         id_list: List of game IDs
         league: League type ("mlb" or "nba")
         n_games: Number of games to retrieve
@@ -144,83 +123,77 @@ def get_opposing_team_last_games(
         if league == "nba":
             raw_game_id, _ = game_id.split("-")
             game_prefix = f"{raw_game_id}-"
-
             conditions.append(
                 and_(
-                    t_nba_games.c.id.startswith(game_prefix),
-                    t_nba_games.c.id != game_id,
+                    NbaGames.id.startswith(game_prefix),
+                    NbaGames.id != game_id,
                 )
             )
         elif league == "mlb":
             raw_game_id, _ = game_id.split("_")
             game_prefix = f"{raw_game_id}_"
-
             conditions.append(
                 and_(
-                    t_mlb_games.c.id.startswith(game_prefix),
-                    t_mlb_games.c.id != game_id,
+                    MlbGames.id.startswith(game_prefix),
+                    MlbGames.id != game_id,
                 )
             )
 
-    if league == "mlb":
-        or_conditions = [
-            t_mlb_games.c.game_type == "R",
-            t_mlb_games.c.game_type == "P",
-        ]
-        order_by = t_mlb_games.c.game_date.desc()
-        table = t_mlb_games
-    elif league == "nba":
-        or_conditions = [
-            t_nba_games.c.game_type == "regular_season",
-            t_nba_games.c.game_type == "playoffs",
-        ]
-        order_by = t_nba_games.c.game_date.desc()
-        table = t_nba_games
-
     try:
-        with engine.connect() as conn:
-            stmt = (
-                select(table)
+        if league == "mlb":
+            query = (
+                select(MlbGames)
                 .where(or_(*conditions))
-                .where(or_(*or_conditions))
-                .order_by(order_by)
+                .where(or_(MlbGames.game_type == "R", MlbGames.game_type == "P"))
+                .order_by(desc(MlbGames.game_date))
                 .limit(n_games)
             )
+        elif league == "nba":
+            query = (
+                select(NbaGames)
+                .where(or_(*conditions))
+                .where(or_(NbaGames.game_type == "regular_season", NbaGames.game_type == "playoffs"))
+                .order_by(desc(NbaGames.game_date))
+                .limit(n_games)
+            )
+        else:
+            raise ValueError(f"Invalid league: {league}")
 
-            result = conn.execute(stmt).fetchall()
-            return db_response_to_json(result)
+        result = session.execute(query).scalars().all()
+        return list(result)
+
     except Exception as e:
         print(f"⚠️ There was an error fetching opposing team games {e}")
         sys.exit(1)
 
 
-def get_players_from_team(engine: Engine, team_id: str) -> list[Player]:
+def get_players_from_team(session: Session, team_id: str) -> list[Players]:
     """Get a list of all players from a team.
 
     Args:
-        engine: SQLAlchemy database engine
+        session: SQLAlchemy database session
         team_id: ID of the team
 
     Returns:
         List of Player objects from the team
     """
     try:
-        with engine.connect() as conn:
-            stmt = select(t_players).where(
-                t_players.c.team_id == str(team_id),
-            )
-            result = conn.execute(stmt).fetchall()
-            return db_response_to_json(result)
+        query = select(Players).where(Players.team_id == str(team_id))
+        result = session.execute(query).scalars().all()
+        return list(result)
+
     except Exception as e:
         print(f"⚠️ Error fetching roster for team {team_id}: {e}")
         sys.exit(1)
 
 
-def get_games_by_id(engine: Engine, id_list: list[str], league: Leagues, n_games: int):
+def get_games_by_id(
+    session: Session, id_list: list[str], league: Leagues, n_games: int
+) -> list[MlbGames | NbaGames]:
     """Retrieve games by their IDs.
 
     Args:
-        engine: SQLAlchemy database engine
+        session: SQLAlchemy database session
         id_list: List of game IDs
         league: League type ("mlb" or "nba")
         n_games: Number of games to retrieve
@@ -228,51 +201,48 @@ def get_games_by_id(engine: Engine, id_list: list[str], league: Leagues, n_games
     Returns:
         List of game records matching the provided IDs
     """
-    if league == "nba":
-        table = t_nba_games
-        where_clause = t_nba_games.c.id.in_(id_list)
-        or_conditions = [
-            t_nba_games.c.game_type == "regular_season",
-            t_nba_games.c.game_type == "playoffs",
-        ]
-        order_by = t_nba_games.c.game_date.desc()
-    elif league == "mlb":
-        table = t_mlb_games
-        where_clause = t_mlb_games.c.id.in_(id_list)
-        or_conditions = [t_mlb_games.c.game_type == "P", t_mlb_games.c.game_type == "R"]
-        order_by = t_mlb_games.c.game_date.desc()
-
     try:
-        with engine.connect() as conn:
-            stmt = (
-                select(table)
-                .where(where_clause)
-                .where(or_(*or_conditions))
-                .order_by(order_by)
+        if league == "nba":
+            query = (
+                select(NbaGames)
+                .where(NbaGames.id.in_(id_list))
+                .where(or_(NbaGames.game_type == "regular_season", NbaGames.game_type == "playoffs"))
+                .order_by(desc(NbaGames.game_date))
                 .limit(n_games)
             )
+        elif league == "mlb":
+            query = (
+                select(MlbGames)
+                .where(MlbGames.id.in_(id_list))
+                .where(or_(MlbGames.game_type == "P", MlbGames.game_type == "R"))
+                .order_by(desc(MlbGames.game_date))
+                .limit(n_games)
+            )
+        else:
+            raise ValueError(f"Invalid league: {league}")
 
-            result = conn.execute(stmt).fetchall()
-            return db_response_to_json(result)
+        result = session.execute(query).scalars().all()
+        return list(result)
+
     except Exception as e:
         print(f"⚠️ There was an error fetching games by id, {e}")
         sys.exit(1)
 
 
 def insert_prop(
-    engine: Engine,
+    session: Session,
     line: float,
     game_id: str,
     player_id: str,
     stat: str,
     game_start_time: datetime,
     league: Leagues,
-    pick_options=["over", "under"],
-):
+    pick_options: list[str] = None,
+) -> None:
     """Insert a prop into the database.
 
     Args:
-        engine: SQLAlchemy database engine
+        session: SQLAlchemy database session
         line: The prop line/threshold value
         game_id: ID of the game
         player_id: ID of the player
@@ -281,9 +251,28 @@ def insert_prop(
         league: League type ("mlb" or "nba")
         pick_options: Available pick options (default: ["over", "under"])
     """
+    if pick_options is None:
+        pick_options = ["over", "under"]
+
     try:
-        with engine.begin() as conn:
-            stmt = pg_insert(t_props).values(
+        # Check if prop already exists
+        existing_prop = session.execute(
+            select(Props).where(
+                Props.raw_game_id == game_id,
+                Props.player_id == player_id,
+                Props.stat == stat,
+                Props.league == league,
+            )
+        ).scalar_one_or_none()
+
+        if existing_prop:
+            # Update existing prop
+            existing_prop.line = line
+            existing_prop.game_start_time = game_start_time
+            existing_prop.pick_options = pick_options
+        else:
+            # Create new prop
+            new_prop = Props(
                 line=line,
                 raw_game_id=game_id,
                 player_id=player_id,
@@ -292,43 +281,33 @@ def insert_prop(
                 league=league,
                 pick_options=pick_options,
             )
+            session.add(new_prop)
 
-            update_cols = {
-                col: stmt.excluded[col]
-                for col in [
-                    "line",
-                    "raw_game_id",
-                    "player_id",
-                    "stat",
-                    "game_start_time",
-                    "league",
-                ]
-            }
+        session.commit()
 
-            stmt = stmt.on_conflict_do_update(index_elements=["id"], set_=update_cols)
-            conn.execute(stmt)
     except Exception as e:
+        session.rollback()
         print(f"⚠️ There was an error inserting the prop, {e}")
         sys.exit(1)
 
 
 def update_prop_and_picks(
-    engine: Engine,
+    session: Session,
     stat: str,
     player_id: str,
     raw_game_id: str,
-    updated_value,
+    updated_value: float,
     league: Leagues,
-    is_final=False,
-):
-    """Update a given prop and its parlay_picks with current game data. 
-    
+    is_final: bool = False,
+) -> None:
+    """Update a given prop and its parlay_picks with current game data.
+
     First updates the actual prop in the database,
     then updates the status of the parlay_pick if the game is final,
     then finally sends a message to the server for the client to handle.
 
     Args:
-        engine: SQLAlchemy database engine
+        session: SQLAlchemy database session
         stat: The stat being updated
         player_id: ID of the player
         raw_game_id: ID of the game
@@ -337,80 +316,69 @@ def update_prop_and_picks(
         is_final: Whether the game is final (default: False)
     """
     try:
-        with engine.begin() as conn:
-            stmt = (
-                update(t_props)
-                .where(t_props.c.stat == stat)
-                .where(t_props.c.raw_game_id == raw_game_id)
-                .where(t_props.c.player_id == player_id)
-                .where(t_props.c.league == league)
-                .values(current_value=updated_value, resolved=is_final)
-                .returning(t_props)
+        # Find and update the prop
+        prop = session.execute(
+            select(Props).where(
+                Props.stat == stat,
+                Props.raw_game_id == raw_game_id,
+                Props.player_id == player_id,
+                Props.league == league,
+            )
+        ).scalar_one_or_none()
+
+        if prop is None:
+            return
+
+        prop.current_value = updated_value
+        prop.resolved = is_final
+
+        # Update parlay picks if the game is final
+        if prop.resolved:
+            prop_final_status = "over" if prop.current_value > prop.line else "under"
+
+            # Update picks that match the winning outcome to "hit"
+            session.execute(
+                update(ParlayPicks)
+                .where(ParlayPicks.prop_id == prop.id)
+                .where(ParlayPicks.pick == prop_final_status)
+                .values(status="hit")
             )
 
-            result = conn.execute(stmt).first()
-            if result is not None:
-                prop: Prop = db_response_to_json(result)
-                
-                # This finds all the parlay picks that choose over and under and respectively updates the status
-                if prop["resolved"]:
-                    prop_final_status = (
-                        "over" if prop["current_value"] > prop["line"] else "under"
-                    )
+            # Update picks that don't match the winning outcome to "missed"
+            session.execute(
+                update(ParlayPicks)
+                .where(ParlayPicks.prop_id == prop.id)
+                .where(ParlayPicks.pick != prop_final_status)
+                .values(status="missed")
+            )
 
-                    # Update picks that match the winning outcome to "hit"
-                    hit_stmt = (
-                        update(t_parlay_picks)
-                        .where(t_parlay_picks.c.prop_id == prop["id"])
-                        .where(t_parlay_picks.c.pick == prop_final_status)
-                        .values(status="hit")
-                    )
+        session.commit()
 
-                    # Update picks that don't match the winning outcome to "missed"
-                    missed_stmt = (
-                        update(t_parlay_picks)
-                        .where(t_parlay_picks.c.prop_id == prop["id"])
-                        .where(t_parlay_picks.c.pick != prop_final_status)
-                        .values(status="missed")
-                    )
+        # Get updated picks to send notifications
+        picks = session.execute(
+            select(ParlayPicks.id, Props.current_value, ParlayPicks.status)
+            .select_from(ParlayPicks.join(Props, Props.id == ParlayPicks.prop_id))
+            .where(Props.id == prop.id)
+        ).all()
 
-                    conn.execute(hit_stmt)
-                    conn.execute(missed_stmt)
-
-                select_stmt = (
-                    select(
-                        t_parlay_picks.c.id,
-                        t_props.c.current_value,
-                        t_parlay_picks.c.status,
-                    )
-                    .select_from(
-                        t_parlay_picks.join(
-                            t_props, t_props.c.id == t_parlay_picks.c.prop_id
-                        )
-                    )
-                    .where(t_props.c.id == prop["id"])
+        async def send_updates():
+            for pick_id, current_value, status in picks:
+                await send_message(
+                    namespace="/parlay_pick",
+                    message="pick-updated",
+                    data={
+                        "current_value": current_value,
+                        "status": status,
+                    },
+                    query_params={"parlayPickId": pick_id},
                 )
 
-                result = conn.execute(select_stmt).fetchall()
-                picks = db_response_to_json(result)
-                
-                async def send_updates():
-                    for pick in picks:
-                        await send_message(
-                            namespace="/parlay_pick",
-                            message="pick-updated",
-                            data={
-                                "current_value": pick["current_value"],
-                                "status": pick["status"],
-                            },
-                            query_params={"parlayPickId": pick["id"]},
-                        )
+        # Run the async function
+        asyncio.run(send_updates())
 
-                # Run the async function. Running it asynchronously gives control back to the event loop because we don't care to wait for this too process.
-                asyncio.run(send_updates())
-                
-                print(f"✅ Updated {stat} for player {player_id}\n")
+        print(f"✅ Updated {stat} for player {player_id}\n")
 
     except Exception as e:
+        session.rollback()
         print(f"⚠️ There was an error updating the prop: {e}")
         sys.exit(1)

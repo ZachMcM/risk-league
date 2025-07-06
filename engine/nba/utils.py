@@ -1,7 +1,8 @@
 from datetime import datetime, timezone
+from typing import Any, Union
 
 
-def clean_minutes(min_str):
+def clean_minutes(min_str: Union[str, Any]) -> int:
     """Clean minute string format and convert to integer.
     
     Args:
@@ -16,7 +17,7 @@ def clean_minutes(min_str):
     return 0
 
 
-def get_current_season():
+def get_current_season() -> str:
     """Get the current NBA season string.
     
     Returns:
@@ -34,7 +35,8 @@ def get_current_season():
 
     return f"{start_year}-{str(start_year + 1)[-2:]}"
 
-def get_last_season():
+
+def get_last_season() -> str:
     """Get the last NBA season string.
     
     Returns:
@@ -53,7 +55,7 @@ def get_last_season():
     return f"{start_year - 1}-{str(start_year)[-2:]}"
 
 
-def remove_decimals_from_string_id(s):
+def remove_decimals_from_string_id(s: str) -> str:
     """Remove decimal points from string IDs.
     
     Args:
@@ -67,7 +69,7 @@ def remove_decimals_from_string_id(s):
     return s
 
 
-def get_game_type(code):
+def get_game_type(code: str) -> str:
     """Get game type from NBA API code.
     
     Args:
@@ -84,9 +86,10 @@ def get_game_type(code):
         return "all_star"
     elif code == "004":
         return "playoffs"
+    return "unknown"
     
     
-def get_season_bounds(season_str: str):
+def get_season_bounds(season_str: str) -> tuple[datetime, datetime]:
     """Get season start and end dates from season string.
     
     Args:
@@ -95,8 +98,10 @@ def get_season_bounds(season_str: str):
     Returns:
         Tuple of (season_start, season_end) datetime objects
     """
-    start_year, end_year = map(int, season_str.split("-"))
-    season_start = datetime(start_year, 10, 1, tzinfo=timezone.utc)
-    season_end = datetime(end_year, 6, 30, 23, 59, 59, tzinfo=timezone.utc)
+    start_year, end_year_short = season_str.split("-")
+    start_year_int = int(start_year)
+    end_year_int = int(f"20{end_year_short}")
+    season_start = datetime(start_year_int, 10, 1, tzinfo=timezone.utc)
+    season_end = datetime(end_year_int, 6, 30, 23, 59, 59, tzinfo=timezone.utc)
     return season_start, season_end
 

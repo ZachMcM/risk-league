@@ -1,5 +1,6 @@
-from my_types import Stat
 from typing import Literal
+
+from mlb.my_types import Stat
 
 
 def get_stat_type(stat: Stat) -> Literal["batting", "pitching"]:
@@ -27,7 +28,7 @@ def get_stat_type(stat: Stat) -> Literal["batting", "pitching"]:
         return "pitching"
 
 
-def is_low_volume_stat(stat: Stat):
+def is_low_volume_stat(stat: Stat) -> bool:
     """Determine if a stat is typically low volume.
     
     Args:

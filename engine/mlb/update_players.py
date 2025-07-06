@@ -1,56 +1,62 @@
-import os
+import sys
+from typing import Any
+
 import pandas as pd
 import statsapi
-from dotenv import load_dotenv
-from shared.tables import t_players
-from sqlalchemy import create_engine
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
-load_dotenv()
-engine = create_engine(os.getenv("DATABASE_URL"))
+from shared.db_session import get_db_session
+from shared.tables import Players
 
 
-def insert_players(players_df, engine):
+def insert_players(players_df: pd.DataFrame) -> None:
     """Insert MLB players into the database.
     
     Args:
         players_df: DataFrame containing player data
-        engine: SQLAlchemy database engine
     """
     data = players_df.to_dict(orient="records")
     if not data:
         print("No data to insert.")
         return
 
-    with engine.begin() as conn:
-        try:
-            stmt = pg_insert(t_players).values(data)
-            update_cols = {
-                col: stmt.excluded[col]
-                for col in [
-                    "name",
-                    "team_id",
-                    "position",
-                    "height",
-                    "weight",
-                    "number",
-                    "league",
-                ]
-            }
+    session = get_db_session()
+    try:
+        stmt = pg_insert(Players).values(data)
+        update_cols = {
+            col: stmt.excluded[col]
+            for col in [
+                "name",
+                "team_id",
+                "position",
+                "height",
+                "weight",
+                "number",
+                "league",
+            ]
+        }
 
-            stmt = stmt.on_conflict_do_update(
-                index_elements=["id"],  # primary key or unique constraint
-                set_=update_cols,
-            )
-            conn.execute(stmt)
-            print(f"✅ Inserted {len(data)} MLB players")
-        except IntegrityError as e:
-            print(f"⚠️ Insert failed due to integrity error: {e._message}")
-            return
+        stmt = stmt.on_conflict_do_update(
+            index_elements=["id"],  # primary key or unique constraint
+            set_=update_cols,
+        )
+        session.execute(stmt)
+        session.commit()
+        print(f"✅ Updated {len(data)} MLB players")
+    except IntegrityError as e:
+        session.rollback()
+        print(f"⚠️ Insert failed due to integrity error: {e}")
+        sys.exit(1)
+    except Exception as e:
+        session.rollback()
+        print(f"⚠️ Unexpected error during player insert: {e}")
+        sys.exit(1)
+    finally:
+        session.close()
 
 
-def main():
+def main() -> None:
     """Main function to update MLB players.
     
     Fetches current rosters for all MLB teams and updates the database.
@@ -58,7 +64,7 @@ def main():
     # Get all MLB teams first
     teams_data = statsapi.get("teams", {"sportId": 1})["teams"]
 
-    all_players = []
+    all_players: list[dict[str, Any]] = []
 
     for team in teams_data:
         team_id = str(team["id"])
@@ -99,11 +105,9 @@ def main():
 
     if all_players:
         players_df = pd.DataFrame(all_players)
-        insert_players(players_df, engine)
+        insert_players(players_df)
     else:
         print("No players found to insert")
-
-    engine.dispose()
 
 
 if __name__ == "__main__":

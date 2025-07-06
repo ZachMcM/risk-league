@@ -1,8 +1,11 @@
 from datetime import datetime
 from typing import Literal, TypedDict
-from shared.my_types import Player, StatName
 
-stats_arr = [
+from shared.my_types import StatName
+from shared.tables import Players, NbaPlayerStats
+
+
+stats_arr: list[str] = [
     "pts",
     "reb",
     "ast",
@@ -41,74 +44,9 @@ stat_name_list: list[StatName] = [
 ]
 
 
-class NbaGame(TypedDict):
-    id: str
-    team_id: str
-    pts: int
-    game_date: datetime
-    wl: str
-    matchup: str
-    min: int
-    fgm: int
-    fga: int
-    fta: int
-    ftm: int
-    three_pa: int
-    three_pm: int
-    oreb: int
-    dreb: int
-    reb: int
-    ast: int
-    stl: int
-    blk: int
-    tov: int
-    pf: int
-    plus_minus: int
-    game_type: str
-    season: str
-    pace: float
-    tov_ratio: float
-    tov_pct: float
-    off_rating: float
-    def_rating: float
-
-
-class NbaPlayerStats(TypedDict):
-    id: str
-    player_id: str
-    game_id: str
-    pts: int
-    min: int
-    fgm: int
-    fga: int
-    fta: int
-    ftm: int
-    three_pa: int
-    three_pm: int
-    oreb: int
-    dreb: int
-    reb: int
-    ast: int
-    stl: int
-    blk: int
-    tov: int
-    pf: int
-    plus_minus: int
-    updated_at: datetime
-    season: str
-    true_shooting: float
-    usage_rate: float
-    reb_pct: float
-    dreb_pct: float
-    oreb_pct: float
-    ast_pct: float
-    ast_ratio: float
-    tov_ratio: float
-
-
 class PlayerData(TypedDict):
     matchup: str
-    player: Player
+    player: Players
     game_id: str
     last_games: list[NbaPlayerStats]
     game_start_time: datetime

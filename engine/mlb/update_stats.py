@@ -1,21 +1,19 @@
-import os
+import sys
 from datetime import datetime, timedelta
+from typing import Any
 
 import numpy as np
 import pandas as pd
 import statsapi
-from dotenv import load_dotenv
-from shared.tables import t_mlb_games, t_mlb_player_stats, t_players
-from sqlalchemy import Engine, create_engine, select, delete
+from sqlalchemy import select, delete
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.exc import IntegrityError
-import sys
 
-load_dotenv()
-engine = create_engine(os.getenv("DATABASE_URL"))
+from shared.db_session import get_db_session
+from shared.tables import MlbGames, MlbPlayerStats, Players
 
 
-def get_team_stats_from_boxscore(team_data):
+def get_team_stats_from_boxscore(team_data: dict[str, Any]) -> dict[str, Any]:
     """Extract team stats from boxscore data.
     
     Args:
@@ -73,7 +71,7 @@ def get_team_stats_from_boxscore(team_data):
     }
 
 
-def process_game_data(game, season):
+def process_game_data(game: dict[str, Any], season: int) -> list[dict[str, Any]]:
     """Process a single game and return records for both teams.
     
     Args:
@@ -166,12 +164,11 @@ def process_game_data(game, season):
     return game_records
 
 
-def insert_games(games_df, engine):
+def insert_games(games_df: pd.DataFrame) -> None:
     """Insert games data into database with upsert capability.
     
     Args:
         games_df: DataFrame containing game data
-        engine: SQLAlchemy database engine
     """
     data = games_df.to_dict(orient="records")
 
@@ -179,31 +176,35 @@ def insert_games(games_df, engine):
         print("No data to insert.")
         return
 
-    with engine.begin() as conn:
-        try:
-            # Use PostgreSQL's ON CONFLICT to handle duplicates
-            stmt = pg_insert(t_mlb_games).values(data)
+    session = get_db_session()
+    try:
+        # Use PostgreSQL's ON CONFLICT to handle duplicates
+        stmt = pg_insert(MlbGames).values(data)
 
-            # Define columns to update on conflict (exclude id and created_at)
-            update_columns = {
-                col.name: stmt.excluded[col.name]
-                for col in t_mlb_games.columns
-                if col.name not in ["id", "created_at"]
-            }
+        # Define columns to update on conflict (exclude id and created_at)
+        update_columns = {
+            col.name: stmt.excluded[col.name]
+            for col in MlbGames.__table__.columns
+            if col.name not in ["id", "created_at"]
+        }
 
-            stmt = stmt.on_conflict_do_update(
-                index_elements=["id"], set_=update_columns
-            )
+        stmt = stmt.on_conflict_do_update(
+            index_elements=["id"], set_=update_columns
+        )
 
-            result = conn.execute(stmt)
-            print(f"✅ Upserted {len(data)} MLB game records")
+        session.execute(stmt)
+        session.commit()
+        print(f"✅ Upserted {len(data)} MLB game records")
 
-        except Exception as e:
-            print(f"🚨 Insert failed due to error: {e}")
-            sys.exit(1)
+    except Exception as e:
+        session.rollback()
+        print(f"🚨 Insert failed due to error: {e}")
+        sys.exit(1)
+    finally:
+        session.close()
 
 
-def extract_player_batting_stats(batting_stats):
+def extract_player_batting_stats(batting_stats: dict[str, Any]) -> dict[str, Any]:
     """Extract batting stats from player boxscore data.
     
     Args:
@@ -251,7 +252,7 @@ def extract_player_batting_stats(batting_stats):
     }
 
 
-def extract_player_pitching_stats(pitching_stats):
+def extract_player_pitching_stats(pitching_stats: dict[str, Any]) -> dict[str, Any]:
     """Extract pitching stats from player boxscore data.
     
     Args:
@@ -278,12 +279,11 @@ def extract_player_pitching_stats(pitching_stats):
     }
 
 
-def insert_player_stats(games_df, engine: Engine):
+def insert_player_stats(games_df: pd.DataFrame) -> None:
     """Insert player stats data into database with upsert capability.
     
     Args:
         games_df: DataFrame containing player stats data
-        engine: SQLAlchemy database engine
     """
     data = games_df.to_dict(orient="records")
 
@@ -291,50 +291,52 @@ def insert_player_stats(games_df, engine: Engine):
         print("No data to insert.")
         return
 
-    with engine.begin() as conn:
-        try:
-            # Get existing MLB player IDs from database using SQLAlchemy
-            existing_players_query = select(t_players.c.id).where(
-                t_players.c.league == "mlb"
-            )
-            existing_players_result = conn.execute(existing_players_query)
-            existing_player_ids = {row[0] for row in existing_players_result}
+    session = get_db_session()
+    try:
+        # Get existing MLB player IDs from database using SQLAlchemy
+        existing_players_query = select(Players.id).where(Players.league == "mlb")
+        existing_players_result = session.execute(existing_players_query)
+        existing_player_ids = {row[0] for row in existing_players_result}
 
-            # Set player_id to None for players that don't exist in the database
-            players_set_to_null = 0
-            for record in data:
-                if record["player_id"] not in existing_player_ids:
-                    record["player_id"] = None
-                    players_set_to_null += 1
+        # Set player_id to None for players that don't exist in the database
+        players_set_to_null = 0
+        for record in data:
+            if record["player_id"] not in existing_player_ids:
+                record["player_id"] = None
+                players_set_to_null += 1
 
-            if players_set_to_null > 0:
-                print(
-                    f"⚠️ Set {players_set_to_null} player_ids to null (players not found in database)"
-                )
-
-            # Use PostgreSQL's ON CONFLICT to handle duplicates
-            stmt = pg_insert(t_mlb_player_stats).values(data)
-
-            # Define columns to update on conflict (exclude id and created_at)
-            update_columns = {
-                col.name: stmt.excluded[col.name]
-                for col in t_mlb_player_stats.columns
-                if col.name not in ["id", "created_at"]
-            }
-
-            stmt = stmt.on_conflict_do_update(
-                index_elements=["player_id", "game_id"], set_=update_columns
+        if players_set_to_null > 0:
+            print(
+                f"⚠️ Set {players_set_to_null} player_ids to null (players not found in database)"
             )
 
-            conn.execute(stmt)
-            print(f"✅ Upserted {len(data)} MLB player stats records")
+        # Use PostgreSQL's ON CONFLICT to handle duplicates
+        stmt = pg_insert(MlbPlayerStats).values(data)
 
-        except IntegrityError as e:
-            print(f"🚨 Insert failed due to error:", {e})
-            sys.exit(1)
+        # Define columns to update on conflict (exclude id and created_at)
+        update_columns = {
+            col.name: stmt.excluded[col.name]
+            for col in MlbPlayerStats.__table__.columns
+            if col.name not in ["id", "updated_at"]
+        }
+
+        stmt = stmt.on_conflict_do_update(
+            index_elements=["player_id", "game_id"], set_=update_columns
+        )
+
+        session.execute(stmt)
+        session.commit()
+        print(f"✅ Upserted {len(data)} MLB player stats records")
+
+    except IntegrityError as e:
+        session.rollback()
+        print(f"🚨 Insert failed due to error: {e}")
+        sys.exit(1)
+    finally:
+        session.close()
 
 
-def process_player_stats_from_game(game_id, season):
+def process_player_stats_from_game(game_id: str, season: int) -> list[dict[str, Any]]:
     """Process player stats from a single game.
     
     Args:
@@ -452,37 +454,41 @@ def process_player_stats_from_game(game_id, season):
     return player_records
 
 
-def remove_duplicates():
+def remove_duplicates() -> None:
     """Remove duplicate MLB player stats records.
     
     Keeps the most recent record for each player-game combination.
     """
+    session = get_db_session()
     try:
-        with engine.begin() as conn:
-            # Subquery to get the IDs we want to keep (most recent for each player_id, game_id pair)
-            subquery = (
-                select(t_mlb_player_stats.c.id)
-                .distinct(t_mlb_player_stats.c.player_id, t_mlb_player_stats.c.game_id)
-                .order_by(
-                    t_mlb_player_stats.c.player_id,
-                    t_mlb_player_stats.c.game_id,
-                    t_mlb_player_stats.c.updated_at.desc()
-                )
+        # Subquery to get the IDs we want to keep (most recent for each player_id, game_id pair)
+        subquery = (
+            select(MlbPlayerStats.id)
+            .distinct(MlbPlayerStats.player_id, MlbPlayerStats.game_id)
+            .order_by(
+                MlbPlayerStats.player_id,
+                MlbPlayerStats.game_id,
+                MlbPlayerStats.updated_at.desc()
             )
-            
-            # Delete records whose ID is not in the subquery
-            stmt = delete(t_mlb_player_stats).where(
-                t_mlb_player_stats.c.id.notin_(subquery)
-            )
-            
-            result = conn.execute(stmt)
-            print(f"✅ Removed {result.rowcount} duplicate MLB player stats records")
+        )
+        
+        # Delete records whose ID is not in the subquery
+        stmt = delete(MlbPlayerStats).where(
+            MlbPlayerStats.id.notin_(subquery)
+        )
+        
+        result = session.execute(stmt)
+        session.commit()
+        print(f"✅ Removed {result.rowcount} duplicate MLB player stats records")
 
     except Exception as e:
+        session.rollback()
         print(f"🚨 There was an error trying to delete duplicates: {e}")
+    finally:
+        session.close()
 
 
-def main():
+def main() -> None:
     """Initialize MLB games data for a date range.
     
     Processes previous day's games and updates both team and player stats.
@@ -526,7 +532,7 @@ def main():
         if initial_count != final_count:
             print(f"⚠️ Removed {initial_count - final_count} duplicate records")
 
-        insert_games(games_df, engine)
+        insert_games(games_df)
     else:
         print("No completed games found to insert")
 
@@ -548,15 +554,13 @@ def main():
         stats_df = stats_df.where(pd.notna(stats_df), 0)
 
         # Also replace any float('nan') values that might have slipped through
-
         stats_df = stats_df.replace([np.nan, float("nan")], 0)
 
-        insert_player_stats(stats_df, engine)
+        insert_player_stats(stats_df)
     else:
         print("No player stats found to insert")
 
     remove_duplicates()
-    engine.dispose()
 
 
 if __name__ == "__main__":

@@ -41,7 +41,7 @@ pip install -e .
 If `engine/shared/tables.py` does not exist run this command
 ```
 cd engine
-sqlacodegen --generator tables "<DATABASE_URL>" > shared/tables.py
+sqlacodegen "<DATABASE_URL>" > shared/tables.py
 ```
 
 ## Running The Backend Server
