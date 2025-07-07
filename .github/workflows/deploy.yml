@@ -1,7 +1,7 @@
 name: Deploy and Migrate
 on:
   push:
-    branches: [main]
+    branches: [development, main]
 
 jobs:
   migrate:
@@ -17,5 +17,5 @@ jobs:
         run: dbmate up
         working-directory: ./db
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DATABASE_URL: ${{ github.ref == 'refs/heads/main' && secrets.PROD_DB_URL || secrets.DEV_DB_URL }}
           DBMATE_MIGRATIONS_DIR: ./migrations
