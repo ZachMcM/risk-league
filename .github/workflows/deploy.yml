@@ -18,3 +18,4 @@ jobs:
         working-directory: ./db
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DBMATE_MIGRATIONS_DIR: ./migrations
