@@ -153,7 +153,7 @@ def sync_props() -> None:
                             str(player["raw_game_id"]),
                             player[stat],
                             "mlb",
-                            is_final=game.get("status").get("statusCode") == "F",
+                            is_final=game.get("status") == "Final",
                         )
 
         logger.info(f"✅ Successfully updated props")

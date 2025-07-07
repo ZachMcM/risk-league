@@ -20,7 +20,7 @@ def get_today_nba_games():
         scoreboard = ScoreBoard()
         games = ScoreBoard().games.get_dict()
         if scoreboard.score_board_date != today:
-            logger.warning("No games found today, no props to generate!")
+            logger.warning("No games found currently")
         return games
     except Exception as e:
         logger.error(f"Error fetching today's games: {e}")

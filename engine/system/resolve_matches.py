@@ -58,7 +58,8 @@ def resolve_matches():
         if game["gameStatusText"] != "Final":
             return
     for game in mlb_games:
-        if game.get("status").get("statusCode") != "F":
+        status = game.get("status")  
+        if status != "Final":
             return
 
     matches = (
