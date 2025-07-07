@@ -104,8 +104,3 @@ class NbaPropGenerator(BasePropGenerator[NbaPlayerStats, NbaGames]):
     def get_available_stats(self) -> list[str]:
         """Get list of available NBA stats (auto-generated!)"""
         return get_nba_stats_list()
-    
-    def print_registered_stats(self):
-        """Print all registered NBA stats for debugging"""
-        stats = self.get_available_stats()
-        print(f"NBA Registered Stats ({len(stats)}): {', '.join(stats)}")

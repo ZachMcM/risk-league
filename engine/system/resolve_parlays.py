@@ -1,11 +1,16 @@
+import asyncio
+import logging
+
 from shared.db_session import get_db_session
 from shared.pubsub_utils import listen_for_messages
-from shared.tables import Parlays, ParlayPicks
-from sqlalchemy.orm import Session
-from sqlalchemy import select
-from system.constants import parlay_multipliers
-import asyncio
 from shared.socket_utils import send_message as send_socket_message
+from shared.tables import ParlayPicks, Parlays
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+from system.constants import parlay_multipliers
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 
 def resolve_parlay(session: Session, pick_id: str):
@@ -64,12 +69,12 @@ def listen_for_parlay_pick_resolved():
         """Handles incoming parlay_pick_resolved messages"""
         pick_id = data.get("pick_id")
         if not pick_id:
-            print("⚠️ Received prop_resolved message without pick_id")
+            logger.error("⚠️ Received prop_resolved message without pick_id")
             return
 
         resolve_parlay(session, pick_id)
 
-    print("🔄 Listening for prop_resolved messages...")
+    logger.info("🔄 Listening for prop_resolved messages...")
     listen_for_messages("parlay_pick_resolved", handle_pick_resolved)
 
 
@@ -78,9 +83,9 @@ def main():
     try:
         listen_for_parlay_pick_resolved()
     except KeyboardInterrupt:
-        print("\n🛑 Shutting down prop resolver...")
+        logger.warning("🛑 Shutting down prop resolver...")
     except Exception as e:
-        print(f"⚠️ Error in main: {e}")
+        logger.error(f"⚠️ Error in main: {e}")
 
 
 if __name__ == "__main__":

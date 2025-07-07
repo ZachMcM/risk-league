@@ -1,3 +1,4 @@
+import logging
 import sys
 from datetime import datetime, timedelta
 from typing import Any
@@ -11,6 +12,10 @@ from sqlalchemy.exc import IntegrityError
 
 from shared.db_session import get_db_session
 from shared.tables import MlbGames, MlbPlayerStats, Players
+
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 
 def get_team_stats_from_boxscore(team_data: dict[str, Any]) -> dict[str, Any]:
@@ -89,7 +94,7 @@ def process_game_data(game: dict[str, Any], season: int) -> list[dict[str, Any]]
         game_data = statsapi.get("game", {"gamePk": game_id})
 
         if "liveData" not in game_data or "boxscore" not in game_data["liveData"]:
-            print(f"No boxscore data for game {game_id}")
+            logger.info(f"No boxscore data for game {game_id}")
             return []
 
         boxscore = game_data["liveData"]["boxscore"]
@@ -158,7 +163,7 @@ def process_game_data(game: dict[str, Any], season: int) -> list[dict[str, Any]]
             game_records.append(game_record)
 
     except Exception as e:
-        print(f"Error processing game {game_id}: {e}")
+        logger.fatal(f"Error processing game {game_id}: {e}")
         sys.exit(1)
 
     return game_records
@@ -173,7 +178,7 @@ def insert_games(games_df: pd.DataFrame) -> None:
     data = games_df.to_dict(orient="records")
 
     if not data:
-        print("No data to insert.")
+        logger.info("No data to insert.")
         return
 
     session = get_db_session()
@@ -194,11 +199,11 @@ def insert_games(games_df: pd.DataFrame) -> None:
 
         session.execute(stmt)
         session.commit()
-        print(f"✅ Upserted {len(data)} MLB game records")
+        logger.info(f"✅ Upserted {len(data)} MLB game records")
 
     except Exception as e:
         session.rollback()
-        print(f"🚨 Insert failed due to error: {e}")
+        logger.fatal(f"🚨 Insert failed due to error: {e}")
         sys.exit(1)
     finally:
         session.close()
@@ -288,7 +293,7 @@ def insert_player_stats(games_df: pd.DataFrame) -> None:
     data = games_df.to_dict(orient="records")
 
     if not data:
-        print("No data to insert.")
+        logger.info("No data to insert.")
         return
 
     session = get_db_session()
@@ -306,7 +311,7 @@ def insert_player_stats(games_df: pd.DataFrame) -> None:
                 players_set_to_null += 1
 
         if players_set_to_null > 0:
-            print(
+            logger.warning(
                 f"⚠️ Set {players_set_to_null} player_ids to null (players not found in database)"
             )
 
@@ -326,11 +331,11 @@ def insert_player_stats(games_df: pd.DataFrame) -> None:
 
         session.execute(stmt)
         session.commit()
-        print(f"✅ Upserted {len(data)} MLB player stats records")
+        logger.info(f"✅ Upserted {len(data)} MLB player stats records")
 
     except IntegrityError as e:
         session.rollback()
-        print(f"🚨 Insert failed due to error: {e}")
+        logger.fatal(f"🚨 Insert failed due to error: {e}")
         sys.exit(1)
     finally:
         session.close()
@@ -353,7 +358,7 @@ def process_player_stats_from_game(game_id: str, season: int) -> list[dict[str, 
         game_data = statsapi.get("game", {"gamePk": game_id})
 
         if "liveData" not in game_data or "boxscore" not in game_data["liveData"]:
-            print(f"No boxscore data for game {game_id}")
+            logger.info(f"No boxscore data for game {game_id}")
             return []
 
         boxscore = game_data["liveData"]["boxscore"]
@@ -448,7 +453,7 @@ def process_player_stats_from_game(game_id: str, season: int) -> list[dict[str, 
                 player_records.append(player_record)
 
     except Exception as e:
-        print(f"Error processing player stats for game {game_id}: {e}")
+        logger.fatal(f"Error processing player stats for game {game_id}: {e}")
         sys.exit(1)
 
     return player_records
@@ -479,11 +484,11 @@ def remove_duplicates() -> None:
         
         result = session.execute(stmt)
         session.commit()
-        print(f"✅ Removed {result.rowcount} duplicate MLB player stats records")
+        logger.info(f"✅ Removed {result.rowcount} duplicate MLB player stats records")
 
     except Exception as e:
         session.rollback()
-        print(f"🚨 There was an error trying to delete duplicates: {e}")
+        logger.error(f"🚨 There was an error trying to delete duplicates: {e}")
     finally:
         session.close()
 
@@ -496,17 +501,17 @@ def main() -> None:
 
     previous_date = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
 
-    print(f"Fetching MLB games from {previous_date}")
+    logger.info(f"Fetching MLB games from {previous_date}")
 
     # Get schedule for date range
     schedule = statsapi.schedule(start_date=previous_date, end_date=previous_date)
-    print(f"Found {len(schedule)} games")
+    logger.info(f"Found {len(schedule)} games")
 
     all_game_records = []
     all_player_records = []
 
     for i, game in enumerate(schedule):
-        print(
+        logger.info(
             f"Processing game and player stats {i+1}/{len(schedule)}: {game['summary']}"
         )
 
@@ -530,11 +535,11 @@ def main() -> None:
         final_count = len(games_df)
 
         if initial_count != final_count:
-            print(f"⚠️ Removed {initial_count - final_count} duplicate records")
+            logger.info(f"⚠️ Removed {initial_count - final_count} duplicate records")
 
         insert_games(games_df)
     else:
-        print("No completed games found to insert")
+        logger.info("No completed games found to insert")
 
     # insert players
     if all_player_records:
@@ -548,7 +553,7 @@ def main() -> None:
         final_count = len(stats_df)
 
         if initial_count != final_count:
-            print(f"⚠️ Removed {initial_count - final_count} duplicate records")
+            logger.info(f"⚠️ Removed {initial_count - final_count} duplicate records")
 
         # Replace any remaining NaN values with 0 for proper database insertion
         stats_df = stats_df.where(pd.notna(stats_df), 0)
@@ -558,7 +563,7 @@ def main() -> None:
 
         insert_player_stats(stats_df)
     else:
-        print("No player stats found to insert")
+        logger.info("No player stats found to insert")
 
     remove_duplicates()
 

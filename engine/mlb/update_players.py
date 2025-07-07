@@ -1,3 +1,4 @@
+import logging
 import sys
 from typing import Any
 
@@ -10,6 +11,10 @@ from shared.db_session import get_db_session
 from shared.tables import Players
 
 
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
+
+
 def insert_players(players_df: pd.DataFrame) -> None:
     """Insert MLB players into the database.
     
@@ -18,7 +23,7 @@ def insert_players(players_df: pd.DataFrame) -> None:
     """
     data = players_df.to_dict(orient="records")
     if not data:
-        print("No data to insert.")
+        logger.info("No data to insert.")
         return
 
     session = get_db_session()
@@ -43,14 +48,14 @@ def insert_players(players_df: pd.DataFrame) -> None:
         )
         session.execute(stmt)
         session.commit()
-        print(f"✅ Updated {len(data)} MLB players")
+        logger.info(f"✅ Updated {len(data)} MLB players")
     except IntegrityError as e:
         session.rollback()
-        print(f"⚠️ Insert failed due to integrity error: {e}")
+        logger.fatal(f"⚠️ Insert failed due to integrity error: {e}")
         sys.exit(1)
     except Exception as e:
         session.rollback()
-        print(f"⚠️ Unexpected error during player insert: {e}")
+        logger.fatal(f"⚠️ Unexpected error during player insert: {e}")
         sys.exit(1)
     finally:
         session.close()
@@ -68,7 +73,7 @@ def main() -> None:
 
     for team in teams_data:
         team_id = str(team["id"])
-        print(f"Fetching players for {team['name']}...")
+        logger.info(f"Fetching players for {team['name']}...")
 
         # Get roster for each team
         try:
@@ -100,14 +105,14 @@ def main() -> None:
                 all_players.append(player_data)
 
         except Exception as e:
-            print(f"Error fetching roster for {team['name']}: {e}")
+            logger.info(f"Error fetching roster for {team['name']}: {e}")
             continue
 
     if all_players:
         players_df = pd.DataFrame(all_players)
         insert_players(players_df)
     else:
-        print("No players found to insert")
+        logger.info("No players found to insert")
 
 
 if __name__ == "__main__":

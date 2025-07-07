@@ -3,9 +3,14 @@ Auto-registration system for prop stats.
 This eliminates the need to manually update multiple places when adding new stats.
 """
 
+import logging
 from typing import Any, Callable, Dict, Generic, List, TypeVar
 
 from shared.prop_generation.base import PropConfig
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
+
 
 T = TypeVar("T")
 
@@ -94,11 +99,11 @@ class StatRegistry(Generic[T]):
         """Validate all registered configurations (call at module import)"""
         try:
             self._finalize_configs()
-            print(
-                f"✅ {self.league.upper()} registry: Successfully registered {len(self._configs)} stats: {', '.join(self._stats_list)}"
+            logger.info(
+                f"{self.league.upper()} registry: Successfully registered {len(self._configs)} stats: {', '.join(self._stats_list)}"
             )
         except Exception as e:
-            print(f"❌ {self.league.upper()} registry validation failed: {e}")
+            logger.error(f"{self.league.upper()} registry validation failed: {e}")
             raise
 
 

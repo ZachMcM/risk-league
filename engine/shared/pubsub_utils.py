@@ -1,6 +1,10 @@
 import json
+import logging
 import redis
 from shared.constants import redis_host, redis_port, redis_db
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 
 def create_redis_client() -> redis.Redis:
@@ -26,4 +30,4 @@ def listen_for_messages(channel: str, callback):
                 data = json.loads(message["data"])
                 callback(data)
             except json.JSONDecodeError as e:
-                print(f"🚨 Error parsing message: {e}")
+                logger.error(f"Error parsing message: {e}")

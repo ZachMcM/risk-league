@@ -1,7 +1,13 @@
+import logging
+
 from shared.prop_generation.generator import BasePropGenerator
 from shared.prop_generation.base import GameData
 from shared.tables import MlbPlayerStats, MlbGames
 from mlb.prop_configs import get_mlb_prop_configs, get_mlb_stats_list
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
+
 
 class MlbPropGenerator(BasePropGenerator[MlbPlayerStats, MlbGames]):
     """MLB-specific prop generator using auto-registration system"""
@@ -27,8 +33,3 @@ class MlbPropGenerator(BasePropGenerator[MlbPlayerStats, MlbGames]):
     def get_available_stats(self) -> list[str]:
         """Get list of available MLB stats (auto-generated!)"""
         return get_mlb_stats_list()
-    
-    def print_registered_stats(self):
-        """Print all registered MLB stats for debugging"""
-        stats = self.get_available_stats()
-        print(f"MLB Registered Stats ({len(stats)}): {', '.join(stats)}")

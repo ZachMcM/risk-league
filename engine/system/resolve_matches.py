@@ -1,3 +1,4 @@
+import logging
 import signal
 import sys
 from datetime import datetime
@@ -9,6 +10,10 @@ from shared.tables import Matches
 from sqlalchemy import select
 from system.constants import K, min_bets_req
 from shared.socket_utils import send_message
+
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 
 def recalculate_elo(current_elos: list[int], winner: int | None) -> list[int]:
@@ -161,10 +166,10 @@ def main():
     try:
         signal.pause()
     except (KeyboardInterrupt, SystemExit):
-        print("Exiting...")
+        logger.warning("Exiting...")
         scheduler.shutdown()
     except Exception as e:
-        print(f"Unhandled exception: {e}")
+        logger.fatal(f"Unhandled exception: {e}")
         scheduler.shutdown()
         sys.exit(1)
 

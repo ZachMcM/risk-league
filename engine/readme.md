@@ -471,7 +471,7 @@ Where $\lambda_i = \exp(x_i^T\beta)$ is the expected count.
 #### 3. Invalid Predictions
 ```python
 if np.isnan(final_prop) or np.isinf(final_prop) or final_prop <= 0:
-    print(f"Invalid prop value: {final_prop}")
+    # ...
     return 0.0
 ```
 

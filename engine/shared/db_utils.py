@@ -1,3 +1,4 @@
+import logging
 import sys
 from datetime import datetime
 
@@ -13,6 +14,10 @@ from shared.tables import (
 )
 from sqlalchemy import and_, desc, or_, select
 from sqlalchemy.orm import Session
+
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 
 def get_player_last_games(
@@ -60,7 +65,7 @@ def get_player_last_games(
         return list(result)
 
     except Exception as e:
-        print(f"⚠️ Error fetching eligible players: {e}")
+        logger.fatal(f"⚠️ Error fetching eligible players: {e}")
         sys.exit(1)
 
 
@@ -107,7 +112,7 @@ def get_team_last_games(
         return list(result)
 
     except Exception as e:
-        print(f"⚠️ There was an error fetching the last games for team {team_id}, {e}")
+        logger.fatal(f"⚠️ There was an error fetching the last games for team {team_id}, {e}")
         sys.exit(1)
 
 
@@ -175,7 +180,7 @@ def get_opposing_team_last_games(
         return list(result)
 
     except Exception as e:
-        print(f"⚠️ There was an error fetching opposing team games {e}")
+        logger.fatal(f"⚠️ There was an error fetching opposing team games {e}")
         sys.exit(1)
 
 
@@ -195,7 +200,7 @@ def get_players_from_team(session: Session, team_id: str) -> list[Players]:
         return list(result)
 
     except Exception as e:
-        print(f"⚠️ Error fetching roster for team {team_id}: {e}")
+        logger.fatal(f"⚠️ Error fetching roster for team {team_id}: {e}")
         sys.exit(1)
 
 
@@ -242,7 +247,7 @@ def get_games_by_id(
         return list(result)
 
     except Exception as e:
-        print(f"⚠️ There was an error fetching games by id, {e}")
+        logger.fatal(f"⚠️ There was an error fetching games by id, {e}")
         sys.exit(1)
 
 
@@ -304,7 +309,7 @@ def insert_prop(
 
     except Exception as e:
         session.rollback()
-        print(f"⚠️ There was an error inserting the prop, {e}")
+        logger.fatal(f"⚠️ There was an error inserting the prop, {e}")
         sys.exit(1)
 
 
@@ -354,9 +359,9 @@ def update_prop(
         if prop.resolved:
             publish_message("prop_resolved", {"prop_id": str(prop.id)})
 
-        print(f"✅ Updated {stat} for player {player_id}\n")
+        logger.info(f"✅ Updated {stat} for player {player_id}\n")
 
     except Exception as e:
         session.rollback()
-        print(f"⚠️ There was an error updating the prop: {e}")
+        logger.fatal(f"⚠️ There was an error updating the prop: {e}")
         sys.exit(1)

@@ -1,5 +1,10 @@
+import logging
 import os
 import socketio
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
+
 
 async def send_message(namespace: str, message: str, data: dict = None, query_params: dict = None):
     """Sends a message to the specified namespace of the socketio server
@@ -26,13 +31,13 @@ async def send_message(namespace: str, message: str, data: dict = None, query_pa
         # Send message to the namespace
         if data is not None:
             await sio.emit(message, data, namespace=namespace)
-            print(f"✅ Message sent to namespace '{namespace}': {message} with data: {data}")
+            logger.info(f"Message sent to namespace '{namespace}': {message} with data: {data}")
         else:
             await sio.emit(message, namespace=namespace)
-            print(f"✅ Message sent to namespace '{namespace}': {message}")
+            logger.info(f"Message sent to namespace '{namespace}': {message}")
             
     except Exception as e:
-        print(f"⚠️ Error sending Socket.IO message: {e}")
+        logger.error(f"Error sending Socket.IO message: {e}")
     finally:
         # Always disconnect to clean up resources
         await sio.disconnect()

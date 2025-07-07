@@ -1,3 +1,4 @@
+import logging
 import signal
 import sys
 from typing import Any
@@ -8,6 +9,9 @@ from mlb.prop_configs import get_mlb_stats_list
 from shared.db_session import get_db_session
 from shared.db_utils import update_prop
 from shared.get_today_games import get_today_mlb_games as get_today_games
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 
 def get_player_stats(game_id: str) -> list[dict[str, Any]]:
@@ -23,7 +27,7 @@ def get_player_stats(game_id: str) -> list[dict[str, Any]]:
         game_data = statsapi.get("game", {"gamePk": game_id})
 
         if "liveData" not in game_data or "boxscore" not in game_data["liveData"]:
-            print(f"No boxscore data for game {game_id}")
+            logger.warning(f"No boxscore data for game {game_id}")
             return []
 
         boxscore = game_data["liveData"]["boxscore"]
@@ -105,7 +109,7 @@ def get_player_stats(game_id: str) -> list[dict[str, Any]]:
         return all_players
 
     except Exception as e:
-        print(f"Error getting player stats for game {game_id}: {e}")
+        logger.warning(f"Error getting player stats for game {game_id}: {e}")
         return []
 
 
@@ -118,23 +122,23 @@ def sync_props() -> None:
     games = get_today_games()
 
     if not games:
-        print("No games currently\n")
+        logger.warning("No games currently\n")
         return
 
     session = get_db_session()
     try:
         for i, game in enumerate(games):
-            print(f"Processing game {i + 1}/{len(games)}: {game['summary']}")
+            logger.info(f"Processing game {i + 1}/{len(games)}: {game['summary']}")
 
             # Only process games that are in progress or final
             if game["status"] not in ["In Progress", "Final"]:
-                print(f"Skipping game {game['game_id']} - status: {game['status']}")
+                logger.info(f"Skipping game {game['game_id']} - status: {game['status']}")
                 continue
 
             player_stats = get_player_stats(game["game_id"])
 
             for j, player in enumerate(player_stats):
-                print(
+                logger.info(
                     f"Processing player {player['player_id']} {j + 1}/{len(player_stats)}"
                 )
 
@@ -152,7 +156,7 @@ def sync_props() -> None:
                             is_final=game.get("status").get("statusCode") == "F",
                         )
 
-        print(f"✅ Successfully updated props")
+        logger.info(f"✅ Successfully updated props")
     finally:
         session.close()
 
@@ -171,10 +175,10 @@ def main() -> None:
     try:
         signal.pause()
     except (KeyboardInterrupt, SystemExit):
-        print("Exiting...")
+        logger.info("Exiting...")
         scheduler.shutdown()
     except Exception as e:
-        print(f"Unhandled exception: {e}")
+        logger.fatal(f"Unhandled exception: {e}")
         scheduler.shutdown()
         sys.exit(1)
 

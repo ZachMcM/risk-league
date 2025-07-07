@@ -1,3 +1,4 @@
+import logging
 import sys
 import time
 from datetime import datetime, timedelta
@@ -19,6 +20,10 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 # This script updates the database with all the NBA games from the past day
 
 step_sleep_time = 3
+
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 
 def get_previous_day_games(test=None):
@@ -52,7 +57,7 @@ def get_previous_day_games(test=None):
     dfs = [df for df in [regular, playoffs] if not df.empty]
 
     if not dfs:
-        print("No games played yesterday!")
+        logger.info("No games played yesterday! exiting")
         sys.exit(0)  # Return empty if no data
 
     return pd.concat(dfs, ignore_index=True)
@@ -68,7 +73,7 @@ def insert_games(games_df, session):
     data = games_df.to_dict(orient="records")
 
     if not data:
-        print("No data to insert.")
+        logger.info("No data to insert.")
         return
 
     try:
@@ -105,10 +110,10 @@ def insert_games(games_df, session):
         stmt = stmt.on_conflict_do_update(index_elements=["id"], set_=update_cols)
         session.execute(stmt)
         session.commit()
-        print(f"✅ Inserted {len(data)} games\n")
+        logger.info(f"✅ Inserted {len(data)} games\n")
     except Exception as e:
         session.rollback()
-        print(f"⚠️ Insert failed due to error: {e}")
+        logger.fatal(f"⚠️ Insert failed due to error: {e}")
         sys.exit(1)
 
 
@@ -125,7 +130,7 @@ def get_boxscore(game_id):
         boxscore = boxscoretraditionalv3.BoxScoreTraditionalV3(game_id=game_id)
         return boxscore.get_data_frames()[0]
     except Exception as e:
-        print(f"⚠️ Error fetching boxscore for game {game_id}: {e}")
+        logger.fatal(f"⚠️ Error fetching boxscore for game {game_id}: {e}")
         sys.exit(1)
 
 
@@ -142,7 +147,7 @@ def get_boxscore_advanced(game_id):
         boxscore = boxscoreadvancedv3.BoxScoreAdvancedV3(game_id=game_id)
         return boxscore.get_data_frames()[0]
     except Exception as e:
-        print(f"⚠️ Error fetching boxscore advanced for game {game_id}: {e}")
+        logger.fatal(f"⚠️ Error fetching boxscore advanced for game {game_id}: {e}")
         sys.exit(1)
 
 
@@ -159,7 +164,7 @@ def get_team_advanced(game_id):
         boxscore = boxscoreadvancedv3.BoxScoreAdvancedV3(game_id=game_id)
         return boxscore.get_data_frames()[1]
     except Exception as e:
-        print(f"⚠️ Error fetching boxscore advanced for game {game_id}: {e}")
+        logger.fatal(f"⚠️ Error fetching boxscore advanced for game {game_id}: {e}")
         sys.exit(1)
 
 
@@ -207,10 +212,10 @@ def insert_player_advanced_stats(
 
         session.execute(stmt)
         session.commit()
-        print(f"✅ Inserted player {id} advanced stats\n")
+        logger.info(f"✅ Inserted player {id} advanced stats\n")
     except Exception as e:
         session.rollback()
-        print(f"⚠️ There was an error inserting advanced stats for game {id}, {e}")
+        logger.fatal(f"⚠️ There was an error inserting advanced stats for game {id}, {e}")
         sys.exit(1)
 
 
@@ -223,7 +228,7 @@ def insert_player_stats(stats_df, session):
     """
     data = stats_df.to_dict(orient="records")
     if not data:
-        print("⚠️ No data to insert.")
+        logger.fatal("⚠️ No data to insert.")
         sys.exit(1)
 
     try:
@@ -259,10 +264,10 @@ def insert_player_stats(stats_df, session):
         )
         session.execute(stmt)
         session.commit()
-        print(f"✅ Upserted {len(data)} player stats\n")
+        logger.info(f"✅ Upserted {len(data)} player stats\n")
     except Exception as e:
         session.rollback()
-        print(f"⚠️ Upsert failed: {e}")
+        logger.fatal(f"⚠️ Upsert failed: {e}")
         sys.exit(1)
 
 
@@ -293,11 +298,11 @@ def remove_duplicates(session):
 
         result = session.execute(stmt)
         session.commit()
-        print(f"✅ Removed {result.rowcount} duplicate NBA player stats records")
+        logger.info(f"✅ Removed {result.rowcount} duplicate NBA player stats records")
 
     except Exception as e:
         session.rollback()
-        print(f"🚨 There was an error trying to delete duplicates: {e}")
+        logger.error(f"🚨 There was an error trying to delete duplicates: {e}")
 
 
 def insert_team_advanced_stats(
@@ -335,10 +340,10 @@ def insert_team_advanced_stats(
 
         session.execute(stmt)
         session.commit()
-        print(f"✅ Inserted game {game_id} advanced stats\n")
+        logger.info(f"✅ Inserted game {game_id} advanced stats\n")
     except Exception as e:
         session.rollback()
-        print(f"⚠️ There was an error inserting, {e}")
+        logger.fatal(f"⚠️ There was an error inserting, {e}")
         sys.exit(1)
 
 
@@ -424,7 +429,7 @@ def main():
         # inserts team advanced stats per game
         i = 0
         for _, row in games.iterrows():
-            print(f"Processing advanced stats for game {row['id']} {i + 1}/{len(games)}")
+            logger.info(f"Processing advanced stats for game {row['id']} {i + 1}/{len(games)}")
             game_id = row["id"][: row["id"].find("-")]
             team_id = row["team_id"]
 
@@ -451,7 +456,7 @@ def main():
         player_ids = set(player["id"] for player in active_players)
 
         for i, game_id in enumerate(game_ids):
-            print(f"Processing game {i + 1}/{len(game_ids)}: {game_id}")
+            logger.info(f"Processing game {i + 1}/{len(game_ids)}: {game_id}")
             df = get_boxscore(game_id)
             time.sleep(req_pause_time)
             if df is None or df.empty:
@@ -520,7 +525,7 @@ def main():
 
         # inserts the advanced stats after regular stats are inserted
         for i, game_id in enumerate(game_ids):
-            print(f"Processing advanced stats game {i + 1}/{len(game_ids)}: {game_id}")
+            logger.info(f"Processing advanced stats game {i + 1}/{len(game_ids)}: {game_id}")
             advanced_df = get_boxscore_advanced(game_id)
             time.sleep(req_pause_time)
 

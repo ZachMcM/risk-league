@@ -1,4 +1,5 @@
 import asyncio
+import logging
 
 from shared.db_session import get_db_session
 from shared.pubsub_utils import listen_for_messages, publish_message
@@ -6,6 +7,10 @@ from shared.socket_utils import send_message as send_socket_message
 from shared.tables import ParlayPicks, Props
 from sqlalchemy import select, update
 from sqlalchemy.orm import Session
+
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 
 def resolve_parlay_picks(session: Session, prop: Props):
@@ -42,7 +47,7 @@ def resolve_parlay_picks(session: Session, prop: Props):
 
     async def send_updates():
         for pick_id, current_value, status in picks:
-            publish_message("parlay_pick_resolved", { "pick_id": str(pick_id)})
+            publish_message("parlay_pick_resolved", {"pick_id": str(pick_id)})
             await send_socket_message(
                 namespace="/parlay_pick",
                 message="pick-updated",
@@ -65,7 +70,7 @@ def listen_for_prop_resolved():
         """Handle incoming prop_resolved messages"""
         prop_id = data.get("prop_id")
         if not prop_id:
-            print("⚠️ Received prop_resolved message without prop_id")
+            logger.fatal("⚠️ Received prop_resolved message without prop_id")
             return
 
         prop = session.execute(
@@ -74,11 +79,11 @@ def listen_for_prop_resolved():
 
         if prop:
             resolve_parlay_picks(session, prop)
-            print(f"✅ Resolved parlay picks for prop {prop_id}")
+            logger.info(f"✅ Resolved parlay picks for prop {prop_id}")
         else:
-            print(f"⚠️ Prop with id {prop_id} not found")
+            logger.fatal(f"⚠️ Prop with id {prop_id} not found")
 
-    print("🔄 Listening for prop_resolved messages...")
+    logger.info("🔄 Listening for prop_resolved messages...")
     listen_for_messages("prop_resolved", handle_prop_resolved)
 
 
@@ -87,9 +92,9 @@ def main():
     try:
         listen_for_prop_resolved()
     except KeyboardInterrupt:
-        print("\n🛑 Shutting down prop resolver...")
+        logger.warning("🛑 Shutting down prop resolver...")
     except Exception as e:
-        print(f"⚠️ Error in main: {e}")
+        logger.error(f"⚠️ Error in main: {e}")
 
 
 if __name__ == "__main__":

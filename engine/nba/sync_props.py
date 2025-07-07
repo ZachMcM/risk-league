@@ -1,3 +1,4 @@
+import logging
 import signal
 import sys
 
@@ -7,6 +8,10 @@ from nba_api.live.nba.endpoints import BoxScore
 from shared.get_today_games import get_today_nba_games as get_today_games
 from shared.db_utils import update_prop
 from shared.db_session import get_db_session
+
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 
 def get_player_stats(game_id: str):
@@ -35,11 +40,11 @@ def sync_props():
     
     try:
         for i, game in enumerate(games):
-            print(f"Processing game {i + 1}/{len(games)}\n")
+            logger.info(f"Processing game {i + 1}/{len(games)}\n")
             player_stats = get_player_stats(game["gameId"])
 
             for j, player in enumerate(player_stats):
-                print(f"Processing player {player['name']} {j + 1}/{len(player_stats)}\n")
+                logger.info(f"Processing player {player['name']} {j + 1}/{len(player_stats)}\n")
                 stats = player["statistics"]
 
                 # loop through all the non combined stats
@@ -87,7 +92,7 @@ def sync_props():
                     is_final=game["gameStatusText"] == "Final",
                 )
 
-        print(f"✅ Successfully updated props\n")
+        logger.info(f"✅ Successfully updated props\n")
     finally:
         session.close()
 
@@ -105,10 +110,10 @@ def main():
     try:
         signal.pause()
     except (KeyboardInterrupt, SystemExit):
-        print("Exiting...")
+        logger.info("Exiting...")
         scheduler.shutdown()
     except Exception as e:
-        print(f"Unhandled exception: {e}")
+        logger.fatal(f"Unhandled exception: {e}")
         scheduler.shutdown()
         sys.exit(1)
 

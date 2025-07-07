@@ -1,8 +1,12 @@
+import logging
 import statsapi
 from nba_api.live.nba.endpoints import ScoreBoard
 import sys
 from datetime import datetime
 from typing import Any
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 
 def get_today_nba_games():
@@ -16,10 +20,10 @@ def get_today_nba_games():
         scoreboard = ScoreBoard()
         games = ScoreBoard().games.get_dict()
         if scoreboard.score_board_date != today:
-            print("⚠️ No games found today, no props to generate!")
+            logger.warning("No games found today, no props to generate!")
         return games
     except Exception as e:
-        print(f"⚠️ Error fetching today's games: {e}")
+        logger.error(f"Error fetching today's games: {e}")
         sys.exit(1)
 
 
@@ -33,8 +37,8 @@ def get_today_mlb_games() -> list[dict[str, Any]]:
     try:
         schedule = statsapi.schedule(start_date=today, end_date=today)
         if not schedule:
-            print("⚠️ No games found today, no props to sync!")
+            logger.warning("No games found today, no props to sync!")
         return schedule
     except Exception as e:
-        print(f"⚠️ Error fetching today's games: {e}")
+        logger.error(f"Error fetching today's games: {e}")
         sys.exit(1)
