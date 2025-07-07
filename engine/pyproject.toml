@@ -26,17 +26,9 @@ dependencies = [
   "schedule"
 ]
 
-[tool.setuptools]
-packages = [
-  "nba",
-  "nba.tests",
-  "system",
-  "shared",
-  "shared.prop_generation",
-  "shared.tests",
-  "mlb",
-  "mlb.tests"
-]
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["*"]
 
 [build-system]
 requires = ["setuptools", "wheel"]
