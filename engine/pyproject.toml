@@ -3,7 +3,7 @@ name = "engine"
 version = "0.1.0"
 description = "Engine-level orchestration for Risk League: league logic, daemons, shared infrastructure"
 authors = [{ name = "Zach McMullen", email = "zachmcmullen04@gmail.com" }]
-readme = "README.md"
+readme = "readme.md"
 requires-python = ">=3.9"
 
 dependencies = [
