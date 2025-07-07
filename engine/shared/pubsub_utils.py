@@ -1,7 +1,7 @@
 import json
 import logging
 import redis
-from shared.constants import redis_host, redis_port, redis_db
+from shared.constants import redis_host, redis_port, redis_pw
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -9,7 +9,7 @@ logging.basicConfig(level=logging.INFO)
 
 def create_redis_client() -> redis.Redis:
     """Makes a new redis client object"""
-    return redis.Redis(host=redis_host, port=redis_port, db=redis_db)
+    return redis.Redis(host=redis_host, port=redis_port, decode_responses=True, username="default", password=redis_pw)
 
 
 def publish_message(message: str, message_data: dict):
@@ -20,7 +20,7 @@ def publish_message(message: str, message_data: dict):
 
 def listen_for_messages(channel: str, callback):
     """Listen for messages on a Redis channel and call callback function."""
-    redis_client = redis.Redis(host=redis_host, port=redis_port, db=redis_db)
+    redis_client = create_redis_client()
     pubsub = redis_client.pubsub()
     pubsub.subscribe(channel)
 

@@ -16,10 +16,10 @@ DELETE FROM props;
 
 Then execute this command in the root dir
 ```
-pg_dump -Fc "postgresql://postgres:<PASSWORD>@localhost:5432/postgres?sslmode=disable" > ./db/initial.dump
+pg_dump --data-only "postgresql://postgres:<PASSWORD>@localhost:5432/postgres?sslmode=disable" > ./db/initial.sql
 ```
 
 This can then be restored later with
 ```
-pg_restore -d "postgresql://postgres:<PASSWORD>@localhost:5432/postgres?sslmode=disable" ./db/initial.dump
+psql "<DATABASE_URL>" -f ./db/initial.sql
 ```
