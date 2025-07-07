@@ -9,7 +9,7 @@ logging.basicConfig(level=logging.INFO)
 
 def create_redis_client() -> redis.Redis:
     """Makes a new redis client object"""
-    return redis.Redis(host=redis_host, port=redis_port, decode_responses=True, username="default", password=redis_pw)
+    return redis.Redis(host=redis_host, port=redis_port)
 
 
 def publish_message(message: str, message_data: dict):
