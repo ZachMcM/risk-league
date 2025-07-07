@@ -2,8 +2,8 @@
 
 ## Overview
 Railway simplifies deployment by handling Docker containers automatically. You'll deploy multiple services:
-- 1 Cron scheduler service (for timed jobs)
-- 4 Always-running services (sync props, resolve matches, resolve parlay picks, resolve parlays)
+- 6 Cron job services (using Railway's native cron support for scheduled tasks)
+- 5 Always-running services (sync props, resolve matches, resolve parlay picks, resolve parlays)
 
 ## Prerequisites
 - Railway account
@@ -59,10 +59,15 @@ railway variables set TZ="America/New_York"
 
 ## Step 4: Deploy Services
 
-### Deploy Cron Scheduler (for scheduled jobs):
+### Deploy Cron Jobs (Railway native cron support):
 ```bash
-# Deploy cron scheduler
-railway up --service cron-scheduler --config railway/cron-scheduler.json
+# Deploy scheduled jobs - these run at specific times then stop
+railway up --service update-players-mlb --config railway/update-players-mlb.json
+railway up --service update-players-nba --config railway/update-players-nba.json
+railway up --service update-stats-mlb --config railway/update-stats-mlb.json
+railway up --service update-stats-nba --config railway/update-stats-nba.json
+railway up --service create-props-mlb --config railway/create-props-mlb.json
+railway up --service create-props-nba --config railway/create-props-nba.json
 ```
 
 ### Deploy Always-Running Services:
@@ -119,8 +124,12 @@ LOG_LEVEL=DEBUG
 
 ### View Logs:
 ```bash
-# View logs for specific service
-railway logs --service cron-scheduler
+# View logs for cron jobs
+railway logs --service update-players-mlb
+railway logs --service update-stats-mlb
+railway logs --service create-props-mlb
+
+# View logs for always-running services
 railway logs --service sync-props-mlb
 railway logs --service resolve-matches
 ```
@@ -131,7 +140,8 @@ railway logs --service resolve-matches
 railway status
 
 # Check specific service
-railway status --service cron-scheduler
+railway status --service update-players-mlb
+railway status --service sync-props-mlb
 ```
 
 ## Step 7: Scaling and Management
@@ -145,7 +155,8 @@ railway scale --service sync-props-mlb --replicas 2
 ### Restart Services:
 ```bash
 # Restart specific service
-railway restart --service cron-scheduler
+railway restart --service sync-props-mlb
+railway restart --service resolve-matches
 ```
 
 ## Troubleshooting
@@ -158,9 +169,9 @@ railway restart --service cron-scheduler
    - Ensure Docker image builds successfully
 
 2. **Scheduled Jobs Not Running**
-   - Check cron-scheduler logs
+   - Check individual cron job logs (update-players-mlb, update-stats-mlb, etc.)
    - Verify timezone settings (TZ environment variable)
-   - Ensure cron-scheduler service is running
+   - Ensure cron schedule is correct (Railway uses UTC, but TZ env var handles conversion)
 
 3. **Database Connection Issues**
    - Verify DATABASE_URL format
@@ -183,13 +194,21 @@ railway metrics --service SERVICE_NAME
 ## File Structure Created:
 ```
 railway/
-├── cron-scheduler.json      # Scheduled jobs service
-├── sync-props-mlb.json      # MLB sync props service
-├── sync-props-nba.json      # NBA sync props service
-├── resolve-matches.json     # Resolve matches service
-├── resolve-parlay-picks.json # Resolve parlay picks service
-├── resolve-parlays.json     # Resolve parlays service
-└── cron_scheduler.py        # Python cron scheduler
+├── update-players-mlb.json   # MLB update players cron job (3:00 AM EST)
+├── update-players-nba.json   # NBA update players cron job (3:00 AM EST)
+├── update-stats-mlb.json     # MLB update stats cron job (3:30 AM EST)
+├── update-stats-nba.json     # NBA update stats cron job (3:30 AM EST)
+├── create-props-mlb.json     # MLB create props cron job (4:00 AM EST)
+├── create-props-nba.json     # NBA create props cron job (4:00 AM EST)
+├── sync-props-mlb.json       # MLB sync props always-running service
+├── sync-props-nba.json       # NBA sync props always-running service
+├── resolve-matches.json      # Resolve matches always-running service
+├── resolve-parlay-picks.json # Resolve parlay picks always-running service
+└── resolve-parlays.json      # Resolve parlays always-running service
 ```
 
-Each service will automatically restart on failure and maintain high availability.
+## Service Types:
+- **Cron Jobs**: Run at scheduled times using Railway's native cron support, then stop
+- **Always-Running Services**: Continuously running services that restart on failure
+
+Each always-running service will automatically restart on failure and maintain high availability.

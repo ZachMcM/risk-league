@@ -5,9 +5,8 @@
     "dockerfilePath": "Dockerfile"
   },
   "deploy": {
-    "startCommand": "python -m railway.cron_scheduler",
-    "numReplicas": 1,
-    "sleepApplication": false,
-    "restartPolicyType": "always"
+    "startCommand": "python -m mlb.create_props",
+    "cronSchedule": "0 9 * * *",
+    "restartPolicyType": "never"
   }
 }
