@@ -149,15 +149,6 @@ The prop generation system uses a sophisticated **auto-registration framework** 
 
 **Purpose**: Eliminates manual synchronization when adding new statistics.
 
-#### Before (Manual System):
-```python
-# 3 places to update manually
-stats_arr = ["pts", "reb", "ast"]           # 1. Manual list
-Stat = Literal["pts", "reb", "ast"]         # 2. Manual type  
-configs["pts"] = PropConfig(...)            # 3. Manual config
-```
-
-#### After (Auto-Registration):
 ```python
 # 1 place only - automatically registered
 @register_nba_stat
