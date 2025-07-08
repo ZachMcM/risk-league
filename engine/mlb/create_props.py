@@ -72,11 +72,11 @@ def get_player_mean_at_bats(session: Session, player_id: str) -> float:
 
 
 def is_prop_eligible(
-    session: Session, metric: str, position: str, player_id: str
+    session: Session, metric: str, player: Players, probable_pitchers: list[str]
 ) -> bool:
     """Determine if a player is eligible for a prop based on their position."""
     # For pitchers, only allow pitching stats
-    if position == "Pitcher":
+    if player.position == "Pitcher":
         if metric in [
             "pitching_hits",
             "pitching_walks",
@@ -92,22 +92,32 @@ def is_prop_eligible(
             return False
 
     # For two-way players, allow all stats
-    if position == "Two-Way Player":
+    if player.position == "Two-Way Player":
+        if metric in [
+            "pitching_hits",
+            "pitching_walks",
+            "pitches_thrown",
+            "earned_runs",
+            "pitching_strikeouts",
+        ]:
+            if player.name in probable_pitchers:
+                return True
+            return False
         return True
-
+            
     # For batting stats, exclude pitchers
     if metric in ["hits", "home_runs", "doubles", "triples", "rbi", "strikeouts"]:
-        if position == "Pitcher":
+        if player.position == "Pitcher":
             logger.info(
                 "Skip due to position incompatibility. Hitter stat and a pitcher."
             )
             return False
 
-        mean_at_bats = get_player_mean_at_bats(session, player_id)
+        mean_at_bats = get_player_mean_at_bats(session, player.id)
         league_mean_at_bats, league_sd_at_bats = get_league_at_bats_data(session)
 
         if mean_at_bats <= league_mean_at_bats + 0.35 * league_sd_at_bats:
-            logger.info(f"Skipping player {player_id}, due to low mean at bats.")
+            logger.info(f"Skipping player {player.id}, due to low mean at bats.")
             return False
         return True
 
@@ -119,7 +129,7 @@ def is_prop_eligible(
         "earned_runs",
         "pitching_strikeouts",
     ]:
-        if position != "Two-Way Player" and position != "Pitcher":
+        if player.position != "Two-Way Player" and player.position != "Pitcher":
             logger.info(
                 "Skip due to position incompatibility. Pitcher stat and not two-way or pitcher"
             )
@@ -200,19 +210,24 @@ def main() -> None:
         player_data_list: list[PlayerData] = []
         team_games_cache: dict[str, list[MlbGames]] = {}
         total_props_generated = 0
+        
+        probable_pitchers_dict: dict[str, list[str]] = {}
 
         # Collect player data
         for i, game in enumerate(schedule):
             logger.info(
                 f"Getting initial game data for game {game['game_id']} {i + 1}/{len(schedule)}"
             )
+            
+            probable_pitchers = [game["home_probable_pitcher"], game["away_probable_pitcher"]]
+            probable_pitchers_dict[game["game_id"]] = probable_pitchers
 
             home_team_id = game["home_id"]
             away_team_id = game["away_id"]
             players = get_game_players(
                 session,
                 game["game_id"],
-                [game["home_probable_pitcher"], game["away_probable_pitcher"]],
+                probable_pitchers,
             )
 
             for player in players:
@@ -245,12 +260,14 @@ def main() -> None:
 
             # Get available stats from auto-registration system
             available_stats = get_mlb_stats_list()
+            
+            probable_pitchers = probable_pitchers_dict[player_data["game_id"]]
 
             # Check stat eligibility
             stat_eligibility = {}
             for stat in available_stats:
                 stat_eligibility[stat] = is_prop_eligible(
-                    session, stat, player.position, player.id
+                    session, stat, player, probable_pitchers
                 )
 
             # Skip if no props are eligible
