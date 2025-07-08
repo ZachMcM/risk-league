@@ -2,7 +2,7 @@ from typing import TypeVar
 
 import numpy as np
 import pandas as pd
-from shared.constants import bias
+from shared.constants import BIAS
 from shared.utils import round_prop
 from sklearn.base import BaseEstimator
 from sklearn.linear_model import PoissonRegressor, Ridge
@@ -48,7 +48,7 @@ class BasePropGenerator(PropGenerator[PlayerStatsType, TeamStatsType]):
 
         # Apply bias and standard deviation adjustment
         sd = np.std(y_values, ddof=1)
-        final_prop = predicted_value + bias * sd
+        final_prop = predicted_value + BIAS * sd
 
         # Handle invalid predictions
         if np.isnan(final_prop) or np.isinf(final_prop):
