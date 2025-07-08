@@ -1,4 +1,4 @@
-import logging
+from shared.utils import setup_logger
 import signal
 import sys
 
@@ -9,8 +9,7 @@ from shared.db_utils import update_prop
 from shared.db_session import get_db_session
 from nba.prop_configs import get_nba_stats_list
 
-logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
+logger = setup_logger(__name__)
 
 
 def get_player_stats(game_id: str):

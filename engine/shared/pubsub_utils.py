@@ -1,10 +1,9 @@
 import json
-import logging
+from shared.utils import setup_logger
 import redis
 from shared.constants import redis_host, redis_port, redis_pw
 
-logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
+logger = setup_logger(__name__)
 
 
 def create_redis_client() -> redis.Redis:

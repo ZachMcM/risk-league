@@ -1,12 +1,11 @@
-import logging
+from shared.utils import setup_logger
 
 from shared.prop_generation.generator import BasePropGenerator
 from shared.prop_generation.base import GameData
 from shared.tables import MlbPlayerStats, MlbGames
 from mlb.prop_configs import get_mlb_prop_configs, get_mlb_stats_list
 
-logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
+logger = setup_logger(__name__)
 
 
 class MlbPropGenerator(BasePropGenerator[MlbPlayerStats, MlbGames]):

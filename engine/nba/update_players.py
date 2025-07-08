@@ -1,4 +1,4 @@
-import logging
+from shared.utils import setup_logger
 import time
 
 import pandas as pd
@@ -14,8 +14,7 @@ from nba.utils import get_current_season
 # This script is to be ran periodically to update the players with the latest nba rosters.
 
 
-logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
+logger = setup_logger(__name__)
 
 
 def get_team_players(team_id, season):

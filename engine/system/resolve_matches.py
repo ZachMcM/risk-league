@@ -1,4 +1,4 @@
-import logging
+from shared.utils import setup_logger
 import signal
 import sys
 
@@ -12,8 +12,7 @@ from system.constants import K, min_bets_req
 from shared.socket_utils import send_message
 
 
-logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
+logger = setup_logger(__name__)
 
 
 def recalculate_elo(current_elos: list[int], winner: int | None) -> list[int]:

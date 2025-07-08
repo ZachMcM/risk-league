@@ -1,4 +1,4 @@
-import logging
+from shared.utils import setup_logger
 import sys
 from datetime import datetime
 
@@ -16,8 +16,7 @@ from sqlalchemy import and_, desc, or_, select
 from sqlalchemy.orm import Session
 
 
-logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
+logger = setup_logger(__name__)
 
 
 def get_player_last_games(

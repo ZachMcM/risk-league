@@ -1,9 +1,8 @@
-import logging
+from shared.utils import setup_logger
 import os
 import socketio
 
-logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
+logger = setup_logger(__name__)
 
 
 async def send_message(namespace: str, message: str, data: dict = None, query_params: dict = None):

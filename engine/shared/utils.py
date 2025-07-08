@@ -1,6 +1,14 @@
+import logging
 import json
+from pythonjsonlogger.json import JsonFormatter
 
-import pandas as pd
+
+class UnicodeJsonFormatter(JsonFormatter):
+    """Custom JSON formatter that preserves Unicode characters like emojis."""
+    
+    def jsonify_log_record(self, log_record):
+        """Override to ensure Unicode characters are not escaped."""
+        return json.dumps(log_record, ensure_ascii=False, default=str)
 
 
 def calculate_weighted_arithmetic_mean(values: list[float]) -> float:
@@ -43,3 +51,32 @@ def round_prop(line) -> float:
         Rounded value to nearest 0.5
     """
     return round(round(line / 0.5) * 0.5, 1)
+
+
+def setup_logger(name: str = None, level: int = logging.INFO):
+    """Creates a new logger with proper JSON configuration.
+    
+    Args:
+        name: Logger name (defaults to calling module name)
+        level: Logging level (defaults to INFO)
+        
+    Returns:
+        Configured logger instance
+    """
+    logger = logging.getLogger(name)
+    
+    # Avoid adding multiple handlers to the same logger
+    if logger.handlers:
+        return logger
+    
+    logger.setLevel(level)
+    
+    handler = logging.StreamHandler()
+    handler.setFormatter(UnicodeJsonFormatter())
+    
+    logger.addHandler(handler)
+    
+    # Prevent propagation to root logger to avoid duplicate messages
+    logger.propagate = False
+    
+    return logger

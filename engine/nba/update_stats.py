@@ -1,4 +1,4 @@
-import logging
+from shared.utils import setup_logger
 import sys
 import time
 
@@ -22,8 +22,7 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 step_sleep_time = 3
 
 
-logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
+logger = setup_logger(__name__)
 
 
 def get_previous_day_games(test=None):

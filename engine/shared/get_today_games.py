@@ -1,12 +1,11 @@
-import logging
+from shared.utils import setup_logger
 import statsapi
 from nba_api.live.nba.endpoints import ScoreBoard
 import sys
 from typing import Any
 from shared.date_utils import get_today_eastern
 
-logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
+logger = setup_logger(__name__)
 
 
 def get_today_nba_games():

@@ -1,4 +1,4 @@
-import logging
+from shared.utils import setup_logger
 import signal
 import sys
 from typing import Any
@@ -10,8 +10,7 @@ from shared.db_session import get_db_session
 from shared.db_utils import update_prop
 from shared.get_today_games import get_today_mlb_games as get_today_games
 
-logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
+logger = setup_logger(__name__)
 
 
 def get_player_stats(game_id: str) -> list[dict[str, Any]]:

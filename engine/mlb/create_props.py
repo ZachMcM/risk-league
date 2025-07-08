@@ -1,4 +1,4 @@
-import logging
+from shared.utils import setup_logger
 import sys
 from time import time
 
@@ -24,8 +24,7 @@ from sqlalchemy import select, desc
 from shared.prop_generation.base import GameData
 from shared.tables import MlbGames, Players, MlbPlayerStats
 
-logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
+logger = setup_logger(__name__)
 
 
 _league_mean_at_bats_cache = None

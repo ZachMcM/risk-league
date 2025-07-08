@@ -1,4 +1,5 @@
-import logging
+from shared.utils import setup_logger
+
 import sys
 from typing import Any
 
@@ -14,8 +15,7 @@ from shared.tables import MlbGames, MlbPlayerStats, Players
 from shared.date_utils import get_yesterday_eastern, get_eastern_year
 
 
-logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
+logger = setup_logger(__name__)
 
 
 def get_team_stats_from_boxscore(team_data: dict[str, Any]) -> dict[str, Any]:

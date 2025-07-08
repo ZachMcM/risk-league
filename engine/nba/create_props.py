@@ -1,4 +1,4 @@
-import logging
+from shared.utils import setup_logger
 import sys
 from time import time
 from typing import Any
@@ -31,8 +31,7 @@ from nba.prop_configs import get_nba_stats_list
 from shared.prop_generation.base import GameData
 
 
-logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
+logger = setup_logger(__name__)
 
 
 def get_today_schedule(test_date: str = None) -> list[dict[str, Any]]:

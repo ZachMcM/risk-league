@@ -3,13 +3,12 @@ Auto-registration system for prop stats.
 This eliminates the need to manually update multiple places when adding new stats.
 """
 
-import logging
+from shared.utils import setup_logger
 from typing import Any, Callable, Dict, Generic, List, TypeVar
 
 from shared.prop_generation.base import PropConfig
 
-logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
+logger = setup_logger(__name__)
 
 
 T = TypeVar("T")

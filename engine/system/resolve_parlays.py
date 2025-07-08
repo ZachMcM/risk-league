@@ -1,5 +1,5 @@
 import asyncio
-import logging
+from shared.utils import setup_logger
 
 from shared.db_session import get_db_session
 from shared.pubsub_utils import listen_for_messages
@@ -9,8 +9,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 from system.constants import parlay_multipliers
 
-logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
+logger = setup_logger(__name__)
 
 
 def resolve_parlay(session: Session, pick_id: str):
