@@ -106,7 +106,7 @@ def get_metric_stats(
                 ]
 
             stmt = build_stmt(game_type_filter, season_filter)
-            result = session.execute(stmt).scalars().all()
+            result = session.execute(stmt).fetchall()
 
         stats = [getattr(game, metric) for game in result]
         metric_stats = {"mean": np.mean(stats), "sd": np.std(stats)}
@@ -151,7 +151,7 @@ def get_combined_metric_stats(
             [NbaGames.game_type == game_type],
             [NbaPlayerStats.season == season],
         )
-        result = session.execute(stmt).scalars().all()
+        result = session.execute(stmt).fetchall()
 
         if len(result) < min_num_stats:
             if use_playoffs:
@@ -172,7 +172,7 @@ def get_combined_metric_stats(
                 ]
 
             stmt = build_stmt(game_type_filter, season_filter)
-            result = session.execute(stmt).scalars().all()
+            result = session.execute(stmt).fetchall()
 
         combined_values = [sum(row) for row in result]
         stat = {

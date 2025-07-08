@@ -43,7 +43,7 @@ def resolve_parlay_picks(session: Session, prop: Props):
         select(ParlayPicks.id, Props.current_value, ParlayPicks.status)
         .join(Props, Props.id == ParlayPicks.prop_id)
         .where(Props.id == prop.id)
-    ).scalars().all()
+    ).all()
 
     async def send_updates():
         for pick_id, current_value, status in picks:
