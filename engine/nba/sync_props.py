@@ -3,12 +3,11 @@ import signal
 import sys
 
 from apscheduler.schedulers.background import BackgroundScheduler
-from nba.my_types import stat_name_list
 from nba_api.live.nba.endpoints import BoxScore
 from shared.get_today_games import get_today_nba_games as get_today_games
 from shared.db_utils import update_prop
 from shared.db_session import get_db_session
-
+from nba.prop_configs import get_nba_stats_list
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -24,9 +23,32 @@ def get_player_stats(game_id: str):
         List of player statistics for both teams
     """
     boxscore = BoxScore(game_id).game.get_dict()
-    home_players = boxscore["homeTeam"]["players"]
-    away_players = boxscore["awayTeam"]["players"]
-    return home_players + away_players
+    game_players: list[dict] = boxscore["homeTeam"]["players"] + boxscore["awayTeam"]["players"]
+    
+    all_players = []
+    for player in game_players:
+        stats: dict = player.get("statistics", {})
+        player_stats = {
+            "player_id": player.get("personId", None),
+            "raw_game_id": game_id,
+            "pts": stats.get("points", 0),
+            "fgm": stats.get("fieldGoalsMade", 0),
+            "fga": stats.get("fieldGoalsAttempted", 0),
+            "blk": stats.get("blocks", 0),
+            "ast": stats.get("assists", 0),
+            "fta": stats.get("freeThrowsAttempted", 0),
+            "ftm": stats.get("freeThrowsMade", 0),
+            "min": stats.get("minutes", 0),
+            "reb": stats.get("reboundsTotal", 0),
+            "oreb": stats.get("reboundsOffensive", 0),
+            "dreb": stats.get("reboundsDefensive", 0),
+            "stl": stats.get("steals", 0),
+            "three_pa": stats.get("threePointersAttempted", 0),
+            "three_pm": stats.get("threePointersMade", 0),
+            "tov": stats.get("turnovers", 0)
+        }
+        all_players.append(player_stats)
+    return all_players
 
 
 def sync_props():
@@ -41,52 +63,55 @@ def sync_props():
     try:
         for i, game in enumerate(games):
             logger.info(f"Processing game {i + 1}/{len(games)}\n")
+            
             player_stats = get_player_stats(game["gameId"])
 
             for j, player in enumerate(player_stats):
-                logger.info(f"Processing player {player['name']} {j + 1}/{len(player_stats)}\n")
-                stats = player["statistics"]
+                logger.info(f"Processing player {player['player_id']} {j + 1}/{len(player_stats)}\n")
+                
+                nba_stats = get_nba_stats_list()
 
                 # loop through all the non combined stats
-                for stat_name in stat_name_list:
-                    update_prop(
-                        session,
-                        stat_name["db_name"],
-                        str(player["personId"]),
-                        str(game["gameId"]),
-                        stats[stat_name["api_name"]],
-                        league="nba",
-                        is_final=game["gameStatusText"] == "Final",
-                    )
+                for stat in nba_stats:
+                    if stat in player:
+                        update_prop(
+                            session,
+                            stat,
+                            str(player["player_id"]),
+                            str(player["raw_game_id"]),
+                            player[stat],
+                            league="nba",
+                            is_final=game["gameStatusText"] == "Final",
+                        )
 
-                pra = stats["points"] + stats["reboundsTotal"] + stats["assists"]
+                pra = player["pts"] + player["reb"] + player["ast"]
                 update_prop(
                     session,
                     "pra",
-                    str(player["personId"]),
-                    str(game["gameId"]),
+                    str(player["player_id"]),
+                    str(player["raw_game_id"]),
                     pra,
                     league="nba",
                     is_final=game["gameStatusText"] == "Final",
                 )
 
-                pts_ast = stats["points"] + stats["assists"]
+                pts_ast = player["pts"] + player["ast"]
                 update_prop(
                     session,
                     "pts_ast",
-                    str(player["personId"]),
-                    str(game["gameId"]),
+                    str(player["player_id"]),
+                    str(player["raw_game_id"]),
                     pts_ast,
                     league="nba",
                     is_final=game["gameStatusText"] == "Final",
                 )
 
-                reb_ast = stats["reboundsTotal"] + stats["assists"]
+                reb_ast = player["reb"] + player["ast"]
                 update_prop(
                     session,
                     "reb_ast",
-                    str(player["personId"]),
-                    str(game["gameId"]),
+                    str(player["player_id"]),
+                    str(player["raw_game_id"]),
                     reb_ast,
                     league="nba",
                     is_final=game["gameStatusText"] == "Final",

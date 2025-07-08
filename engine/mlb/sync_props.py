@@ -39,7 +39,6 @@ def get_player_stats(game_id: str) -> list[dict[str, Any]]:
                 continue
 
             team_data = teams_data[team_side]
-            team_id = str(team_data.get("team", {}).get("id"))
             players_data = team_data.get("players", {})
 
             for player_key, player_info in players_data.items():
@@ -53,12 +52,11 @@ def get_player_stats(game_id: str) -> list[dict[str, Any]]:
                 player_stats = {
                     "player_id": player_id,
                     "raw_game_id": game_id,
-                    "team_id": team_id,
                 }
 
                 # Extract batting stats
                 if "batting" in stats_data:
-                    batting = stats_data["batting"]
+                    batting: dict = stats_data["batting"]
                     player_stats.update(
                         {
                             "hits": batting.get("hits", 0),
@@ -83,7 +81,7 @@ def get_player_stats(game_id: str) -> list[dict[str, Any]]:
 
                 # Extract pitching stats
                 if "pitching" in stats_data:
-                    pitching = stats_data["pitching"]
+                    pitching: dict = stats_data["pitching"]
                     player_stats.update(
                         {
                             "pitching_hits": pitching.get("hits", 0),
