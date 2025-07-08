@@ -7,7 +7,7 @@ from shared.socket_utils import send_message as send_socket_message
 from shared.tables import ParlayPicks, Parlays
 from sqlalchemy import select
 from sqlalchemy.orm import Session
-from system.constants import parlay_multipliers
+from system.constants import PARLAY_MULTIPLIERS
 
 logger = setup_logger(__name__)
 
@@ -39,7 +39,7 @@ def resolve_parlay(session: Session, pick_id: str):
 
     if hit_count == len(picks):
         parlay.status = "hit"
-        multiplier = parlay_multipliers.get(len(picks))
+        multiplier = PARLAY_MULTIPLIERS.get(len(picks))
         delta = parlay.stake * multiplier
         match_user.balance += delta
     else:

@@ -2,7 +2,7 @@ from shared.utils import setup_logger
 import time
 
 import pandas as pd
-from nba.constants import req_pause_time
+from nba.constants import REQ_PAUSE_TIME
 from nba_api.stats.endpoints import commonteamroster
 from nba_api.stats.static import teams
 from shared.tables import Players
@@ -112,7 +112,7 @@ def main():
             ]
 
             insert_team_players(data, session)
-            time.sleep(req_pause_time)
+            time.sleep(REQ_PAUSE_TIME)
     finally:
         session.close()
 

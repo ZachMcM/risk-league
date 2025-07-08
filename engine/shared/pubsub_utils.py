@@ -1,14 +1,14 @@
 import json
 from shared.utils import setup_logger
 import redis
-from shared.constants import redis_host, redis_port, redis_pw
+from shared.constants import REDIS_HOST, REDIS_PORT, REDIS_PW
 
 logger = setup_logger(__name__)
 
 
 def create_redis_client() -> redis.Redis:
     """Makes a new redis client object"""
-    return redis.Redis(host=redis_host, port=redis_port, password=redis_pw if redis_pw else None)
+    return redis.Redis(host=REDIS_HOST, port=REDIS_PORT, password=REDIS_PW if REDIS_PW else None)
 
 
 def publish_message(message: str, message_data: dict):

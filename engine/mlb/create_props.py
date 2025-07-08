@@ -4,7 +4,7 @@ from time import time
 
 import statsapi
 import numpy as np
-from mlb.constants import n_games
+from mlb.constants import N_GAMES
 from mlb.my_types import PlayerData
 from mlb.prop_configs import get_mlb_stats_list
 
@@ -58,7 +58,7 @@ def get_player_mean_at_bats(session: Session, player_id: str) -> float:
             .join(MlbGames, MlbGames.id == MlbPlayerStats.game_id)
             .where(MlbPlayerStats.player_id == player_id)
             .order_by(desc(MlbGames.game_date))
-            .limit(n_games)
+            .limit(N_GAMES)
         )
         .scalars()
         .all()
@@ -231,7 +231,7 @@ def main() -> None:
 
             for player in players:
                 player_last_games = get_player_last_games(
-                    session, player.id, "mlb", n_games
+                    session, player.id, "mlb", N_GAMES
                 )
 
                 matchup = ""

@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import or_, select
 
 from nba.my_types import CombinedStat, PlayerData
-from nba.constants import min_num_stats, minutes_threshold, n_games, sigma_coeff
+from nba.constants import MIN_NUM_STATS, MINUTES_THRESHOLD, N_GAMES, SIGMA_COEFF
 from nba.utils import get_current_season, get_game_type, get_last_season
 from shared.db_session import get_db_session
 from shared.date_utils import get_eastern_date_formatted
@@ -86,7 +86,7 @@ def get_metric_stats(
 
         result = session.execute(stmt).scalars().all()
 
-        if len(result) < min_num_stats:
+        if len(result) < MIN_NUM_STATS:
             if use_playoffs:
                 game_type_filter = [
                     or_(
@@ -152,7 +152,7 @@ def get_combined_metric_stats(
         )
         result = session.execute(stmt).fetchall()
 
-        if len(result) < min_num_stats:
+        if len(result) < MIN_NUM_STATS:
             if use_playoffs:
                 game_type_filter = [
                     or_(
@@ -199,8 +199,8 @@ def is_prop_eligible(
     """Determine if a player is eligible for a prop on a specific stat."""
     stat_desc = get_metric_stats(session, stat, position, use_playoffs)
     return (
-        mpg > minutes_threshold
-        and player_stat_average >= stat_desc["mean"] - sigma_coeff * stat_desc["sd"]
+        mpg > MINUTES_THRESHOLD
+        and player_stat_average >= stat_desc["mean"] - SIGMA_COEFF * stat_desc["sd"]
     )
 
 
@@ -226,8 +226,8 @@ def is_combined_stat_prop_eligible(
     )
 
     return (
-        mpg > minutes_threshold
-        and player_stat_average >= stat_desc["mean"] - sigma_coeff * stat_desc["sd"]
+        mpg > MINUTES_THRESHOLD
+        and player_stat_average >= stat_desc["mean"] - SIGMA_COEFF * stat_desc["sd"]
     )
 
 
@@ -280,10 +280,10 @@ def main() -> None:
 
             for player in all_game_players:
                 player_last_games = get_player_last_games(
-                    session, player.id, "nba", n_games
+                    session, player.id, "nba", N_GAMES
                 )
 
-                if len(player_last_games) != n_games:
+                if len(player_last_games) != N_GAMES:
                     logger.info(f"🚨 Skipping player {player}")
                     continue
 
@@ -309,18 +309,22 @@ def main() -> None:
             logger.info(
                 f"Processing player {player.name} {player.id} against team {player_data['matchup']}"
             )
+            
+            sample_size = len(player_data["last_games"])
+            if sample_size == 0:
+                continue
 
             # Get team game data (same as before)
             if player_data["matchup"] not in team_games_cache:
                 team_games_cache[player_data["matchup"]] = get_team_last_games(
-                    session, player_data["matchup"], "nba", n_games
+                    session, player_data["matchup"], "nba", sample_size
                 )
             matchup_last_games = team_games_cache[player_data["matchup"]]
 
             games_id_list = [game.game_id for game in player_data["last_games"]]
-            team_last_games = get_games_by_id(session, games_id_list, "nba", n_games)
+            team_last_games = get_games_by_id(session, games_id_list, "nba", sample_size)
             team_opp_games = get_opposing_team_last_games(
-                session, games_id_list, "nba", n_games
+                session, games_id_list, "nba", sample_size
             )
 
             # Calculate means for eligibility (keep existing logic)

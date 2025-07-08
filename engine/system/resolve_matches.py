@@ -8,7 +8,7 @@ from shared.date_utils import get_today_eastern
 from shared.get_today_games import get_today_mlb_games, get_today_nba_games
 from shared.tables import Matches
 from sqlalchemy import select
-from system.constants import K, min_bets_req
+from system.constants import K, MIN_BETS_REQ
 from shared.socket_utils import send_message
 
 
@@ -86,15 +86,15 @@ def resolve_matches():
         winner = None
         
         # Handle disqualifications first
-        if user1_total_bets < min_bets_req and user2_total_bets >= min_bets_req:
+        if user1_total_bets < MIN_BETS_REQ and user2_total_bets >= MIN_BETS_REQ:
             user1.status = "disqualified"
             user2.status = "win"
             winner = 1
-        elif user2_total_bets < min_bets_req and user1_total_bets >= min_bets_req:
+        elif user2_total_bets < MIN_BETS_REQ and user1_total_bets >= MIN_BETS_REQ:
             user2.status = "disqualified"
             user1.status = "win"
             winner = 0
-        elif user1_total_bets < min_bets_req and user2_total_bets < min_bets_req:
+        elif user1_total_bets < MIN_BETS_REQ and user2_total_bets < MIN_BETS_REQ:
             user1.status = "disqualified"
             user2.status = "disqualified"
             winner = None

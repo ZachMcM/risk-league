@@ -3,7 +3,7 @@ import sys
 import time
 
 import pandas as pd
-from nba.constants import req_pause_time
+from nba.constants import REQ_PAUSE_TIME
 from nba.utils import clean_minutes, get_current_season, get_game_type
 from nba_api.stats.endpoints import (
     boxscoreadvancedv3,
@@ -432,7 +432,7 @@ def main():
             team_id = row["team_id"]
 
             advanced_df = get_team_advanced(game_id)
-            time.sleep(req_pause_time)
+            time.sleep(REQ_PAUSE_TIME)
             team_row = advanced_df[advanced_df["teamId"] == team_id].iloc[0]
 
             insert_team_advanced_stats(
@@ -456,7 +456,7 @@ def main():
         for i, game_id in enumerate(game_ids):
             logger.info(f"Processing game {i + 1}/{len(game_ids)}: {game_id}")
             df = get_boxscore(game_id)
-            time.sleep(req_pause_time)
+            time.sleep(REQ_PAUSE_TIME)
             if df is None or df.empty:
                 break  # Means connection timed out so we stop processing
 
@@ -525,7 +525,7 @@ def main():
         for i, game_id in enumerate(game_ids):
             logger.info(f"Processing advanced stats game {i + 1}/{len(game_ids)}: {game_id}")
             advanced_df = get_boxscore_advanced(game_id)
-            time.sleep(req_pause_time)
+            time.sleep(REQ_PAUSE_TIME)
 
             for _, row in advanced_df.iterrows():
 

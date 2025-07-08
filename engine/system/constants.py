@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-parlay_multipliers: dict[int, float] = {
+PARLAY_MULTIPLIERS: dict[int, float] = {
     1: 1.5,
     2: 3,
     3: 5,
@@ -14,4 +14,4 @@ parlay_multipliers: dict[int, float] = {
 }
 
 K = int(os.getenv("K"))
-min_bets_req=int(os.getenv("MIN_BETS_REQ"))
+MIN_BETS_REQ=int(os.getenv("MIN_BETS_REQ"))
