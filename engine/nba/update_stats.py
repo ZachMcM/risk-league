@@ -1,7 +1,6 @@
 import logging
 import sys
 import time
-from datetime import datetime, timedelta
 
 import pandas as pd
 from nba.constants import req_pause_time
@@ -13,6 +12,7 @@ from nba_api.stats.endpoints import (
 )
 from nba_api.stats.static.players import get_active_players
 from shared.tables import NbaGames, NbaPlayerStats
+from shared.date_utils import get_yesterday_eastern_formatted
 from shared.db_session import get_db_session
 from sqlalchemy import delete, select, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
@@ -36,8 +36,7 @@ def get_previous_day_games(test=None):
         Pandas DataFrame containing game data from previous day
     """
     season = get_current_season()
-    yesterday = datetime.now() - timedelta(days=1)
-    yesterday_str = yesterday.strftime("%m/%d/%Y")  # Format: MM/DD/YYYY
+    yesterday_str = get_yesterday_eastern_formatted("%m/%d/%Y")  # Format: MM/DD/YYYY
     if test is not None:
         yesterday_str = test
     regular = leaguegamefinder.LeagueGameFinder(

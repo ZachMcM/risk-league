@@ -1,10 +1,10 @@
 import logging
 import signal
 import sys
-from datetime import datetime
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from shared.db_session import get_db_session
+from shared.date_utils import get_today_eastern
 from shared.get_today_games import get_today_mlb_games, get_today_nba_games
 from shared.tables import Matches
 from sqlalchemy import select
@@ -67,7 +67,7 @@ def resolve_matches():
             select(Matches)
             .where(
                 Matches.created_at.strftime("%Y-%m-%d")
-                == datetime.now().strftime("%Y-%m-%d")
+                == get_today_eastern()
             )
             .where(~Matches.resolved)
         )

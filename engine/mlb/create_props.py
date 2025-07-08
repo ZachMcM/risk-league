@@ -1,6 +1,5 @@
 import logging
 import sys
-from datetime import datetime
 from time import time
 
 import statsapi
@@ -12,6 +11,7 @@ from mlb.prop_configs import get_mlb_stats_list
 # New prop generation system imports
 from mlb.prop_generator import MlbPropGenerator
 from shared.db_session import get_db_session
+from shared.date_utils import get_eastern_year, get_today_eastern
 from shared.db_utils import (
     get_games_by_id,
     get_opposing_team_last_games,
@@ -35,7 +35,7 @@ def get_league_at_bats_data(session: Session) -> tuple[float, float]:
     global _league_mean_at_bats_cache
     if _league_mean_at_bats_cache is None:
         """Gets the mean at bats per game per hitter for the current season"""
-        season = datetime.now().strftime("%Y")
+        season = get_eastern_year()
         at_bats = (
             session.execute(
                 select(MlbPlayerStats.at_bats)
@@ -192,7 +192,7 @@ def get_game_players(
 def main() -> None:
     """Main function to generate MLB props using the new prop generation system."""
     start = time()
-    today = datetime.today().strftime("%Y-%m-%d")
+    today = get_today_eastern()
     if len(sys.argv) == 2:
         today = sys.argv[1]
     logger.info("Fetching today's MLB games")

@@ -1,5 +1,6 @@
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Any, Union
+from shared.date_utils import get_eastern_datetime
 
 
 def clean_minutes(min_str: Union[str, Any]) -> int:
@@ -23,7 +24,7 @@ def get_current_season() -> str:
     Returns:
         String in format "YYYY-YY" representing the current season
     """
-    now = datetime.now()
+    now = get_eastern_datetime()
     year = now.year
     month = now.month
 
@@ -42,7 +43,7 @@ def get_last_season() -> str:
     Returns:
         String in format "YYYY-YY" representing the previous season
     """
-    now = datetime.now()
+    now = get_eastern_datetime()
     year = now.year
     month = now.month
 
@@ -87,21 +88,3 @@ def get_game_type(code: str) -> str:
     elif code == "004":
         return "playoffs"
     return "unknown"
-    
-    
-def get_season_bounds(season_str: str) -> tuple[datetime, datetime]:
-    """Get season start and end dates from season string.
-    
-    Args:
-        season_str: Season string in format "YYYY-YY"
-        
-    Returns:
-        Tuple of (season_start, season_end) datetime objects
-    """
-    start_year, end_year_short = season_str.split("-")
-    start_year_int = int(start_year)
-    end_year_int = int(f"20{end_year_short}")
-    season_start = datetime(start_year_int, 10, 1, tzinfo=timezone.utc)
-    season_end = datetime(end_year_int, 6, 30, 23, 59, 59, tzinfo=timezone.utc)
-    return season_start, season_end
-

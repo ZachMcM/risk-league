@@ -1,6 +1,5 @@
 import logging
 import sys
-from datetime import datetime
 from time import time
 from typing import Any
 
@@ -13,6 +12,7 @@ from nba.my_types import CombinedStat, PlayerData
 from nba.constants import min_num_stats, minutes_threshold, n_games, sigma_coeff
 from nba.utils import get_current_season, get_game_type, get_last_season
 from shared.db_session import get_db_session
+from shared.date_utils import get_eastern_date_formatted
 from shared.db_utils import (
     get_games_by_id,
     get_opposing_team_last_games,
@@ -41,7 +41,7 @@ def get_today_schedule(test_date: str = None) -> list[dict[str, Any]]:
     res = requests.get(url)
     data = res.json()
 
-    today_str = datetime.today().strftime("%m/%d/%Y 00:00:00")
+    today_str = get_eastern_date_formatted("%m/%d/%Y 00:00:00")
 
     if test_date is not None:
         today_str = test_date + " 00:00:00"

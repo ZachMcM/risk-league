@@ -1,7 +1,6 @@
 from datetime import datetime
 from typing import Literal, TypedDict
 
-from shared.my_types import StatName
 from shared.tables import Players, NbaPlayerStats
 
 

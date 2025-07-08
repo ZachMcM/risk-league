@@ -1,6 +1,5 @@
 import logging
 import sys
-from datetime import datetime, timedelta
 from typing import Any
 
 import numpy as np
@@ -12,6 +11,7 @@ from sqlalchemy.exc import IntegrityError
 
 from shared.db_session import get_db_session
 from shared.tables import MlbGames, MlbPlayerStats, Players
+from shared.date_utils import get_yesterday_eastern, get_eastern_year
 
 
 logger = logging.getLogger(__name__)
@@ -499,7 +499,7 @@ def main() -> None:
     Processes previous day's games and updates both team and player stats.
     """
 
-    previous_date = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
+    previous_date = get_yesterday_eastern()
 
     logger.info(f"Fetching MLB games from {previous_date}")
 
@@ -517,11 +517,11 @@ def main() -> None:
 
         # Only process completed games for now
         if game["status"] == "Final":
-            game_records = process_game_data(game, datetime.now().year)
+            game_records = process_game_data(game, int(get_eastern_year()))
             all_game_records.extend(game_records)
 
             player_records = process_player_stats_from_game(
-                game["game_id"], datetime.now().year
+                game["game_id"], int(get_eastern_year())
             )
             all_player_records.extend(player_records)
 

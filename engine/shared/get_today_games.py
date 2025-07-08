@@ -2,8 +2,8 @@ import logging
 import statsapi
 from nba_api.live.nba.endpoints import ScoreBoard
 import sys
-from datetime import datetime
 from typing import Any
+from shared.date_utils import get_today_eastern
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -15,7 +15,7 @@ def get_today_nba_games():
     Returns:
         List of today's NBA games
     """
-    today = datetime.now().strftime("%Y-%m-%d")
+    today = get_today_eastern()
     try:
         scoreboard = ScoreBoard()
         games = ScoreBoard().games.get_dict()
@@ -33,7 +33,7 @@ def get_today_mlb_games() -> list[dict[str, Any]]:
     Returns:
         List of today's MLB games from the API
     """
-    today = datetime.now().strftime("%Y-%m-%d")
+    today = get_today_eastern()
     try:
         schedule = statsapi.schedule(start_date=today, end_date=today)
         if not schedule:
