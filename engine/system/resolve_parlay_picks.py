@@ -41,9 +41,9 @@ def resolve_parlay_picks(session: Session, prop: Props):
     # Get updated picks to send notifications
     picks = session.execute(
         select(ParlayPicks.id, Props.current_value, ParlayPicks.status)
-        .select_from(ParlayPicks.join(Props, Props.id == ParlayPicks.prop_id))
+        .join(Props, Props.id == ParlayPicks.prop_id)
         .where(Props.id == prop.id)
-    ).all()
+    ).scalars().all()
 
     async def send_updates():
         for pick_id, current_value, status in picks:

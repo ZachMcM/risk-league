@@ -6,7 +6,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 import statsapi
-from sqlalchemy import select, delete
+from sqlalchemy import select, delete, inspect
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.exc import IntegrityError
 
@@ -189,7 +189,7 @@ def insert_games(games_df: pd.DataFrame) -> None:
         # Define columns to update on conflict (exclude id and created_at)
         update_columns = {
             col.name: stmt.excluded[col.name]
-            for col in MlbGames.__table__.columns
+            for col in inspect(MlbGames).columns
             if col.name not in ["id", "created_at"]
         }
 
@@ -321,7 +321,7 @@ def insert_player_stats(games_df: pd.DataFrame) -> None:
         # Define columns to update on conflict (exclude id and created_at)
         update_columns = {
             col.name: stmt.excluded[col.name]
-            for col in MlbPlayerStats.__table__.columns
+            for col in inspect(MlbPlayerStats).columns
             if col.name not in ["id", "updated_at"]
         }
 
