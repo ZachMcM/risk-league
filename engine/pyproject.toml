@@ -23,7 +23,8 @@ dependencies = [
   "mypy",
   "redis",
   "python-socketio[asyncio_client]",
-  "schedule"
+  "schedule",
+  "pytz"
 ]
 
 [tool.setuptools.packages.find]
