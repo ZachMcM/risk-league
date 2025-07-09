@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router";
-import { Zap } from "~/lib/icons/Zap";
+import { Dices } from "~/lib/icons/Dices";
 import { Button } from "../ui/button";
 import { Text } from "../ui/text";
 
@@ -12,8 +12,8 @@ export default function StartMatchButton() {
       className="gap-2 flex flex-row"
       onPress={() => router.push("/matchmaking")}
     >
-      <Text className="font-semibold">Start Game</Text>
-      <Zap size={24} className="text-foreground" />
+      <Text className="font-semibold">Start Match</Text>
+      <Dices size={24} className="text-foreground" />
     </Button>
   );
 }

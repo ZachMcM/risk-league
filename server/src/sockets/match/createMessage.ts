@@ -1,10 +1,12 @@
 import { db } from "../../db/db";
+import { logger } from "../../logger";
 
 export async function createMessage(
   content: string,
   userId: string,
   matchId: string
 ) {
+  logger.info("Message recieved", { messageContent: content })
   // Insert message into database
   const newMessage = await db
     .insertInto("match_messages")

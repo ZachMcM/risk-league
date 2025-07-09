@@ -1,4 +1,4 @@
-export type MatchStatus = "draw" | "in_progress" | "loss" | "win";
+export type MatchStatus = "disqualified" | "draw" | "loss" | "not_resolved" | "win";
 
 export type MatchListEntity = {
   id: string;

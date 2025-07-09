@@ -18,7 +18,7 @@ export async function createMatch({
     .values({
       match_id: match.id,
       user_id: user1,
-      status: "in_progress",
+      status: "not_resolved",
     })
     .execute();
 
@@ -27,7 +27,7 @@ export async function createMatch({
     .values({
       match_id: match.id,
       user_id: user2,
-      status: "in_progress",
+      status: "not_resolved",
     })
     .execute();
 

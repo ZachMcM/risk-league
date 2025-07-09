@@ -3,6 +3,9 @@ import { createMessage } from "./match/createMessage";
 import { createMatch } from "./matchmaking/createMatch";
 import { addToQueue, getPair, removeFromQueue } from "./matchmaking/queue";
 import { logger } from "../logger";
+import { WebSocketRateLimiter } from "../utils/rateLimiter";
+
+const rateLimiter = new WebSocketRateLimiter(1, 1000); // 5 messages per second
 
 export function initSocketServer(io: Server) {
   io.of("/matchmaking").on("connection", (socket) => {
@@ -58,14 +61,24 @@ export function initSocketServer(io: Server) {
     // Handle sending messages
     socket.on("send-message", async (data: { content: string }) => {
       try {
-        const messageData = createMessage(data.content, userId, matchId);
+        const rateCheck = await rateLimiter.checkLimit(userId);
+        
+        if (!rateCheck.allowed) {
+          socket.emit("message-error", { 
+            error: "Slow down! Too many messages!", 
+            retryAfter: rateCheck.retryAfter 
+          });
+          return;
+        }
+
+        const messageData = await createMessage(data.content, userId, matchId);
         // Broadcast to all users in the match room
         io.of("/match")
           .to(`match:${matchId}`)
           .emit("message-received", messageData);
 
         logger.info(`Message sent in match ${matchId} by user ${userId}`);
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error sending message:", error);
         socket.emit("message-error", { error: "Failed to send message" });
       }
@@ -77,14 +90,14 @@ export function initSocketServer(io: Server) {
   });
 
   io.of("/parlay_pick").on("connection", (socket) => {
-    const parlayPickId = socket.handshake.query.parlay_pick_id as string
+    const parlayPickId = socket.handshake.query.parlay_pick_id as string;
     logger.info(`User connected to parlay pick id ${parlayPickId} namespace`);
 
-    socket.join(`parlayPick:${parlayPickId}`)
-  })
+    socket.join(`parlayPick:${parlayPickId}`);
+  });
 
   io.of("/parlay").on("connection", (socket) => {
-    const parlayId = socket.handshake.query.parlay_id as string
-    logger.info(`User connected to parlay id ${parlayId} namespace`)
-  })
+    const parlayId = socket.handshake.query.parlay_id as string;
+    logger.info(`User connected to parlay id ${parlayId} namespace`);
+  });
 }

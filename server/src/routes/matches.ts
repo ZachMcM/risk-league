@@ -6,8 +6,6 @@ import { logger } from "../logger";
 export const matchesRoute = Router();
 
 matchesRoute.get("/matches", authMiddleware, async (req, res) => {
-  
-
   const userId = res.locals.userId;
 
   try {

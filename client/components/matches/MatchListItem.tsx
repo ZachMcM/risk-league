@@ -7,6 +7,7 @@ import { Badge } from "../ui/badge";
 import { Card, CardContent } from "../ui/card";
 import Pfp from "../ui/pfp";
 import { Text } from "../ui/text";
+import { Clock } from "~/lib/icons/Clock";
 
 export default function MatchListItem({ match }: { match: MatchListEntity }) {
   const router = useRouter();
@@ -28,16 +29,21 @@ export default function MatchListItem({ match }: { match: MatchListEntity }) {
                 vs
               </Text>
               <View className="flex-row gap-3">
-                <Pfp
-                  username={match.opponentUsername}
-                  image={match.opponentImage}
-                />
+                <View className="relative">
+                  <Pfp
+                    username={match.opponentUsername}
+                    image={match.opponentImage}
+                  />
+                  <View className="h-3 w-3 border border-border bg-blue-500 absolute bottom-0 right-0 rounded-full animate-pulse">
+                    <View className="w-full h-full bg-blue-400 rounded-full animate-ping" />
+                  </View>
+                </View>
                 <View className="flex flex-col gap-1">
                   <View className="flex flex-row gap-4">
                     <Text className="text-xl font-bold">
                       {match.opponentUsername}
                     </Text>
-                    {match.status == "in_progress" && (
+                    {match.status == "not_resolved" && (
                       <Badge
                         variant={
                           match.opponentBalance > match.balance
@@ -58,10 +64,13 @@ export default function MatchListItem({ match }: { match: MatchListEntity }) {
                     )}
                   </View>
                   <View className="flex flex-row items-center gap-4">
-                    <Text className="font-medium text-muted-foreground">
-                      {timeAgo(match.createdAt)}
-                    </Text>
-                    {match.status != "in_progress" ? (
+                    <View className="flex flex-row items-center gap-1.5">
+                      <Clock size={14} className="text-muted-foreground" />
+                      <Text className="font-medium text-muted-foreground">
+                        {timeAgo(match.createdAt)}
+                      </Text>
+                    </View>
+                    {match.status != "not_resolved" ? (
                       <View className="flex flex-row gap-2">
                         <TrendingUp
                           size={18}

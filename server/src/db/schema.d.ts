@@ -11,7 +11,7 @@ export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
 
 export type LeagueType = "mlb" | "nba" | "nfl";
 
-export type MatchStatus = "draw" | "in_progress" | "loss" | "win";
+export type MatchStatus = "disqualified" | "draw" | "loss" | "not_resolved" | "win";
 
 export type ParlayStatus = "hit" | "missed" | "not_resolved";
 

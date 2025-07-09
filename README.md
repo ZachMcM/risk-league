@@ -17,7 +17,7 @@ DATABASE_URL="postgresql://postgres:<PASSWORD>@localhost:5432/postgres?sslmode=d
 
 Run in your shell of choice in the root directory
 ```
-dbmate up
+dbmate up --url "<DATABASE_URL>"
 ```
 
 ## Loading Initial Data
