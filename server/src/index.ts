@@ -7,6 +7,7 @@ import { createServer } from "http";
 import { Server } from "socket.io";
 import { initSocketServer } from "./sockets";
 import { logger } from "./logger";
+import morgan from "morgan"
 
 const port = process.env.PORT;
 
@@ -22,6 +23,7 @@ const io = new Server(httpServer, {
 initSocketServer(io)
 
 app.use(cors());
+app.use(morgan("dev"))
 app.use(bodyParser.json({ limit: "200mb" }));
 app.use(bodyParser.urlencoded({ extended: true, limit: "200mb" }));
 app.use(bodyParser.text({ limit: "200mb" }));

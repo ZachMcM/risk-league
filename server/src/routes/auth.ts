@@ -15,7 +15,6 @@ export const authMiddleware = async (
   res: Response,
   next: NextFunction
 ) => {
-  logger.info({ req })
   const accessToken = req.header("Access-Token");
 
   if (!accessToken) {
@@ -42,7 +41,7 @@ export const authMiddleware = async (
 };
 
 authRoute.get("/auth/session", authMiddleware, async (req, res) => {
-  logger.info({ req })
+  
   const userId = res.locals.userId;
 
   const user = await db
@@ -70,7 +69,7 @@ authRoute.get("/auth/session", authMiddleware, async (req, res) => {
 });
 
 authRoute.post("/auth/signup", async (req, res) => {
-  logger.info({ req });
+  ;
   const body: RegisterBody = req.body;
 
   try {
@@ -135,7 +134,7 @@ authRoute.post("/auth/signup", async (req, res) => {
 });
 
 authRoute.post("/auth/signin", async (req, res) => {
-  logger.info({ req })
+  
   const body: SignInBody = req.body;
 
   try {

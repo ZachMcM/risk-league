@@ -7,7 +7,7 @@ export const scoreboard = Router();
 const nbaScoreboardCdn = process.env.NBA_SCOREBOARD_CDN;
 
 scoreboard.get("/scoreboard", async (req, res) => {
-  logger.info({ req })
+  
   try {
     const scoreboardRes = await fetch(nbaScoreboardCdn!);
     const data = (await scoreboardRes.json()) as NbaScoreboardResponse;

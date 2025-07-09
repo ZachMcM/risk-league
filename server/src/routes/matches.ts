@@ -6,7 +6,7 @@ import { logger } from "../logger";
 export const matchesRoute = Router();
 
 matchesRoute.get("/matches", authMiddleware, async (req, res) => {
-  logger.info({ req })
+  
 
   const userId = res.locals.userId;
 
@@ -40,7 +40,7 @@ matchesRoute.get("/matches", authMiddleware, async (req, res) => {
 });
 
 matchesRoute.get("/matches/:id/stats", authMiddleware, async (req, res) => {
-  logger.info({ req })
+  
   const matchId = req.params.id;
   const opponent = req.query.opponent === "true";
   const userId = res.locals.userId;
@@ -84,7 +84,7 @@ matchesRoute.get("/matches/:id/stats", authMiddleware, async (req, res) => {
 });
 
 matchesRoute.get("/matches/:id/messages", authMiddleware, async (req, res) => {
-  logger.info({ req })
+  
   const matchId = req.params.id;
 
   try {

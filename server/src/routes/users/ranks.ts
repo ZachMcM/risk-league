@@ -6,7 +6,7 @@ import { logger } from "../../logger";
 export const ranksRoute = Router();
 
 ranksRoute.get("/users/:id/ranks", async (req, res) => {
-  logger.info({ req })
+  
   const userId = req.params.id;
 
   try {
@@ -22,7 +22,7 @@ ranksRoute.get("/users/:id/ranks", async (req, res) => {
 });
 
 ranksRoute.get("/users/ranks", authMiddleware, async (req, res) => {
-  logger.info({ req })
+  
   const userId = res.locals.userId;
 
   try {
