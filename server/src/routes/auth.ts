@@ -6,6 +6,7 @@ import { createSession } from "../utils/createSession";
 import { assertRequiredFields } from "../utils/validateFields";
 import { RegisterBody, SignInBody, TokenPayload } from "../types/auth";
 import { MissingFieldsError } from "../types/MissingFieldsError";
+import { logger } from "../logger";
 
 export const authRoute = Router();
 
@@ -14,7 +15,7 @@ export const authMiddleware = async (
   res: Response,
   next: NextFunction
 ) => {
-  console.log("Authenticating...");
+  logger.info({ req })
   const accessToken = req.header("Access-Token");
 
   if (!accessToken) {
@@ -32,7 +33,7 @@ export const authMiddleware = async (
     res.locals.userId = decodedAccessToken.userId;
     next();
   } catch (err) {
-    console.log("Token verification failed:", (<Error>err).message);
+    logger.error("Token verification failed:", (<Error>err).message);
     res
       .status(401)
       .json({ error: "Unauthorized", message: "Invalid Access Token" });
@@ -40,7 +41,8 @@ export const authMiddleware = async (
   }
 };
 
-authRoute.get("/auth/session", authMiddleware, async (_, res) => {
+authRoute.get("/auth/session", authMiddleware, async (req, res) => {
+  logger.info({ req })
   const userId = res.locals.userId;
 
   const user = await db
@@ -68,8 +70,8 @@ authRoute.get("/auth/session", authMiddleware, async (_, res) => {
 });
 
 authRoute.post("/auth/signup", async (req, res) => {
+  logger.info({ req });
   const body: RegisterBody = req.body;
-  console.log(body);
 
   try {
     assertRequiredFields(body, ["name", "username", "email", "password"]);
@@ -133,6 +135,7 @@ authRoute.post("/auth/signup", async (req, res) => {
 });
 
 authRoute.post("/auth/signin", async (req, res) => {
+  logger.info({ req })
   const body: SignInBody = req.body;
 
   try {

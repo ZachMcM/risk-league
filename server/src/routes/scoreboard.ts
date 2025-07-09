@@ -1,11 +1,13 @@
 import { Router } from "express";
 import { LiveGame, NbaScoreboardResponse } from "../types/nbaScoreboard";
+import { logger } from "../logger";
 
 export const scoreboard = Router();
 
 const nbaScoreboardCdn = process.env.NBA_SCOREBOARD_CDN;
 
-scoreboard.get("/scoreboard", async (_, res) => {
+scoreboard.get("/scoreboard", async (req, res) => {
+  logger.info({ req })
   try {
     const scoreboardRes = await fetch(nbaScoreboardCdn!);
     const data = (await scoreboardRes.json()) as NbaScoreboardResponse;

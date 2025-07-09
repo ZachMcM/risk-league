@@ -6,6 +6,7 @@ import { routes } from "./routes";
 import { createServer } from "http";
 import { Server } from "socket.io";
 import { initSocketServer } from "./sockets";
+import { logger } from "./logger";
 
 const port = process.env.PORT;
 
@@ -28,5 +29,5 @@ app.use(bodyParser.text({ limit: "200mb" }));
 app.use("/", routes);
 
 httpServer.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
+  logger.info(`Server is running on port ${port}`);
 });

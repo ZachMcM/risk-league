@@ -1,10 +1,13 @@
 import { Router } from "express";
 import { authMiddleware } from "./auth";
 import { db } from "../db/db";
+import { logger } from "../logger";
 
 export const matchesRoute = Router();
 
-matchesRoute.get("/matches", authMiddleware, async (_, res) => {
+matchesRoute.get("/matches", authMiddleware, async (req, res) => {
+  logger.info({ req })
+
   const userId = res.locals.userId;
 
   try {
@@ -31,17 +34,18 @@ matchesRoute.get("/matches", authMiddleware, async (_, res) => {
 
     res.json(matches);
   } catch (err) {
-    console.log(err);
+    logger.error(err);
     res.status(500).json({ err: "Server Error", message: err });
   }
 });
 
 matchesRoute.get("/matches/:id/stats", authMiddleware, async (req, res) => {
+  logger.info({ req })
   const matchId = req.params.id;
   const opponent = req.query.opponent === "true";
   const userId = res.locals.userId;
 
-  console.log(opponent)
+  logger.debug(opponent)
 
   try {
     const userStats = await db
@@ -59,7 +63,7 @@ matchesRoute.get("/matches/:id/stats", authMiddleware, async (req, res) => {
       .where("match_users.user_id", opponent ? "!=" : "=", userId)
       .executeTakeFirstOrThrow();
 
-    console.log(userStats);
+    logger.debug(userStats);
 
     const parlayCounts = await db
       .selectFrom("parlays")
@@ -72,7 +76,7 @@ matchesRoute.get("/matches/:id/stats", authMiddleware, async (req, res) => {
       ...parlayCounts,
     });
   } catch (err) {
-    console.log(err);
+    logger.error(err);
     res
       .status(500)
       .json({ err: "Server Error", message: "Match does not exist" });
@@ -80,6 +84,7 @@ matchesRoute.get("/matches/:id/stats", authMiddleware, async (req, res) => {
 });
 
 matchesRoute.get("/matches/:id/messages", authMiddleware, async (req, res) => {
+  logger.info({ req })
   const matchId = req.params.id;
 
   try {
@@ -99,7 +104,7 @@ matchesRoute.get("/matches/:id/messages", authMiddleware, async (req, res) => {
 
     res.json(messages);
   } catch (err) {
-    console.log(err);
+    logger.error(err);
     res.status(500).json({ error: "Server Error", message: err });
   }
 });
