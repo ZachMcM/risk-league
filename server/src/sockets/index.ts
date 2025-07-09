@@ -5,7 +5,7 @@ import { addToQueue, getPair, removeFromQueue } from "./matchmaking/queue";
 import { logger } from "../logger";
 import { WebSocketRateLimiter } from "../utils/rateLimiter";
 
-const rateLimiter = new WebSocketRateLimiter(1, 1000); // 5 messages per second
+const messageLimiter = new WebSocketRateLimiter(1, 1000); // 5 messages per second
 
 export function initSocketServer(io: Server) {
   io.of("/matchmaking").on("connection", (socket) => {
@@ -61,7 +61,7 @@ export function initSocketServer(io: Server) {
     // Handle sending messages
     socket.on("send-message", async (data: { content: string }) => {
       try {
-        const rateCheck = await rateLimiter.checkLimit(userId);
+        const rateCheck = await messageLimiter.checkLimit(userId);
         
         if (!rateCheck.allowed) {
           socket.emit("message-error", { 
@@ -79,8 +79,8 @@ export function initSocketServer(io: Server) {
 
         logger.info(`Message sent in match ${matchId} by user ${userId}`);
       } catch (error: any) {
-        console.error("Error sending message:", error);
-        socket.emit("message-error", { error: "Failed to send message" });
+        logger.error("Error sending message:", error);
+        socket.emit("message-error", { message: "Failed to send message" });
       }
     });
 

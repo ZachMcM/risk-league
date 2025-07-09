@@ -109,7 +109,7 @@ export function MatchProvider({ children }: { children: ReactNode }) {
     });
 
     socket.on("message-error", (error: { error: string }) => {
-      console.error("Message error:", error.error);
+      toast.error(error.error)
     });
 
     return () => {
