@@ -4,7 +4,7 @@ from time import time
 
 import statsapi
 import numpy as np
-from mlb.constants import N_GAMES
+from mlb.constants import N_GAMES, SIGMA_COEFF
 from mlb.my_types import PlayerData
 from mlb.prop_configs import get_mlb_stats_list
 
@@ -115,7 +115,7 @@ def is_prop_eligible(
         mean_at_bats = get_player_mean_at_bats(session, player.id)
         league_mean_at_bats, league_sd_at_bats = get_league_at_bats_data(session)
 
-        if mean_at_bats <= league_mean_at_bats + 0.35 * league_sd_at_bats:
+        if mean_at_bats <= league_mean_at_bats + SIGMA_COEFF * league_sd_at_bats:
             logger.info(f"Skipping player {player.id}, due to low mean at bats.")
             return False
         return True
