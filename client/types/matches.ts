@@ -1,33 +1,37 @@
-export type MatchStatus = "disqualified" | "draw" | "loss" | "not_resolved" | "win";
+import { User } from "./user";
 
-export type MatchListEntity = {
-  id: string;
+export type MatchStatus =
+  | "disqualified"
+  | "draw"
+  | "loss"
+  | "not_resolved"
+  | "win";
+
+export type MatchUser = {
+  id: number;
+  createdAt: string | null;
   balance: number;
-  status: MatchStatus;
-  createdAt: Date;
   eloDelta: number;
-  opponentUsername: string;
-  opponentId: string;
-  opponentImage: string | null;
-  opponentBalance: number;
+  status: "not_resolved" | "loss" | "win" | "draw" | "disqualified";
+  userId: number | null;
+  matchId: number | null;
+  user: User;
 };
 
-export type UserStats = {
-  totalParlays: string | number | bigint;
-  balance: number;
-  image: string | null;
-  username: string;
-  userId: string;
-  matchId: string;
-  matchUserId: string;
+export type Match = {
+  id: number;
+  createdAt: string | null;
+  resolved: boolean;
+  matchUsers: MatchUser[];
 };
 
 export type CurrentStatus = "winning" | "losing" | "tied";
 
 export type MatchMessage = {
-  username: string;
+  id: number;
+  createdAt: string;
+  userId: number | null;
+  matchId: number | null;
   content: string;
-  createdAt: Date;
-  userId: string;
-  image: string | null;
+  user: User;
 };

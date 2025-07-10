@@ -20,18 +20,25 @@ export function initSocketServer(io: Server) {
       const pair = await getPair();
 
       if (pair) {
-        const matchId = await createMatch(pair);
+        const matchId = await createMatch({
+          user1: parseInt(pair.user1),
+          user2: parseInt(pair.user2),
+        });
 
         const { user1, user2 } = pair;
 
         if (!matchId) {
           logger.error("Matchmaking failed due to failure to insert match");
-          io.of("/matchmaking").to(user1).emit("matchmaking-failed");
-          io.of("/matchmaking").to(user2).emit("matchmaking-failed");
+          io.of("/matchmaking").to(user1.toString()).emit("matchmaking-failed");
+          io.of("/matchmaking").to(user2.toString()).emit("matchmaking-failed");
         }
 
-        io.of("/matchmaking").to(user1).emit("match-found", { matchId });
-        io.of("/matchmaking").to(user2).emit("match-found", { matchId });
+        io.of("/matchmaking")
+          .to(user1.toString())
+          .emit("match-found", { matchId });
+        io.of("/matchmaking")
+          .to(user2.toString())
+          .emit("match-found", { matchId });
 
         logger.info(`Match found between users ${user1} and ${user2}`);
       }
@@ -62,16 +69,20 @@ export function initSocketServer(io: Server) {
     socket.on("send-message", async (data: { content: string }) => {
       try {
         const rateCheck = await messageLimiter.checkLimit(userId);
-        
+
         if (!rateCheck.allowed) {
-          socket.emit("message-error", { 
-            error: "Slow down! Too many messages!", 
-            retryAfter: rateCheck.retryAfter 
+          socket.emit("message-error", {
+            error: "Slow down! Too many messages!",
+            retryAfter: rateCheck.retryAfter,
           });
           return;
         }
 
-        const messageData = await createMessage(data.content, userId, matchId);
+        const messageData = await createMessage(
+          data.content,
+          parseInt(userId),
+          parseInt(matchId)
+        );
         // Broadcast to all users in the match room
         io.of("/match")
           .to(`match:${matchId}`)

@@ -50,7 +50,7 @@ def get_league_at_bats_data(session: Session) -> tuple[float, float]:
     return _league_mean_at_bats_cache
 
 
-def get_player_mean_at_bats(session: Session, player_id: str) -> float:
+def get_player_mean_at_bats(session: Session, player_id: int) -> float:
     """Gets a players at bats per game over the last n games"""
     at_bats = (
         session.execute(
@@ -138,7 +138,7 @@ def is_prop_eligible(
     return True
 
 
-def get_player_from_db(session, player_id: str) -> Players | None:
+def get_player_from_db(session, player_id: int) -> Players | None:
     """Fetch a player's information from the database."""
     from sqlalchemy import select
 
@@ -172,7 +172,7 @@ def get_game_players(
             for player_key, player_data in players_data.items():
                 if not player_key.startswith("ID"):
                     continue
-                player_id = player_key.replace("ID", "")
+                player_id = int(player_key.replace("ID", ""))
                 player_data = get_player_from_db(session, player_id)
                 if player_data is not None:
                     if player_data.position != "Pitcher":
@@ -221,8 +221,8 @@ def main() -> None:
             probable_pitchers = [game["home_probable_pitcher"], game["away_probable_pitcher"]]
             probable_pitchers_dict[game["game_id"]] = probable_pitchers
 
-            home_team_id = game["home_id"]
-            away_team_id = game["away_id"]
+            home_team_id = int(game["home_id"])
+            away_team_id = int(game["away_id"])
             players = get_game_players(
                 session,
                 game["game_id"],

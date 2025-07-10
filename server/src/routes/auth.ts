@@ -1,12 +1,14 @@
 import bycrpt from "bcrypt";
+import { eq } from "drizzle-orm";
 import { NextFunction, Request, Response, Router } from "express";
 import jwt from "jsonwebtoken";
-import { db } from "../db/db";
-import { createSession } from "../utils/createSession";
-import { assertRequiredFields } from "../utils/validateFields";
+import { db } from "../drizzle";
+import { users } from "../drizzle/schema";
+import { logger } from "../logger";
 import { RegisterBody, SignInBody, TokenPayload } from "../types/auth";
 import { MissingFieldsError } from "../types/MissingFieldsError";
-import { logger } from "../logger";
+import { createSession } from "../utils/createSession";
+import { assertRequiredFields } from "../utils/validateFields";
 
 export const authRoute = Router();
 
@@ -40,15 +42,18 @@ export const authMiddleware = async (
   }
 };
 
-authRoute.get("/auth/session", authMiddleware, async (req, res) => {
-  
-  const userId = res.locals.userId;
+authRoute.get("/auth/session", authMiddleware, async (_, res) => {
+  const userId = parseInt(res.locals.userId);
 
-  const user = await db
-    .selectFrom("users")
-    .select(["id", "email", "username", "image", "elo_rating"])
-    .where("id", "=", userId)
-    .executeTakeFirst();
+  const user = await db.query.users.findFirst({
+    columns: {
+      id: true,
+      username: true,
+      image: true,
+      eloRating: true,
+    },
+    where: eq(users.id, userId),
+  });
 
   if (!user) {
     res.status(404).json({
@@ -58,18 +63,10 @@ authRoute.get("/auth/session", authMiddleware, async (req, res) => {
     return;
   }
 
-  res.json({
-    user: {
-      id: user.id,
-      email: user.email,
-      username: user.username,
-      image: user.image,
-    },
-  });
+  res.json(user);
 });
 
 authRoute.post("/auth/signup", async (req, res) => {
-  ;
   const body: RegisterBody = req.body;
 
   try {
@@ -77,11 +74,9 @@ authRoute.post("/auth/signup", async (req, res) => {
 
     const { name, username, email, password } = body;
 
-    const sameEmail = await db
-      .selectFrom("users")
-      .select("email")
-      .where("email", "=", email)
-      .executeTakeFirst();
+    const sameEmail = await db.query.users.findFirst({
+      where: eq(users.email, email),
+    });
     if (sameEmail) {
       res.status(409).json({
         error: "Conflict",
@@ -90,11 +85,9 @@ authRoute.post("/auth/signup", async (req, res) => {
       return;
     }
 
-    const sameUsername = await db
-      .selectFrom("users")
-      .select("username")
-      .where("username", "=", username)
-      .executeTakeFirst();
+    const sameUsername = await db.query.users.findFirst({
+      where: eq(users.username, username),
+    });
     if (sameUsername) {
       res.status(409).json({
         error: "Conflict",
@@ -105,16 +98,15 @@ authRoute.post("/auth/signup", async (req, res) => {
 
     const encryptedPassword = await bycrpt.hash(password, 10);
 
-    const user = await db
-      .insertInto("users")
+    const [user] = await db
+      .insert(users)
       .values({
         name,
         username,
         email,
-        password_hash: encryptedPassword,
+        passwordHash: encryptedPassword,
       })
-      .returning(["id"])
-      .executeTakeFirstOrThrow();
+      .returning({ id: users.id });
 
     const accessToken = await createSession(user);
 
@@ -134,7 +126,6 @@ authRoute.post("/auth/signup", async (req, res) => {
 });
 
 authRoute.post("/auth/signin", async (req, res) => {
-  
   const body: SignInBody = req.body;
 
   try {
@@ -142,11 +133,9 @@ authRoute.post("/auth/signin", async (req, res) => {
 
     const { password, email } = body;
 
-    const user = await db
-      .selectFrom("users")
-      .select(["id", "password_hash"])
-      .where("email", "=", email)
-      .executeTakeFirst();
+    const user = await db.query.users.findFirst({
+      where: eq(users.email, email),
+    });
 
     if (!user) {
       res.status(404).json({
@@ -156,10 +145,7 @@ authRoute.post("/auth/signin", async (req, res) => {
       return;
     }
 
-    const isPasswordCorrect = await bycrpt.compare(
-      password,
-      user.password_hash
-    );
+    const isPasswordCorrect = await bycrpt.compare(password, user.passwordHash);
 
     if (!isPasswordCorrect) {
       res.status(401).json({

@@ -1,6 +1,6 @@
 from typing import List, Optional
 
-from sqlalchemy import ARRAY, Boolean, DateTime, Double, Enum, ForeignKeyConstraint, Integer, PrimaryKeyConstraint, String, Text, UniqueConstraint, text
+from sqlalchemy import ARRAY, Boolean, DateTime, Double, Enum, ForeignKeyConstraint, Integer, PrimaryKeyConstraint, Sequence, String, Text, UniqueConstraint, text
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 import datetime
 
@@ -14,8 +14,8 @@ class Matches(Base):
         PrimaryKeyConstraint('id', name='matches_pkey'),
     )
 
-    id: Mapped[str] = mapped_column(Text, primary_key=True, server_default=text('gen_random_uuid()'))
     resolved: Mapped[bool] = mapped_column(Boolean, server_default=text('false'))
+    id: Mapped[int] = mapped_column(Integer, Sequence('matches_new_id_seq'), primary_key=True)
     created_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime(True), server_default=text('CURRENT_TIMESTAMP'))
 
     match_messages: Mapped[List['MatchMessages']] = relationship('MatchMessages', back_populates='match')
@@ -37,7 +37,7 @@ class Teams(Base):
         PrimaryKeyConstraint('id', name='nba_teams_pkey'),
     )
 
-    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
     league: Mapped[str] = mapped_column(Enum('nba', 'nfl', 'mlb', name='league_type'))
     full_name: Mapped[Optional[str]] = mapped_column(Text)
     abbreviation: Mapped[Optional[str]] = mapped_column(Text)
@@ -60,11 +60,11 @@ class Users(Base):
         UniqueConstraint('username', name='users_username_key')
     )
 
-    id: Mapped[str] = mapped_column(Text, primary_key=True, server_default=text('gen_random_uuid()'))
     username: Mapped[str] = mapped_column(Text)
     email: Mapped[str] = mapped_column(Text)
     password_hash: Mapped[str] = mapped_column(Text)
     elo_rating: Mapped[float] = mapped_column(Double(53), server_default=text('1200'))
+    id: Mapped[int] = mapped_column(Integer, Sequence('users_new_id_seq'), primary_key=True)
     created_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime(True), server_default=text('CURRENT_TIMESTAMP'))
     image: Mapped[Optional[str]] = mapped_column(Text)
     name: Mapped[Optional[str]] = mapped_column(Text)
@@ -82,14 +82,14 @@ class MatchMessages(Base):
         PrimaryKeyConstraint('id', name='match_messages_pkey')
     )
 
-    id: Mapped[str] = mapped_column(Text, primary_key=True, server_default=text('gen_random_uuid()'))
-    user_id: Mapped[str] = mapped_column(Text)
-    match_id: Mapped[str] = mapped_column(Text)
     created_at: Mapped[datetime.datetime] = mapped_column(DateTime(True), server_default=text('CURRENT_TIMESTAMP'))
     content: Mapped[str] = mapped_column(Text)
+    id: Mapped[int] = mapped_column(Integer, Sequence('match_messages_new_id_seq'), primary_key=True)
+    user_id: Mapped[Optional[int]] = mapped_column(Integer)
+    match_id: Mapped[Optional[int]] = mapped_column(Integer)
 
-    match: Mapped['Matches'] = relationship('Matches', back_populates='match_messages')
-    user: Mapped['Users'] = relationship('Users', back_populates='match_messages')
+    match: Mapped[Optional['Matches']] = relationship('Matches', back_populates='match_messages')
+    user: Mapped[Optional['Users']] = relationship('Users', back_populates='match_messages')
 
 
 class MatchUsers(Base):
@@ -100,13 +100,13 @@ class MatchUsers(Base):
         PrimaryKeyConstraint('id', name='match_users_pkey')
     )
 
-    id: Mapped[str] = mapped_column(Text, primary_key=True, server_default=text('gen_random_uuid()'))
     balance: Mapped[float] = mapped_column(Double(53), server_default=text('100'))
     elo_delta: Mapped[float] = mapped_column(Double(53), server_default=text('0'))
-    status: Mapped[str] = mapped_column(Enum('in_progress', 'loss', 'win', 'draw', name='match_status'), server_default=text("'in_progress'::match_status"))
-    match_id: Mapped[Optional[str]] = mapped_column(Text)
-    user_id: Mapped[Optional[str]] = mapped_column(Text)
+    status: Mapped[str] = mapped_column(Enum('not_resolved', 'loss', 'win', 'draw', 'disqualified', name='match_status'), server_default=text("'not_resolved'::match_status"))
+    id: Mapped[int] = mapped_column(Integer, Sequence('match_users_new_id_seq'), primary_key=True)
     created_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime(True), server_default=text('CURRENT_TIMESTAMP'))
+    user_id: Mapped[Optional[int]] = mapped_column(Integer)
+    match_id: Mapped[Optional[int]] = mapped_column(Integer)
 
     match: Mapped[Optional['Matches']] = relationship('Matches', back_populates='match_users')
     user: Mapped[Optional['Users']] = relationship('Users', back_populates='match_users')
@@ -124,11 +124,11 @@ class MlbGames(Base):
     id: Mapped[str] = mapped_column(Text, primary_key=True)
     game_type: Mapped[str] = mapped_column(String(10))
     is_home: Mapped[bool] = mapped_column(Boolean)
-    team_id: Mapped[Optional[str]] = mapped_column(Text)
+    team_id: Mapped[Optional[int]] = mapped_column(Integer)
     game_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime(True))
     venue_id: Mapped[Optional[int]] = mapped_column(Integer)
     venue_name: Mapped[Optional[str]] = mapped_column(Text)
-    opponent_team_id: Mapped[Optional[str]] = mapped_column(Text)
+    opponent_team_id: Mapped[Optional[int]] = mapped_column(Integer)
     status: Mapped[Optional[str]] = mapped_column(Text)
     runs: Mapped[Optional[int]] = mapped_column(Integer)
     opponent_runs: Mapped[Optional[int]] = mapped_column(Integer)
@@ -186,7 +186,7 @@ class NbaGames(Base):
 
     id: Mapped[str] = mapped_column(Text, primary_key=True)
     game_type: Mapped[str] = mapped_column(String(20))
-    team_id: Mapped[Optional[str]] = mapped_column(Text)
+    team_id: Mapped[Optional[int]] = mapped_column(Integer)
     pts: Mapped[Optional[int]] = mapped_column(Integer)
     game_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime(True))
     wl: Mapped[Optional[str]] = mapped_column(Text)
@@ -225,10 +225,10 @@ class Players(Base):
         PrimaryKeyConstraint('id', name='nba_players_pkey')
     )
 
-    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
     league: Mapped[str] = mapped_column(Enum('nba', 'nfl', 'mlb', name='league_type'))
     name: Mapped[Optional[str]] = mapped_column(Text)
-    team_id: Mapped[Optional[str]] = mapped_column(Text)
+    team_id: Mapped[Optional[int]] = mapped_column(Integer)
     position: Mapped[Optional[str]] = mapped_column(Text)
     updated_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime(True), server_default=text('CURRENT_TIMESTAMP'))
     height: Mapped[Optional[str]] = mapped_column(Text)
@@ -246,13 +246,11 @@ class MlbPlayerStats(Base):
     __table_args__ = (
         ForeignKeyConstraint(['game_id'], ['mlb_games.id'], name='fk_game'),
         ForeignKeyConstraint(['player_id'], ['players.id'], name='fk_player'),
-        PrimaryKeyConstraint('id', name='mlb_player_stats_pkey'),
-        UniqueConstraint('player_id', 'game_id', name='unique_mlb_player_game')
+        PrimaryKeyConstraint('id', name='mlb_player_stats_pkey')
     )
 
-    id: Mapped[str] = mapped_column(Text, primary_key=True, server_default=text('gen_random_uuid()'))
     game_id: Mapped[str] = mapped_column(Text)
-    player_id: Mapped[Optional[str]] = mapped_column(Text)
+    id: Mapped[int] = mapped_column(Integer, Sequence('mlb_player_stats_new_id_seq'), primary_key=True)
     at_bats: Mapped[Optional[int]] = mapped_column(Integer)
     runs: Mapped[Optional[int]] = mapped_column(Integer)
     hits: Mapped[Optional[int]] = mapped_column(Integer)
@@ -284,6 +282,7 @@ class MlbPlayerStats(Base):
     balls: Mapped[Optional[int]] = mapped_column(Integer)
     season: Mapped[Optional[str]] = mapped_column(Text)
     updated_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime(True), server_default=text('CURRENT_TIMESTAMP'))
+    player_id: Mapped[Optional[int]] = mapped_column(Integer)
 
     game: Mapped['MlbGames'] = relationship('MlbGames', back_populates='mlb_player_stats')
     player: Mapped[Optional['Players']] = relationship('Players', back_populates='mlb_player_stats')
@@ -294,12 +293,10 @@ class NbaPlayerStats(Base):
     __table_args__ = (
         ForeignKeyConstraint(['game_id'], ['nba_games.id'], name='fk_game'),
         ForeignKeyConstraint(['player_id'], ['players.id'], name='fk_player'),
-        PrimaryKeyConstraint('id', name='nba_player_stats_pkey'),
-        UniqueConstraint('player_id', 'game_id', name='unique_nba_player_game')
+        PrimaryKeyConstraint('id', name='nba_player_stats_pkey')
     )
 
-    id: Mapped[str] = mapped_column(Text, primary_key=True)
-    player_id: Mapped[Optional[str]] = mapped_column(Text)
+    id: Mapped[int] = mapped_column(Integer, Sequence('nba_player_stats_new_id_seq'), primary_key=True)
     game_id: Mapped[Optional[str]] = mapped_column(Text)
     pts: Mapped[Optional[int]] = mapped_column(Integer)
     min: Mapped[Optional[int]] = mapped_column(Integer)
@@ -328,6 +325,7 @@ class NbaPlayerStats(Base):
     ast_pct: Mapped[Optional[float]] = mapped_column(Double(53))
     ast_ratio: Mapped[Optional[float]] = mapped_column(Double(53))
     tov_ratio: Mapped[Optional[float]] = mapped_column(Double(53))
+    player_id: Mapped[Optional[int]] = mapped_column(Integer)
 
     game: Mapped[Optional['NbaGames']] = relationship('NbaGames', back_populates='nba_player_stats')
     player: Mapped[Optional['Players']] = relationship('Players', back_populates='nba_player_stats')
@@ -340,13 +338,13 @@ class Parlays(Base):
         PrimaryKeyConstraint('id', name='parlays_pkey')
     )
 
-    id: Mapped[str] = mapped_column(Text, primary_key=True, server_default=text('gen_random_uuid()'))
-    match_user_id: Mapped[str] = mapped_column(Text)
     status: Mapped[str] = mapped_column(Enum('hit', 'missed', 'not_resolved', name='parlay_status'), server_default=text("'not_resolved'::parlay_status"))
     stake: Mapped[float] = mapped_column(Double(53))
+    id: Mapped[int] = mapped_column(Integer, Sequence('parlays_new_id_seq'), primary_key=True)
     created_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime(True), server_default=text('CURRENT_TIMESTAMP'))
+    match_user_id: Mapped[Optional[int]] = mapped_column(Integer)
 
-    match_user: Mapped['MatchUsers'] = relationship('MatchUsers', back_populates='parlays')
+    match_user: Mapped[Optional['MatchUsers']] = relationship('MatchUsers', back_populates='parlays')
     parlay_picks: Mapped[List['ParlayPicks']] = relationship('ParlayPicks', back_populates='parlay')
 
 
@@ -357,19 +355,19 @@ class Props(Base):
         PrimaryKeyConstraint('id', name='props_pkey')
     )
 
-    id: Mapped[str] = mapped_column(Text, primary_key=True, server_default=text('gen_random_uuid()'))
     line: Mapped[float] = mapped_column(Double(53))
     current_value: Mapped[float] = mapped_column(Double(53), server_default=text('0'))
     raw_game_id: Mapped[str] = mapped_column(Text)
-    player_id: Mapped[str] = mapped_column(Text)
     stat: Mapped[str] = mapped_column(Text)
     league: Mapped[str] = mapped_column(Enum('nba', 'nfl', 'mlb', name='league_type'))
     resolved: Mapped[bool] = mapped_column(Boolean, server_default=text('false'))
+    id: Mapped[int] = mapped_column(Integer, Sequence('props_new_id_seq'), primary_key=True)
     created_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime(True), server_default=text('CURRENT_TIMESTAMP'))
     game_start_time: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime(True))
     pick_options: Mapped[Optional[list]] = mapped_column(ARRAY(Text()), server_default=text("ARRAY['over'::text, 'under'::text]"))
+    player_id: Mapped[Optional[int]] = mapped_column(Integer)
 
-    player: Mapped['Players'] = relationship('Players', back_populates='props')
+    player: Mapped[Optional['Players']] = relationship('Players', back_populates='props')
     parlay_picks: Mapped[List['ParlayPicks']] = relationship('ParlayPicks', back_populates='prop')
 
 
@@ -381,12 +379,12 @@ class ParlayPicks(Base):
         PrimaryKeyConstraint('id', name='parlay_picks_pkey')
     )
 
-    id: Mapped[str] = mapped_column(Text, primary_key=True, server_default=text('gen_random_uuid()'))
-    parlay_id: Mapped[str] = mapped_column(Text)
-    prop_id: Mapped[str] = mapped_column(Text)
     pick: Mapped[str] = mapped_column(Enum('over', 'under', name='pick_type'))
     status: Mapped[str] = mapped_column(Enum('hit', 'missed', 'not_resolved', name='pick_status'), server_default=text("'not_resolved'::pick_status"))
+    id: Mapped[int] = mapped_column(Integer, Sequence('parlay_picks_new_id_seq'), primary_key=True)
     created_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime(True), server_default=text('CURRENT_TIMESTAMP'))
+    parlay_id: Mapped[Optional[int]] = mapped_column(Integer)
+    prop_id: Mapped[Optional[int]] = mapped_column(Integer)
 
-    parlay: Mapped['Parlays'] = relationship('Parlays', back_populates='parlay_picks')
-    prop: Mapped['Props'] = relationship('Props', back_populates='parlay_picks')
+    parlay: Mapped[Optional['Parlays']] = relationship('Parlays', back_populates='parlay_picks')
+    prop: Mapped[Optional['Props']] = relationship('Props', back_populates='parlay_picks')

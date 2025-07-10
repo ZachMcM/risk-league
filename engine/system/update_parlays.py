@@ -19,7 +19,7 @@ def update_parlay(session: Session, pick_id: str):
     ).scalar_one_or_none()
     if pick is None:
         return
-    
+
     parlay = pick.parlay
     picks = parlay.parlay_picks
 
@@ -43,13 +43,20 @@ def update_parlay(session: Session, pick_id: str):
         delta = parlay.stake
 
     session.commit()
-    asyncio.run(
+
+    async def send_updates():
         send_socket_message(
             namespace="/invalidation",
             message="data-invalidated",
-            data={["parlays", parlay.id]},
+            data={["parlays", parlay.match_user_id]},
         )
-    )
+        send_socket_message(
+            namespace="/invalidation",
+            message="data-invalidated",
+            data={["matches", parlay.match_user.match_id]},
+        )
+
+    asyncio.run(send_updates())
 
 
 def listen_for_parlay_pick_updated():

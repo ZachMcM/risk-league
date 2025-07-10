@@ -19,7 +19,7 @@ logger = setup_logger(__name__)
 
 
 def get_player_last_games(
-    session: Session, player_id: str, league: Leagues, n_games: int
+    session: Session, player_id: int, league: Leagues, n_games: int
 ) -> list[MlbPlayerStats | NbaPlayerStats]:
     """Retrieve the last n games for a specific player.
 
@@ -68,7 +68,7 @@ def get_player_last_games(
 
 
 def get_team_last_games(
-    session: Session, team_id: str, league: Leagues, n_games: int
+    session: Session, team_id: int, league: Leagues, n_games: int
 ) -> list[MlbGames | NbaGames]:
     """Get the last n games for a team.
 
@@ -85,7 +85,7 @@ def get_team_last_games(
         if league == "mlb":
             query = (
                 select(MlbGames)
-                .where(MlbGames.team_id == str(team_id))
+                .where(MlbGames.team_id == team_id)
                 .where(or_(MlbGames.game_type == "R", MlbGames.game_type == "P"))
                 .order_by(desc(MlbGames.game_date))
                 .limit(n_games)
@@ -93,7 +93,7 @@ def get_team_last_games(
         elif league == "nba":
             query = (
                 select(NbaGames)
-                .where(NbaGames.team_id == str(team_id))
+                .where(NbaGames.team_id == team_id)
                 .where(
                     or_(
                         NbaGames.game_type == "regular_season",
@@ -182,7 +182,7 @@ def get_opposing_team_last_games(
         sys.exit(1)
 
 
-def get_players_from_team(session: Session, team_id: str) -> list[Players]:
+def get_players_from_team(session: Session, team_id: int) -> list[Players]:
     """Get a list of all players from a team.
 
     Args:
@@ -193,7 +193,7 @@ def get_players_from_team(session: Session, team_id: str) -> list[Players]:
         List of Player objects from the team
     """
     try:
-        query = select(Players).where(Players.team_id == str(team_id))
+        query = select(Players).where(Players.team_id == team_id)
         result = session.execute(query).scalars().all()
         return list(result)
 
@@ -253,7 +253,7 @@ def insert_prop(
     session: Session,
     line: float,
     game_id: str,
-    player_id: str,
+    player_id: int,
     stat: str,
     game_start_time: datetime,
     league: Leagues,
@@ -314,7 +314,7 @@ def insert_prop(
 def update_prop(
     session: Session,
     stat: str,
-    player_id: str,
+    player_id: int,
     raw_game_id: str,
     updated_value: float,
     league: Leagues,
@@ -354,7 +354,7 @@ def update_prop(
 
         session.commit()
 
-        publish_message("prop_updated", {"id": str(prop.id)})
+        publish_message("prop_updated", {"id": prop.id})
 
         logger.info(f"✅ Updated {stat} for player {player_id}\n")
 

@@ -56,7 +56,7 @@ def update_parlay_picks(session: Session, prop: Props):
             await send_socket_message(
                 namespace="/invalidation",
                 message="data-invalidated",
-                data={["parlay_picks", pick.id]},
+                data={["parlays", pick.parlay.match_user_id]},
             )
             if prop.resolved:
                 publish_message("parlay_pick_updated", {"id": str(pick.id)})

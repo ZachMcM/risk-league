@@ -1,16 +1,41 @@
+import { eq } from "drizzle-orm";
 import { Router } from "express";
-import { authMiddleware } from "./auth";
-import { db } from "../db/db";
+import { db } from "../drizzle";
+import { matches, matchMessages, matchUsers } from "../drizzle/schema";
 import { logger } from "../logger";
+import { authMiddleware } from "./auth";
 
 export const matchesRoute = Router();
 
 matchesRoute.get("/matches", authMiddleware, async (req, res) => {
-  const userId = res.locals.userId;
+  const userId = parseInt(res.locals.userId);
 
   try {
- 
+    const userMatches = await db.query.matchUsers.findMany({
+      where: eq(matchUsers.userId, userId),
+      with: {
+        match: {
+          with: {
+            matchUsers: {
+              with: {
+                user: {
+                  columns: {
+                    id: true,
+                    username: true,
+                    image: true,
+                    eloRating: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
 
+    const matches = userMatches.map((userMatch) => userMatch.match);
+
+    res.json(matches);
   } catch (err) {
     logger.error(err);
     res.status(500).json({ err: "Server Error", message: err });
@@ -18,29 +43,28 @@ matchesRoute.get("/matches", authMiddleware, async (req, res) => {
 });
 
 matchesRoute.get("/matches/:id", authMiddleware, async (req, res) => {
-  const matchId = req.params.id;
+  const matchId = parseInt(req.params.id);
 
   try {
-    const rows = await db
-      .selectFrom("matches")
-      .leftJoin("match_users", "matches.id", "match_users.match_id")
-      .leftJoin("users", "match_users.user_id", "users.id")
-      .select([
-        "matches.id",
-        "matches.created_at",
-        "matches.resolved",
-        "match_users.id as match_user_id",
-        "match_users.balance",
-        "match_users.elo_delta",
-        "match_users.status as match_status",
-        "users.id as user_id",
-        "users.username",
-        "users.email",
-        "users.image",
-        "users.elo_rating",
-      ])
-      .where("matches.id", "=", matchId)
-      .executeTakeFirstOrThrow();
+    const match = await db.query.matches.findFirst({
+      where: eq(matches.id, matchId),
+      with: {
+        matchUsers: {
+          with: {
+            user: {
+              columns: {
+                id: true,
+                username: true,
+                image: true,
+                eloRating: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    res.json(match);
   } catch (err: any) {
     logger.error(err);
     res.status(500).json({ error: "Server Error", message: err });
@@ -51,19 +75,20 @@ matchesRoute.get("/matches/:id/messages", authMiddleware, async (req, res) => {
   const matchId = req.params.id;
 
   try {
-    const messages = await db
-      .selectFrom("match_messages")
-      .innerJoin("users", "users.id", "match_messages.user_id")
-      .select([
-        "content",
-        "match_messages.created_at as createdAt",
-        "user_id as userId",
-        "username",
-        "users.image as image",
-      ])
-      .where("match_messages.match_id", "=", matchId)
-      .orderBy("match_messages.created_at", "asc")
-      .execute();
+    const messages = await db.query.matchMessages.findMany({
+      where: eq(matchMessages.matchId, parseInt(matchId)),
+      with: {
+        user: {
+          columns: {
+            id: true,
+            username: true,
+            image: true,
+            eloRating: true
+          },
+        },
+      },
+      orderBy: [matchMessages.createdAt],
+    });
 
     res.json(messages);
   } catch (err) {

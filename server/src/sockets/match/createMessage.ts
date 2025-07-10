@@ -1,38 +1,43 @@
-import { db } from "../../db/db";
+import { eq } from "drizzle-orm";
+import { db } from "../../drizzle";
+import { matchMessages } from "../../drizzle/schema";
 import { logger } from "../../logger";
 
 export async function createMessage(
   content: string,
-  userId: string,
-  matchId: string
+  userId: number,
+  matchId: number
 ) {
-  logger.info("Message recieved", { messageContent: content })
+  logger.info("Message recieved", { messageContent: content });
   // Insert message into database
-  const newMessage = await db
-    .insertInto("match_messages")
+  const [newMessage] = await db
+    .insert(matchMessages)
     .values({
-      user_id: userId,
-      match_id: matchId,
+      userId: userId,
+      matchId: matchId,
       content,
     })
-    .returning(["id", "created_at"])
-    .executeTakeFirstOrThrow();
+    .returning({ id: matchMessages.id });
 
   // Get user info for the message
-  const user = await db
-    .selectFrom("users")
-    .select(["username", "image"])
-    .where("id", "=", userId)
-    .executeTakeFirstOrThrow();
+  const message = await db.query.matchMessages.findFirst({
+    where: eq(matchMessages.id, newMessage.id),
+    columns: {
+      content: true,
+      createdAt: true,
+      id: true,
+    },
+    with: {
+      user: {
+        columns: {
+          username: true,
+          id: true,
+          image: true,
+          eloRating: true
+        },
+      },
+    },
+  });
 
-  const messageData = {
-    id: newMessage.id,
-    userId,
-    username: user.username,
-    image: user.image,
-    content,
-    createdAt: newMessage.created_at,
-  };
-
-  return messageData;
+  return message;
 }

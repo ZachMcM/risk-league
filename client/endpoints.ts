@@ -1,7 +1,7 @@
 import { deleteItemAsync, getItemAsync, setItemAsync } from "expo-secure-store";
-import { Session } from "./types/session";
 import { RankResponse } from "./types/ranks";
-import { MatchListEntity, MatchMessage, UserStats } from "./types/matches";
+import { User } from "./types/user";
+import { Match, MatchMessage } from "./types/matches";
 
 export type HttpRequestParams = {
   endpoint: string;
@@ -48,7 +48,7 @@ export async function httpRequest({
   return res;
 }
 
-export async function sessionRequest(): Promise<Session> {
+export async function sessionRequest(): Promise<User | undefined | null> {
   const accessToken = await getItemAsync("Access-Token");
 
   if (!accessToken) {
@@ -126,9 +126,9 @@ export async function signOutRequest() {
   await deleteItemAsync("Access-Token");
 }
 
-export async function getRank(): Promise<RankResponse> {
+export async function getUser(id: string): Promise<User | undefined | null> {
   const res = await httpRequest({
-    endpoint: "/users/ranks",
+    endpoint: `/users/${id}`,
     method: "GET",
   });
 
@@ -142,7 +142,7 @@ export async function getRank(): Promise<RankResponse> {
   return data;
 }
 
-export async function getMatches(): Promise<MatchListEntity[]> {
+export async function getMatches(): Promise<Match[]> {
   const res = await httpRequest({
     endpoint: "/matches",
     method: "GET",
@@ -153,22 +153,6 @@ export async function getMatches(): Promise<MatchListEntity[]> {
 
   if (!res.ok) {
     throw new Error(data.message);
-  }
-
-  return data;
-}
-
-export async function getMatchStats(matchId: string, opponent: boolean): Promise<UserStats> {
-  const res = await httpRequest({
-    endpoint: `/matches/${matchId}/stats?opponent=${opponent}`,
-    method: "GET",
-  });
-
-  const data = await res.json();
-  console.log(data);
-
-  if (!res.ok) {
-    throw new Error(data);
   }
 
   return data;

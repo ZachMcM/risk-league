@@ -1,6 +1,7 @@
 from shared.utils import setup_logger
 import signal
 import sys
+import asyncio
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from shared.db_session import get_db_session
@@ -57,17 +58,14 @@ def update_matches():
         if game["gameStatusText"] != "Final":
             return
     for game in mlb_games:
-        status = game.get("status")  
+        status = game.get("status")
         if status != "Final":
             return
 
     matches = (
         session.execute(
             select(Matches)
-            .where(
-                Matches.created_at.strftime("%Y-%m-%d")
-                == get_today_eastern()
-            )
+            .where(Matches.created_at.strftime("%Y-%m-%d") == get_today_eastern())
             .where(~Matches.resolved)
         )
         .scalars()
@@ -78,13 +76,13 @@ def update_matches():
         match_users = match.match_users
         user1 = match_users[0]
         user2 = match_users[1]
-        
+
         # Check for disqualifications based on minimum betting activity
         user1_total_bets = len(user1.parlays)
         user2_total_bets = len(user2.parlays)
-        
+
         winner = None
-        
+
         # Handle disqualifications first
         if user1_total_bets < MIN_BETS_REQ and user2_total_bets >= MIN_BETS_REQ:
             user1.status = "disqualified"
@@ -111,45 +109,57 @@ def update_matches():
             user1.status = "win"
             user2.status = "loss"
             winner = 1
-        
+
         # Calculate ELO changes (only if both users aren't disqualified)
         if not (user1.status == "disqualified" and user2.status == "disqualified"):
             new_elos = recalculate_elo(
                 [user1.user.elo_rating, user2.user.elo_rating], winner
             )
-            
+
             user1.elo_delta = new_elos[0] - user1.user.elo_rating
             user2.elo_delta = new_elos[1] - user2.user.elo_rating
-            
+
             user1.user.elo_rating = new_elos[0]
             user2.user.elo_rating = new_elos[1]
         else:
             # No ELO changes for double disqualification
             user1.elo_delta = 0
             user2.elo_delta = 0
-        
+
         match.resolved = True
         session.commit()
         
-        # Send websocket message with enhanced data
-        message_data = []
-        for i in range(2):
-            message_data.append(
-                {
-                    "user_id": match_users[i].user_id,
-                    "status": match_users[i].status,
-                    "balance": match_users[i].balance,
-                    "total_bets": len(match_users[i].parlays),
-                    "elo_delta": match_users[i].elo_delta,
-                    "new_elo_rating": match_users[i].user.elo_rating,
-                }
+        async def send_updates():
+            # invalidate the match
+            await send_socket_message(
+                namespace="/invalidation",
+                message="data-invalidated",
+                data={["matches", match.id]},
             )
-        
-        send_socket_message(
-            namespace="/invalidation",
-            message="data-invalidated",
-            data={["matches", match.id]},
-        )
+
+            # invalidate the users session and user states for elo updates
+            await send_socket_message(
+                namespace="/invalidation",
+                message="data-invalidated",
+                data={["sessions", user1.user_id]},
+            )
+            await send_socket_message(
+                namespace="/invalidation",
+                message="data-invalidated",
+                data={["sessions", user2.user_id]},
+            )
+            await send_socket_message(
+                namespace="/invalidation",
+                message="data-invalidated",
+                data={["users", user1.user_id]},
+            )
+            await send_socket_message(
+                namespace="/invalidation",
+                message="data-invalidated",
+                data={["users", user2.user_id]},
+            )
+            
+        asyncio.run(send_updates())
 
 
 def main():

@@ -75,12 +75,32 @@ SET default_table_access_method = heap;
 --
 
 CREATE TABLE public.match_messages (
-    id text DEFAULT gen_random_uuid() NOT NULL,
-    user_id text NOT NULL,
-    match_id text NOT NULL,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    content text NOT NULL
+    content text NOT NULL,
+    id integer NOT NULL,
+    user_id integer,
+    match_id integer
 );
+
+
+--
+-- Name: match_messages_new_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.match_messages_new_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: match_messages_new_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.match_messages_new_id_seq OWNED BY public.match_messages.id;
 
 
 --
@@ -88,14 +108,34 @@ CREATE TABLE public.match_messages (
 --
 
 CREATE TABLE public.match_users (
-    id text DEFAULT gen_random_uuid() NOT NULL,
-    match_id text,
-    user_id text,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
     balance double precision DEFAULT 100 NOT NULL,
     elo_delta double precision DEFAULT 0 NOT NULL,
-    status public.match_status DEFAULT 'not_resolved'::public.match_status NOT NULL
+    status public.match_status DEFAULT 'not_resolved'::public.match_status NOT NULL,
+    id integer NOT NULL,
+    user_id integer,
+    match_id integer
 );
+
+
+--
+-- Name: match_users_new_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.match_users_new_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: match_users_new_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.match_users_new_id_seq OWNED BY public.match_users.id;
 
 
 --
@@ -103,10 +143,30 @@ CREATE TABLE public.match_users (
 --
 
 CREATE TABLE public.matches (
-    id text DEFAULT gen_random_uuid() NOT NULL,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
-    resolved boolean DEFAULT false NOT NULL
+    resolved boolean DEFAULT false NOT NULL,
+    id integer NOT NULL
 );
+
+
+--
+-- Name: matches_new_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.matches_new_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: matches_new_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.matches_new_id_seq OWNED BY public.matches.id;
 
 
 --
@@ -115,12 +175,12 @@ CREATE TABLE public.matches (
 
 CREATE TABLE public.mlb_games (
     id text NOT NULL,
-    team_id text,
+    team_id integer,
     game_date timestamp with time zone,
     game_type character varying(10) NOT NULL,
     venue_id integer,
     venue_name text,
-    opponent_team_id text,
+    opponent_team_id integer,
     is_home boolean NOT NULL,
     status text,
     runs integer,
@@ -172,8 +232,6 @@ CREATE TABLE public.mlb_games (
 --
 
 CREATE TABLE public.mlb_player_stats (
-    id text DEFAULT gen_random_uuid() NOT NULL,
-    player_id text,
     game_id text NOT NULL,
     at_bats integer,
     runs integer,
@@ -205,8 +263,30 @@ CREATE TABLE public.mlb_player_stats (
     strikes integer,
     balls integer,
     season text,
-    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
+    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    id integer NOT NULL,
+    player_id integer
 );
+
+
+--
+-- Name: mlb_player_stats_new_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.mlb_player_stats_new_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: mlb_player_stats_new_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.mlb_player_stats_new_id_seq OWNED BY public.mlb_player_stats.id;
 
 
 --
@@ -215,7 +295,7 @@ CREATE TABLE public.mlb_player_stats (
 
 CREATE TABLE public.nba_games (
     id text NOT NULL,
-    team_id text,
+    team_id integer,
     pts integer,
     game_date timestamp with time zone,
     wl text,
@@ -251,8 +331,6 @@ CREATE TABLE public.nba_games (
 --
 
 CREATE TABLE public.nba_player_stats (
-    id text NOT NULL,
-    player_id text,
     game_id text,
     pts integer,
     min integer,
@@ -280,8 +358,30 @@ CREATE TABLE public.nba_player_stats (
     oreb_pct double precision,
     ast_pct double precision,
     ast_ratio double precision,
-    tov_ratio double precision
+    tov_ratio double precision,
+    id integer NOT NULL,
+    player_id integer
 );
+
+
+--
+-- Name: nba_player_stats_new_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.nba_player_stats_new_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: nba_player_stats_new_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.nba_player_stats_new_id_seq OWNED BY public.nba_player_stats.id;
 
 
 --
@@ -289,13 +389,33 @@ CREATE TABLE public.nba_player_stats (
 --
 
 CREATE TABLE public.parlay_picks (
-    id text DEFAULT gen_random_uuid() NOT NULL,
-    parlay_id text NOT NULL,
-    prop_id text NOT NULL,
     pick public.pick_type NOT NULL,
     status public.pick_status DEFAULT 'not_resolved'::public.pick_status NOT NULL,
-    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    id integer NOT NULL,
+    parlay_id integer,
+    prop_id integer
 );
+
+
+--
+-- Name: parlay_picks_new_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.parlay_picks_new_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: parlay_picks_new_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.parlay_picks_new_id_seq OWNED BY public.parlay_picks.id;
 
 
 --
@@ -303,12 +423,32 @@ CREATE TABLE public.parlay_picks (
 --
 
 CREATE TABLE public.parlays (
-    id text DEFAULT gen_random_uuid() NOT NULL,
-    match_user_id text NOT NULL,
     status public.parlay_status DEFAULT 'not_resolved'::public.parlay_status NOT NULL,
     stake double precision NOT NULL,
-    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    id integer NOT NULL,
+    match_user_id integer
 );
+
+
+--
+-- Name: parlays_new_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.parlays_new_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: parlays_new_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.parlays_new_id_seq OWNED BY public.parlays.id;
 
 
 --
@@ -316,9 +456,9 @@ CREATE TABLE public.parlays (
 --
 
 CREATE TABLE public.players (
-    id text NOT NULL,
+    id integer NOT NULL,
     name text,
-    team_id text,
+    team_id integer,
     "position" text,
     updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
     height text,
@@ -333,18 +473,38 @@ CREATE TABLE public.players (
 --
 
 CREATE TABLE public.props (
-    id text DEFAULT gen_random_uuid() NOT NULL,
     line double precision NOT NULL,
     current_value double precision DEFAULT 0 NOT NULL,
     raw_game_id text NOT NULL,
-    player_id text NOT NULL,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
     stat text NOT NULL,
     game_start_time timestamp with time zone,
     league public.league_type NOT NULL,
     resolved boolean DEFAULT false NOT NULL,
-    pick_options text[] DEFAULT ARRAY['over'::text, 'under'::text]
+    pick_options text[] DEFAULT ARRAY['over'::text, 'under'::text],
+    id integer NOT NULL,
+    player_id integer
 );
+
+
+--
+-- Name: props_new_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.props_new_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: props_new_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.props_new_id_seq OWNED BY public.props.id;
 
 
 --
@@ -361,7 +521,7 @@ CREATE TABLE public.schema_migrations (
 --
 
 CREATE TABLE public.teams (
-    id text NOT NULL,
+    id integer NOT NULL,
     full_name text,
     abbreviation text,
     nickname text,
@@ -377,7 +537,6 @@ CREATE TABLE public.teams (
 --
 
 CREATE TABLE public.users (
-    id text DEFAULT gen_random_uuid() NOT NULL,
     username text NOT NULL,
     email text NOT NULL,
     password_hash text NOT NULL,
@@ -385,8 +544,92 @@ CREATE TABLE public.users (
     image text,
     name text,
     is_bot boolean,
-    elo_rating double precision DEFAULT 1200 NOT NULL
+    elo_rating double precision DEFAULT 1200 NOT NULL,
+    id integer NOT NULL
 );
+
+
+--
+-- Name: users_new_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.users_new_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: users_new_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.users_new_id_seq OWNED BY public.users.id;
+
+
+--
+-- Name: match_messages id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.match_messages ALTER COLUMN id SET DEFAULT nextval('public.match_messages_new_id_seq'::regclass);
+
+
+--
+-- Name: match_users id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.match_users ALTER COLUMN id SET DEFAULT nextval('public.match_users_new_id_seq'::regclass);
+
+
+--
+-- Name: matches id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.matches ALTER COLUMN id SET DEFAULT nextval('public.matches_new_id_seq'::regclass);
+
+
+--
+-- Name: mlb_player_stats id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.mlb_player_stats ALTER COLUMN id SET DEFAULT nextval('public.mlb_player_stats_new_id_seq'::regclass);
+
+
+--
+-- Name: nba_player_stats id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.nba_player_stats ALTER COLUMN id SET DEFAULT nextval('public.nba_player_stats_new_id_seq'::regclass);
+
+
+--
+-- Name: parlay_picks id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.parlay_picks ALTER COLUMN id SET DEFAULT nextval('public.parlay_picks_new_id_seq'::regclass);
+
+
+--
+-- Name: parlays id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.parlays ALTER COLUMN id SET DEFAULT nextval('public.parlays_new_id_seq'::regclass);
+
+
+--
+-- Name: props id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.props ALTER COLUMN id SET DEFAULT nextval('public.props_new_id_seq'::regclass);
+
+
+--
+-- Name: users id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_new_id_seq'::regclass);
 
 
 --
@@ -494,22 +737,6 @@ ALTER TABLE ONLY public.schema_migrations
 
 
 --
--- Name: mlb_player_stats unique_mlb_player_game; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.mlb_player_stats
-    ADD CONSTRAINT unique_mlb_player_game UNIQUE (player_id, game_id);
-
-
---
--- Name: nba_player_stats unique_nba_player_game; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.nba_player_stats
-    ADD CONSTRAINT unique_nba_player_game UNIQUE (player_id, game_id);
-
-
---
 -- Name: users users_email_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -590,18 +817,18 @@ ALTER TABLE ONLY public.parlay_picks
 
 
 --
--- Name: nba_player_stats fk_player; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.nba_player_stats
-    ADD CONSTRAINT fk_player FOREIGN KEY (player_id) REFERENCES public.players(id);
-
-
---
 -- Name: props fk_player; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.props
+    ADD CONSTRAINT fk_player FOREIGN KEY (player_id) REFERENCES public.players(id);
+
+
+--
+-- Name: nba_player_stats fk_player; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.nba_player_stats
     ADD CONSTRAINT fk_player FOREIGN KEY (player_id) REFERENCES public.players(id);
 
 
@@ -630,18 +857,18 @@ ALTER TABLE ONLY public.nba_games
 
 
 --
--- Name: players fk_team; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.players
-    ADD CONSTRAINT fk_team FOREIGN KEY (team_id) REFERENCES public.teams(id);
-
-
---
 -- Name: mlb_games fk_team; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.mlb_games
+    ADD CONSTRAINT fk_team FOREIGN KEY (team_id) REFERENCES public.teams(id);
+
+
+--
+-- Name: players fk_team; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.players
     ADD CONSTRAINT fk_team FOREIGN KEY (team_id) REFERENCES public.teams(id);
 
 
@@ -739,4 +966,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20250702033938'),
     ('20250705004954'),
     ('20250705132829'),
-    ('20250706172805');
+    ('20250706172805'),
+    ('20250710100001');
