@@ -89,15 +89,11 @@ export function initSocketServer(io: Server) {
     });
   });
 
-  io.of("/parlay_pick").on("connection", (socket) => {
-    const parlayPickId = socket.handshake.query.parlay_pick_id as string;
-    logger.info(`User connected to parlay pick id ${parlayPickId} namespace`);
-
-    socket.join(`parlayPick:${parlayPickId}`);
-  });
-
-  io.of("/parlay").on("connection", (socket) => {
-    const parlayId = socket.handshake.query.parlay_id as string;
-    logger.info(`User connected to parlay id ${parlayId} namespace`);
+  io.of("/invalidation").on("connection", (socket) => {
+    // Handle invalidation events from engine
+    socket.on("data-invalidated", (data) => {
+      // Broadcast to all clients subscribed to those tables
+      io.emit("data-invalidated", data);
+    });
   });
 }

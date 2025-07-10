@@ -14,7 +14,6 @@ import {
   QueryClient,
   QueryClientProvider,
 } from "@tanstack/react-query";
-import { useFonts } from "expo-font";
 import * as Network from "expo-network";
 import { SplashScreen, Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
@@ -33,6 +32,7 @@ import { SplashScreenController } from "~/components/ui/splash";
 import { setAndroidNavigationBar } from "~/lib/android-navigation-bar";
 import { NAV_THEME } from "~/lib/constants";
 import { useColorScheme } from "~/lib/useColorScheme";
+import { RealTimeProvider } from "~/components/providers/RealTimeProvider";
 
 onlineManager.setEventListener((setOnline) => {
   const eventSubscription = Network.addNetworkStateListener((state) => {
@@ -60,7 +60,7 @@ SplashScreen.preventAutoHideAsync();
 
 export {
   // Catch any errors thrown by the Layout component.
-  ErrorBoundary
+  ErrorBoundary,
 } from "expo-router";
 
 const queryClient = new QueryClient();
@@ -86,12 +86,16 @@ export default function RootLayout() {
       <GestureHandlerRootView>
         <QueryClientProvider client={queryClient}>
           <SessionProvider>
-            <ThemeProvider value={isDarkColorScheme ? DARK_THEME : LIGHT_THEME}>
-              <SplashScreenController />
-              <RootNavigatior />
-              <StatusBar style={isDarkColorScheme ? "light" : "dark"} />
-              <PortalHost />
-            </ThemeProvider>
+            <RealTimeProvider>
+              <ThemeProvider
+                value={isDarkColorScheme ? DARK_THEME : LIGHT_THEME}
+              >
+                <SplashScreenController />
+                <RootNavigatior />
+                <StatusBar style={isDarkColorScheme ? "light" : "dark"} />
+                <PortalHost />
+              </ThemeProvider>
+            </RealTimeProvider>
           </SessionProvider>
           <Toaster
             toastOptions={{

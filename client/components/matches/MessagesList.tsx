@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { ScrollView, View } from "react-native";
 import { Text } from "~/components/ui/text";
 import { cn, timeAgo } from "~/lib/utils";
-import { useMatch } from "../providers/MatchProvider";
+import { useMatch } from "../providers/MatchMessagesProvider";
 import { useSession } from "../providers/SessionProvider";
 import Pfp from "../ui/pfp";
 

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { ActivityIndicator, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import MessagesList from "~/components/matches/MessagesList";
-import { useMatch } from "~/components/providers/MatchProvider";
+import { useMatch } from "~/components/providers/MatchMessagesProvider";
 import { Container } from "~/components/ui/container";
 import { Input } from "~/components/ui/input";
 import { Text } from "~/components/ui/text";

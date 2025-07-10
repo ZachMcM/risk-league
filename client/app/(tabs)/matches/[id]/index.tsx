@@ -2,7 +2,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { Fragment } from "react";
 import { ActivityIndicator, View } from "react-native";
 import MatchStatsCard from "~/components/matches/MatchStatsCard";
-import { useMatch } from "~/components/providers/MatchProvider";
+import { useMatch } from "~/components/providers/MatchMessagesProvider";
 import { Button } from "~/components/ui/button";
 import { ScrollContainer } from "~/components/ui/scroll-container";
 import { MessageCircle } from "~/lib/icons/MessageCircle";

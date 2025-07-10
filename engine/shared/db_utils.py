@@ -15,7 +15,6 @@ from shared.tables import (
 from sqlalchemy import and_, desc, or_, select
 from sqlalchemy.orm import Session
 
-
 logger = setup_logger(__name__)
 
 
@@ -355,8 +354,7 @@ def update_prop(
 
         session.commit()
 
-        if prop.resolved:
-            publish_message("prop_resolved", {"prop_id": str(prop.id)})
+        publish_message("prop_updated", {"id": str(prop.id)})
 
         logger.info(f"✅ Updated {stat} for player {player_id}\n")
 
