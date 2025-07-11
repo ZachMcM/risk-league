@@ -118,6 +118,7 @@ authRoute.post("/auth/signup", async (req, res) => {
         message: `${err.missing} missing`,
       });
     } else {
+      logger.error(err)
       res.status(500).json({ error: "Unexpected error", message: err });
     }
     return;
@@ -166,6 +167,7 @@ authRoute.post("/auth/signin", async (req, res) => {
         message: `${err.missing} missing`,
       });
     } else {
+      logger.error(err)
       res.status(500).json({ error: "Unexpected error" });
     }
     return;

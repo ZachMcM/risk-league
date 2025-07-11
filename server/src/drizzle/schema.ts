@@ -188,6 +188,44 @@ export const nbaPlayerStats = pgTable("nba_player_stats", {
 		}),
 ]);
 
+export const nbaGames = pgTable("nba_games", {
+	id: text().primaryKey().notNull(),
+	teamId: integer("team_id"),
+	pts: integer(),
+	gameDate: timestamp("game_date", { withTimezone: true, mode: 'string' }),
+	wl: text(),
+	matchup: text(),
+	min: integer(),
+	fgm: integer(),
+	fga: integer(),
+	fta: integer(),
+	ftm: integer(),
+	threePa: integer("three_pa"),
+	threePm: integer("three_pm"),
+	oreb: integer(),
+	dreb: integer(),
+	reb: integer(),
+	ast: integer(),
+	stl: integer(),
+	blk: integer(),
+	tov: integer(),
+	pf: integer(),
+	plusMinus: integer("plus_minus"),
+	gameType: varchar("game_type", { length: 20 }).notNull(),
+	season: text(),
+	pace: doublePrecision(),
+	tovRatio: doublePrecision("tov_ratio"),
+	tovPct: doublePrecision("tov_pct"),
+	offRating: doublePrecision("off_rating"),
+	defRating: doublePrecision("def_rating"),
+}, (table) => [
+	foreignKey({
+			columns: [table.teamId],
+			foreignColumns: [teams.id],
+			name: "fk_team"
+		}),
+]);
+
 export const matches = pgTable("matches", {
 	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
 	resolved: boolean().default(false).notNull(),
@@ -245,44 +283,6 @@ export const parlays = pgTable("parlays", {
 			columns: [table.matchUserId],
 			foreignColumns: [matchUsers.id],
 			name: "fk_match_user"
-		}),
-]);
-
-export const nbaGames = pgTable("nba_games", {
-	id: text().primaryKey().notNull(),
-	teamId: integer("team_id"),
-	pts: integer(),
-	gameDate: timestamp("game_date", { withTimezone: true, mode: 'string' }),
-	wl: text(),
-	matchup: text(),
-	min: integer(),
-	fgm: integer(),
-	fga: integer(),
-	fta: integer(),
-	ftm: integer(),
-	threePa: integer("three_pa"),
-	threePm: integer("three_pm"),
-	oreb: integer(),
-	dreb: integer(),
-	reb: integer(),
-	ast: integer(),
-	stl: integer(),
-	blk: integer(),
-	tov: integer(),
-	pf: integer(),
-	plusMinus: integer("plus_minus"),
-	gameType: varchar("game_type", { length: 20 }).notNull(),
-	season: text(),
-	pace: doublePrecision(),
-	tovRatio: doublePrecision("tov_ratio"),
-	tovPct: doublePrecision("tov_pct"),
-	offRating: doublePrecision("off_rating"),
-	defRating: doublePrecision("def_rating"),
-}, (table) => [
-	foreignKey({
-			columns: [table.teamId],
-			foreignColumns: [teams.id],
-			name: "fk_team"
 		}),
 ]);
 
