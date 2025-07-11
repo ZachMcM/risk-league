@@ -20,6 +20,7 @@ const limiter = rateLimit({
   store: new RedisStore({
     sendCommand: (...args: string[]) => redis.sendCommand(args),
   }),
+  validate: { xForwardedForHeader: process.env.X_FORWARDED_FOR == "true" },
 });
 
 const port = process.env.PORT;
@@ -35,7 +36,7 @@ const io = new Server(httpServer, {
 });
 initSocketServer(io);
 
-app.use(limiter)
+app.use(limiter);
 app.use(cors());
 app.use(morgan("combined"));
 app.use(bodyParser.json({ limit: "200mb" }));
