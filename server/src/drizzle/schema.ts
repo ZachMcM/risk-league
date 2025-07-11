@@ -1,4 +1,4 @@
-import { pgTable, varchar, integer, text, foreignKey, timestamp, doublePrecision, unique, boolean, serial, pgEnum } from "drizzle-orm/pg-core"
+import { pgTable, varchar, foreignKey, timestamp, serial, integer, doublePrecision, text, boolean, unique, pgEnum } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
 
 export const leagueType = pgEnum("league_type", ['nba', 'nfl', 'mlb'])
@@ -11,6 +11,94 @@ export const pickType = pgEnum("pick_type", ['over', 'under'])
 export const schemaMigrations = pgTable("schema_migrations", {
 	version: varchar().primaryKey().notNull(),
 });
+
+export const parlayPicks = pgTable("parlay_picks", {
+	pick: pickType().notNull(),
+	status: pickStatus().default('not_resolved').notNull(),
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
+	id: serial().primaryKey().notNull(),
+	parlayId: integer("parlay_id"),
+	propId: integer("prop_id"),
+}, (table) => [
+	foreignKey({
+			columns: [table.parlayId],
+			foreignColumns: [parlays.id],
+			name: "fk_parlay"
+		}),
+	foreignKey({
+			columns: [table.propId],
+			foreignColumns: [props.id],
+			name: "fk_prop"
+		}),
+]);
+
+export const props = pgTable("props", {
+	line: doublePrecision().notNull(),
+	currentValue: doublePrecision("current_value").default(0).notNull(),
+	rawGameId: text("raw_game_id").notNull(),
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
+	stat: text().notNull(),
+	gameStartTime: timestamp("game_start_time", { withTimezone: true, mode: 'string' }),
+	league: leagueType().notNull(),
+	resolved: boolean().default(false).notNull(),
+	pickOptions: text("pick_options").array().default(["RAY['over'::text", "'under'::tex"]),
+	id: serial().primaryKey().notNull(),
+	playerId: integer("player_id"),
+}, (table) => [
+	foreignKey({
+			columns: [table.playerId],
+			foreignColumns: [players.id],
+			name: "fk_player"
+		}),
+]);
+
+export const mlbPlayerStats = pgTable("mlb_player_stats", {
+	gameId: text("game_id").notNull(),
+	atBats: integer("at_bats"),
+	runs: integer(),
+	hits: integer(),
+	doubles: integer(),
+	triples: integer(),
+	homeRuns: integer("home_runs"),
+	rbi: integer(),
+	stolenBases: integer("stolen_bases"),
+	caughtStealing: integer("caught_stealing"),
+	walks: integer(),
+	strikeouts: integer(),
+	leftOnBase: integer("left_on_base"),
+	hitByPitch: integer("hit_by_pitch"),
+	sacFlies: integer("sac_flies"),
+	sacBunts: integer("sac_bunts"),
+	battingAvg: doublePrecision("batting_avg"),
+	onBasePct: doublePrecision("on_base_pct"),
+	sluggingPct: doublePrecision("slugging_pct"),
+	ops: doublePrecision(),
+	inningsPitched: doublePrecision("innings_pitched"),
+	pitchingHits: integer("pitching_hits"),
+	pitchingRuns: integer("pitching_runs"),
+	earnedRuns: integer("earned_runs"),
+	pitchingWalks: integer("pitching_walks"),
+	pitchingStrikeouts: integer("pitching_strikeouts"),
+	pitchingHomeRuns: integer("pitching_home_runs"),
+	pitchesThrown: integer("pitches_thrown"),
+	strikes: integer(),
+	balls: integer(),
+	season: text(),
+	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
+	id: serial().primaryKey().notNull(),
+	playerId: integer("player_id"),
+}, (table) => [
+	foreignKey({
+			columns: [table.gameId],
+			foreignColumns: [mlbGames.id],
+			name: "fk_game"
+		}),
+	foreignKey({
+			columns: [table.playerId],
+			foreignColumns: [players.id],
+			name: "fk_player"
+		}),
+]);
 
 export const teams = pgTable("teams", {
 	id: integer().primaryKey().notNull(),
@@ -33,44 +121,6 @@ export const players = pgTable("players", {
 	weight: text(),
 	number: text(),
 	league: leagueType().notNull(),
-}, (table) => [
-	foreignKey({
-			columns: [table.teamId],
-			foreignColumns: [teams.id],
-			name: "fk_team"
-		}),
-]);
-
-export const nbaGames = pgTable("nba_games", {
-	id: text().primaryKey().notNull(),
-	teamId: integer("team_id"),
-	pts: integer(),
-	gameDate: timestamp("game_date", { withTimezone: true, mode: 'string' }),
-	wl: text(),
-	matchup: text(),
-	min: integer(),
-	fgm: integer(),
-	fga: integer(),
-	fta: integer(),
-	ftm: integer(),
-	threePa: integer("three_pa"),
-	threePm: integer("three_pm"),
-	oreb: integer(),
-	dreb: integer(),
-	reb: integer(),
-	ast: integer(),
-	stl: integer(),
-	blk: integer(),
-	tov: integer(),
-	pf: integer(),
-	plusMinus: integer("plus_minus"),
-	gameType: varchar("game_type", { length: 20 }).notNull(),
-	season: text(),
-	pace: doublePrecision(),
-	tovRatio: doublePrecision("tov_ratio"),
-	tovPct: doublePrecision("tov_pct"),
-	offRating: doublePrecision("off_rating"),
-	defRating: doublePrecision("def_rating"),
 }, (table) => [
 	foreignKey({
 			columns: [table.teamId],
@@ -198,91 +248,41 @@ export const parlays = pgTable("parlays", {
 		}),
 ]);
 
-export const parlayPicks = pgTable("parlay_picks", {
-	pick: pickType().notNull(),
-	status: pickStatus().default('not_resolved').notNull(),
-	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
-	id: serial().primaryKey().notNull(),
-	parlayId: integer("parlay_id"),
-	propId: integer("prop_id"),
-}, (table) => [
-	foreignKey({
-			columns: [table.parlayId],
-			foreignColumns: [parlays.id],
-			name: "fk_parlay"
-		}),
-	foreignKey({
-			columns: [table.propId],
-			foreignColumns: [props.id],
-			name: "fk_prop"
-		}),
-]);
-
-export const props = pgTable("props", {
-	line: doublePrecision().notNull(),
-	currentValue: doublePrecision("current_value").default(0).notNull(),
-	rawGameId: text("raw_game_id").notNull(),
-	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
-	stat: text().notNull(),
-	gameStartTime: timestamp("game_start_time", { withTimezone: true, mode: 'string' }),
-	league: leagueType().notNull(),
-	resolved: boolean().default(false).notNull(),
-	pickOptions: text("pick_options").array().default(["RAY['over'::text", "'under'::tex"]),
-	id: serial().primaryKey().notNull(),
-	playerId: integer("player_id"),
-}, (table) => [
-	foreignKey({
-			columns: [table.playerId],
-			foreignColumns: [players.id],
-			name: "fk_player"
-		}),
-]);
-
-export const mlbPlayerStats = pgTable("mlb_player_stats", {
-	gameId: text("game_id").notNull(),
-	atBats: integer("at_bats"),
-	runs: integer(),
-	hits: integer(),
-	doubles: integer(),
-	triples: integer(),
-	homeRuns: integer("home_runs"),
-	rbi: integer(),
-	stolenBases: integer("stolen_bases"),
-	caughtStealing: integer("caught_stealing"),
-	walks: integer(),
-	strikeouts: integer(),
-	leftOnBase: integer("left_on_base"),
-	hitByPitch: integer("hit_by_pitch"),
-	sacFlies: integer("sac_flies"),
-	sacBunts: integer("sac_bunts"),
-	battingAvg: doublePrecision("batting_avg"),
-	onBasePct: doublePrecision("on_base_pct"),
-	sluggingPct: doublePrecision("slugging_pct"),
-	ops: doublePrecision(),
-	inningsPitched: doublePrecision("innings_pitched"),
-	pitchingHits: integer("pitching_hits"),
-	pitchingRuns: integer("pitching_runs"),
-	earnedRuns: integer("earned_runs"),
-	pitchingWalks: integer("pitching_walks"),
-	pitchingStrikeouts: integer("pitching_strikeouts"),
-	pitchingHomeRuns: integer("pitching_home_runs"),
-	pitchesThrown: integer("pitches_thrown"),
-	strikes: integer(),
-	balls: integer(),
+export const nbaGames = pgTable("nba_games", {
+	id: text().primaryKey().notNull(),
+	teamId: integer("team_id"),
+	pts: integer(),
+	gameDate: timestamp("game_date", { withTimezone: true, mode: 'string' }),
+	wl: text(),
+	matchup: text(),
+	min: integer(),
+	fgm: integer(),
+	fga: integer(),
+	fta: integer(),
+	ftm: integer(),
+	threePa: integer("three_pa"),
+	threePm: integer("three_pm"),
+	oreb: integer(),
+	dreb: integer(),
+	reb: integer(),
+	ast: integer(),
+	stl: integer(),
+	blk: integer(),
+	tov: integer(),
+	pf: integer(),
+	plusMinus: integer("plus_minus"),
+	gameType: varchar("game_type", { length: 20 }).notNull(),
 	season: text(),
-	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
-	id: serial().primaryKey().notNull(),
-	playerId: integer("player_id"),
+	pace: doublePrecision(),
+	tovRatio: doublePrecision("tov_ratio"),
+	tovPct: doublePrecision("tov_pct"),
+	offRating: doublePrecision("off_rating"),
+	defRating: doublePrecision("def_rating"),
 }, (table) => [
 	foreignKey({
-			columns: [table.gameId],
-			foreignColumns: [mlbGames.id],
-			name: "fk_game"
-		}),
-	foreignKey({
-			columns: [table.playerId],
-			foreignColumns: [players.id],
-			name: "fk_player"
+			columns: [table.teamId],
+			foreignColumns: [teams.id],
+			name: "fk_team"
 		}),
 ]);
 
