@@ -1,35 +1,27 @@
-import { db } from "../../db/db";
+import { db } from "../../drizzle";
+import { matches, matchUsers } from "../../drizzle/schema";
 
 export async function createMatch({
   user1,
   user2,
 }: {
-  user1: string;
-  user2: string;
+  user1: number;
+  user2: number;
 }) {
-  const match = await db
-    .insertInto("matches")
+  const [match] = await db
+    .insert(matches)
     .values({ resolved: false })
-    .returning("id")
-    .executeTakeFirstOrThrow();
+    .returning({ id: matches.id });
 
-  await db
-    .insertInto("match_users")
-    .values({
-      match_id: match.id,
-      user_id: user1,
-      status: "in_progress",
-    })
-    .execute();
+  await db.insert(matchUsers).values({
+    matchId: match.id,
+    userId: user1,
+  });
 
-  await db
-    .insertInto("match_users")
-    .values({
-      match_id: match.id,
-      user_id: user2,
-      status: "in_progress",
-    })
-    .execute();
+  await db.insert(matchUsers).values({
+    matchId: match.id,
+    userId: user2,
+  });
 
   return match.id;
 }

@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 
-export async function createSession(user: { id: string }): Promise<string> {
+export async function createSession(user: { id: number }): Promise<string> {
   const payload = {
     userId: user.id,
   };

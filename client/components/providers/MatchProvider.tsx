@@ -11,27 +11,27 @@ import {
 import { View } from "react-native";
 import { io } from "socket.io-client";
 import { toast } from "sonner-native";
-import { getMatchMessages, getMatchStats } from "~/endpoints";
-import { MatchMessage, UserStats } from "~/types/matches";
+import { getMatchMessages } from "~/endpoints";
+import { MatchMessage } from "~/types/matches";
 import Pfp from "../ui/pfp";
 import { Text } from "../ui/text";
 import { useSession } from "./SessionProvider";
 
-type MatchProviderValues = {
+export type MatchProviderTypes = {
   messages: MatchMessage[] | undefined;
-  stats: UserStats | undefined;
-  opponentStats: UserStats | undefined;
   sendMessage: (content: string) => void;
   isConnected: boolean;
   messagesPending: boolean;
-  statsPending: boolean;
-  opponentStatsPending: boolean;
 };
 
-const MatchContext = createContext<MatchProviderValues | null>(null);
+const MatchContext = createContext<MatchProviderTypes | null>(
+  null
+);
 
 export function MatchProvider({ children }: { children: ReactNode }) {
-  const { id } = useLocalSearchParams() as { id: string };
+  const searchParams = useLocalSearchParams() as { id: string };
+  const id = parseInt(searchParams.id);
+
   const { session } = useSession();
 
   const [isConnected, setIsConnected] = useState(false);
@@ -45,16 +45,6 @@ export function MatchProvider({ children }: { children: ReactNode }) {
     queryFn: async () => getMatchMessages(id),
   });
 
-  const { data: stats, isPending: statsPending } = useQuery({
-    queryKey: ["match", id, "my_stats"],
-    queryFn: async () => getMatchStats(id, false),
-  });
-
-  const { data: opponentStats, isPending: opponentStatsPending } = useQuery({
-    queryKey: ["match", id, "opponent_stats"],
-    queryFn: async () => getMatchStats(id, true),
-  });
-
   function sendMessage(content: string) {
     if (socketRef.current && content.trim()) {
       socketRef.current.emit("send-message", { content: content.trim() });
@@ -64,8 +54,9 @@ export function MatchProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!session?.user.id || !id) return;
 
+    console.log('Connecting with params:', { matchId: id.toString(), userId: session.user.id.toString() });
     const socket = io(`${process.env.EXPO_PUBLIC_API_URL}/match`, {
-      query: { matchId: id, userId: session.user.id },
+      auth: { matchId: id.toString(), userId: session.user.id.toString() },
       transports: ["websocket"],
     });
 
@@ -88,16 +79,18 @@ export function MatchProvider({ children }: { children: ReactNode }) {
         ["match", "messages", id],
         (prev: MatchMessage[]) => [...prev, messageData]
       );
-      if (messageData.userId != session.user.id) {
+      if (messageData.user.id != session.user.id) {
         toast.custom(
           <View className="flex flex-row gap-3 m-8 items-center p-4 bg-card rounded-2xl">
             <Pfp
               className="h-12 w-12"
-              image={messageData.image}
-              username={messageData.username}
+              image={messageData.user.image}
+              username={messageData.user.username}
             />
             <View className="flex flex-col w-full">
-              <Text className="font-bold text-lg">{messageData.username}</Text>
+              <Text className="font-bold text-lg">
+                {messageData.user.username}
+              </Text>
               <Text className="max-w-[80%]">{messageData.content}</Text>
             </View>
           </View>
@@ -109,7 +102,7 @@ export function MatchProvider({ children }: { children: ReactNode }) {
     });
 
     socket.on("message-error", (error: { error: string }) => {
-      console.error("Message error:", error.error);
+      toast.error(error.error);
     });
 
     return () => {
@@ -124,11 +117,7 @@ export function MatchProvider({ children }: { children: ReactNode }) {
         messages,
         sendMessage,
         isConnected,
-        stats,
         messagesPending,
-        statsPending,
-        opponentStats,
-        opponentStatsPending,
       }}
     >
       {children}
@@ -137,5 +126,5 @@ export function MatchProvider({ children }: { children: ReactNode }) {
 }
 
 export function useMatch() {
-  return useContext(MatchContext) as MatchProviderValues;
+  return useContext(MatchContext) as MatchProviderTypes;
 }

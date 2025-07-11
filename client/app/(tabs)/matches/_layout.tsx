@@ -7,7 +7,7 @@ export default function Layout() {
       <Stack.Screen
         name="index"
         options={{
-          header: (_) => <PageTitle title="Matches" />,
+          header: (_) => <PageTitle title="Match History" />,
         }}
       />
       <Stack.Screen

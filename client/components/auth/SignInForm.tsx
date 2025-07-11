@@ -82,6 +82,7 @@ export default function SignInForm() {
               secureTextEntry
               className={cn(error && "border-destructive")}
               value={value}
+              onSubmitEditing={handleSubmit(onSubmit)}
             />
             {error && <Text className="text-destructive">{error.message}</Text>}
           </View>
