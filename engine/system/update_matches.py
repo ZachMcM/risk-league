@@ -128,37 +128,38 @@ def update_matches():
 
         match.resolved = True
         session.commit()
-        
+
         async def send_updates():
             # invalidate the match
             await send_socket_message(
                 namespace="/invalidation",
                 message="data-invalidated",
-                data={["matches", match.id]},
+                data=["match", match.id],
             )
 
-            # invalidate the users session and user states for elo updates
             await send_socket_message(
                 namespace="/invalidation",
                 message="data-invalidated",
-                data={["sessions", user1.user_id]},
+                data=["matches", user1.user_id],
+            )
+
+            await send_socket_message(
+                namespace="/invalidation",
+                message="data-invalidated",
+                data=["matches", user2.user_id],
+            )
+
+            await send_socket_message(
+                namespace="/invalidation",
+                message="data-invalidated",
+                data=["user", user1.user_id],
             )
             await send_socket_message(
                 namespace="/invalidation",
                 message="data-invalidated",
-                data={["sessions", user2.user_id]},
+                data=["user", user2.user_id],
             )
-            await send_socket_message(
-                namespace="/invalidation",
-                message="data-invalidated",
-                data={["users", user1.user_id]},
-            )
-            await send_socket_message(
-                namespace="/invalidation",
-                message="data-invalidated",
-                data={["users", user2.user_id]},
-            )
-            
+
         asyncio.run(send_updates())
 
 

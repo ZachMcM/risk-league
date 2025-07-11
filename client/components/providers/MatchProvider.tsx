@@ -17,15 +17,21 @@ import Pfp from "../ui/pfp";
 import { Text } from "../ui/text";
 import { useSession } from "./SessionProvider";
 
-const MatchMessagesContext = createContext<{
+export type MatchProviderTypes = {
   messages: MatchMessage[] | undefined;
   sendMessage: (content: string) => void;
   isConnected: boolean;
   messagesPending: boolean;
-} | null>(null);
+};
 
-export function MatchMessagesProvider({ children }: { children: ReactNode }) {
-  const { id } = useLocalSearchParams() as { id: string };
+const MatchContext = createContext<MatchProviderTypes | null>(
+  null
+);
+
+export function MatchProvider({ children }: { children: ReactNode }) {
+  const searchParams = useLocalSearchParams() as { id: string };
+  const id = parseInt(searchParams.id);
+
   const { session } = useSession();
 
   const [isConnected, setIsConnected] = useState(false);
@@ -72,16 +78,18 @@ export function MatchMessagesProvider({ children }: { children: ReactNode }) {
         ["match", "messages", id],
         (prev: MatchMessage[]) => [...prev, messageData]
       );
-      if (messageData.userId != session.user.id) {
+      if (messageData.user.id != session.user.id) {
         toast.custom(
           <View className="flex flex-row gap-3 m-8 items-center p-4 bg-card rounded-2xl">
             <Pfp
               className="h-12 w-12"
-              image={messageData.image}
-              username={messageData.username}
+              image={messageData.user.image}
+              username={messageData.user.username}
             />
             <View className="flex flex-col w-full">
-              <Text className="font-bold text-lg">{messageData.username}</Text>
+              <Text className="font-bold text-lg">
+                {messageData.user.username}
+              </Text>
               <Text className="max-w-[80%]">{messageData.content}</Text>
             </View>
           </View>
@@ -103,7 +111,7 @@ export function MatchMessagesProvider({ children }: { children: ReactNode }) {
   }, [session?.user.id, id]);
 
   return (
-    <MatchMessagesContext.Provider
+    <MatchContext.Provider
       value={{
         messages,
         sendMessage,
@@ -112,10 +120,10 @@ export function MatchMessagesProvider({ children }: { children: ReactNode }) {
       }}
     >
       {children}
-    </MatchMessagesContext.Provider>
+    </MatchContext.Provider>
   );
 }
 
 export function useMatch() {
-  return useContext(MatchMessagesContext);
+  return useContext(MatchContext) as MatchProviderTypes;
 }

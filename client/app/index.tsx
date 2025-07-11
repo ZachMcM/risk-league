@@ -8,7 +8,7 @@ import { Text } from "~/components/ui/text";
 import { TrendingUp } from "~/lib/icons/TrendingUp";
 import { Users } from "~/lib/icons/Users";
 
-export default function Lobby() {
+export default function Index() {
   const router = useRouter();
 
   return (

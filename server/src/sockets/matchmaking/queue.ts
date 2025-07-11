@@ -26,8 +26,8 @@ export async function getPair(): Promise<{
       const user2Rank = await getRank(parseInt(user2));
 
       if (
-        user1Rank.currentRank.tier == user2Rank.currentRank.tier &&
-        user1Rank.currentRank.level == user2Rank.currentRank.level
+        user1Rank?.tier == user2Rank?.tier &&
+        user1Rank?.level == user2Rank?.level
       ) {
         await redis.lRem(QUEUE_KEY, 0, user1);
         await redis.lRem(QUEUE_KEY, 0, user2);

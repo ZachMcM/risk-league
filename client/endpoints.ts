@@ -1,5 +1,4 @@
 import { deleteItemAsync, getItemAsync, setItemAsync } from "expo-secure-store";
-import { RankResponse } from "./types/ranks";
 import { User } from "./types/user";
 import { Match, MatchMessage } from "./types/matches";
 
@@ -48,7 +47,18 @@ export async function httpRequest({
   return res;
 }
 
-export async function sessionRequest(): Promise<User | undefined | null> {
+export async function sessionRequest(): Promise<
+  | {
+      user: {
+        id: number;
+        username: string;
+        email: string;
+        image: string | null;
+      };
+    }
+  | undefined
+  | null
+> {
   const accessToken = await getItemAsync("Access-Token");
 
   if (!accessToken) {
@@ -126,7 +136,7 @@ export async function signOutRequest() {
   await deleteItemAsync("Access-Token");
 }
 
-export async function getUser(id: string): Promise<User | undefined | null> {
+export async function getUser(id: number): Promise<User | undefined | null> {
   const res = await httpRequest({
     endpoint: `/users/${id}`,
     method: "GET",
@@ -158,7 +168,22 @@ export async function getMatches(): Promise<Match[]> {
   return data;
 }
 
-export async function getMatchMessages(id: string): Promise<MatchMessage[]> {
+export async function getMatch(id: number): Promise<Match | undefined> {
+  const res = await httpRequest({
+    endpoint: `/matches/${id}`,
+    method: "GET",
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data.message);
+  }
+
+  return data;
+}
+
+export async function getMatchMessages(id: number): Promise<MatchMessage[]> {
   const res = await httpRequest({
     endpoint: `/matches/${id}/messages`,
     method: "GET",

@@ -80,6 +80,7 @@ export default function SignUpForm() {
               onChangeText={onChange}
               className={cn(error && "border-destructive")}
               value={value}
+              onSubmitEditing={handleSubmit(onSubmit)}
             />
             {error && <Text className="text-destructive">{error.message}</Text>}
           </View>

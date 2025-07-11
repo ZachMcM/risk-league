@@ -18,7 +18,7 @@ function ScrollContainer({
           display: "flex",
         }}
       >
-        <View className={cn("flex flex-1 p-4", className)}>{children}</View>
+        <View className={cn("flex flex-1 px-4 py-2", className)}>{children}</View>
       </ScrollView>
     </KeyboardAvoidingView>
   );

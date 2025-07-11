@@ -3,38 +3,59 @@ import { ActivityIndicator, View } from "react-native";
 import SignOutButton from "~/components/auth/SignOutButton";
 import { RankProgress } from "~/components/home/RankProgress";
 import StartMatchButton from "~/components/matches/StartMatchButton";
-import UserInformation from "~/components/home/UserInformation";
 import { useSession } from "~/components/providers/SessionProvider";
+import Pfp from "~/components/ui/pfp";
+import RankBadge from "~/components/ui/RankBadge";
 import { ScrollContainer } from "~/components/ui/scroll-container";
-import { getRank } from "~/endpoints";
+import { Text } from "~/components/ui/text";
+import { getUser } from "~/endpoints";
+import { getRank } from "~/lib/utils";
 
 export default function Home() {
-  const { session, isSessionPending } = useSession();
+  const { session } = useSession();
 
-  const { data: rankInfo, isPending: isRankInfoPending } = useQuery({
-    queryKey: ["rank"],
-    queryFn: getRank,
+  if (!session) {
+    return;
+  }
+
+  const { data: user, isPending: isUserPending } = useQuery({
+    queryKey: ["user", session.user.id],
+    queryFn: async () => await getUser(session.user.id),
   });
+
+  const rank = getRank(1567);
 
   return (
     <ScrollContainer>
-      {isSessionPending && isRankInfoPending ? (
-        <ActivityIndicator className="text-foreground" />
-      ) : (
-        session &&
-        rankInfo && (
-          <View className="flex flex-1 flex-col gap-6">
-            <UserInformation
-              username={session.user.username}
-              image={session.user.image}
-              rank={`${rankInfo.currentRank.tier} ${rankInfo.currentRank.level} `}
-            />
-            <RankProgress rankInfo={rankInfo} />
-            <StartMatchButton />
-            <SignOutButton />
-          </View>
-        )
-      )}
+      <View className="flex flex-1 flex-col gap-8">
+        <View className="flex flex-col items-center gap-3">
+          <Pfp
+            username={session.user.username}
+            image={session.user.image}
+            className="h-24 w-24 border-2"
+          />
+          <Text className="font-bold text-3xl">{session.user.username}</Text>
+          {isUserPending ? (
+            <ActivityIndicator className="text-foreground" />
+          ) : (
+            user && (
+              <RankBadge
+                tier={rank.currentRank.tier}
+                level={rank.currentRank.level}
+              />
+            )
+          )}
+        </View>
+        {isUserPending ? (
+          <ActivityIndicator className="text-foreground" />
+        ) : (
+          user && <RankProgress rank={rank} />
+        )}
+        <View className="flex flex-col gap-3">
+          <StartMatchButton />
+          <SignOutButton />
+        </View>
+      </View>
     </ScrollContainer>
   );
 }

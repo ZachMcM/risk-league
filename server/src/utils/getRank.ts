@@ -11,7 +11,7 @@ export async function getRank(userId: number) {
     }
   })
 
-  const rankInfo = findRank(user?.eloRating!);
+  const rank = findRank(user?.eloRating!);
 
-  return rankInfo
+  return rank
 }

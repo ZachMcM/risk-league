@@ -12,7 +12,7 @@ export function RealTimeProvider({ children }: { children: ReactNode }) {
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
-    const socket = io(`${process.env.EXPO_PUBLIC_API_URL}/match`, {
+    const socket = io(`${process.env.EXPO_PUBLIC_API_URL}/invalidation`, {
       transports: ["websocket"],
     });
 
@@ -24,6 +24,10 @@ export function RealTimeProvider({ children }: { children: ReactNode }) {
         queryKey,
       });
     });
+
+    return () => {
+      socket.disconnect();
+    };
   }, [queryClient]);
 
   return (

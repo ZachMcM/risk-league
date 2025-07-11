@@ -2,9 +2,9 @@ import { useEffect, useRef } from "react";
 import { ScrollView, View } from "react-native";
 import { Text } from "~/components/ui/text";
 import { cn, timeAgo } from "~/lib/utils";
-import { useMatch } from "../providers/MatchMessagesProvider";
 import { useSession } from "../providers/SessionProvider";
 import Pfp from "../ui/pfp";
+import { useMatch } from "../providers/MatchProvider";
 
 export default function MessagesList() {
   const { messages } = useMatch();
@@ -37,8 +37,8 @@ export default function MessagesList() {
               {!isCurrentUser && (
                 <Pfp
                   className="h-12 w-12 flex-shrink-0"
-                  image={message.image}
-                  username={message.username}
+                  image={message.user.image}
+                  username={message.user.username}
                 />
               )}
               <View className="flex flex-col gap-2 max-w-[80%]">

@@ -45,15 +45,26 @@ def update_parlay(session: Session, pick_id: str):
     session.commit()
 
     async def send_updates():
-        send_socket_message(
+        await send_socket_message(
             namespace="/invalidation",
             message="data-invalidated",
-            data={["parlays", parlay.match_user_id]},
+            data=["parlays", parlay.match_user_id],
         )
-        send_socket_message(
+        await send_socket_message(
             namespace="/invalidation",
             message="data-invalidated",
-            data={["matches", parlay.match_user.match_id]},
+            data=["match", parlay.match_user.match_id],
+        )
+        user_ids = [user.id for user in parlay.match_user.match.match_users]
+        await send_socket_message(
+            namespace="/invalidation",
+            message="data-invalidated",
+            data=["matches", user_ids[0]],
+        )
+        await send_socket_message(
+            namespace="/invalidation",
+            message="data-invalidated",
+            data=["matches", user_ids[1]],
         )
 
     asyncio.run(send_updates())

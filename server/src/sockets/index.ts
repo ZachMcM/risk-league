@@ -104,7 +104,7 @@ export function initSocketServer(io: Server) {
     // Handle invalidation events from engine
     socket.on("data-invalidated", (data) => {
       // Broadcast to all clients subscribed to those tables
-      io.emit("data-invalidated", data);
+      io.of("/invalidation").emit("data-invalidated", data);
     });
   });
 }

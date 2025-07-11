@@ -48,9 +48,8 @@ authRoute.get("/auth/session", authMiddleware, async (_, res) => {
   const user = await db.query.users.findFirst({
     columns: {
       id: true,
+      email: true,
       username: true,
-      image: true,
-      eloRating: true,
     },
     where: eq(users.id, userId),
   });
@@ -63,7 +62,7 @@ authRoute.get("/auth/session", authMiddleware, async (_, res) => {
     return;
   }
 
-  res.json(user);
+  res.json({ user });
 });
 
 authRoute.post("/auth/signup", async (req, res) => {
