@@ -23,7 +23,7 @@ export default function Home() {
     queryFn: async () => await getUser(session.user.id),
   });
 
-  const rank = getRank(1567);
+  const rank = getRank(user?.eloRating!);
 
   return (
     <ScrollContainer>
@@ -35,7 +35,7 @@ export default function Home() {
             className="h-24 w-24 border-2"
           />
           <Text className="font-bold text-3xl">{session.user.username}</Text>
-          {isUserPending ? (
+        {isUserPending ? (
             <ActivityIndicator className="text-foreground" />
           ) : (
             user && (

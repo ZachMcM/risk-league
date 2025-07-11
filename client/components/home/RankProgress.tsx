@@ -1,6 +1,6 @@
 import { View } from "react-native";
 import { TrendingUp } from "~/lib/icons/TrendingUp";
-import { cn, rankForeground } from "~/lib/utils";
+import { cn } from "~/lib/utils";
 import { RankInfo } from "~/types/ranks";
 import RankIcon from "../ui/RankIcon";
 import { Card, CardContent } from "../ui/card";
@@ -8,6 +8,7 @@ import { Progress } from "../ui/progress";
 import { Separator } from "../ui/separator";
 import { Text } from "../ui/text";
 import RankBadge from "../ui/RankBadge";
+import { RankText } from "../ui/rank-text";
 
 export function RankProgress({ rank }: { rank: RankInfo }) {
   if (!rank.nextRank) {
@@ -33,7 +34,7 @@ export function RankProgress({ rank }: { rank: RankInfo }) {
             <Text className="font-medium text-lg text-muted-foreground">
               Next Rank
             </Text>
-            <RankBadge tier={rank.nextRank.tier} level={rank.nextRank.level}/>
+            <RankBadge tier={rank.nextRank.tier} level={rank.nextRank.level} />
           </View>
         </View>
         <View className="flex flex-col items-center pt-6 border-t border-border/50">
@@ -42,14 +43,9 @@ export function RankProgress({ rank }: { rank: RankInfo }) {
             <Text className="text-muted-foreground font-medium">
               points to reach
             </Text>
-            <Text
-              className={cn(
-                "font-bold text-lg",
-                rankForeground(rank.nextRank.tier)
-              )}
-            >
+            <RankText tier={rank.nextRank.tier} className="font-bold text-lg">
               {rank.nextRank.tier} {rank.nextRank.level}
-            </Text>
+            </RankText>
           </View>
         </View>
       </CardContent>

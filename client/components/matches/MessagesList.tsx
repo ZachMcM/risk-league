@@ -23,7 +23,7 @@ export default function MessagesList() {
       showsVerticalScrollIndicator={false}
     >
       {messages?.map((message, index) => {
-        const isCurrentUser = message.userId === session?.user.id;
+        const isCurrentUser = session?.user.id && message.userId === session?.user.id;
 
         return (
           <View

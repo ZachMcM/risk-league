@@ -45,24 +45,23 @@ export const authMiddleware = async (
 authRoute.get("/auth/session", authMiddleware, async (_, res) => {
   const userId = parseInt(res.locals.userId);
 
-  const user = await db.query.users.findFirst({
-    columns: {
-      id: true,
-      email: true,
-      username: true,
-    },
-    where: eq(users.id, userId),
-  });
-
-  if (!user) {
+  try {
+    const user = await db.query.users.findFirst({
+      columns: {
+        id: true,
+        email: true,
+        username: true,
+      },
+      where: eq(users.id, userId),
+    });
+    res.json({ user });
+  } catch (err) {
     res.status(404).json({
       error: "Not Found",
       message: "No user was found",
     });
     return;
   }
-
-  res.json({ user });
 });
 
 authRoute.post("/auth/signup", async (req, res) => {
@@ -118,7 +117,7 @@ authRoute.post("/auth/signup", async (req, res) => {
         message: `${err.missing} missing`,
       });
     } else {
-      logger.error(err)
+      logger.error(err);
       res.status(500).json({ error: "Unexpected error", message: err });
     }
     return;
@@ -167,7 +166,7 @@ authRoute.post("/auth/signin", async (req, res) => {
         message: `${err.missing} missing`,
       });
     } else {
-      logger.error(err)
+      logger.error(err);
       res.status(500).json({ error: "Unexpected error" });
     }
     return;

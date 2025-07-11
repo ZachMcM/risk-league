@@ -1,8 +1,7 @@
-import { Level, RankInfo, Tier } from "~/types/ranks";
-import { RankGradient } from "./rank-gradient";
 import { StyleProp, ViewStyle } from "react-native";
-import { Text } from "./text";
-import { cn, rankForeground } from "~/lib/utils";
+import { Level, Tier } from "~/types/ranks";
+import { RankGradient } from "./rank-gradient";
+import { RankText } from "./rank-text";
 
 export default function RankBadge({
   tier,
@@ -20,15 +19,9 @@ export default function RankBadge({
       style={[{ paddingHorizontal: 16, paddingVertical: 8 }, gradientStyle]}
       tier={tier}
     >
-      <Text
-        className={cn(
-          "font-semibold text-xl",
-          rankForeground(tier),
-          textClassName
-        )}
-      >
+      <RankText tier={tier} className="font-semibold text-xl">
         {tier} {level}
-      </Text>
+      </RankText>
     </RankGradient>
   );
 }

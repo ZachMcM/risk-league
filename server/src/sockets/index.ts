@@ -1,7 +1,7 @@
 import { Server } from "socket.io";
 import { createMessage } from "./match/createMessage";
 import { createMatch } from "./matchmaking/createMatch";
-import { addToQueue, getPair, removeFromQueue } from "./matchmaking/queue";
+import { addToQueue, getPair, removeFromQueue, cleanInvalidEntries } from "./matchmaking/queue";
 import { logger } from "../logger";
 import { WebSocketRateLimiter } from "../utils/rateLimiter";
 
@@ -9,7 +9,8 @@ const messageLimiter = new WebSocketRateLimiter(1, 1000); // 5 messages per seco
 
 export function initSocketServer(io: Server) {
   io.of("/matchmaking").on("connection", (socket) => {
-    const userId = socket.handshake.query.userId as string;
+    const userId = socket.handshake.auth.userId as string;
+
     logger.info(`User ${userId} connected to matchmaking namespace`);
 
     socket.join(userId);
@@ -17,6 +18,9 @@ export function initSocketServer(io: Server) {
     addToQueue(userId);
 
     const tryMatchmaking = async () => {
+      // Clean up any invalid entries first
+      await cleanInvalidEntries();
+      
       const pair = await getPair();
 
       if (pair) {
@@ -48,7 +52,7 @@ export function initSocketServer(io: Server) {
 
     socket.on("disconnect", () => {
       logger.info(`User ${userId} disconnected`);
-      removeFromQueue(userId);
+      removeFromQueue(userId as string);
     });
 
     socket.on("cancel-search", () => {
@@ -58,8 +62,10 @@ export function initSocketServer(io: Server) {
   });
 
   io.of("/match").on("connection", (socket) => {
-    const userId = socket.handshake.query.userId as string;
-    const matchId = socket.handshake.query.matchId as string;
+    const userId = socket.handshake.auth.userId as string;
+    const matchId = socket.handshake.auth.matchId as string;
+
+    logger.debug('Socket auth params:', socket.handshake.auth);
     logger.info(`User ${userId} connected to match id ${matchId} namespace`);
 
     // Join both user room and match room
@@ -68,7 +74,7 @@ export function initSocketServer(io: Server) {
     // Handle sending messages
     socket.on("send-message", async (data: { content: string }) => {
       try {
-        const rateCheck = await messageLimiter.checkLimit(userId);
+        const rateCheck = await messageLimiter.checkLimit(userId as string);
 
         if (!rateCheck.allowed) {
           socket.emit("message-error", {
@@ -80,8 +86,8 @@ export function initSocketServer(io: Server) {
 
         const messageData = await createMessage(
           data.content,
-          parseInt(userId),
-          parseInt(matchId)
+          parseInt(userId as string),
+          parseInt(matchId as string)
         );
         // Broadcast to all users in the match room
         io.of("/match")
@@ -101,6 +107,7 @@ export function initSocketServer(io: Server) {
   });
 
   io.of("/invalidation").on("connection", (socket) => {
+    logger.info(`Socket connected to realtime invalidation`)
     // Handle invalidation events from engine
     socket.on("data-invalidated", (data) => {
       // Broadcast to all clients subscribed to those tables

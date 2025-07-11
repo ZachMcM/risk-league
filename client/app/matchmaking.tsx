@@ -35,6 +35,8 @@ export default function Matchmaking() {
   const { session } = useSession();
   const userId = session?.user.id!;
 
+  console.log(userId)
+
   const socketRef = useRef<ReturnType<typeof io> | null>(null);
 
   const [progress, setProgress] = useState(0);
@@ -57,7 +59,7 @@ export default function Matchmaking() {
     }, 2000); // change every 2 seconds
 
     const socket = io(`${process.env.EXPO_PUBLIC_API_URL}/matchmaking`, {
-      query: { userId },
+      auth: { userId },
       transports: ["websocket"],
     });
 

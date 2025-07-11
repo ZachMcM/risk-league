@@ -121,7 +121,14 @@ export function RootNavigatior() {
 
   return (
     <Stack>
-      <Stack.Protected guard={session != null}>
+      <Stack.Protected
+        guard={
+          session != null &&
+          session != undefined &&
+          session.user != null &&
+          session.user != undefined
+        }
+      >
         <Stack.Screen
           name="(tabs)"
           options={{
@@ -129,7 +136,7 @@ export function RootNavigatior() {
           }}
         />
       </Stack.Protected>
-      <Stack.Protected guard={!session}>
+      <Stack.Protected guard={!session?.user}>
         <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="signin" options={{ headerShown: false }} />
         <Stack.Screen name="signup" options={{ headerShown: false }} />

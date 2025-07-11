@@ -36,21 +36,3 @@ export function getRank(eloRating: number): RankInfo {
     pointsToNext: ranks[1].minElo - eloRating,
   };
 };
-
-export function rankForeground(tier: Tier) {
-  return tier == "Bronze"
-    ? "text-amber-600"
-    : tier == "Silver"
-    ? "text-gray-400"
-    : tier == "Gold"
-    ? "text-yellow-500"
-    : tier == "Platinum"
-    ? "text-blue-400"
-    : tier == "Diamond"
-    ? "text-sky-500"
-    : tier == "Master"
-    ? "text-purple-500"
-    : tier == "Elite"
-    ? "text-fuchsia-500"
-    : "text-rose-500";
-}

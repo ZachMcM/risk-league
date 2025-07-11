@@ -54,8 +54,9 @@ export function MatchProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!session?.user.id || !id) return;
 
+    console.log('Connecting with params:', { matchId: id.toString(), userId: session.user.id.toString() });
     const socket = io(`${process.env.EXPO_PUBLIC_API_URL}/match`, {
-      query: { matchId: id, userId: session.user.id },
+      auth: { matchId: id.toString(), userId: session.user.id.toString() },
       transports: ["websocket"],
     });
 

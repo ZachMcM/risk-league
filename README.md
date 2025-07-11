@@ -20,12 +20,6 @@ Run in your shell of choice in the root directory
 dbmate up -u "<DATABASE_URL>"
 ```
 
-## Loading Initial Data
-After running `dbmate up`, load the initial data dump:
-```
-psql "postgresql://postgres:<PASSWORD>@localhost:5432/postgres?sslmode=disable" -f db/initial.sql
-```
-
 ## Installing Dependencies
 ```
 pip install requirements.txt

@@ -3,6 +3,16 @@ import { getRank } from "../../utils/getRank";
 
 const QUEUE_KEY = "matchmaking:queue";
 
+export async function cleanInvalidEntries() {
+  const queue = await redis.lRange(QUEUE_KEY, 0, -1);
+  
+  for (const entry of queue) {
+    if (!entry || isNaN(parseInt(entry))) {
+      await redis.lRem(QUEUE_KEY, 0, entry);
+    }
+  }
+}
+
 export async function addToQueue(userId: string) {
   await redis.rPush(QUEUE_KEY, userId.toString());
 }
