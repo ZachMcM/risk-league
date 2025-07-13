@@ -246,7 +246,8 @@ class MlbPlayerStats(Base):
     __table_args__ = (
         ForeignKeyConstraint(['game_id'], ['mlb_games.id'], name='fk_game'),
         ForeignKeyConstraint(['player_id'], ['players.id'], name='fk_player'),
-        PrimaryKeyConstraint('id', name='mlb_player_stats_pkey')
+        PrimaryKeyConstraint('id', name='mlb_player_stats_pkey'),
+        UniqueConstraint('player_id', 'game_id', name='mlb_player_stats_player_game_unique')
     )
 
     game_id: Mapped[str] = mapped_column(Text)
@@ -293,7 +294,8 @@ class NbaPlayerStats(Base):
     __table_args__ = (
         ForeignKeyConstraint(['game_id'], ['nba_games.id'], name='fk_game'),
         ForeignKeyConstraint(['player_id'], ['players.id'], name='fk_player'),
-        PrimaryKeyConstraint('id', name='nba_player_stats_pkey')
+        PrimaryKeyConstraint('id', name='nba_player_stats_pkey'),
+        UniqueConstraint('player_id', 'game_id', name='nba_player_stats_player_game_unique')
     )
 
     id: Mapped[int] = mapped_column(Integer, Sequence('nba_player_stats_new_id_seq'), primary_key=True)

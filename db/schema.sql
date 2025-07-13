@@ -673,6 +673,14 @@ ALTER TABLE ONLY public.mlb_player_stats
 
 
 --
+-- Name: mlb_player_stats mlb_player_stats_player_game_unique; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.mlb_player_stats
+    ADD CONSTRAINT mlb_player_stats_player_game_unique UNIQUE (player_id, game_id);
+
+
+--
 -- Name: nba_games nba_games_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -686,6 +694,14 @@ ALTER TABLE ONLY public.nba_games
 
 ALTER TABLE ONLY public.nba_player_stats
     ADD CONSTRAINT nba_player_stats_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: nba_player_stats nba_player_stats_player_game_unique; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.nba_player_stats
+    ADD CONSTRAINT nba_player_stats_player_game_unique UNIQUE (player_id, game_id);
 
 
 --
@@ -898,4 +914,5 @@ ALTER TABLE ONLY public.match_messages
 --
 
 INSERT INTO public.schema_migrations (version) VALUES
-    ('20250711082421');
+    ('20250711082421'),
+    ('20250713025517');

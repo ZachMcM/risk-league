@@ -1,4 +1,4 @@
-import { pgTable, varchar, foreignKey, text, integer, timestamp, doublePrecision, serial, boolean, unique, pgEnum } from "drizzle-orm/pg-core"
+import { pgTable, varchar, foreignKey, text, integer, timestamp, doublePrecision, unique, serial, boolean, pgEnum } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
 
 export const leagueType = pgEnum("league_type", ['nba', 'nfl', 'mlb'])
@@ -92,6 +92,7 @@ export const nbaPlayerStats = pgTable("nba_player_stats", {
 			foreignColumns: [players.id],
 			name: "fk_player"
 		}),
+	unique("nba_player_stats_player_game_unique").on(table.gameId, table.playerId),
 ]);
 
 export const mlbGames = pgTable("mlb_games", {
@@ -204,6 +205,7 @@ export const mlbPlayerStats = pgTable("mlb_player_stats", {
 			foreignColumns: [players.id],
 			name: "fk_player"
 		}),
+	unique("mlb_player_stats_player_game_unique").on(table.gameId, table.playerId),
 ]);
 
 export const matches = pgTable("matches", {
