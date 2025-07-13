@@ -18,6 +18,7 @@ export const teamsRelations = relations(teams, ({many}) => ({
 		relationName: "mlbGames_teamId_teams_id"
 	}),
 	players: many(players),
+	props: many(props),
 }));
 
 export const nbaPlayerStatsRelations = relations(nbaPlayerStats, ({one}) => ({
@@ -123,5 +124,9 @@ export const propsRelations = relations(props, ({one, many}) => ({
 	player: one(players, {
 		fields: [props.playerId],
 		references: [players.id]
+	}),
+	team: one(teams, {
+		fields: [props.oppTeamId],
+		references: [teams.id]
 	}),
 }));

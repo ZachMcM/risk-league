@@ -12,10 +12,11 @@ class Matches(Base):
     __tablename__ = 'matches'
     __table_args__ = (
         PrimaryKeyConstraint('id', name='matches_pkey'),
+        {'schema': 'public'}
     )
 
     resolved: Mapped[bool] = mapped_column(Boolean, server_default=text('false'))
-    id: Mapped[int] = mapped_column(Integer, Sequence('matches_new_id_seq'), primary_key=True)
+    id: Mapped[int] = mapped_column(Integer, Sequence('matches_new_id_seq', schema='public'), primary_key=True)
     created_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime(True), server_default=text('CURRENT_TIMESTAMP'))
 
     match_messages: Mapped[List['MatchMessages']] = relationship('MatchMessages', back_populates='match')
@@ -26,6 +27,7 @@ class SchemaMigrations(Base):
     __tablename__ = 'schema_migrations'
     __table_args__ = (
         PrimaryKeyConstraint('version', name='schema_migrations_pkey'),
+        {'schema': 'public'}
     )
 
     version: Mapped[str] = mapped_column(String, primary_key=True)
@@ -35,6 +37,7 @@ class Teams(Base):
     __tablename__ = 'teams'
     __table_args__ = (
         PrimaryKeyConstraint('id', name='nba_teams_pkey'),
+        {'schema': 'public'}
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -58,14 +61,15 @@ class Users(Base):
     __table_args__ = (
         PrimaryKeyConstraint('id', name='users_pkey'),
         UniqueConstraint('email', name='users_email_key'),
-        UniqueConstraint('username', name='users_username_key')
+        UniqueConstraint('username', name='users_username_key'),
+        {'schema': 'public'}
     )
 
     username: Mapped[str] = mapped_column(Text)
     email: Mapped[str] = mapped_column(Text)
     password_hash: Mapped[str] = mapped_column(Text)
     elo_rating: Mapped[float] = mapped_column(Double(53), server_default=text('1200'))
-    id: Mapped[int] = mapped_column(Integer, Sequence('users_new_id_seq'), primary_key=True)
+    id: Mapped[int] = mapped_column(Integer, Sequence('users_new_id_seq', schema='public'), primary_key=True)
     created_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime(True), server_default=text('CURRENT_TIMESTAMP'))
     image: Mapped[Optional[str]] = mapped_column(Text)
     name: Mapped[Optional[str]] = mapped_column(Text)
@@ -78,14 +82,15 @@ class Users(Base):
 class MatchMessages(Base):
     __tablename__ = 'match_messages'
     __table_args__ = (
-        ForeignKeyConstraint(['match_id'], ['matches.id'], name='fk_match'),
-        ForeignKeyConstraint(['user_id'], ['users.id'], name='fk_user'),
-        PrimaryKeyConstraint('id', name='match_messages_pkey')
+        ForeignKeyConstraint(['match_id'], ['public.matches.id'], name='fk_match'),
+        ForeignKeyConstraint(['user_id'], ['public.users.id'], name='fk_user'),
+        PrimaryKeyConstraint('id', name='match_messages_pkey'),
+        {'schema': 'public'}
     )
 
     created_at: Mapped[datetime.datetime] = mapped_column(DateTime(True), server_default=text('CURRENT_TIMESTAMP'))
     content: Mapped[str] = mapped_column(Text)
-    id: Mapped[int] = mapped_column(Integer, Sequence('match_messages_new_id_seq'), primary_key=True)
+    id: Mapped[int] = mapped_column(Integer, Sequence('match_messages_new_id_seq', schema='public'), primary_key=True)
     user_id: Mapped[Optional[int]] = mapped_column(Integer)
     match_id: Mapped[Optional[int]] = mapped_column(Integer)
 
@@ -96,15 +101,16 @@ class MatchMessages(Base):
 class MatchUsers(Base):
     __tablename__ = 'match_users'
     __table_args__ = (
-        ForeignKeyConstraint(['match_id'], ['matches.id'], name='fk_match'),
-        ForeignKeyConstraint(['user_id'], ['users.id'], name='fk_user'),
-        PrimaryKeyConstraint('id', name='match_users_pkey')
+        ForeignKeyConstraint(['match_id'], ['public.matches.id'], name='fk_match'),
+        ForeignKeyConstraint(['user_id'], ['public.users.id'], name='fk_user'),
+        PrimaryKeyConstraint('id', name='match_users_pkey'),
+        {'schema': 'public'}
     )
 
     balance: Mapped[float] = mapped_column(Double(53), server_default=text('100'))
     elo_delta: Mapped[float] = mapped_column(Double(53), server_default=text('0'))
     status: Mapped[str] = mapped_column(Enum('not_resolved', 'loss', 'win', 'draw', 'disqualified', name='match_status'), server_default=text("'not_resolved'::match_status"))
-    id: Mapped[int] = mapped_column(Integer, Sequence('match_users_new_id_seq'), primary_key=True)
+    id: Mapped[int] = mapped_column(Integer, Sequence('match_users_new_id_seq', schema='public'), primary_key=True)
     created_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime(True), server_default=text('CURRENT_TIMESTAMP'))
     user_id: Mapped[Optional[int]] = mapped_column(Integer)
     match_id: Mapped[Optional[int]] = mapped_column(Integer)
@@ -117,9 +123,10 @@ class MatchUsers(Base):
 class MlbGames(Base):
     __tablename__ = 'mlb_games'
     __table_args__ = (
-        ForeignKeyConstraint(['opponent_team_id'], ['teams.id'], name='fk_opponent_team'),
-        ForeignKeyConstraint(['team_id'], ['teams.id'], name='fk_team'),
-        PrimaryKeyConstraint('id', name='mlb_games_pkey')
+        ForeignKeyConstraint(['opponent_team_id'], ['public.teams.id'], name='fk_opponent_team'),
+        ForeignKeyConstraint(['team_id'], ['public.teams.id'], name='fk_team'),
+        PrimaryKeyConstraint('id', name='mlb_games_pkey'),
+        {'schema': 'public'}
     )
 
     id: Mapped[str] = mapped_column(Text, primary_key=True)
@@ -181,8 +188,9 @@ class MlbGames(Base):
 class NbaGames(Base):
     __tablename__ = 'nba_games'
     __table_args__ = (
-        ForeignKeyConstraint(['team_id'], ['teams.id'], name='fk_team'),
-        PrimaryKeyConstraint('id', name='nba_games_pkey')
+        ForeignKeyConstraint(['team_id'], ['public.teams.id'], name='fk_team'),
+        PrimaryKeyConstraint('id', name='nba_games_pkey'),
+        {'schema': 'public'}
     )
 
     id: Mapped[str] = mapped_column(Text, primary_key=True)
@@ -222,8 +230,9 @@ class NbaGames(Base):
 class Players(Base):
     __tablename__ = 'players'
     __table_args__ = (
-        ForeignKeyConstraint(['team_id'], ['teams.id'], name='fk_team'),
-        PrimaryKeyConstraint('id', name='nba_players_pkey')
+        ForeignKeyConstraint(['team_id'], ['public.teams.id'], name='fk_team'),
+        PrimaryKeyConstraint('id', name='nba_players_pkey'),
+        {'schema': 'public'}
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -245,14 +254,15 @@ class Players(Base):
 class MlbPlayerStats(Base):
     __tablename__ = 'mlb_player_stats'
     __table_args__ = (
-        ForeignKeyConstraint(['game_id'], ['mlb_games.id'], name='fk_game'),
-        ForeignKeyConstraint(['player_id'], ['players.id'], name='fk_player'),
+        ForeignKeyConstraint(['game_id'], ['public.mlb_games.id'], name='fk_game'),
+        ForeignKeyConstraint(['player_id'], ['public.players.id'], name='fk_player'),
         PrimaryKeyConstraint('id', name='mlb_player_stats_pkey'),
-        UniqueConstraint('player_id', 'game_id', name='mlb_player_stats_player_game_unique')
+        UniqueConstraint('player_id', 'game_id', name='mlb_player_stats_player_game_unique'),
+        {'schema': 'public'}
     )
 
     game_id: Mapped[str] = mapped_column(Text)
-    id: Mapped[int] = mapped_column(Integer, Sequence('mlb_player_stats_new_id_seq'), primary_key=True)
+    id: Mapped[int] = mapped_column(Integer, Sequence('mlb_player_stats_new_id_seq', schema='public'), primary_key=True)
     at_bats: Mapped[Optional[int]] = mapped_column(Integer)
     runs: Mapped[Optional[int]] = mapped_column(Integer)
     hits: Mapped[Optional[int]] = mapped_column(Integer)
@@ -293,13 +303,14 @@ class MlbPlayerStats(Base):
 class NbaPlayerStats(Base):
     __tablename__ = 'nba_player_stats'
     __table_args__ = (
-        ForeignKeyConstraint(['game_id'], ['nba_games.id'], name='fk_game'),
-        ForeignKeyConstraint(['player_id'], ['players.id'], name='fk_player'),
+        ForeignKeyConstraint(['game_id'], ['public.nba_games.id'], name='fk_game'),
+        ForeignKeyConstraint(['player_id'], ['public.players.id'], name='fk_player'),
         PrimaryKeyConstraint('id', name='nba_player_stats_pkey'),
-        UniqueConstraint('player_id', 'game_id', name='nba_player_stats_player_game_unique')
+        UniqueConstraint('player_id', 'game_id', name='nba_player_stats_player_game_unique'),
+        {'schema': 'public'}
     )
 
-    id: Mapped[int] = mapped_column(Integer, Sequence('nba_player_stats_new_id_seq'), primary_key=True)
+    id: Mapped[int] = mapped_column(Integer, Sequence('nba_player_stats_new_id_seq', schema='public'), primary_key=True)
     game_id: Mapped[Optional[str]] = mapped_column(Text)
     pts: Mapped[Optional[int]] = mapped_column(Integer)
     min: Mapped[Optional[int]] = mapped_column(Integer)
@@ -337,13 +348,14 @@ class NbaPlayerStats(Base):
 class Parlays(Base):
     __tablename__ = 'parlays'
     __table_args__ = (
-        ForeignKeyConstraint(['match_user_id'], ['match_users.id'], name='fk_match_user'),
-        PrimaryKeyConstraint('id', name='parlays_pkey')
+        ForeignKeyConstraint(['match_user_id'], ['public.match_users.id'], name='fk_match_user'),
+        PrimaryKeyConstraint('id', name='parlays_pkey'),
+        {'schema': 'public'}
     )
 
     status: Mapped[str] = mapped_column(Enum('hit', 'missed', 'not_resolved', name='parlay_status'), server_default=text("'not_resolved'::parlay_status"))
     stake: Mapped[float] = mapped_column(Double(53))
-    id: Mapped[int] = mapped_column(Integer, Sequence('parlays_new_id_seq'), primary_key=True)
+    id: Mapped[int] = mapped_column(Integer, Sequence('parlays_new_id_seq', schema='public'), primary_key=True)
     created_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime(True), server_default=text('CURRENT_TIMESTAMP'))
     match_user_id: Mapped[Optional[int]] = mapped_column(Integer)
 
@@ -354,9 +366,10 @@ class Parlays(Base):
 class Props(Base):
     __tablename__ = 'props'
     __table_args__ = (
-        ForeignKeyConstraint(['opp_team_id'], ['teams.id'], name='fk_opp_team'),
-        ForeignKeyConstraint(['player_id'], ['players.id'], name='fk_player'),
-        PrimaryKeyConstraint('id', name='props_pkey')
+        ForeignKeyConstraint(['opp_team_id'], ['public.teams.id'], name='fk_opp_team'),
+        ForeignKeyConstraint(['player_id'], ['public.players.id'], name='fk_player'),
+        PrimaryKeyConstraint('id', name='props_pkey'),
+        {'schema': 'public'}
     )
 
     line: Mapped[float] = mapped_column(Double(53))
@@ -365,7 +378,7 @@ class Props(Base):
     stat: Mapped[str] = mapped_column(Text)
     league: Mapped[str] = mapped_column(Enum('nba', 'nfl', 'mlb', name='league_type'))
     resolved: Mapped[bool] = mapped_column(Boolean, server_default=text('false'))
-    id: Mapped[int] = mapped_column(Integer, Sequence('props_new_id_seq'), primary_key=True)
+    id: Mapped[int] = mapped_column(Integer, Sequence('props_new_id_seq', schema='public'), primary_key=True)
     created_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime(True), server_default=text('CURRENT_TIMESTAMP'))
     game_start_time: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime(True))
     pick_options: Mapped[Optional[list]] = mapped_column(ARRAY(Text()), server_default=text("ARRAY['over'::text, 'under'::text]"))
@@ -380,14 +393,15 @@ class Props(Base):
 class ParlayPicks(Base):
     __tablename__ = 'parlay_picks'
     __table_args__ = (
-        ForeignKeyConstraint(['parlay_id'], ['parlays.id'], name='fk_parlay'),
-        ForeignKeyConstraint(['prop_id'], ['props.id'], name='fk_prop'),
-        PrimaryKeyConstraint('id', name='parlay_picks_pkey')
+        ForeignKeyConstraint(['parlay_id'], ['public.parlays.id'], name='fk_parlay'),
+        ForeignKeyConstraint(['prop_id'], ['public.props.id'], name='fk_prop'),
+        PrimaryKeyConstraint('id', name='parlay_picks_pkey'),
+        {'schema': 'public'}
     )
 
     pick: Mapped[str] = mapped_column(Enum('over', 'under', name='pick_type'))
     status: Mapped[str] = mapped_column(Enum('hit', 'missed', 'not_resolved', name='pick_status'), server_default=text("'not_resolved'::pick_status"))
-    id: Mapped[int] = mapped_column(Integer, Sequence('parlay_picks_new_id_seq'), primary_key=True)
+    id: Mapped[int] = mapped_column(Integer, Sequence('parlay_picks_new_id_seq', schema='public'), primary_key=True)
     created_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime(True), server_default=text('CURRENT_TIMESTAMP'))
     parlay_id: Mapped[Optional[int]] = mapped_column(Integer)
     prop_id: Mapped[Optional[int]] = mapped_column(Integer)

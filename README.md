@@ -45,8 +45,10 @@ pip install -e .
 If `engine/shared/tables.py` does not exist run this command
 ```
 cd engine
-sqlacodegen "<DATABASE_URL>" > shared/tables.py
+sqlacodegen --schemas public "<DATABASE_URL>" > shared/tables.py
 ```
+> [!IMPORTANT]
+> `--schema public` is necessary if running against production neon codebase or else sqlacodegen won't find the schema
 
 ## Running The Backend Server
 

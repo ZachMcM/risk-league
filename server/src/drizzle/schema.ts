@@ -317,26 +317,6 @@ export const players = pgTable("players", {
 		}),
 ]);
 
-export const props = pgTable("props", {
-	line: doublePrecision().notNull(),
-	currentValue: doublePrecision("current_value").default(0).notNull(),
-	rawGameId: text("raw_game_id").notNull(),
-	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
-	stat: text().notNull(),
-	gameStartTime: timestamp("game_start_time", { withTimezone: true, mode: 'string' }),
-	league: leagueType().notNull(),
-	resolved: boolean().default(false).notNull(),
-	pickOptions: text("pick_options").array().default(["RAY['over'::text", "'under'::tex"]),
-	id: serial().primaryKey().notNull(),
-	playerId: integer("player_id"),
-}, (table) => [
-	foreignKey({
-			columns: [table.playerId],
-			foreignColumns: [players.id],
-			name: "fk_player"
-		}),
-]);
-
 export const users = pgTable("users", {
 	username: text().notNull(),
 	email: text().notNull(),
@@ -350,4 +330,30 @@ export const users = pgTable("users", {
 }, (table) => [
 	unique("users_username_key").on(table.username),
 	unique("users_email_key").on(table.email),
+]);
+
+export const props = pgTable("props", {
+	line: doublePrecision().notNull(),
+	currentValue: doublePrecision("current_value").default(0).notNull(),
+	rawGameId: text("raw_game_id").notNull(),
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
+	stat: text().notNull(),
+	gameStartTime: timestamp("game_start_time", { withTimezone: true, mode: 'string' }),
+	league: leagueType().notNull(),
+	resolved: boolean().default(false).notNull(),
+	pickOptions: text("pick_options").array().default(["RAY['over'::text", "'under'::tex"]),
+	id: serial().primaryKey().notNull(),
+	playerId: integer("player_id"),
+	oppTeamId: integer("opp_team_id"),
+}, (table) => [
+	foreignKey({
+			columns: [table.playerId],
+			foreignColumns: [players.id],
+			name: "fk_player"
+		}),
+	foreignKey({
+			columns: [table.oppTeamId],
+			foreignColumns: [teams.id],
+			name: "fk_opp_team"
+		}),
 ]);
