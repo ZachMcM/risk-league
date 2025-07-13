@@ -483,7 +483,8 @@ CREATE TABLE public.props (
     resolved boolean DEFAULT false NOT NULL,
     pick_options text[] DEFAULT ARRAY['over'::text, 'under'::text],
     id integer NOT NULL,
-    player_id integer
+    player_id integer,
+    opp_team_id integer
 );
 
 
@@ -817,6 +818,14 @@ ALTER TABLE ONLY public.parlays
 
 
 --
+-- Name: props fk_opp_team; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.props
+    ADD CONSTRAINT fk_opp_team FOREIGN KEY (opp_team_id) REFERENCES public.teams(id);
+
+
+--
 -- Name: mlb_games fk_opponent_team; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -915,4 +924,5 @@ ALTER TABLE ONLY public.match_messages
 
 INSERT INTO public.schema_migrations (version) VALUES
     ('20250711082421'),
-    ('20250713025517');
+    ('20250713025517'),
+    ('20250713194535');

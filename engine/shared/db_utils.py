@@ -257,6 +257,7 @@ def insert_prop(
     stat: str,
     game_start_time: datetime,
     league: Leagues,
+    opp_team_id: int,
     pick_options: list[str] = None,
 ) -> None:
     """Insert a prop into the database.
@@ -270,6 +271,7 @@ def insert_prop(
         game_start_time: When the game starts
         league: League type ("mlb" or "nba")
         pick_options: Available pick options (default: ["over", "under"])
+        opp_team_id: The matchup/opposing team id
     """
     if pick_options is None:
         pick_options = ["over", "under"]
@@ -300,6 +302,7 @@ def insert_prop(
                 game_start_time=game_start_time,
                 league=league,
                 pick_options=pick_options,
+                opp_team_id=opp_team_id
             )
             session.add(new_prop)
 

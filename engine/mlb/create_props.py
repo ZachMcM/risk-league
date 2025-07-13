@@ -322,14 +322,15 @@ def main() -> None:
                                 pick_options.append("over")
 
                             insert_prop(
-                                session,
-                                line,
-                                str(player_data["game_id"]),
-                                player.id,
-                                stat,
-                                player_data["game_start_time"],
-                                "mlb",
-                                pick_options,
+                                session=session,
+                                line=line,
+                                game_id=str(player_data["game_id"]),
+                                player_id=player.id,
+                                stat=stat,
+                                game_start_time=player_data["game_start_time"],
+                                league="mlb",
+                                pick_options=pick_options,
+                                opp_team_id=player_data["matchup"]
                             )
                             total_props_generated += 1
                     except Exception as e:

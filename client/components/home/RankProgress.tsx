@@ -1,14 +1,11 @@
 import { View } from "react-native";
 import { TrendingUp } from "~/lib/icons/TrendingUp";
-import { cn } from "~/lib/utils";
 import { RankInfo } from "~/types/ranks";
-import RankIcon from "../ui/RankIcon";
+import RankBadge from "../ui/RankBadge";
 import { Card, CardContent } from "../ui/card";
 import { Progress } from "../ui/progress";
-import { Separator } from "../ui/separator";
-import { Text } from "../ui/text";
-import RankBadge from "../ui/RankBadge";
 import { RankText } from "../ui/rank-text";
+import { Text } from "../ui/text";
 
 export function RankProgress({ rank }: { rank: RankInfo }) {
   if (!rank.nextRank) {

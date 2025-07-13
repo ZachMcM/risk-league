@@ -13,7 +13,7 @@ export default function StartMatchButton() {
       onPress={() => router.push("/matchmaking")}
     >
       <Text className="font-semibold">Start Match</Text>
-      <Dices size={24} className="text-foreground" />
+      <Dices size={24} className="text-white" />
     </Button>
   );
 }

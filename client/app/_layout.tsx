@@ -79,7 +79,8 @@ export default function RootLayout() {
   }, []);
 
   usePlatformSpecificSetup();
-  const { isDarkColorScheme } = useColorScheme();
+  const { isDarkColorScheme, setColorScheme } = useColorScheme();
+  setColorScheme("dark")
 
   return (
     <SafeAreaProvider>
@@ -88,7 +89,7 @@ export default function RootLayout() {
           <SessionProvider>
             <RealTimeProvider>
               <ThemeProvider
-                value={isDarkColorScheme ? DARK_THEME : LIGHT_THEME}
+                value={DARK_THEME}
               >
                 <SplashScreenController />
                 <RootNavigatior />

@@ -1,6 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Fragment } from "react";
+import { ActivityIndicator, View } from "react-native";
+import MatchDetails from "~/components/matches/MatchDetails";
 import { Button } from "~/components/ui/button";
 import { ScrollContainer } from "~/components/ui/scroll-container";
 import { getMatch } from "~/endpoints";
@@ -19,7 +21,17 @@ export default function Match() {
 
   return (
     <Fragment>
-      <ScrollContainer></ScrollContainer>
+      <ScrollContainer>
+        {isMatchPending ? (
+          <ActivityIndicator className="text-foreground" />
+        ) : (
+          match && (
+            <View className="flex flex-col flex-1 gap-10">
+              <MatchDetails match={match} />
+            </View>
+          )
+        )}
+      </ScrollContainer>
       <Button
         onPress={() =>
           router.push({
@@ -28,9 +40,9 @@ export default function Match() {
           })
         }
         size="icon"
-        className="rounded-full absolute bottom-6 right-6"
+        className="rounded-full absolute bottom-2 right-2"
       >
-        <MessageCircle className="text-foreground" />
+        <MessageCircle className="text-white" />
       </Button>
     </Fragment>
   );

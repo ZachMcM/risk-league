@@ -309,7 +309,7 @@ def main() -> None:
             logger.info(
                 f"Processing player {player.name} {player.id} against team {player_data['matchup']}"
             )
-            
+
             sample_size = len(player_data["last_games"])
             if sample_size == 0:
                 continue
@@ -322,7 +322,9 @@ def main() -> None:
             matchup_last_games = team_games_cache[player_data["matchup"]]
 
             games_id_list = [game.game_id for game in player_data["last_games"]]
-            team_last_games = get_games_by_id(session, games_id_list, "nba", sample_size)
+            team_last_games = get_games_by_id(
+                session, games_id_list, "nba", sample_size
+            )
             team_opp_games = get_opposing_team_last_games(
                 session, games_id_list, "nba", sample_size
             )
@@ -403,13 +405,14 @@ def main() -> None:
                         if line > 0:
                             generated_props[stat] = line
                             insert_prop(
-                                session,
-                                line,
-                                str(player_data["game_id"]),
-                                player.id,
-                                stat,
-                                player_data["game_start_time"],
-                                "nba",
+                                session=session,
+                                line=line,
+                                game_id=str(player_data["game_id"]),
+                                player_id=player.id,
+                                stat=stat,
+                                game_start_time=player_data["game_start_time"],
+                                league="nba",
+                                opp_team_id=player_data["matchup"],
                             )
                             total_props_generated += 1
                     except Exception as e:
@@ -451,13 +454,14 @@ def main() -> None:
                 )
                 if pra_line > 0:
                     insert_prop(
-                        session,
-                        pra_line,
-                        str(player_data["game_id"]),
-                        player.id,
-                        "pra",
-                        player_data["game_start_time"],
-                        "nba",
+                        session=session,
+                        line=pra_line,
+                        game_id=str(player_data["game_id"]),
+                        player_id=player.id,
+                        stat="pra",
+                        game_start_time=player_data["game_start_time"],
+                        league="nba",
+                        opp_team_id=player_data["matchup"]
                     )
                     total_props_generated += 1
 
@@ -486,13 +490,14 @@ def main() -> None:
                 )
                 if pts_ast_line > 0:
                     insert_prop(
-                        session,
-                        pts_ast_line,
-                        str(player_data["game_id"]),
-                        player.id,
-                        "pts_ast",
-                        player_data["game_start_time"],
-                        "nba",
+                        session=session,
+                        line=pts_ast_line,
+                        game_id=str(player_data["game_id"]),
+                        player_id=player.id,
+                        stat="pts_ast",
+                        game_start_time=player_data["game_start_time"],
+                        league="nba",
+                        opp_team_id=player_data["matchup"]
                     )
                     total_props_generated += 1
 
@@ -520,13 +525,14 @@ def main() -> None:
                 )
                 if reb_ast_line > 0:
                     insert_prop(
-                        session,
-                        reb_ast_line,
-                        str(player_data["game_id"]),
-                        player.id,
-                        "reb_ast",
-                        player_data["game_start_time"],
-                        "nba",
+                        session=session,
+                        line=reb_ast_line,
+                        game_id=str(player_data["game_id"]),
+                        player_id=player.id,
+                        stat="reb_ast",
+                        game_start_time=player_data["game_start_time"],
+                        league="nba",
+                        opp_team_id=player_data["matchup"]
                     )
                     total_props_generated += 1
 

@@ -8,6 +8,9 @@ export type MatchStatus =
   | "win";
 
 export type MatchUser = {
+  parlaysHit: number;
+  parlaysMissed: number;
+  parlaysInProgress: number;
   id: number;
   createdAt: string | null;
   balance: number;

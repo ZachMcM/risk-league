@@ -1,6 +1,7 @@
 import { LinearGradient } from "expo-linear-gradient";
 import { ReactNode } from "react";
 import { StyleProp, ViewStyle } from "react-native";
+import { useColorScheme } from "~/lib/useColorScheme";
 import { Tier } from "~/types/ranks";
 
 export function RankGradient({
@@ -60,12 +61,16 @@ export function RankGradient({
     }
   };
 
+  const { isDarkColorScheme } = useColorScheme();
+
   return (
     <LinearGradient
       colors={getGradientColors(tier)}
       style={[
         {
-          backgroundColor: "hsl(223.8136 0% 3.9388%)",
+          backgroundColor: isDarkColorScheme
+            ? "hsl(223.8136 0% 3.9388%)"
+            : "hsl(223.8136 0.0002% 96.0587%)",
           borderRadius: 9999,
           borderWidth: 1,
           borderColor: getBorderColor(tier),

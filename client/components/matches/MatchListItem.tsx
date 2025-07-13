@@ -73,28 +73,30 @@ export default function MatchListItem({ match }: { match: Match }) {
                   {opponent?.user.username}
                 </Text>
               </View>
-              <View className="flex flex-row items-center gap-6">
+              <View className="flex flex-row items-center gap-8">
                 <Badge variant={badgeVariant}>
                   <Text className="text-base px-1 py-0.5">{badgeText}</Text>
                 </Badge>
-                <View className="flex flex-col items-center">
-                  <Text className="text-primary font-bold text-lg">
-                    ${you.balance}
+                <View className="flex flex-row gap-4 items-center">
+                  <View className="flex flex-col items-center">
+                    <Text className="text-primary font-bold text-lg">
+                      ${you.balance}
+                    </Text>
+                    <Text className="text-muted-foreground font-semibold">
+                      You
+                    </Text>
+                  </View>
+                  <Text className="font-bold text-muted-foreground text-lg">
+                    :
                   </Text>
-                  <Text className="text-muted-foreground font-semibold">
-                    You
-                  </Text>
-                </View>
-                <Text className="font-bold text-muted-foreground text-lg">
-                  :
-                </Text>
-                <View className="flex flex-col items-center">
-                  <Text className="font-bold text-lg">
-                    ${opponent.balance}
-                  </Text>
-                  <Text className="text-muted-foreground font-semibold">
-                    Opponent
-                  </Text>
+                  <View className="flex flex-col items-center">
+                    <Text className="font-bold text-lg">
+                      ${opponent.balance}
+                    </Text>
+                    <Text className="text-muted-foreground font-semibold">
+                      Opponent
+                    </Text>
+                  </View>
                 </View>
               </View>
             </View>

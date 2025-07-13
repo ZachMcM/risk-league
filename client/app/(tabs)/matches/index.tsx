@@ -8,8 +8,10 @@ import { getMatches } from "~/endpoints";
 export default function Matches() {
   const { session } = useSession()
 
+  if (!session) return
+
   const { data: matches, isPending: isMatchesPending } = useQuery({
-    queryKey: ["matches", session?.user.id],
+    queryKey: ["matches", session.user.id],
     queryFn: getMatches,
   });
 

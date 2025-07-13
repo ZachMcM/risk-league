@@ -50,6 +50,7 @@ class Teams(Base):
     mlb_games_: Mapped[List['MlbGames']] = relationship('MlbGames', foreign_keys='[MlbGames.team_id]', back_populates='team')
     nba_games: Mapped[List['NbaGames']] = relationship('NbaGames', back_populates='team')
     players: Mapped[List['Players']] = relationship('Players', back_populates='team')
+    props: Mapped[List['Props']] = relationship('Props', back_populates='opp_team')
 
 
 class Users(Base):
@@ -353,6 +354,7 @@ class Parlays(Base):
 class Props(Base):
     __tablename__ = 'props'
     __table_args__ = (
+        ForeignKeyConstraint(['opp_team_id'], ['teams.id'], name='fk_opp_team'),
         ForeignKeyConstraint(['player_id'], ['players.id'], name='fk_player'),
         PrimaryKeyConstraint('id', name='props_pkey')
     )
@@ -368,7 +370,9 @@ class Props(Base):
     game_start_time: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime(True))
     pick_options: Mapped[Optional[list]] = mapped_column(ARRAY(Text()), server_default=text("ARRAY['over'::text, 'under'::text]"))
     player_id: Mapped[Optional[int]] = mapped_column(Integer)
+    opp_team_id: Mapped[Optional[int]] = mapped_column(Integer)
 
+    opp_team: Mapped[Optional['Teams']] = relationship('Teams', back_populates='props')
     player: Mapped[Optional['Players']] = relationship('Players', back_populates='props')
     parlay_picks: Mapped[List['ParlayPicks']] = relationship('ParlayPicks', back_populates='prop')
 

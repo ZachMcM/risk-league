@@ -14,13 +14,11 @@ import { getRank } from "~/lib/utils";
 export default function Home() {
   const { session } = useSession();
 
-  if (!session) {
-    return;
-  }
+  if (!session) return
 
   const { data: user, isPending: isUserPending } = useQuery({
     queryKey: ["user", session.user.id],
-    queryFn: async () => await getUser(session.user.id),
+    queryFn: async () => await getUser(session?.user.id!),
   });
 
   const rank = getRank(user?.eloRating!);

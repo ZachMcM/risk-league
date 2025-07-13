@@ -1,7 +1,7 @@
-import { eq } from "drizzle-orm";
+import { eq, count } from "drizzle-orm";
 import { Router } from "express";
 import { db } from "../drizzle";
-import { matches, matchMessages, matchUsers } from "../drizzle/schema";
+import { matches, matchMessages, matchUsers, parlays } from "../drizzle/schema";
 import { logger } from "../logger";
 import { authMiddleware } from "./auth";
 
@@ -26,6 +26,7 @@ matchesRoute.get("/matches", authMiddleware, async (req, res) => {
                     eloRating: true,
                   },
                 },
+                parlays: true,
               },
             },
           },
@@ -33,7 +34,19 @@ matchesRoute.get("/matches", authMiddleware, async (req, res) => {
       },
     });
 
-    const matches = userMatches.map((userMatch) => userMatch.match);
+    const matches = userMatches.map((userMatch) => ({
+      ...userMatch.match,
+      matchUsers: userMatch.match?.matchUsers.map((mu) => ({
+        ...mu,
+        parlaysHit: mu.parlays.filter((parlay) => parlay.status == "hit")
+          .length,
+        parlaysMissed: mu.parlays.filter((parlay) => parlay.status == "missed")
+          .length,
+        parlaysInProgress: mu.parlays.filter(
+          (parlay) => parlay.status == "not_resolved"
+        ).length,
+      })),
+    }));
 
     res.json(matches);
   } catch (err) {
@@ -59,12 +72,27 @@ matchesRoute.get("/matches/:id", authMiddleware, async (req, res) => {
                 eloRating: true,
               },
             },
+            parlays: true,
           },
         },
       },
     });
 
-    res.json(match);
+    const matchWithParlayCount = {
+      ...match,
+      matchUsers: match?.matchUsers.map((mu) => ({
+        ...mu,
+        parlaysHit: mu.parlays.filter((parlay) => parlay.status == "hit")
+          .length,
+        parlaysMissed: mu.parlays.filter((parlay) => parlay.status == "missed")
+          .length,
+        parlaysInProgress: mu.parlays.filter(
+          (parlay) => parlay.status == "not_resolved"
+        ).length,
+      })),
+    };
+
+    res.json(matchWithParlayCount);
   } catch (err: any) {
     logger.error(err);
     res.status(500).json({ error: "Server Error", message: err });
@@ -83,7 +111,7 @@ matchesRoute.get("/matches/:id/messages", authMiddleware, async (req, res) => {
             id: true,
             username: true,
             image: true,
-            eloRating: true
+            eloRating: true,
           },
         },
       },
