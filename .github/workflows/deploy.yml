@@ -1,7 +1,7 @@
 name: Deploy and Migrate
 on:
   push:
-    branches: [development, main]
+    branches: [main]
 
 jobs:
   migrate:
