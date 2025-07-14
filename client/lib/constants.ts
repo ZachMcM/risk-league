@@ -18,4 +18,4 @@ export const NAV_THEME = {
 };
 
 
-export const startingBalance = 100.00
+export const startingBalance = parseInt(process.env.EXPO_PUBLIC_STARTING_BALANCE!)

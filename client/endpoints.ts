@@ -1,6 +1,7 @@
 import { deleteItemAsync, getItemAsync, setItemAsync } from "expo-secure-store";
 import { User } from "./types/user";
 import { Match, MatchMessage } from "./types/matches";
+import { Prop } from "./types/props";
 
 export type HttpRequestParams = {
   endpoint: string;
@@ -197,4 +198,20 @@ export async function getMatchMessages(id: number): Promise<MatchMessage[]> {
   }
 
   return data;
+}
+
+export async function getProps(): Promise<Prop[]> {
+  const res = await httpRequest({
+    endpoint: `/props`,
+    method: "GET"
+  })
+
+  const data = await res.json()
+  console.log(data)
+
+  if (!res.ok) {
+    throw new Error(data)
+  }
+
+  return data
 }

@@ -1,15 +1,14 @@
 import { View } from "react-native";
-import { Match, MatchUser } from "~/types/matches";
-import { useSession } from "../providers/SessionProvider";
-import { Card, CardContent } from "../ui/card";
-import { Text } from "../ui/text";
 import { startingBalance } from "~/lib/constants";
 import { TrendingDown } from "~/lib/icons/TrendingDown";
 import { TrendingUp } from "~/lib/icons/TrendingUp";
 import { cn } from "~/lib/utils";
-import { Users } from "~/lib/icons/Users";
-import Pfp from "../ui/pfp";
+import { Match, MatchUser } from "~/types/matches";
+import { useSession } from "../providers/SessionProvider";
 import { Badge } from "../ui/badge";
+import { Card, CardContent } from "../ui/card";
+import Pfp from "../ui/pfp";
+import { Text } from "../ui/text";
 
 export default function MatchDetails({ match }: { match: Match }) {
   const { session } = useSession();
@@ -32,14 +31,14 @@ export default function MatchDetails({ match }: { match: Match }) {
       : "losing";
 
   return (
-    <View className="flex flex-1 flex-col gap-4 items-center">
+    <View className="flex flex-col gap-4 items-center">
       <MatchUserCard
         matchUser={match.matchUsers[currentUser]}
         currentUser={true}
         status={currentUserStatus}
       />
       <View className="rounded-full h-12 w-12 bg-primary flex justify-center items-center">
-        <Text className="font-extrabold text-2xl text-white">vs</Text>
+        <Text className="font-bold text-2xl text-white">vs</Text>
       </View>
       <MatchUserCard
         matchUser={match.matchUsers[otherUser]}
@@ -92,7 +91,7 @@ function MatchUserCard({
             <Text className="text-base capitalize">{status}</Text>
           </Badge>
         </View>
-        <View className="flex flex-row items-center justify-between pb-4 border-b border-border/50">
+        <View className="flex flex-row items-center justify-between">
           <View className="flex flex-col items-center">
             <Text
               className={cn(
@@ -136,7 +135,7 @@ function MatchUserCard({
             <Text className="font-medium text-muted-foreground">Change</Text>
           </View>
         </View>
-        <View className="flex flex-row justify-between items-center">
+        {/* <View className="flex flex-row justify-between items-center  pt-4 border-t border-border/50">
           <View className="flex flex-col items-center">
             <Text className="text-success font-bold text-2xl">
               {matchUser.parlaysHit}
@@ -182,7 +181,7 @@ function MatchUserCard({
               Win Rate
             </Text>
           </View>
-        </View>
+        </View> */}
       </CardContent>
     </Card>
   );
