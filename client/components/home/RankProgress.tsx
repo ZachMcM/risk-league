@@ -23,7 +23,7 @@ export function RankProgress({ rank }: { rank: RankInfo }) {
             </Text>
           </View>
           <Progress
-            className="bg-primary/10 h-5"
+            className="bg-primary/10"
             indicatorClassName="bg-primary"
             value={rank.progressToNext * 100}
           />

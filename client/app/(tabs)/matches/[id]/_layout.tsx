@@ -16,7 +16,6 @@ export default function Layout() {
           name="messages"
           options={{
             headerShown: false,
-            presentation: "modal",
           }}
         />
       </Stack>

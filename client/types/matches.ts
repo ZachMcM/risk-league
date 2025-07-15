@@ -25,6 +25,7 @@ export type Match = {
   id: number;
   createdAt: string | null;
   resolved: boolean;
+  gameMode: "nba" | "nfl" | "mlb";
   matchUsers: MatchUser[];
 };
 

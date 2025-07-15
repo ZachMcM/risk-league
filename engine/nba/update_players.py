@@ -31,7 +31,7 @@ def get_team_players(team_id, season):
         roster = commonteamroster.CommonTeamRoster(team_id=team_id, season=season)
         return roster.get_data_frames()[0]
     except Exception as e:
-        logger.warning(f"Error fetching roster for team {team_id}: {e}")
+        logger.error(f"Error fetching roster for team {team_id}: {e}")
         return pd.DataFrame()
 
 

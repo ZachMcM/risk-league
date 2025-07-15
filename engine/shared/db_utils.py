@@ -110,7 +110,7 @@ def get_team_last_games(
         return list(result)
 
     except Exception as e:
-        logger.fatal(f"⚠️ There was an error fetching the last games for team {team_id}, {e}")
+        logger.error(f"⚠️ There was an error fetching the last games for team {team_id}, {e}")
         sys.exit(1)
 
 
@@ -198,7 +198,7 @@ def get_players_from_team(session: Session, team_id: int) -> list[Players]:
         return list(result)
 
     except Exception as e:
-        logger.fatal(f"⚠️ Error fetching roster for team {team_id}: {e}")
+        logger.error(f"⚠️ Error fetching roster for team {team_id}: {e}")
         sys.exit(1)
 
 

@@ -1,16 +1,18 @@
 import { db } from "../../drizzle";
-import { matches, matchUsers } from "../../drizzle/schema";
+import { matches, matchUsers, matchGameMode } from "../../drizzle/schema";
 
 export async function createMatch({
   user1,
   user2,
+  gameMode
 }: {
   user1: number;
   user2: number;
+  gameMode: typeof matchGameMode.enumValues[number]
 }) {
   const [match] = await db
     .insert(matches)
-    .values({ resolved: false })
+    .values({ resolved: false, gameMode })
     .returning({ id: matches.id });
 
   await db.insert(matchUsers).values({

@@ -2,6 +2,7 @@ import { pgTable, varchar, foreignKey, text, integer, timestamp, doublePrecision
 import { sql } from "drizzle-orm"
 
 export const leagueType = pgEnum("league_type", ['nba', 'nfl', 'mlb'])
+export const matchGameMode = pgEnum("match_game_mode", ['nba', 'nfl', 'mlb'])
 export const matchStatus = pgEnum("match_status", ['not_resolved', 'loss', 'win', 'draw', 'disqualified'])
 export const parlayStatus = pgEnum("parlay_status", ['hit', 'missed', 'not_resolved'])
 export const pickStatus = pgEnum("pick_status", ['hit', 'missed', 'not_resolved'])
@@ -208,12 +209,6 @@ export const mlbPlayerStats = pgTable("mlb_player_stats", {
 	unique("mlb_player_stats_player_game_unique").on(table.gameId, table.playerId),
 ]);
 
-export const matches = pgTable("matches", {
-	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
-	resolved: boolean().default(false).notNull(),
-	id: serial().primaryKey().notNull(),
-});
-
 export const matchUsers = pgTable("match_users", {
 	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
 	balance: doublePrecision().default(100).notNull(),
@@ -357,3 +352,10 @@ export const props = pgTable("props", {
 			name: "fk_opp_team"
 		}),
 ]);
+
+export const matches = pgTable("matches", {
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
+	resolved: boolean().default(false).notNull(),
+	id: serial().primaryKey().notNull(),
+	gameMode: matchGameMode("game_mode").notNull(),
+});

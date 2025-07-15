@@ -1,31 +1,38 @@
 import { redis } from "../../redis";
 import { getRank } from "../../utils/getRank";
+import { matchGameMode } from "../../drizzle/schema";
 
-const QUEUE_KEY = "matchmaking:queue";
+const getQueueKey = (gameMode: string) => `matchmaking:queue:${gameMode}`;
 
 export async function cleanInvalidEntries() {
-  const queue = await redis.lRange(QUEUE_KEY, 0, -1);
-  
-  for (const entry of queue) {
-    if (!entry || isNaN(parseInt(entry))) {
-      await redis.lRem(QUEUE_KEY, 0, entry);
+  for (const gameMode of matchGameMode.enumValues) {
+    const queueKey = getQueueKey(gameMode);
+    const queue = await redis.lRange(queueKey, 0, -1);
+    
+    for (const entry of queue) {
+      if (!entry || isNaN(parseInt(entry))) {
+        await redis.lRem(queueKey, 0, entry);
+      }
     }
   }
 }
 
-export async function addToQueue(userId: string) {
-  await redis.rPush(QUEUE_KEY, userId.toString());
+export async function addToQueue(userId: string, gameMode: typeof matchGameMode.enumValues[number]) {
+  const queueKey = getQueueKey(gameMode);
+  await redis.rPush(queueKey, userId.toString());
 }
 
-export async function removeFromQueue(userId: string) {
-  await redis.lRem(QUEUE_KEY, 0, userId.toString());
+export async function removeFromQueue(userId: string, gameMode: typeof matchGameMode.enumValues[number]) {
+  const queueKey = getQueueKey(gameMode);
+  await redis.lRem(queueKey, 0, userId.toString());
 }
 
-export async function getPair(): Promise<{
+export async function getPair(gameMode: typeof matchGameMode.enumValues[number]): Promise<{
   user1: string;
   user2: string;
 } | null> {
-  const queue = await redis.lRange(QUEUE_KEY, 0, -1);
+  const queueKey = getQueueKey(gameMode);
+  const queue = await redis.lRange(queueKey, 0, -1);
 
   for (let i = 0; i < queue.length; i++) {
     const user1 = queue[i];
@@ -39,8 +46,8 @@ export async function getPair(): Promise<{
         user1Rank?.tier == user2Rank?.tier &&
         user1Rank?.level == user2Rank?.level
       ) {
-        await redis.lRem(QUEUE_KEY, 0, user1);
-        await redis.lRem(QUEUE_KEY, 0, user2);
+        await redis.lRem(queueKey, 0, user1);
+        await redis.lRem(queueKey, 0, user2);
 
         return { user1, user2 };
       }

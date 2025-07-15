@@ -14,13 +14,17 @@ export default function PageTitle({
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
+  const handleBack = () => {
+    router.back()
+  };
+
   return (
     <View
       style={{ marginTop: insets.top }}
       className="flex flex-row items-center gap-2 p-4"
     >
       {back && (
-        <Pressable onPress={() => router.back()}>
+        <Pressable onPress={handleBack}>
           <ChevronLeft size={32} className="text-foreground" />
         </Pressable>
       )}

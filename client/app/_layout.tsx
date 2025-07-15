@@ -143,7 +143,7 @@ export function RootNavigatior() {
         <Stack.Screen name="signup" options={{ headerShown: false }} />
       </Stack.Protected>
       <Stack.Screen
-        name="matchmaking"
+        name="matchmaking/[id]"
         options={{
           presentation: "modal",
           headerShown: false,

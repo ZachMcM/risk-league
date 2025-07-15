@@ -202,16 +202,32 @@ export async function getMatchMessages(id: number): Promise<MatchMessage[]> {
 
 export async function getProps(): Promise<Prop[]> {
   const res = await httpRequest({
-    endpoint: `/props`,
-    method: "GET"
-  })
+    endpoint: "/props",
+    method: "GET",
+  });
 
-  const data = await res.json()
-  console.log(data)
+  const data = await res.json();
+  console.log(data);
 
   if (!res.ok) {
-    throw new Error(data)
+    throw new Error(data);
   }
 
-  return data
+  return data;
+}
+
+export async function getActiveLeagues(): Promise<string[]> {
+  const res = await httpRequest({
+    endpoint: "/active-leagues",
+    method: "GET",
+  });
+
+  const data = await res.json();
+  console.log(data);
+
+  if (!res.ok) {
+    throw new Error(data);
+  }
+
+  return data;
 }

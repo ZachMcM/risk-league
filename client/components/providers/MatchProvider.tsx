@@ -24,9 +24,7 @@ export type MatchProviderTypes = {
   messagesPending: boolean;
 };
 
-const MatchContext = createContext<MatchProviderTypes | null>(
-  null
-);
+const MatchContext = createContext<MatchProviderTypes | null>(null);
 
 export function MatchProvider({ children }: { children: ReactNode }) {
   const searchParams = useLocalSearchParams() as { id: string };
@@ -54,7 +52,10 @@ export function MatchProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!session?.user.id || !id) return;
 
-    console.log('Connecting with params:', { matchId: id.toString(), userId: session.user.id.toString() });
+    console.log("Connecting with params:", {
+      matchId: id.toString(),
+      userId: session.user.id.toString(),
+    });
     const socket = io(`${process.env.EXPO_PUBLIC_API_URL}/match`, {
       auth: { matchId: id.toString(), userId: session.user.id.toString() },
       transports: ["websocket"],

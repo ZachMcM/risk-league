@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { View } from "react-native";
 import { io } from "socket.io-client";
@@ -29,13 +29,15 @@ const messages = [
 ];
 
 export default function Matchmaking() {
+  const { id } = useLocalSearchParams() as { id: string };
+
   const router = useRouter();
   const queryClient = useQueryClient();
 
   const { session } = useSession();
   const userId = session?.user.id!;
 
-  console.log(userId)
+  console.log(userId);
 
   const socketRef = useRef<ReturnType<typeof io> | null>(null);
 
@@ -59,7 +61,7 @@ export default function Matchmaking() {
     }, 2000); // change every 2 seconds
 
     const socket = io(`${process.env.EXPO_PUBLIC_API_URL}/matchmaking`, {
-      auth: { userId },
+      auth: { userId: userId.toString(), gameMode: id },
       transports: ["websocket"],
     });
 
@@ -78,7 +80,7 @@ export default function Matchmaking() {
       queryClient.invalidateQueries({
         queryKey: ["matches"],
       });
-      router.replace({
+      router.push({
         pathname: "/matches/[id]",
         params: { id: matchId },
       });

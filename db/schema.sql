@@ -22,6 +22,17 @@ CREATE TYPE public.league_type AS ENUM (
 
 
 --
+-- Name: match_game_mode; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.match_game_mode AS ENUM (
+    'nba',
+    'nfl',
+    'mlb'
+);
+
+
+--
 -- Name: match_status; Type: TYPE; Schema: public; Owner: -
 --
 
@@ -145,7 +156,8 @@ ALTER SEQUENCE public.match_users_new_id_seq OWNED BY public.match_users.id;
 CREATE TABLE public.matches (
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
     resolved boolean DEFAULT false NOT NULL,
-    id integer NOT NULL
+    id integer NOT NULL,
+    game_mode public.match_game_mode NOT NULL
 );
 
 
@@ -925,4 +937,5 @@ ALTER TABLE ONLY public.match_messages
 INSERT INTO public.schema_migrations (version) VALUES
     ('20250711082421'),
     ('20250713025517'),
-    ('20250713194535');
+    ('20250713194535'),
+    ('20250715010515');

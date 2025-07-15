@@ -8,7 +8,7 @@ from shared.db_session import get_db_session
 from shared.date_utils import get_today_eastern
 from shared.get_today_games import get_today_mlb_games, get_today_nba_games
 from shared.tables import Matches
-from sqlalchemy import select
+from sqlalchemy import select, func, or_
 from system.constants import K, MIN_BETS_REQ
 from shared.socket_utils import send_message as send_socket_message
 
@@ -54,18 +54,35 @@ def update_matches():
     """
     mlb_games = get_today_mlb_games()
     nba_games = get_today_nba_games()
+
+    all_mlb_games_final = True if len(mlb_games) > 0 else None
+    all_nba_games_final = True if len(nba_games) > 0 else None
+
     for game in nba_games:
         if game["gameStatusText"] != "Final":
-            return
+            all_nba_games_final = False
+
     for game in mlb_games:
         status = game.get("status")
         if status != "Final":
-            return
+            all_mlb_games_final = False
+
+    or_conditions = []
+    if all_mlb_games_final:
+        or_conditions.append(Matches.game_mode == "mlb")
+
+    if all_nba_games_final:
+        or_conditions.append(Matches.game_mode == "nba")
+        
+    if not or_conditions:
+        logger.info("No games to end")
+        return
 
     matches = (
         session.execute(
             select(Matches)
-            .where(Matches.created_at.strftime("%Y-%m-%d") == get_today_eastern())
+            .where(func.date(Matches.created_at) == get_today_eastern())
+            .where(or_(*or_conditions))
             .where(~Matches.resolved)
         )
         .scalars()
