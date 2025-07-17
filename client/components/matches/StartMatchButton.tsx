@@ -36,11 +36,11 @@ export default function StartMatchButton({
       icon: <MLBIcon />,
     },
   ]
-  // .filter((mode) => activeLeagues.includes(mode.id));
+  .filter((mode) => activeLeagues.includes(mode.id));
 
   const handleStartGame = () => {
     if (selectedGameMode) {
-      router.push({
+      router.navigate({
         pathname: "/matchmaking/[id]",
         params: { id: selectedGameMode },
       });

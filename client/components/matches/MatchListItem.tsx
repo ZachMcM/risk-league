@@ -8,6 +8,8 @@ import { Text } from "../ui/text";
 import { Badge } from "../ui/badge";
 import { Separator } from "../ui/separator";
 import { Flame } from "~/lib/icons/Flame";
+import { MLBIcon } from "../ui/mlb-icon";
+import { NBAIcon } from "../ui/nba-icon";
 
 export default function MatchListItem({ match }: { match: Match }) {
   const router = useRouter();
@@ -51,7 +53,7 @@ export default function MatchListItem({ match }: { match: Match }) {
   return (
     <Pressable
       onPress={() =>
-        router.push({
+        router.navigate({
           pathname: "/(tabs)/matches/[id]",
           params: { id: match.id },
         })
@@ -72,6 +74,8 @@ export default function MatchListItem({ match }: { match: Match }) {
                 <Text className="font-bold text-xl">
                   {opponent?.user.username}
                 </Text>
+                {match.gameMode == "mlb" && <MLBIcon/>}
+                {match.gameMode == "nba" && <NBAIcon/>}
               </View>
               <View className="flex flex-row items-center gap-8">
                 <Badge variant={badgeVariant}>

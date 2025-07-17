@@ -9,11 +9,11 @@ activeLeaguesRoute.get("/active-leagues", authMiddleware, async (_, res) => {
   const formattedDate = moment().tz('America/New_York').format('YYYY-MM-DD');
   logger.debug(`Formatted date ${formattedDate}`)
 
-  const nbaRes: any[] = (
+  const nbaRes = (
     await (await fetch(`${process.env.NBA_GAMES}`)).json()
   ).scoreboard.games;
 
-  const mlbRes: any[] = (
+  const mlbRes = (
     await (
       await fetch(
         `${process.env.MLB_GAMES}&startDate=${formattedDate}&endDate=${formattedDate}`
@@ -23,11 +23,11 @@ activeLeaguesRoute.get("/active-leagues", authMiddleware, async (_, res) => {
 
   const activeLeagues = [];
 
-  if (nbaRes.length > 0) {
+  if (nbaRes && nbaRes.length > 0) {
     activeLeagues.push("nba");
   }
 
-  if (mlbRes.length > 0) {
+  if (mlbRes && mlbRes.length > 0) {
     activeLeagues.push("mlb");
   }
 

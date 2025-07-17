@@ -1,5 +1,6 @@
 import { ReactNode } from "react";
 import { KeyboardAvoidingView, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { cn } from "~/lib/utils";
 
 function Container({
@@ -9,9 +10,13 @@ function Container({
   children?: ReactNode;
   className?: string;
 }) {
+  const insets = useSafeAreaInsets();
+
   return (
     <KeyboardAvoidingView className="flex-1 flex" behavior="padding">
-      <View className={cn("flex flex-1 py-24 px-4", className)}>
+      <View
+        className={cn("flex flex-1 py-24 px-4", className)}
+      >
         {children}
       </View>
     </KeyboardAvoidingView>

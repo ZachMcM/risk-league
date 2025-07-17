@@ -9,14 +9,10 @@ export default function PageTitle({
   back,
 }: {
   title: string;
-  back?: boolean;
+  back?: Href;
 }) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-
-  const handleBack = () => {
-    router.back()
-  };
 
   return (
     <View
@@ -24,7 +20,7 @@ export default function PageTitle({
       className="flex flex-row items-center gap-2 p-4"
     >
       {back && (
-        <Pressable onPress={handleBack}>
+        <Pressable onPress={() =>router.navigate(back)}>
           <ChevronLeft size={32} className="text-foreground" />
         </Pressable>
       )}

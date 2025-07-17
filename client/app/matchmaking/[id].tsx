@@ -37,8 +37,6 @@ export default function Matchmaking() {
   const { session } = useSession();
   const userId = session?.user.id!;
 
-  console.log(userId);
-
   const socketRef = useRef<ReturnType<typeof io> | null>(null);
 
   const [progress, setProgress] = useState(0);
@@ -80,7 +78,9 @@ export default function Matchmaking() {
       queryClient.invalidateQueries({
         queryKey: ["matches"],
       });
-      router.push({
+      clearInterval(interval);
+      socket.disconnect();
+      router.navigate({
         pathname: "/matches/[id]",
         params: { id: matchId },
       });
@@ -92,7 +92,9 @@ export default function Matchmaking() {
       setProgress(0);
       setLoadingMessage("Matchmaking failed...");
       toast.error("Matchmaking failed");
-      router.replace("/(tabs)");
+      clearInterval(interval);
+      socket.disconnect();
+      router.navigate("/(tabs)");
     });
 
     return () => {
@@ -103,7 +105,6 @@ export default function Matchmaking() {
 
   return (
     <Container className="pt-0 items-center">
-      <View className="rounded-2xl bg-secondary h-2 w-24" />
       <View className="flex flex-1 justify-center items-center">
         <Card>
           <CardHeader className="flex flex-col items-center gap-4">
@@ -135,7 +136,8 @@ export default function Matchmaking() {
               <Button
                 onPress={() => {
                   socketRef.current?.emit("cancel-search");
-                  router.replace("/(tabs)");
+                  socketRef.current?.disconnect();
+                  router.navigate("/(tabs)");
                 }}
                 size="lg"
                 variant="outline"

@@ -8,7 +8,7 @@ import { Button } from "~/components/ui/button";
 import { ScrollContainer } from "~/components/ui/scroll-container";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { Text } from "~/components/ui/text";
-import { getMatch, getProps } from "~/endpoints";
+import { getMatch, getAllProps } from "~/endpoints";
 import { MessageCircle } from "~/lib/icons/MessageCircle";
 
 export default function Match() {
@@ -24,7 +24,8 @@ export default function Match() {
 
   const { data: props, isPending: isPropsPending } = useQuery({
     queryKey: ["props"],
-    queryFn: getProps,
+    queryFn: async () => await getAllProps(match?.gameMode!),
+    enabled: !!match,
   });
 
   const [tabsValue, setTabsValue] = useState("props");
@@ -66,7 +67,7 @@ export default function Match() {
       </ScrollContainer>
       <Button
         onPress={() =>
-          router.push({
+          router.navigate({
             pathname: "/matches/[id]/messages",
             params: { id },
           })

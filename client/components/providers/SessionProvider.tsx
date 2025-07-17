@@ -63,7 +63,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       console.log(data);
       queryClient.invalidateQueries({ queryKey: ["session"] });
       toast.success("Sign in successful");
-      router.push("/(tabs)");
+      router.navigate("/(tabs)");
     },
   });
 
@@ -77,7 +77,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       console.log(data);
       queryClient.invalidateQueries({ queryKey: ["session"] });
       toast.success("Sign up successful");
-      router.push("/(tabs)");
+      router.navigate("/(tabs)");
     },
   });
 
@@ -91,7 +91,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       console.log(data);
       queryClient.invalidateQueries({ queryKey: ["session"] });
       toast.success("Sign out successful");
-      router.push("/");
+      router.navigate("/");
     },
   });
 

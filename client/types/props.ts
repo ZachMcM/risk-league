@@ -19,6 +19,7 @@ export type Player = {
   position: string | null;
   height: string | null;
   weight: string | null;
+  team: Team
 };
 
 export type Prop = {

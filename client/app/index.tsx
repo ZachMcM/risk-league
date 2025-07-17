@@ -68,11 +68,11 @@ export default function Index() {
           </Card>
         </View>
         <View className="flex-col gap-4">
-          <Button onPress={() => router.push("/signup")} size="lg">
+          <Button onPress={() => router.navigate("/signup")} size="lg">
             <Text>Sign Up</Text>
           </Button>
           <Button
-            onPress={() => router.push("/signin")}
+            onPress={() => router.navigate("/signin")}
             variant="secondary"
             size="lg"
           >

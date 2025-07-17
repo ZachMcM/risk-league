@@ -200,14 +200,30 @@ export async function getMatchMessages(id: number): Promise<MatchMessage[]> {
   return data;
 }
 
-export async function getProps(): Promise<Prop[]> {
+export async function getTodayProps(league: "nba" | "nfl" | "mlb"): Promise<Prop[]> {
   const res = await httpRequest({
-    endpoint: "/props",
+    endpoint: `/props/today?league=${league}`,
     method: "GET",
   });
 
   const data = await res.json();
-  console.log(data);
+  console.log("Props", data);
+
+  if (!res.ok) {
+    throw new Error(data);
+  }
+
+  return data;
+}
+
+export async function getAllProps(league: "nba" | "nfl" | "mlb"): Promise<Prop[]> {
+  const res = await httpRequest({
+    endpoint: `/props/all?league=${league}`,
+    method: "GET",
+  });
+
+  const data = await res.json();
+  console.log("Props", data);
 
   if (!res.ok) {
     throw new Error(data);

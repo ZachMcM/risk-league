@@ -18,9 +18,6 @@ export function initSocketServer(io: Server) {
     const userId = socket.handshake.auth.userId;
     const gameMode = socket.handshake.auth.gameMode;
 
-    logger.debug(`Game mode: ${gameMode}`);
-    logger.debug(`Typeof userId == ${typeof userId} Typeof gameMode == ${typeof gameMode}`)
-
     if (!gameMode || !matchGameMode.enumValues.includes(gameMode as any)) {
       socket.emit("error", { message: "Invalid or missing gameMode" });
       socket.disconnect();

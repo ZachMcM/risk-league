@@ -1,5 +1,6 @@
 import { ReactNode } from "react";
 import { KeyboardAvoidingView, ScrollView, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { cn } from "~/lib/utils";
 
 function ScrollContainer({
@@ -9,16 +10,21 @@ function ScrollContainer({
   children?: ReactNode;
   className?: string;
 }) {
+
   return (
-    <KeyboardAvoidingView className="flex-1 flex" behavior="padding">
+    <KeyboardAvoidingView
+      className="flex-1 flex"
+      behavior="padding"
+    >
       <ScrollView
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={{
-          flex: 1,
-          display: "flex",
+          flexGrow: 1,
         }}
       >
-        <View className={cn("flex flex-1 px-4 py-2", className)}>{children}</View>
+        <View className={cn("flex flex-1 px-4 pt-2 pb-10", className)}>
+          {children}
+        </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );

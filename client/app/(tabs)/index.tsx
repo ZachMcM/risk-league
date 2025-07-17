@@ -29,7 +29,7 @@ export default function Home() {
   const rank = getRank(user?.eloRating!);
 
   return (
-    <ScrollContainer className="py-24">
+    <ScrollContainer className="pt-24 pb-12">
       <View className="flex flex-1 flex-col gap-8">
         <View className="flex flex-col items-center gap-3">
           <Pfp

@@ -1,16 +1,12 @@
 import { Tabs } from "expo-router";
-import { View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { LogoIcon } from "~/components/ui/logo-icon";
 import PageTitle from "~/components/ui/page-title";
-import { Text } from "~/components/ui/text";
 import { Dices } from "~/lib/icons/Dices";
 import { Home } from "~/lib/icons/Home";
 import { useColorScheme } from "~/lib/useColorScheme";
 
 export default function TabsLayout() {
   const { isDarkColorScheme } = useColorScheme();
-  const insets = useSafeAreaInsets();
 
   return (
     <Tabs

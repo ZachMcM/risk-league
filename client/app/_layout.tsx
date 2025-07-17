@@ -145,7 +145,6 @@ export function RootNavigatior() {
       <Stack.Screen
         name="matchmaking/[id]"
         options={{
-          presentation: "modal",
           headerShown: false,
         }}
       />

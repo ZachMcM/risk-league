@@ -9,13 +9,14 @@ export default function Layout() {
         <Stack.Screen
           name="index"
           options={{
-            header: (_) => <PageTitle title="Match" back />,
+            header: (_) => <PageTitle title="Match" back="/(tabs)/matches" />,
           }}
         />
         <Stack.Screen
           name="messages"
           options={{
             headerShown: false,
+            presentation: "modal"
           }}
         />
       </Stack>
