@@ -16,7 +16,14 @@ export default function Layout() {
           name="messages"
           options={{
             headerShown: false,
-            presentation: "modal"
+            presentation: "modal",
+          }}
+        />
+        <Stack.Screen
+          name="players/[id]"
+          options={{
+            headerShown: false,
+            presentation: "modal",
           }}
         />
       </Stack>

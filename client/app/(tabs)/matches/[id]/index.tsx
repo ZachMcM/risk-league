@@ -12,7 +12,7 @@ import { getMatch, getAllProps } from "~/endpoints";
 import { MessageCircle } from "~/lib/icons/MessageCircle";
 
 export default function Match() {
-  const searchParams = useLocalSearchParams() as { id: string };
+  const searchParams = useLocalSearchParams<{ id: string }>();
   const id = parseInt(searchParams.id);
 
   const router = useRouter();
