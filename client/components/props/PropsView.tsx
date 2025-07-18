@@ -5,6 +5,7 @@ import { Text } from "../ui/text";
 import { Badge } from "../ui/badge";
 import moment from "moment";
 import { Button } from "../ui/button";
+import { cn } from "~/lib/utils";
 
 export default function PropsView({ props }: { props: Prop[] }) {
   console.log(props);
@@ -23,7 +24,7 @@ export default function PropsView({ props }: { props: Prop[] }) {
 function PropCard({ prop }: { prop: Prop }) {
   return (
     <Card className="w-full">
-      <CardContent className="p-6 flex flex-col items-center gap-4">
+      <CardContent className="p-4 flex flex-col items-center gap-4">
         <View className="flex flex-col items-center gap-1">
           <View className="flex flex-row items-center gap-2">
             <Badge variant="secondary">
@@ -45,7 +46,7 @@ function PropCard({ prop }: { prop: Prop }) {
         </View>
         <View className="flex flex-row items-center justify-center gap-2">
           {prop.pickOptions?.map((option, i) => (
-            <Button className="h-10 px-4" size="sm" variant="secondary" key={`${prop.id}_option_${i}`}>
+            <Button variant="secondary" className={cn("h-10 px-4 flex-grow flex-1")} size="sm" key={`${prop.id}_option_${i}`}>
               <Text className="capitalize font-semibold">{option}</Text>
             </Button>
           ))}

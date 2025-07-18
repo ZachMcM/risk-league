@@ -135,9 +135,9 @@ function MatchUserCard({
             <Text className="font-medium text-muted-foreground">Change</Text>
           </View>
         </View>
-        {/* <View className="flex flex-row justify-between items-center  pt-4 border-t border-border/50">
+        <View className="flex flex-row justify-between items-center  pt-4 border-t border-border/50">
           <View className="flex flex-col items-center">
-            <Text className="text-success font-bold text-2xl">
+            <Text className="font-bold text-2xl">
               {matchUser.parlaysHit}
             </Text>
             <Text className="text-sm font-medium text-muted-foreground">
@@ -145,7 +145,7 @@ function MatchUserCard({
             </Text>
           </View>
           <View className="flex flex-col items-center">
-            <Text className="text-destructive font-bold text-2xl">
+            <Text className="font-bold text-2xl">
               {matchUser.parlaysHit}
             </Text>
             <Text className="text-sm font-medium text-muted-foreground">
@@ -181,7 +181,7 @@ function MatchUserCard({
               Win Rate
             </Text>
           </View>
-        </View> */}
+        </View>
       </CardContent>
     </Card>
   );

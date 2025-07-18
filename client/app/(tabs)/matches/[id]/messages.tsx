@@ -2,17 +2,16 @@ import { useState } from "react";
 import { ActivityIndicator, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import MessagesList from "~/components/matches/MessagesList";
-import { useMatch } from "~/components/providers/MatchProvider";
+import { useMessages } from "~/components/providers/MessagesProvider";
 import { Container } from "~/components/ui/container";
 import { Input } from "~/components/ui/input";
 import { Text } from "~/components/ui/text";
 
 export default function Messages() {
   const insets = useSafeAreaInsets();
-  const { sendMessage, isConnected } = useMatch();
+  const { sendMessage, isConnected, messagesPending } = useMessages();
   const [inputValue, setInputValue] = useState("");
 
-  const { messagesPending } = useMatch();
 
   const handleSendMessage = () => {
     if (inputValue.trim() && isConnected) {

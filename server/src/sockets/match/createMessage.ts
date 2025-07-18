@@ -26,6 +26,8 @@ export async function createMessage(
       content: true,
       createdAt: true,
       id: true,
+      userId: true,
+      matchId: true
     },
     with: {
       user: {

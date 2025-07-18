@@ -1,10 +1,10 @@
 import { Stack } from "expo-router";
-import { MatchProvider } from "~/components/providers/MatchProvider";
+import { MessagesProvider } from "~/components/providers/MessagesProvider";
 import PageTitle from "~/components/ui/page-title";
 
 export default function Layout() {
   return (
-    <MatchProvider>
+    <MessagesProvider>
       <Stack>
         <Stack.Screen
           name="index"
@@ -27,6 +27,6 @@ export default function Layout() {
           }}
         />
       </Stack>
-    </MatchProvider>
+    </MessagesProvider>
   );
 }

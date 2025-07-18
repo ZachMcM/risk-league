@@ -17,16 +17,16 @@ import Pfp from "../ui/pfp";
 import { Text } from "../ui/text";
 import { useSession } from "./SessionProvider";
 
-export type MatchProviderTypes = {
+export type MessagesProviderTypes = {
   messages: MatchMessage[] | undefined;
   sendMessage: (content: string) => void;
   isConnected: boolean;
   messagesPending: boolean;
 };
 
-const MatchContext = createContext<MatchProviderTypes | null>(null);
+const MessagesContext = createContext<MessagesProviderTypes | null>(null);
 
-export function MatchProvider({ children }: { children: ReactNode }) {
+export function MessagesProvider({ children }: { children: ReactNode }) {
   const searchParams = useLocalSearchParams() as { id: string };
   const id = parseInt(searchParams.id);
 
@@ -97,9 +97,6 @@ export function MatchProvider({ children }: { children: ReactNode }) {
           </View>
         );
       }
-      queryClient.invalidateQueries({
-        queryKey: ["match", "messages", id],
-      });
     });
 
     socket.on("message-error", (error: { error: string }) => {
@@ -113,7 +110,7 @@ export function MatchProvider({ children }: { children: ReactNode }) {
   }, [session?.user.id, id]);
 
   return (
-    <MatchContext.Provider
+    <MessagesContext.Provider
       value={{
         messages,
         sendMessage,
@@ -122,10 +119,10 @@ export function MatchProvider({ children }: { children: ReactNode }) {
       }}
     >
       {children}
-    </MatchContext.Provider>
+    </MessagesContext.Provider>
   );
 }
 
-export function useMatch() {
-  return useContext(MatchContext) as MatchProviderTypes;
+export function useMessages() {
+  return useContext(MessagesContext) as MessagesProviderTypes;
 }

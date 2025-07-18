@@ -4,10 +4,10 @@ import { Text } from "~/components/ui/text";
 import { cn, timeAgo } from "~/lib/utils";
 import { useSession } from "../providers/SessionProvider";
 import Pfp from "../ui/pfp";
-import { useMatch } from "../providers/MatchProvider";
+import { useMessages } from "../providers/MessagesProvider";
 
 export default function MessagesList() {
-  const { messages } = useMatch();
+  const { messages } = useMessages();
   const { session } = useSession();
   const scrollViewRef = useRef<ScrollView>(null);
 
@@ -16,6 +16,7 @@ export default function MessagesList() {
     scrollViewRef.current?.scrollToEnd({ animated: true });
   }, [messages]);
 
+
   return (
     <ScrollView
       ref={scrollViewRef}
@@ -23,7 +24,7 @@ export default function MessagesList() {
       showsVerticalScrollIndicator={false}
     >
       {messages?.map((message, index) => {
-        const isCurrentUser = session?.user.id && message.userId === session?.user.id;
+        const isCurrentUser = session?.user.id && message.user.id === session.user.id;
 
         return (
           <View
