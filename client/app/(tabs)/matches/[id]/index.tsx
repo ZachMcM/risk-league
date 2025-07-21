@@ -8,7 +8,7 @@ import { Button } from "~/components/ui/button";
 import { ScrollContainer } from "~/components/ui/scroll-container";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { Text } from "~/components/ui/text";
-import { getAllProps, getMatch, getTodayProps } from "~/endpoints";
+import { getMatch, getTodayProps } from "~/endpoints";
 import { MessageCircle } from "~/lib/icons/MessageCircle";
 
 export default function Match() {
@@ -24,7 +24,6 @@ export default function Match() {
 
   const { data: props, isPending: isPropsPending } = useQuery({
     queryKey: ["props"],
-    // TODO
     queryFn: async () => await getTodayProps(match?.gameMode!),
     enabled: !!match,
   });

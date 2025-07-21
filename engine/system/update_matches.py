@@ -62,7 +62,7 @@ def update_matches():
         all_parays_resolved = True
         for user in match.match_users:
             for parlay in user.parlays:
-                if parlay.status == "not_resolved":
+                if not parlay.resolved:
                     all_parays_resolved = False
 
         if all_parays_resolved:
