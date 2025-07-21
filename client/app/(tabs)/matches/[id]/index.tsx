@@ -25,7 +25,7 @@ export default function Match() {
   const { data: props, isPending: isPropsPending } = useQuery({
     queryKey: ["props"],
     // TODO
-    queryFn: async () => await getAllProps(match?.gameMode!),
+    queryFn: async () => await getTodayProps(match?.gameMode!),
     enabled: !!match,
   });
 
