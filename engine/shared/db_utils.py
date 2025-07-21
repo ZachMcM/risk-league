@@ -3,7 +3,7 @@ import sys
 from datetime import datetime
 
 from shared.my_types import Leagues
-from shared.pubsub_utils import publish_message
+from shared.redis_pubsub_utils import publish_message
 from shared.tables import (
     MlbGames,
     MlbPlayerStats,
@@ -257,7 +257,6 @@ def insert_prop(
     stat: str,
     game_start_time: datetime,
     league: Leagues,
-    opp_team_id: int,
     pick_options: list[str] = None,
 ) -> None:
     """Insert a prop into the database.
@@ -302,7 +301,6 @@ def insert_prop(
                 game_start_time=game_start_time,
                 league=league,
                 pick_options=pick_options,
-                opp_team_id=opp_team_id
             )
             session.add(new_prop)
 

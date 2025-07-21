@@ -4,7 +4,7 @@ import { sql } from "drizzle-orm"
 export const leagueType = pgEnum("league_type", ['nba', 'nfl', 'mlb'])
 export const matchGameMode = pgEnum("match_game_mode", ['nba', 'nfl', 'mlb'])
 export const matchStatus = pgEnum("match_status", ['not_resolved', 'loss', 'win', 'draw', 'disqualified'])
-export const parlayStatus = pgEnum("parlay_status", ['hit', 'missed', 'not_resolved'])
+export const parlayType = pgEnum("parlay_type", ['perfect', 'flex'])
 export const pickStatus = pgEnum("pick_status", ['hit', 'missed', 'not_resolved'])
 export const pickType = pgEnum("pick_type", ['over', 'under'])
 
@@ -249,20 +249,6 @@ export const matchMessages = pgTable("match_messages", {
 		}),
 ]);
 
-export const parlays = pgTable("parlays", {
-	status: parlayStatus().default('not_resolved').notNull(),
-	stake: doublePrecision().notNull(),
-	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
-	id: serial().primaryKey().notNull(),
-	matchUserId: integer("match_user_id"),
-}, (table) => [
-	foreignKey({
-			columns: [table.matchUserId],
-			foreignColumns: [matchUsers.id],
-			name: "fk_match_user"
-		}),
-]);
-
 export const teams = pgTable("teams", {
 	id: integer().primaryKey().notNull(),
 	fullName: text("full_name"),
@@ -339,17 +325,11 @@ export const props = pgTable("props", {
 	pickOptions: text("pick_options").array().default(["RAY['over'::text", "'under'::tex"]),
 	id: serial().primaryKey().notNull(),
 	playerId: integer("player_id"),
-	oppTeamId: integer("opp_team_id"),
 }, (table) => [
 	foreignKey({
 			columns: [table.playerId],
 			foreignColumns: [players.id],
 			name: "fk_player"
-		}),
-	foreignKey({
-			columns: [table.oppTeamId],
-			foreignColumns: [teams.id],
-			name: "fk_opp_team"
 		}),
 ]);
 
@@ -359,3 +339,19 @@ export const matches = pgTable("matches", {
 	id: serial().primaryKey().notNull(),
 	gameMode: matchGameMode("game_mode").notNull(),
 });
+
+export const parlays = pgTable("parlays", {
+	stake: doublePrecision().notNull(),
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
+	id: serial().primaryKey().notNull(),
+	matchUserId: integer("match_user_id"),
+	resolved: boolean().default(false),
+	delta: doublePrecision().default(0),
+	type: parlayType().notNull(),
+}, (table) => [
+	foreignKey({
+			columns: [table.matchUserId],
+			foreignColumns: [matchUsers.id],
+			name: "fk_match_user"
+		}),
+]);

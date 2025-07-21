@@ -4,7 +4,7 @@ import sys
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from nba_api.live.nba.endpoints import BoxScore
-from shared.get_today_games import get_today_nba_games as get_today_games
+from shared.game_utils import get_today_nba_games as get_today_games
 from shared.db_utils import update_prop
 from shared.db_session import get_db_session
 from nba.prop_configs import get_nba_stats_list

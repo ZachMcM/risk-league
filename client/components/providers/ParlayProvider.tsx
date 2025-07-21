@@ -1,19 +1,26 @@
 import { createContext, ReactNode, useContext, useState } from "react";
+import { View } from "react-native";
 import { Prop } from "~/types/props";
+import { Text } from "../ui/text";
+import { Button } from "../ui/button";
+import { truncate } from "lodash";
+import { router, useLocalSearchParams } from "expo-router";
+import { toast } from "sonner-native";
 
 type ParlayPick = {
   prop: Prop;
-  option: "over" | "under";
+  pick: string;
 };
 
 export type ParlayProviderTypes = {
   parlayPicks: ParlayPick[];
   addPick: (parlayPick: ParlayPick) => void;
   removePick: (propId: number) => void;
-  updatePick: (propId: number, newPick: "over" | "under") => void;
+  updatePick: (propId: number, newPick: string) => void;
   clearParlay: () => void;
   getParlayCount: () => number;
-  getPickOption: (propId: number) => "over" | "under" | undefined;
+  getPick: (propId: number) => string | undefined;
+  isPropPicked: (propId: number) => boolean;
 };
 
 const ParlayContext = createContext<ParlayProviderTypes | null>(null);
@@ -26,7 +33,7 @@ export function ParlayProvider({ children }: { children: ReactNode }) {
     setParlayPicks(updatedPicks);
   }
 
-  function updatePick(propId: number, newPick: "over" | "under") {
+  function updatePick(propId: number, newPick: string) {
     const updatedPicks = parlayPicks.map((pick) =>
       pick.prop.id === propId ? { ...pick, pick: newPick } : pick
     );
@@ -42,11 +49,24 @@ export function ParlayProvider({ children }: { children: ReactNode }) {
   }
 
   function addPick(parlayPick: ParlayPick) {
+    if (parlayPicks.length + 1 > 6) {
+      toast.error("Sorry, you can't have more than 6 picks")
+      return
+    }
+    const playerExists = parlayPicks.find(pick => pick.prop.player.id == parlayPick.prop.playerId)
+    if (playerExists) {
+      toast.error("Sorry, you can't make multiple picks for the same player")
+      return
+    }
     setParlayPicks([...parlayPicks, parlayPick]);
   }
 
-  function getPickOption(propId: number) {
-    return parlayPicks.find((pick) => pick.prop.id == propId)?.option;
+  function getPick(propId: number) {
+    return parlayPicks.find((pick) => pick.prop.id == propId)?.pick;
+  }
+
+  function isPropPicked(propId: number) {
+    return !!parlayPicks.find((pick) => pick.prop.id == propId);
   }
 
   return (
@@ -58,7 +78,8 @@ export function ParlayProvider({ children }: { children: ReactNode }) {
         updatePick,
         clearParlay,
         getParlayCount,
-        getPickOption
+        getPick,
+        isPropPicked,
       }}
     >
       {children}
@@ -68,4 +89,49 @@ export function ParlayProvider({ children }: { children: ReactNode }) {
 
 export function useParlayPicks() {
   return useContext(ParlayContext) as ParlayProviderTypes;
+}
+
+export function ParlayPickerFooter() {
+  const { parlayPicks } = useParlayPicks();
+
+  if (parlayPicks.length <= 0) {
+    return;
+  }
+
+  const searchParams = useLocalSearchParams<{ id: string }>();
+  const id = parseInt(searchParams.id);
+
+  return (
+    <View className="flex flex-row items-center justify-between gap-4 border-t border-border p-4">
+      {/* TODO replace with images */}
+      <Text className="font-semibold text-muted-foreground">
+        {truncate(
+          parlayPicks
+            .map((pick) => pick.prop.player.name)
+            .filter((e, i, self) => i === self.indexOf(e))
+            .join(", "),
+          {
+            length: 30,
+          }
+        )}
+      </Text>
+      <Button
+        variant="foreground"
+        className="flex flex-row items-center gap-3 rounded-full"
+        onPress={() =>
+          router.navigate({
+            pathname: "/matches/[id]/finalize-parlay",
+            params: { id },
+          })
+        }
+      >
+        <Text>View Entries</Text>
+        <View className="h-8 w-8 rounded-full bg-background flex flex-row justify-center items-center">
+          <Text className="text-foreground font-bold">
+            {parlayPicks.length}
+          </Text>
+        </View>
+      </Button>
+    </View>
+  );
 }

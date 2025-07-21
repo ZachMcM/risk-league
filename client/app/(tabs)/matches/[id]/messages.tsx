@@ -5,13 +5,13 @@ import MessagesList from "~/components/matches/MessagesList";
 import { useMessages } from "~/components/providers/MessagesProvider";
 import { Container } from "~/components/ui/container";
 import { Input } from "~/components/ui/input";
+import ModalContainer from "~/components/ui/modal-container";
 import { Text } from "~/components/ui/text";
 
 export default function Messages() {
   const insets = useSafeAreaInsets();
   const { sendMessage, isConnected, messagesPending } = useMessages();
   const [inputValue, setInputValue] = useState("");
-
 
   const handleSendMessage = () => {
     if (inputValue.trim() && isConnected) {
@@ -21,9 +21,8 @@ export default function Messages() {
   };
 
   return (
-    <Container className="p-0">
-      <View className="flex-1 flex flex-col gap-8 items-center">
-        <View className="rounded-2xl bg-secondary h-2 w-24" />
+    <ModalContainer>
+      <View className="flex flex-1 flex-col">
         {messagesPending ? (
           <ActivityIndicator className="text-foreground" />
         ) : (
@@ -48,6 +47,6 @@ export default function Messages() {
           Keep it friendly and respectful during your match 😁
         </Text>
       </View>
-    </Container>
+    </ModalContainer>
   );
 }

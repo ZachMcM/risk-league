@@ -146,6 +146,7 @@ export function RootNavigatior() {
         name="matchmaking/[id]"
         options={{
           headerShown: false,
+          presentation: "modal"
         }}
       />
     </Stack>

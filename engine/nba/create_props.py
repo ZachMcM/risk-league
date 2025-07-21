@@ -1,18 +1,18 @@
-from shared.utils import setup_logger
 import sys
 from time import time
 from typing import Any
 
 import numpy as np
 import requests
-from sqlalchemy.orm import Session
-from sqlalchemy import or_, select
+from nba.constants import N_GAMES, MPG_SIMGA_COEFF
+from nba.my_types import PlayerData
+from nba.prop_configs import get_nba_stats_list
 
-from nba.my_types import CombinedStat, PlayerData
-from nba.constants import MIN_NUM_STATS, MINUTES_THRESHOLD, N_GAMES, SIGMA_COEFF
-from nba.utils import get_current_season, get_game_type, get_last_season
-from shared.db_session import get_db_session
+# New prop generation system imports
+from nba.prop_generator import NbaPropGenerator
+from nba.utils import get_game_type
 from shared.date_utils import get_eastern_date_formatted
+from shared.db_session import get_db_session
 from shared.db_utils import (
     get_games_by_id,
     get_opposing_team_last_games,
@@ -21,15 +21,12 @@ from shared.db_utils import (
     get_team_last_games,
     insert_prop,
 )
-from shared.my_types import MetricStats
-from shared.tables import NbaGames, NbaPlayerStats, Players
-from shared.utils import round_prop
-
-# New prop generation system imports
-from nba.prop_generator import NbaPropGenerator
-from nba.prop_configs import get_nba_stats_list
 from shared.prop_generation.base import GameData
-
+from shared.tables import NbaGames
+from shared.utils import round_prop, setup_logger
+from sqlalchemy.orm import Session
+from sqlalchemy import select, desc
+from shared.tables import NbaPlayerStats
 
 logger = setup_logger(__name__)
 
@@ -52,183 +49,31 @@ def get_today_schedule(test_date: str = None) -> list[dict[str, Any]]:
     return []
 
 
-# Keep existing eligibility functions for now
-_metric_stats_cache: dict[tuple[str, str], MetricStats] = {}
+_league_mean_mpg_cache = None
 
 
-def get_metric_stats(
-    session: Session, metric: str, position: str, use_playoffs: bool
-) -> MetricStats:
-    """Gets the league mean and standard deviation of a specific stat"""
-    cache_key = (metric, position)
-    if cache_key in _metric_stats_cache:
-        return _metric_stats_cache[cache_key]
-
-    def build_stmt(game_type_filter, season_filter):
-        return (
-            select(NbaPlayerStats)
+def get_league_mean_mpg(session: Session) -> tuple[float, float]:
+    """Gets the league mean minutes per game for the last n_games"""
+    global _league_mean_mpg_cache
+    if _league_mean_mpg_cache is None:
+        mpg = session.execute(
+            select(NbaPlayerStats.min)
             .join(NbaGames, NbaGames.id == NbaPlayerStats.game_id)
-            .join(Players, Players.id == NbaPlayerStats.player_id)
-            .where(*game_type_filter)
-            .where(*season_filter)
-            .where(NbaPlayerStats.min > 0)
-            .where(NbaPlayerStats.player_id.is_not(None))
-            .where(Players.position == position)
-        )
-
-    try:
-        season = get_current_season()
-        game_type = "playoffs" if use_playoffs else "regular_season"
-        stmt = build_stmt(
-            [NbaGames.game_type == game_type],
-            [NbaPlayerStats.season == season],
-        )
-
-        result = session.execute(stmt).scalars().all()
-
-        if len(result) < MIN_NUM_STATS:
-            if use_playoffs:
-                game_type_filter = [
-                    or_(
-                        NbaGames.game_type == "regular_season",
-                        NbaGames.game_type == "playoffs",
-                    )
-                ]
-                season_filter = [NbaPlayerStats.season == season]
-            else:
-                game_type_filter = [NbaGames.game_type == "regular_season"]
-                season_filter = [
-                    or_(
-                        NbaPlayerStats.season == season,
-                        NbaPlayerStats.season == get_last_season(),
-                    )
-                ]
-
-            stmt = build_stmt(game_type_filter, season_filter)
-            result = session.execute(stmt).fetchall()
-
-        stats = [getattr(game, metric) for game in result]
-        metric_stats = {"mean": np.mean(stats), "sd": np.std(stats)}
-        _metric_stats_cache[cache_key] = metric_stats
-        return metric_stats
-
-    except Exception as e:
-        logger.fatal(
-            f"⚠️ Error getting stats for metric {metric} for the {get_current_season()} season, {e}"
-        )
-        sys.exit(1)
+            .where(NbaPlayerStats.min != 0)
+            .order_by(desc(NbaGames.game_date))
+            .limit(N_GAMES)
+        ).scalars().all()
+        _league_mean_mpg_cache = np.mean(mpg), np.std(mpg, ddof=1)
+    return _league_mean_mpg_cache
 
 
-_combined_stats_cache: dict[tuple[tuple[str, ...], str], MetricStats] = {}
-
-
-def get_combined_metric_stats(
-    session: Session, metric_list: list[str], position: str, use_playoffs: bool
-) -> MetricStats:
-    """gets the league mean and standard deviation of combined metrics"""
-    cache_key = (tuple(sorted(metric_list)), position)
-    if cache_key in _combined_stats_cache:
-        return _combined_stats_cache[cache_key]
-
-    def build_stmt(game_type_filter, season_filter):
-        columns = [getattr(NbaPlayerStats, metric) for metric in metric_list]
-        return (
-            select(*columns)
-            .join(NbaGames, NbaGames.id == NbaPlayerStats.game_id)
-            .join(Players, Players.id == NbaPlayerStats.player_id)
-            .where(*game_type_filter)
-            .where(*season_filter)
-            .where(NbaPlayerStats.min > 0)
-            .where(NbaPlayerStats.player_id.is_not(None))
-            .where(Players.position == position)
-        )
-
-    try:
-        season = get_current_season()
-        game_type = "playoffs" if use_playoffs else "regular_season"
-        stmt = build_stmt(
-            [NbaGames.game_type == game_type],
-            [NbaPlayerStats.season == season],
-        )
-        result = session.execute(stmt).fetchall()
-
-        if len(result) < MIN_NUM_STATS:
-            if use_playoffs:
-                game_type_filter = [
-                    or_(
-                        NbaGames.game_type == "regular_season",
-                        NbaGames.game_type == "playoffs",
-                    )
-                ]
-                season_filter = [NbaPlayerStats.season == season]
-            else:
-                game_type_filter = [NbaGames.game_type == "regular_season"]
-                season_filter = [
-                    or_(
-                        NbaPlayerStats.season == season,
-                        NbaPlayerStats.season == get_last_season(),
-                    )
-                ]
-
-            stmt = build_stmt(game_type_filter, season_filter)
-            result = session.execute(stmt).fetchall()
-
-        combined_values = [sum(row) for row in result]
-        stat = {
-            "mean": np.mean(combined_values),
-            "sd": np.std(combined_values),
-        }
-        _combined_stats_cache[cache_key] = stat
-        return stat
-
-    except Exception as e:
-        logger.fatal(
-            f"⚠️ Error getting stats for metrics {metric_list} for the {get_current_season()} season, {e}"
-        )
-        sys.exit(1)
-
-
-def is_prop_eligible(
-    session: Session,
-    stat: str,
-    player_stat_average: float,
-    position: str,
-    mpg: float,
-    use_playoffs=False,
-) -> bool:
+def is_prop_eligible(mpg: float) -> bool:
     """Determine if a player is eligible for a prop on a specific stat."""
-    stat_desc = get_metric_stats(session, stat, position, use_playoffs)
-    return (
-        mpg > MINUTES_THRESHOLD
-        and player_stat_average >= stat_desc["mean"] - SIGMA_COEFF * stat_desc["sd"]
-    )
-
-
-def is_combined_stat_prop_eligible(
-    session: Session,
-    stat: CombinedStat,
-    player_stat_average: float,
-    position: str,
-    mpg: float,
-    use_playoffs=False,
-) -> bool:
-    """Check if a player is eligible for a combined stat prop."""
-    combined_metric_list: list[str] = []
-    if stat == "pra":
-        combined_metric_list = ["pts", "reb", "ast"]
-    elif stat == "pts_ast":
-        combined_metric_list = ["pts", "ast"]
-    elif stat == "reb_ast":
-        combined_metric_list = ["reb", "ast"]
-
-    stat_desc = get_combined_metric_stats(
-        session, combined_metric_list, position, use_playoffs
-    )
-
-    return (
-        mpg > MINUTES_THRESHOLD
-        and player_stat_average >= stat_desc["mean"] - SIGMA_COEFF * stat_desc["sd"]
-    )
+    league_mean_mpg, league_sd_mpg = get_league_mean_mpg()
+    if mpg <= league_mean_mpg + MPG_SIMGA_COEFF * league_sd_mpg:
+        logger.info(f"Skipping player due to low mean mpg.")
+        return False
+    return True
 
 
 def main() -> None:
@@ -329,49 +174,24 @@ def main() -> None:
                 session, games_id_list, "nba", sample_size
             )
 
-            # Calculate means for eligibility (keep existing logic)
-            stat_means = {}
-            for stat in ["pts", "reb", "ast", "three_pm", "blk", "stl", "tov"]:
-                stat_means[stat] = np.mean(
-                    [getattr(game, stat) for game in player_data["last_games"]]
-                )
-
-            # Calculate combined stat means
-            stat_means["pra"] = np.mean(
-                [game.pts + game.ast + game.reb for game in player_data["last_games"]]
-            )
-            stat_means["reb_ast"] = np.mean(
-                [game.reb + game.ast for game in player_data["last_games"]]
-            )
-            stat_means["pts_ast"] = np.mean(
-                [game.pts + game.ast for game in player_data["last_games"]]
-            )
-
             # Get minutes per game
             mpg = np.mean([game.min for game in player_data["last_games"]])
 
             # Check eligibility for each stat
             stat_eligibility = {}
-            for stat in ["pts", "reb", "ast", "three_pm", "blk", "stl", "tov"]:
-                stat_eligibility[stat] = is_prop_eligible(
-                    session,
-                    stat,
-                    stat_means[stat],
-                    player.position,
-                    mpg,
-                    use_playoffs=(not regular_season_only),
-                )
-
-            # Check combined stat eligibility
-            for combined_stat in ["pra", "reb_ast", "pts_ast"]:
-                stat_eligibility[combined_stat] = is_combined_stat_prop_eligible(
-                    session,
-                    combined_stat,
-                    stat_means[combined_stat],
-                    player.position,
-                    mpg,
-                    use_playoffs=(not regular_season_only),
-                )
+            for stat in [
+                "pts",
+                "reb",
+                "ast",
+                "three_pm",
+                "blk",
+                "stl",
+                "tov",
+                "pra",
+                "reb_ast",
+                "pts_ast",
+            ]:
+                stat_eligibility[stat] = is_prop_eligible(mpg=mpg)
 
             # Skip if no props are eligible
             if not any(stat_eligibility.values()):
@@ -412,7 +232,6 @@ def main() -> None:
                                 stat=stat,
                                 game_start_time=player_data["game_start_time"],
                                 league="nba",
-                                opp_team_id=player_data["matchup"],
                             )
                             total_props_generated += 1
                     except Exception as e:
@@ -461,7 +280,6 @@ def main() -> None:
                         stat="pra",
                         game_start_time=player_data["game_start_time"],
                         league="nba",
-                        opp_team_id=player_data["matchup"]
                     )
                     total_props_generated += 1
 
@@ -497,7 +315,6 @@ def main() -> None:
                         stat="pts_ast",
                         game_start_time=player_data["game_start_time"],
                         league="nba",
-                        opp_team_id=player_data["matchup"]
                     )
                     total_props_generated += 1
 
@@ -532,7 +349,6 @@ def main() -> None:
                         stat="reb_ast",
                         game_start_time=player_data["game_start_time"],
                         league="nba",
-                        opp_team_id=player_data["matchup"]
                     )
                     total_props_generated += 1
 

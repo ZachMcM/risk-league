@@ -46,13 +46,12 @@ CREATE TYPE public.match_status AS ENUM (
 
 
 --
--- Name: parlay_status; Type: TYPE; Schema: public; Owner: -
+-- Name: parlay_type; Type: TYPE; Schema: public; Owner: -
 --
 
-CREATE TYPE public.parlay_status AS ENUM (
-    'hit',
-    'missed',
-    'not_resolved'
+CREATE TYPE public.parlay_type AS ENUM (
+    'perfect',
+    'flex'
 );
 
 
@@ -435,11 +434,13 @@ ALTER SEQUENCE public.parlay_picks_new_id_seq OWNED BY public.parlay_picks.id;
 --
 
 CREATE TABLE public.parlays (
-    status public.parlay_status DEFAULT 'not_resolved'::public.parlay_status NOT NULL,
     stake double precision NOT NULL,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
     id integer NOT NULL,
-    match_user_id integer
+    match_user_id integer,
+    resolved boolean DEFAULT false,
+    delta double precision DEFAULT 0,
+    type public.parlay_type NOT NULL
 );
 
 
@@ -495,8 +496,7 @@ CREATE TABLE public.props (
     resolved boolean DEFAULT false NOT NULL,
     pick_options text[] DEFAULT ARRAY['over'::text, 'under'::text],
     id integer NOT NULL,
-    player_id integer,
-    opp_team_id integer
+    player_id integer
 );
 
 
@@ -830,14 +830,6 @@ ALTER TABLE ONLY public.parlays
 
 
 --
--- Name: props fk_opp_team; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.props
-    ADD CONSTRAINT fk_opp_team FOREIGN KEY (opp_team_id) REFERENCES public.teams(id);
-
-
---
 -- Name: mlb_games fk_opponent_team; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -938,4 +930,6 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20250711082421'),
     ('20250713025517'),
     ('20250713194535'),
-    ('20250715010515');
+    ('20250715010515'),
+    ('20250720162735'),
+    ('20250720195013');

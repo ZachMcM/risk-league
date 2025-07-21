@@ -2,7 +2,7 @@ import asyncio
 from shared.utils import setup_logger
 
 from shared.db_session import get_db_session
-from shared.pubsub_utils import listen_for_messages, publish_message
+from shared.redis_pubsub_utils import listen_for_messages, publish_message
 from shared.socket_utils import send_message as send_socket_message
 from shared.tables import ParlayPicks, Props
 from sqlalchemy import select, update

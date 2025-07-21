@@ -24,6 +24,7 @@ export function RankProgress({ rank }: { rank: RankInfo }) {
           </View>
           <Progress
             indicatorClassName="bg-primary"
+            className="bg-primary/10"
             value={rank.progressToNext * 100}
           />
           <View className="flex flex-row gap-4 items-center justify-center">

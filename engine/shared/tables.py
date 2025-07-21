@@ -54,7 +54,6 @@ class Teams(Base):
     mlb_games_: Mapped[List['MlbGames']] = relationship('MlbGames', foreign_keys='[MlbGames.team_id]', back_populates='team')
     nba_games: Mapped[List['NbaGames']] = relationship('NbaGames', back_populates='team')
     players: Mapped[List['Players']] = relationship('Players', back_populates='team')
-    props: Mapped[List['Props']] = relationship('Props', back_populates='opp_team')
 
 
 class Users(Base):
@@ -354,11 +353,13 @@ class Parlays(Base):
         {'schema': 'public'}
     )
 
-    status: Mapped[str] = mapped_column(Enum('hit', 'missed', 'not_resolved', name='parlay_status'), server_default=text("'not_resolved'::parlay_status"))
     stake: Mapped[float] = mapped_column(Double(53))
     id: Mapped[int] = mapped_column(Integer, Sequence('parlays_new_id_seq', schema='public'), primary_key=True)
+    type: Mapped[str] = mapped_column(Enum('perfect', 'flex', name='parlay_type'))
     created_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime(True), server_default=text('CURRENT_TIMESTAMP'))
     match_user_id: Mapped[Optional[int]] = mapped_column(Integer)
+    resolved: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('false'))
+    delta: Mapped[Optional[float]] = mapped_column(Double(53), server_default=text('0'))
 
     match_user: Mapped[Optional['MatchUsers']] = relationship('MatchUsers', back_populates='parlays')
     parlay_picks: Mapped[List['ParlayPicks']] = relationship('ParlayPicks', back_populates='parlay')
@@ -367,7 +368,6 @@ class Parlays(Base):
 class Props(Base):
     __tablename__ = 'props'
     __table_args__ = (
-        ForeignKeyConstraint(['opp_team_id'], ['public.teams.id'], name='fk_opp_team'),
         ForeignKeyConstraint(['player_id'], ['public.players.id'], name='fk_player'),
         PrimaryKeyConstraint('id', name='props_pkey'),
         {'schema': 'public'}
@@ -384,9 +384,7 @@ class Props(Base):
     game_start_time: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime(True))
     pick_options: Mapped[Optional[list]] = mapped_column(ARRAY(Text()), server_default=text("ARRAY['over'::text, 'under'::text]"))
     player_id: Mapped[Optional[int]] = mapped_column(Integer)
-    opp_team_id: Mapped[Optional[int]] = mapped_column(Integer)
 
-    opp_team: Mapped[Optional['Teams']] = relationship('Teams', back_populates='props')
     player: Mapped[Optional['Players']] = relationship('Players', back_populates='props')
     parlay_picks: Mapped[List['ParlayPicks']] = relationship('ParlayPicks', back_populates='prop')
 

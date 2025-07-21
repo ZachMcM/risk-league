@@ -28,15 +28,14 @@ export default function StartMatchButton({
     {
       id: "nba",
       name: "NBA",
-      icon: <NBAIcon />,
+      icon: <NBAIcon height={20} width={20} />,
     },
     {
       id: "mlb",
       name: "MLB",
-      icon: <MLBIcon />,
+      icon: <MLBIcon height={20} width={20} />,
     },
-  ]
-  .filter((mode) => activeLeagues.includes(mode.id));
+  ];
 
   const handleStartGame = () => {
     if (selectedGameMode) {
@@ -47,8 +46,15 @@ export default function StartMatchButton({
     }
   };
 
+  console.log(activeLeagues);
+
+  const isActive = (id: string) => {
+    const league = activeLeagues.find((league) => id == league);
+    return league != undefined;
+  };
+
   return (
-    <Card className="overflow-hidden border-0 shadow-xl bg-gradient-to-br from-card to-card/50 backdrop-blur">
+    <Card>
       <CardContent className="p-6 flex flex-col gap-8">
         <View className="flex flex-col gap-4">
           <Text className="text-center text-muted-foreground font-semibold">
@@ -56,14 +62,14 @@ export default function StartMatchButton({
           </Text>
           <ScrollView
             contentContainerStyle={{
-              display: "flex",
               flexDirection: "row",
               alignItems: "center",
               justifyContent: "center",
               flex: 1,
-              gap: 24,
+              gap: 12,
             }}
             horizontal
+            showsHorizontalScrollIndicator={false}
           >
             {gameModes.length > 0 ? (
               gameModes.map((gameMode) => (
@@ -72,12 +78,17 @@ export default function StartMatchButton({
                   className={cn(
                     "flex flex-row items-center gap-2 border-2 border-border py-2 px-4 rounded-xl",
                     selectedGameMode == gameMode.id &&
-                      "border-primary bg-primary/5"
+                      "border-primary bg-primary/20",
+                    !isActive(gameMode.id) && "opacity-70"
                   )}
-                  onPress={() => setSelectedGameMode(gameMode.id)}
+                  onPress={() => {
+                    if (isActive(gameMode.id)) {
+                      setSelectedGameMode(gameMode.id);
+                    }
+                  }}
                 >
                   {gameMode.icon}
-                  <Text className="text-xl font-bold">{gameMode.name}</Text>
+                  <Text className="text-lg font-bold">{gameMode.name}</Text>
                 </Pressable>
               ))
             ) : (

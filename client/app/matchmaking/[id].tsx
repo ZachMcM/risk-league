@@ -14,6 +14,7 @@ import {
   CardTitle,
 } from "~/components/ui/card";
 import { Container } from "~/components/ui/container";
+import ModalContainer from "~/components/ui/modal-container";
 import { Progress } from "~/components/ui/progress";
 import { Text } from "~/components/ui/text";
 import { Trophy } from "~/lib/icons/Trophy";
@@ -80,7 +81,7 @@ export default function Matchmaking() {
       });
       clearInterval(interval);
       socket.disconnect();
-      router.navigate({
+      router.replace({
         pathname: "/matches/[id]",
         params: { id: matchId },
       });
@@ -94,7 +95,7 @@ export default function Matchmaking() {
       toast.error("Matchmaking failed");
       clearInterval(interval);
       socket.disconnect();
-      router.navigate("/(tabs)");
+      router.replace("/(tabs)");
     });
 
     return () => {
@@ -104,8 +105,8 @@ export default function Matchmaking() {
   }, [userId]);
 
   return (
-    <Container className="pt-0 items-center">
-      <View className="flex flex-1 justify-center items-center">
+    <ModalContainer>
+      <View className="flex flex-1 justify-center items-center p-6">
         <Card>
           <CardHeader className="flex flex-col items-center gap-4">
             <View className="relative mx-auto w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center">
@@ -123,7 +124,7 @@ export default function Matchmaking() {
             <View className="flex flex-col gap-4">
               <Progress
                 value={progress}
-                className="bg-primary/10 h-3"
+                className="bg-primary/10"
                 indicatorClassName="bg-primary"
               />
               <Text className="text-center font-medium text-muted-foreground text-lg">
@@ -137,7 +138,7 @@ export default function Matchmaking() {
                 onPress={() => {
                   socketRef.current?.emit("cancel-search");
                   socketRef.current?.disconnect();
-                  router.navigate("/(tabs)");
+                  router.replace("/(tabs)");
                 }}
                 size="lg"
                 variant="outline"
@@ -150,6 +151,6 @@ export default function Matchmaking() {
           </CardContent>
         </Card>
       </View>
-    </Container>
+    </ModalContainer>
   );
 }

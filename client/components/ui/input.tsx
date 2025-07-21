@@ -16,6 +16,8 @@ function Input({
         props.editable === false && 'opacity-50 web:cursor-not-allowed',
         className
       )}
+      cursorColor="hsl(324.9505 80.8% 50.9804%)"
+      selectionColor="hsl(324.9505 80.8% 50.9804%)"
       placeholderClassName={cn('text-muted-foreground', placeholderClassName)}
       {...props}
     />

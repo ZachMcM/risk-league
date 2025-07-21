@@ -8,9 +8,10 @@ export type MatchStatus =
   | "win";
 
 export type MatchUser = {
-  parlaysHit: number;
-  parlaysMissed: number;
+  parlaysWon: number;
+  parlaysLost: number;
   parlaysInProgress: number;
+  potentialPayout: number,
   id: number;
   createdAt: string | null;
   balance: number;
@@ -25,7 +26,7 @@ export type Match = {
   id: number;
   createdAt: string | null;
   resolved: boolean;
-  gameMode: "nba" | "nfl" | "mlb";
+  gameMode: "nba" | "mlb";
   matchUsers: MatchUser[];
 };
 

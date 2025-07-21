@@ -10,8 +10,6 @@ function Container({
   children?: ReactNode;
   className?: string;
 }) {
-  const insets = useSafeAreaInsets();
-
   return (
     <KeyboardAvoidingView className="flex-1 flex" behavior="padding">
       <View

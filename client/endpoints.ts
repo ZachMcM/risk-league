@@ -2,6 +2,7 @@ import { deleteItemAsync, getItemAsync, setItemAsync } from "expo-secure-store";
 import { User } from "./types/user";
 import { Match, MatchMessage } from "./types/matches";
 import { Prop } from "./types/props";
+import { Parlay } from "./types/parlays";
 
 export type HttpRequestParams = {
   endpoint: string;
@@ -200,7 +201,7 @@ export async function getMatchMessages(id: number): Promise<MatchMessage[]> {
   return data;
 }
 
-export async function getTodayProps(league: "nba" | "nfl" | "mlb"): Promise<Prop[]> {
+export async function getTodayProps(league: "nba" | "mlb"): Promise<Prop[]> {
   const res = await httpRequest({
     endpoint: `/props/today?league=${league}`,
     method: "GET",
@@ -216,7 +217,7 @@ export async function getTodayProps(league: "nba" | "nfl" | "mlb"): Promise<Prop
   return data;
 }
 
-export async function getAllProps(league: "nba" | "nfl" | "mlb"): Promise<Prop[]> {
+export async function getAllProps(league: "nba" | "mlb"): Promise<Prop[]> {
   const res = await httpRequest({
     endpoint: `/props/all?league=${league}`,
     method: "GET",
@@ -246,4 +247,45 @@ export async function getActiveLeagues(): Promise<string[]> {
   }
 
   return data;
+}
+
+export async function getParlays(
+  matchId: string,
+  userId: string
+): Promise<Parlay> {
+  const res = await httpRequest({
+    endpoint: `/parlays/${matchId}?userId=${userId}`,
+    method: "GET",
+  });
+
+  const data = await res.json();
+  console.log(data);
+
+  if (!res.ok) {
+    throw new Error(data);
+  }
+
+  return data;
+}
+
+export async function postParlay(
+  matchId: number,
+  parlay: {
+    type: string
+    stake: number;
+    picks: { prop: Prop; pick: string }[];
+  }
+) {
+  const res = await httpRequest({
+    endpoint: `/parlays/${matchId}`,
+    method: "POST",
+    body: JSON.stringify(parlay),
+  });
+
+  const data = await res.json();
+  console.log(data);
+
+  if (!data) {
+    throw new Error(data);
+  }
 }

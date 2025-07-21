@@ -18,7 +18,6 @@ export const teamsRelations = relations(teams, ({many}) => ({
 		relationName: "mlbGames_teamId_teams_id"
 	}),
 	players: many(players),
-	props: many(props),
 }));
 
 export const nbaPlayerStatsRelations = relations(nbaPlayerStats, ({one}) => ({
@@ -100,14 +99,6 @@ export const matchMessagesRelations = relations(matchMessages, ({one}) => ({
 	}),
 }));
 
-export const parlaysRelations = relations(parlays, ({one, many}) => ({
-	matchUser: one(matchUsers, {
-		fields: [parlays.matchUserId],
-		references: [matchUsers.id]
-	}),
-	parlayPicks: many(parlayPicks),
-}));
-
 export const parlayPicksRelations = relations(parlayPicks, ({one}) => ({
 	parlay: one(parlays, {
 		fields: [parlayPicks.parlayId],
@@ -119,14 +110,18 @@ export const parlayPicksRelations = relations(parlayPicks, ({one}) => ({
 	}),
 }));
 
+export const parlaysRelations = relations(parlays, ({one, many}) => ({
+	parlayPicks: many(parlayPicks),
+	matchUser: one(matchUsers, {
+		fields: [parlays.matchUserId],
+		references: [matchUsers.id]
+	}),
+}));
+
 export const propsRelations = relations(props, ({one, many}) => ({
 	parlayPicks: many(parlayPicks),
 	player: one(players, {
 		fields: [props.playerId],
 		references: [players.id]
-	}),
-	team: one(teams, {
-		fields: [props.oppTeamId],
-		references: [teams.id]
 	}),
 }));

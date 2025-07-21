@@ -4,6 +4,10 @@ import { db } from "../drizzle";
 import { matches, matchMessages, matchUsers, parlays } from "../drizzle/schema";
 import { logger } from "../logger";
 import { authMiddleware } from "./auth";
+import {
+  getFlexMultiplier,
+  getPerfectPlayMultiplier,
+} from "../utils/parlayMultipliers";
 
 export const matchesRoute = Router();
 
@@ -26,7 +30,11 @@ matchesRoute.get("/matches", authMiddleware, async (req, res) => {
                     eloRating: true,
                   },
                 },
-                parlays: true,
+                parlays: {
+                  with: {
+                    parlayPicks: true,
+                  },
+                },
               },
             },
           },
@@ -38,13 +46,28 @@ matchesRoute.get("/matches", authMiddleware, async (req, res) => {
       ...userMatch.match,
       matchUsers: userMatch.match?.matchUsers.map((mu) => ({
         ...mu,
-        parlaysHit: mu.parlays.filter((parlay) => parlay.status == "hit")
-          .length,
-        parlaysMissed: mu.parlays.filter((parlay) => parlay.status == "missed")
-          .length,
-        parlaysInProgress: mu.parlays.filter(
-          (parlay) => parlay.status == "not_resolved"
+        parlaysWon: mu.parlays.filter(
+          (parlay) => parlay.delta && parlay.delta > 0
         ).length,
+        parlaysLost: mu.parlays.filter(
+          (parlay) => parlay.delta && parlay.delta < 0
+        ).length,
+        parlaysInProgress: mu.parlays.filter((parlay) => parlay.resolved)
+          .length,
+        potentialPayout: mu.parlays
+          .filter((parlay) => !parlay.resolved)
+          .reduce(
+            (accum, curr) =>
+              accum +
+              curr.stake *
+                (curr.type == "flex"
+                  ? getFlexMultiplier(
+                      curr.parlayPicks.length,
+                      curr.parlayPicks.length
+                    )
+                  : getPerfectPlayMultiplier(curr.parlayPicks.length)),
+            0
+          ),
       })),
     }));
 
@@ -72,7 +95,11 @@ matchesRoute.get("/matches/:id", authMiddleware, async (req, res) => {
                 eloRating: true,
               },
             },
-            parlays: true,
+            parlays: {
+              with: {
+                parlayPicks: true,
+              },
+            },
           },
         },
       },
@@ -82,13 +109,28 @@ matchesRoute.get("/matches/:id", authMiddleware, async (req, res) => {
       ...match,
       matchUsers: match?.matchUsers.map((mu) => ({
         ...mu,
-        parlaysHit: mu.parlays.filter((parlay) => parlay.status == "hit")
-          .length,
-        parlaysMissed: mu.parlays.filter((parlay) => parlay.status == "missed")
-          .length,
-        parlaysInProgress: mu.parlays.filter(
-          (parlay) => parlay.status == "not_resolved"
+        parlaysWon: mu.parlays.filter(
+          (parlay) => parlay.delta && parlay.delta > 0
         ).length,
+        parlaysLost: mu.parlays.filter(
+          (parlay) => parlay.delta && parlay.delta < 0
+        ).length,
+        parlaysInProgress: mu.parlays.filter((parlay) => !parlay.resolved)
+          .length,
+        potentialPayout: mu.parlays
+          .filter((parlay) => !parlay.resolved)
+          .reduce(
+            (accum, curr) =>
+              accum +
+              curr.stake *
+                (curr.type == "flex"
+                  ? getFlexMultiplier(
+                      curr.parlayPicks.length,
+                      curr.parlayPicks.length
+                    )
+                  : getPerfectPlayMultiplier(curr.parlayPicks.length)),
+            0
+          ),
       })),
     };
 

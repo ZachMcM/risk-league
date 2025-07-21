@@ -27,7 +27,7 @@ activeLeaguesRoute.get("/active-leagues", authMiddleware, async (_, res) => {
     activeLeagues.push("nba");
   }
 
-  if (mlbRes && mlbRes.length > 0) {
+  if (mlbRes && mlbRes.totalGames > 0) {
     activeLeagues.push("mlb");
   }
 

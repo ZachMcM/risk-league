@@ -5,10 +5,8 @@ import asyncio
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from shared.db_session import get_db_session
-from shared.date_utils import get_today_eastern
-from shared.get_today_games import get_today_mlb_games, get_today_nba_games
 from shared.tables import Matches
-from sqlalchemy import select, func, or_
+from sqlalchemy import select
 from system.constants import K, MIN_BETS_REQ
 from shared.socket_utils import send_message as send_socket_message
 
@@ -46,50 +44,33 @@ def recalculate_elo(current_elos: list[int], winner: int | None) -> list[int]:
 
 
 def update_matches():
-    session = get_db_session()
     """Updates all the matches if all today's games are finished.
-    
-    Function checks if all the games for each sport today are finalized. 
+
+    Function checks if all the games for each sport today are finalized.
     If not return out. If so we find every match created today and updates it.
     """
-    mlb_games = get_today_mlb_games()
-    nba_games = get_today_nba_games()
+    session = get_db_session()
 
-    all_mlb_games_final = True if len(mlb_games) > 0 else None
-    all_nba_games_final = True if len(nba_games) > 0 else None
+    logger.info("Finding matches to update")
 
-    for game in nba_games:
-        if game["gameStatusText"] != "Final":
-            all_nba_games_final = False
-
-    for game in mlb_games:
-        status = game.get("status")
-        if status != "Final":
-            all_mlb_games_final = False
-
-    or_conditions = []
-    if all_mlb_games_final:
-        or_conditions.append(Matches.game_mode == "mlb")
-
-    if all_nba_games_final:
-        or_conditions.append(Matches.game_mode == "nba")
-        
-    if not or_conditions:
-        logger.info("No games to end")
-        return
-
-    matches = (
-        session.execute(
-            select(Matches)
-            .where(func.date(Matches.created_at) == get_today_eastern())
-            .where(or_(*or_conditions))
-            .where(~Matches.resolved)
-        )
-        .scalars()
-        .all()
+    matchesToUpdate = []
+    unResolvedMatches = (
+        session.execute(select(Matches).where(~Matches.resolved)).scalars().all()
     )
 
-    for match in matches:
+    for match in unResolvedMatches:
+        all_parays_resolved = True
+        for user in match.match_users:
+            for parlay in user.parlays:
+                if parlay.status == "not_resolved":
+                    all_parays_resolved = False
+
+        if all_parays_resolved:
+            matchesToUpdate.append(match)
+
+    logger.info(f"{len(matchesToUpdate)} Matches to update")
+
+    for match in matchesToUpdate:
         match_users = match.match_users
         user1 = match_users[0]
         user2 = match_users[1]

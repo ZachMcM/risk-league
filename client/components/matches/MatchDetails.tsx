@@ -61,6 +61,9 @@ function MatchUserCard({
   const percentIncrease =
     ((matchUser.balance - startingBalance) / startingBalance) * 100;
 
+  const totalParlays =
+    matchUser.parlaysWon + matchUser.parlaysLost + matchUser.parlaysInProgress;
+
   return (
     <Card className="w-full">
       <CardContent className="p-6 flex flex-col gap-4">
@@ -95,7 +98,7 @@ function MatchUserCard({
           <View className="flex flex-col items-center">
             <Text
               className={cn(
-                "font-bold text-3xl",
+                "font-bold text-2xl",
                 status == "winning" && "text-success",
                 status == "losing" && "text-destructive"
               )}
@@ -103,6 +106,14 @@ function MatchUserCard({
               ${matchUser.balance.toFixed(2)}
             </Text>
             <Text className="font-medium text-muted-foreground">Balance</Text>
+          </View>
+          <View className="flex flex-col items-center">
+            <Text className="font-bold text-2xl">
+              ${matchUser.potentialPayout.toFixed(2)}
+            </Text>
+            <Text className="font-medium text-muted-foreground">
+              Potential Payout
+            </Text>
           </View>
           <View className="flex flex-col items-center">
             <View className="flex flex-row gap-2 items-center">
@@ -124,32 +135,28 @@ function MatchUserCard({
               )}
               <Text
                 className={cn(
-                  "font-bold text-3xl",
+                  "font-bold text-2xl",
                   percentIncrease > 0 && "text-success",
                   percentIncrease < 0 && "text-destructive"
                 )}
               >
-                {percentIncrease}%
+                {percentIncrease.toFixed(2)}%
               </Text>
             </View>
             <Text className="font-medium text-muted-foreground">Change</Text>
           </View>
         </View>
-        <View className="flex flex-row justify-between items-center  pt-4 border-t border-border/50">
+        <View className="flex flex-row justify-between items-center pt-4 border-t border-border/50">
           <View className="flex flex-col items-center">
-            <Text className="font-bold text-2xl">
-              {matchUser.parlaysHit}
-            </Text>
+            <Text className="font-bold text-2xl">{matchUser.parlaysWon}</Text>
             <Text className="text-sm font-medium text-muted-foreground">
-              Hits
+              Wins
             </Text>
           </View>
           <View className="flex flex-col items-center">
-            <Text className="font-bold text-2xl">
-              {matchUser.parlaysHit}
-            </Text>
+            <Text className="font-bold text-2xl">{matchUser.parlaysLost}</Text>
             <Text className="text-sm font-medium text-muted-foreground">
-              Misses
+              Losses
             </Text>
           </View>
           <View className="flex flex-col items-center">
@@ -161,21 +168,14 @@ function MatchUserCard({
             </Text>
           </View>
           <View className="flex flex-col items-center">
-            <Text className="font-bold text-2xl">
-              {matchUser.parlaysHit +
-                matchUser.parlaysMissed +
-                matchUser.parlaysInProgress}
-            </Text>
+            <Text className="font-bold text-2xl">{totalParlays}</Text>
             <Text className="text-sm font-medium text-muted-foreground">
               Total
             </Text>
           </View>
           <View className="flex flex-col items-center">
             <Text className="font-bold text-2xl">
-              {matchUser.parlaysHit +
-                matchUser.parlaysMissed +
-                matchUser.parlaysInProgress}
-              %
+              {totalParlays == 0 ? 0 : matchUser.parlaysWon / totalParlays}%
             </Text>
             <Text className="text-sm font-medium text-muted-foreground">
               Win Rate

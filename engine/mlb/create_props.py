@@ -4,14 +4,14 @@ from time import time
 
 import statsapi
 import numpy as np
-from mlb.constants import N_GAMES, SIGMA_COEFF
+from mlb.constants import N_GAMES, ABS_SIGMA_COEFF
 from mlb.my_types import PlayerData
 from mlb.prop_configs import get_mlb_stats_list
 
 # New prop generation system imports
 from mlb.prop_generator import MlbPropGenerator
 from shared.db_session import get_db_session
-from shared.date_utils import get_eastern_year, get_today_eastern
+from shared.date_utils import get_today_eastern
 from shared.db_utils import (
     get_games_by_id,
     get_opposing_team_last_games,
@@ -31,17 +31,18 @@ _league_mean_at_bats_cache = None
 
 
 def get_league_at_bats_data(session: Session) -> tuple[float, float]:
+    """Gets the mean at bats per game per hitter for the last n_games"""
     global _league_mean_at_bats_cache
     if _league_mean_at_bats_cache is None:
-        """Gets the mean at bats per game per hitter for the current season"""
-        season = get_eastern_year()
         at_bats = (
             session.execute(
                 select(MlbPlayerStats.at_bats)
                 .join(Players, Players.id == MlbPlayerStats.player_id)
+                .join(MlbGames, MlbGames.id == MlbPlayerStats.game_id)
                 .where(MlbPlayerStats.at_bats != 0)
-                .where(MlbPlayerStats.season == season)
                 .where(Players.position != "Pitcher")
+                .order_by(desc(MlbGames.game_date))
+                .limit(N_GAMES)
             )
             .scalars()
             .all()
@@ -50,28 +51,12 @@ def get_league_at_bats_data(session: Session) -> tuple[float, float]:
     return _league_mean_at_bats_cache
 
 
-def get_player_mean_at_bats(session: Session, player_id: int) -> float:
-    """Gets a players at bats per game over the last n games"""
-    at_bats = (
-        session.execute(
-            select(MlbPlayerStats.at_bats)
-            .join(MlbGames, MlbGames.id == MlbPlayerStats.game_id)
-            .where(MlbPlayerStats.player_id == player_id)
-            .order_by(desc(MlbGames.game_date))
-            .limit(N_GAMES)
-        )
-        .scalars()
-        .all()
-    )
-
-    if at_bats is None:
-        return 0
-
-    return np.mean(at_bats)
-
-
 def is_prop_eligible(
-    session: Session, metric: str, player: Players, probable_pitchers: list[str]
+    session: Session,
+    metric: str,
+    player: Players,
+    probable_pitchers: list[str],
+    mean_at_bats,
 ) -> bool:
     """Determine if a player is eligible for a prop based on their position."""
     # For pitchers, only allow pitching stats
@@ -103,7 +88,7 @@ def is_prop_eligible(
                 return True
             return False
         return True
-            
+
     # For batting stats, exclude pitchers
     if metric in ["hits", "home_runs", "doubles", "triples", "rbi", "strikeouts"]:
         if player.position == "Pitcher":
@@ -112,10 +97,9 @@ def is_prop_eligible(
             )
             return False
 
-        mean_at_bats = get_player_mean_at_bats(session, player.id)
         league_mean_at_bats, league_sd_at_bats = get_league_at_bats_data(session)
 
-        if mean_at_bats <= league_mean_at_bats + SIGMA_COEFF * league_sd_at_bats:
+        if mean_at_bats <= league_mean_at_bats + ABS_SIGMA_COEFF * league_sd_at_bats:
             logger.info(f"Skipping player {player.id}, due to low mean at bats.")
             return False
         return True
@@ -209,7 +193,7 @@ def main() -> None:
         player_data_list: list[PlayerData] = []
         team_games_cache: dict[str, list[MlbGames]] = {}
         total_props_generated = 0
-        
+
         probable_pitchers_dict: dict[str, list[str]] = {}
 
         # Collect player data
@@ -217,8 +201,11 @@ def main() -> None:
             logger.info(
                 f"Getting initial game data for game {game['game_id']} {i + 1}/{len(schedule)}"
             )
-            
-            probable_pitchers = [game["home_probable_pitcher"], game["away_probable_pitcher"]]
+
+            probable_pitchers = [
+                game["home_probable_pitcher"],
+                game["away_probable_pitcher"],
+            ]
             probable_pitchers_dict[game["game_id"]] = probable_pitchers
 
             home_team_id = int(game["home_id"])
@@ -259,14 +246,20 @@ def main() -> None:
 
             # Get available stats from auto-registration system
             available_stats = get_mlb_stats_list()
-            
+
             probable_pitchers = probable_pitchers_dict[player_data["game_id"]]
+
+            mean_at_bats = np.mean([game.at_bats for game in player_data["last_games"]])
 
             # Check stat eligibility
             stat_eligibility = {}
             for stat in available_stats:
                 stat_eligibility[stat] = is_prop_eligible(
-                    session, stat, player, probable_pitchers
+                    session=session,
+                    metric=stat,
+                    player=player,
+                    probable_pitchers=probable_pitchers,
+                    mean_at_bats=mean_at_bats,
                 )
 
             # Skip if no props are eligible
@@ -330,7 +323,6 @@ def main() -> None:
                                 game_start_time=player_data["game_start_time"],
                                 league="mlb",
                                 pick_options=pick_options,
-                                opp_team_id=player_data["matchup"]
                             )
                             total_props_generated += 1
                     except Exception as e:

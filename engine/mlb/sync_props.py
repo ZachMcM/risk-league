@@ -8,7 +8,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from mlb.prop_configs import get_mlb_stats_list
 from shared.db_session import get_db_session
 from shared.db_utils import update_prop
-from shared.get_today_games import get_today_mlb_games as get_today_games
+from shared.game_utils import get_today_mlb_games as get_today_games
 
 logger = setup_logger(__name__)
 

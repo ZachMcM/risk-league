@@ -28,7 +28,6 @@ propsRoute.get("/props/all", authMiddleware, async (req, res) => {
           }
         },
         parlayPicks: true,
-        team: true,
       },
       // TODO delete
       limit: 10
@@ -37,7 +36,6 @@ propsRoute.get("/props/all", authMiddleware, async (req, res) => {
     const allPropsWithPickCount = allProps.map((prop) => ({
       ...prop,
       parlayPicksCount: prop.parlayPicks.length,
-      oppTeam: prop.team,
     }));
 
     res.json(allPropsWithPickCount);
@@ -102,14 +100,12 @@ propsRoute.get("/props/today", authMiddleware, async (req, res) => {
           }
         },
         parlayPicks: true,
-        team: true,
       },
     });
 
     const availablePropsWithPickCount = availableProps.map((prop) => ({
       ...prop,
       parlayPicksCount: prop.parlayPicks.length,
-      oppTeam: prop.team,
     }));
 
     res.json(availablePropsWithPickCount);
