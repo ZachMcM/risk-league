@@ -7,7 +7,6 @@ from shared.socket_utils import send_message as send_socket_message
 from shared.tables import ParlayPicks
 from sqlalchemy import select
 from sqlalchemy.orm import Session
-from system.constants import MULTIPLIER_BASE
 import math
 
 logger = setup_logger(__name__)
