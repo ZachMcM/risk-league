@@ -92,7 +92,6 @@ propsRoute.get("/props/today", authMiddleware, async (req, res) => {
         eq(props.league, league as (typeof leagueType.enumValues)[number]), // correct league
         notInArray(props.id, propsPickedAlready)
       ),
-      limit: parseInt(process.env.INITIAL_PROPS_COUNT!),
       with: {
         player: {
           with: {

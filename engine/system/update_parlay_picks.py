@@ -40,6 +40,14 @@ def update_parlay_picks(session: Session, prop: Props):
             .values(status="missed")
         )
 
+    if not prop.resolved and prop.current_value > prop.line:
+        session.execute(
+            update(ParlayPicks)
+            .where(ParlayPicks.prop_id == prop.id)
+            .where(ParlayPicks.pick == "over")
+            .values(status="hit")
+        )
+
     # Get updated picks to send notifications
     picks = (
         session.execute(

@@ -20,10 +20,7 @@ import ParlayPickCard from "~/components/parlays/ParlayPickCard";
 import { Badge } from "~/components/ui/badge";
 import ModalContainer from "~/components/ui/modal-container";
 import { ChevronDown } from "~/lib/icons/ChevronDown";
-import {
-  getFlexMultiplier,
-  getPerfectPlayMultiplier
-} from "~/lib/utils";
+import { getFlexMultiplier, getPerfectPlayMultiplier } from "~/lib/utils";
 
 export default function Parlay() {
   const searchParams = useLocalSearchParams<{
@@ -62,7 +59,7 @@ export default function Parlay() {
                         )}x`
                       : `${getPerfectPlayMultiplier(
                           parlay.parlayPicks.length
-                        )}x`}
+                        ).toFixed(2)}x`}
                   </Text>
                   {parlay.type == "flex" && (
                     <Dialog>

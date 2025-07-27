@@ -35,7 +35,7 @@ export default function ParlayCard({ parlay }: { parlay: Parlay }) {
                         parlay.parlayPicks.length,
                         parlay.parlayPicks.length
                       )}x`
-                    : `${getPerfectPlayMultiplier(parlay.parlayPicks.length)}x`}
+                    : `${getPerfectPlayMultiplier(parlay.parlayPicks.length).toFixed(2)}x`}
                 </Text>
               </View>
               <Badge

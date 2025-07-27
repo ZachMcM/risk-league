@@ -21,6 +21,7 @@ import {
   getFlexMultiplier,
   getPerfectPlayMultiplier,
   getStatName,
+  invalidateQueries,
 } from "~/lib/utils";
 import { Prop } from "~/types/props";
 
@@ -43,6 +44,7 @@ export default function FinalizeParlay() {
   const [stake, setStake] = useState<number | null>(0);
   const [type, setType] = useState("perfect");
   const [formError, setFormError] = useState<null | string>(null);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     if (formError) {
@@ -82,7 +84,12 @@ export default function FinalizeParlay() {
         });
       },
       onSuccess: () => {
-        clearParlay()
+        clearParlay();
+        invalidateQueries(
+          queryClient,
+          ["match", matchId],
+          ["parlays", matchId, session?.user.id!]
+        );
         toast.success("Parlay Successfully created", {
           position: "bottom-center",
         });

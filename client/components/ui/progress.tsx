@@ -41,7 +41,7 @@ const progressIndicatorVariants = cva("h-full", {
   },
 });
 
-const progressTextVariants = cva("font-semibold text-sm text-right ", {
+const progressTextVariants = cva("font-semibold text-sm text-start", {
   variants: {
     variant: {
       default: "text-foreground",
@@ -71,7 +71,7 @@ function Progress({
   const percentage = ((value ?? 0) / max) * 100;
 
   return (
-    <View className="flex flex-col items-start gap-1 self-stretch">
+    <View className="flex flex-col items-start gap-1 self-stretch w-full">
       <ProgressPrimitive.Root
         className={cn(progressVariants({ variant }), className)}
         {...props}
@@ -85,12 +85,15 @@ function Progress({
         />
       </ProgressPrimitive.Root>
       {showValueText && (
-        <View className="flex flex-row justify-start self-stretch">
-          <View style={{ width: `${percentage}%` }}>
-            <Text className={cn(progressTextVariants({ variant }))}>
-              {value?.toFixed(1)}
-            </Text>
-          </View>
+        <View className="relative flex w-full flex-row">
+          <Text
+            style={{
+              left: `${Math.max(0, Math.min(percentage - 5, 95))}%`,
+            }}
+            className={cn(progressTextVariants({ variant }))}
+          >
+            {value?.toFixed(1)}
+          </Text>
         </View>
       )}
     </View>
@@ -114,7 +117,7 @@ function Indicator({
         `${interpolate(
           progress.value,
           [0, 100],
-          [1, 100],
+          [0, 100],
           Extrapolation.CLAMP
         )}%`,
         { overshootClamping: true }
