@@ -8,7 +8,7 @@ export type Parlay = {
   resolved: boolean;
   matchUserId: number;
   delta: number;
-  parlayPicks: [];
+  parlayPicks: ParlayPick[];
 };
 
 export type ParlayPick = {

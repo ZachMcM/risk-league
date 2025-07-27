@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm/relations";
-import { teams, nbaGames, nbaPlayerStats, players, mlbGames, mlbPlayerStats, matches, matchUsers, users, matchMessages, parlays, parlayPicks, props } from "./schema";
+import { teams, nbaGames, nbaPlayerStats, players, mlbGames, mlbPlayerStats, matches, matchMessages, users, parlays, parlayPicks, props, matchUsers } from "./schema";
 
 export const nbaGamesRelations = relations(nbaGames, ({one, many}) => ({
 	team: one(teams, {
@@ -66,28 +66,6 @@ export const mlbPlayerStatsRelations = relations(mlbPlayerStats, ({one}) => ({
 	}),
 }));
 
-export const matchUsersRelations = relations(matchUsers, ({one, many}) => ({
-	match: one(matches, {
-		fields: [matchUsers.matchId],
-		references: [matches.id]
-	}),
-	user: one(users, {
-		fields: [matchUsers.userId],
-		references: [users.id]
-	}),
-	parlays: many(parlays),
-}));
-
-export const matchesRelations = relations(matches, ({many}) => ({
-	matchUsers: many(matchUsers),
-	matchMessages: many(matchMessages),
-}));
-
-export const usersRelations = relations(users, ({many}) => ({
-	matchUsers: many(matchUsers),
-	matchMessages: many(matchMessages),
-}));
-
 export const matchMessagesRelations = relations(matchMessages, ({one}) => ({
 	match: one(matches, {
 		fields: [matchMessages.matchId],
@@ -97,6 +75,16 @@ export const matchMessagesRelations = relations(matchMessages, ({one}) => ({
 		fields: [matchMessages.userId],
 		references: [users.id]
 	}),
+}));
+
+export const matchesRelations = relations(matches, ({many}) => ({
+	matchMessages: many(matchMessages),
+	matchUsers: many(matchUsers),
+}));
+
+export const usersRelations = relations(users, ({many}) => ({
+	matchMessages: many(matchMessages),
+	matchUsers: many(matchUsers),
 }));
 
 export const parlayPicksRelations = relations(parlayPicks, ({one}) => ({
@@ -123,5 +111,17 @@ export const propsRelations = relations(props, ({one, many}) => ({
 	player: one(players, {
 		fields: [props.playerId],
 		references: [players.id]
+	}),
+}));
+
+export const matchUsersRelations = relations(matchUsers, ({one, many}) => ({
+	parlays: many(parlays),
+	match: one(matches, {
+		fields: [matchUsers.matchId],
+		references: [matches.id]
+	}),
+	user: one(users, {
+		fields: [matchUsers.userId],
+		references: [users.id]
 	}),
 }));

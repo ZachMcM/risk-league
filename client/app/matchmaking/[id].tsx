@@ -82,8 +82,8 @@ export default function Matchmaking() {
       clearInterval(interval);
       socket.disconnect();
       router.replace({
-        pathname: "/matches/[id]",
-        params: { id: matchId },
+        pathname: "/matches/[matchId]",
+        params: { matchId },
       });
     });
 

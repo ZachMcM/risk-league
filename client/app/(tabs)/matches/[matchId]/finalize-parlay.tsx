@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { router, useLocalSearchParams } from "expo-router";
 import moment from "moment";
 import { useState } from "react";
@@ -6,6 +6,7 @@ import { ActivityIndicator, Pressable, ScrollView, View } from "react-native";
 import { FakeCurrencyInput } from "react-native-currency-input";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
+import FlexPlayOutcomes from "~/components/parlays/FlexPlayOutcomes";
 import { useParlayPicks } from "~/components/providers/ParlayProvider";
 import { useSession } from "~/components/providers/SessionProvider";
 import { Button } from "~/components/ui/button";
@@ -26,12 +27,12 @@ import { Prop } from "~/types/props";
 
 export default function FinalizeParlay() {
   const { parlayPicks, clearParlay } = useParlayPicks();
-  const searchParams = useLocalSearchParams<{ id: string }>();
-  const id = parseInt(searchParams.id);
+  const searchParams = useLocalSearchParams<{ matchId: string }>();
+  const matchId = parseInt(searchParams.matchId);
 
-  const { data: match, isPending: isMatchPending } = useQuery({
-    queryKey: ["match", id],
-    queryFn: async () => await getMatch(id),
+  const { data: match } = useQuery({
+    queryKey: ["match", matchId],
+    queryFn: async () => await getMatch(matchId),
   });
 
   const { session } = useSession();
@@ -43,10 +44,12 @@ export default function FinalizeParlay() {
   const [stake, setStake] = useState<number | null>(0);
   const [type, setType] = useState("perfect");
 
+  const queryClient = useQueryClient();
+
   const { mutate: createParlay, isPending: isCreatingParlayPending } =
     useMutation({
       mutationFn: async () =>
-        await postParlay(id, {
+        await postParlay(matchId, {
           type,
           stake: stake!,
           picks: parlayPicks,
@@ -57,12 +60,15 @@ export default function FinalizeParlay() {
         });
       },
       onSuccess: () => {
+        queryClient.invalidateQueries({
+          queryKey: ["parlays", matchId, session?.user.id!],
+        });
         toast.success("Parlay Successfully created", {
           position: "bottom-center",
         });
         router.replace({
-          pathname: "/(tabs)/matches/[id]",
-          params: { id },
+          pathname: "/matches/[matchId]",
+          params: { matchId },
         });
       },
     });
@@ -84,14 +90,6 @@ export default function FinalizeParlay() {
   }
 
   const insets = useSafeAreaInsets();
-
-  const isParlayValid = () => {
-    if (type == "perfect") {
-      return parlayPicks.length > 1;
-    } else {
-      return parlayPicks.length > 2;
-    }
-  };
 
   return (
     <ModalContainer>
@@ -153,7 +151,11 @@ export default function FinalizeParlay() {
                 </CardContent>
               </Card>
             )}
-            {isParlayValid() ? (
+            {(
+              type == "perfect"
+                ? parlayPicks.length >= 2
+                : parlayPicks.length >= 3
+            ) ? (
               <>
                 <Card
                   className={cn(
@@ -175,6 +177,7 @@ export default function FinalizeParlay() {
                           precision={2}
                           style={{
                             color: "hsl(223.8136 0.0004% 98.0256%)",
+                            fontWeight: 500,
                           }}
                           caretColor="hsl(324.9505 80.8% 50.9804%)"
                           placeholderTextColor="hsl(223.8136 0% 63.0163%)"
@@ -183,7 +186,7 @@ export default function FinalizeParlay() {
                       </View>
                       <View className="flex flex-1 flex-col gap-1">
                         <Label>To Win</Label>
-                        <Text className="text-xl font-normal">
+                        <Text className="text-xl font-medium">
                           {stake != null &&
                             (
                               (type == "flex"
@@ -235,35 +238,12 @@ export default function FinalizeParlay() {
                             ).toFixed(2)}
                         </Text>
                       </View>
-                    ) : (
-                      getFlexMultiplierTable(parlayPicks.length).map(
-                        ({ hits, multiplier }) => (
-                          <View
-                            key={hits}
-                            className="flex flex-row items-center justify-between"
-                          >
-                            <View className="flex flex-row items-center gap-2">
-                              <Text className="font-semibold text-lg">
-                                {hits} out of {parlayPicks.length} Correct
-                              </Text>
-                              <View className="bg-primary/10 py-1 px-2 rounded-lg">
-                                <Text className="font-semibold text-primary">
-                                  {multiplier.toFixed(2)}x
-                                </Text>
-                              </View>
-                            </View>
-                            <Text className="font-semibold text-lg">
-                              {stake && (stake * multiplier).toFixed(2)}
-                            </Text>
-                          </View>
-                        )
-                      )
-                    )}
+                    ) : <FlexPlayOutcomes length={parlayPicks.length} stake={stake}/>}
                   </CardContent>
                 </Card>
               </>
             ) : (
-              <View className="flex flex-1 flex-col items-center gap-4 p-6">
+              <View className="flex flex-col items-center gap-4 p-6">
                 <Text className="text-3xl font-bold text-center">
                   More picks needed
                 </Text>
@@ -276,8 +256,8 @@ export default function FinalizeParlay() {
                   variant="foreground"
                   onPress={() =>
                     router.replace({
-                      pathname: "/matches/[id]",
-                      params: { id },
+                      pathname: "/matches/[matchId]",
+                      params: { matchId },
                     })
                   }
                 >
@@ -287,9 +267,11 @@ export default function FinalizeParlay() {
             )}
           </View>
         </ScrollView>
-        {isParlayValid() && (
+        {(type == "perfect"
+          ? parlayPicks.length >= 2
+          : parlayPicks.length >= 3) && (
           <View
-            className="flex flex-col items-center gap-4 p-6 border-t border-border/50"
+            className="flex flex-col items-center gap-4 p-6 border-t border-border"
             style={{
               marginBottom: insets.bottom,
             }}
@@ -336,7 +318,7 @@ export function PickCard({
   return (
     <View
       className={cn(
-        "flex flex-row items-center justify-between border-border/50 py-4 mx-4",
+        "flex flex-row items-center justify-between border-border py-4 mx-4",
         !isLast && "border-b"
       )}
     >

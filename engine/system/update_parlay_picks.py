@@ -53,14 +53,28 @@ def update_parlay_picks(session: Session, prop: Props):
 
     async def send_updates():
         for pick in picks:
+            if pick.parlay is None:
+                return
+
+            if pick.parlay.match_user is None:
+                return
+
             await send_socket_message(
                 namespace="/invalidation",
                 message="data-invalidated",
-                data={["parlays", pick.parlay.match_user_id]},
+                data=[
+                    "parlays",
+                    pick.parlay.match_user.match_id,
+                    pick.parlay.match_user.user_id,
+                ],
+            )
+            await send_socket_message(
+                namespace="/invalidation",
+                message="data-invalidated",
+                data=["parlay", pick.parlay.id],
             )
             if prop.resolved:
                 publish_message("parlay_pick_updated", {"id": str(pick.id)})
-
 
     # Run the async function
     asyncio.run(send_updates())

@@ -16,17 +16,3 @@ export const NAV_THEME = {
     text: "hsl(223.8136 0.0004% 98.0256%)", // foreground
   },
 };
-
-export const startingBalance = parseInt(
-  process.env.EXPO_PUBLIC_STARTING_BALANCE!
-);
-
-export const multiplier = {
-  1: 1.5,
-  2: 3,
-  3: 5,
-  4: 10,
-  5: 18,
-  6: 30,
-  7: 50,
-};

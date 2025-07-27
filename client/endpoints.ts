@@ -249,12 +249,28 @@ export async function getActiveLeagues(): Promise<string[]> {
   return data;
 }
 
-export async function getParlays(
-  matchId: string,
-  userId: string
-): Promise<Parlay> {
+export async function getParlay(id: number): Promise<Parlay> {
   const res = await httpRequest({
-    endpoint: `/parlays/${matchId}?userId=${userId}`,
+    endpoint: `/parlays/${id}`,
+    method: "GET",
+  });
+
+  const data = await res.json();
+  console.log(data);
+
+  if (!res.ok) {
+    throw new Error(data);
+  }
+
+  return data;
+}
+
+export async function getParlays(
+  matchId: number,
+  userId: number
+): Promise<Parlay[]> {
+  const res = await httpRequest({
+    endpoint: `/parlays?matchId=${matchId}&userId=${userId}`,
     method: "GET",
   });
 
@@ -271,7 +287,7 @@ export async function getParlays(
 export async function postParlay(
   matchId: number,
   parlay: {
-    type: string
+    type: string;
     stake: number;
     picks: { prop: Prop; pick: string }[];
   }

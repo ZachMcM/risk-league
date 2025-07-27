@@ -15,6 +15,8 @@ export async function createMatch({
     .values({ resolved: false, gameMode })
     .returning({ id: matches.id });
 
+  // TODO add randomzied starting balances
+
   await db.insert(matchUsers).values({
     matchId: match.id,
     userId: user1,

@@ -112,3 +112,15 @@ export function getFlexMultiplierTable(pickCount: number): { hits: number; multi
   
   return results.reverse(); // Show perfect score first
 }
+
+export function getLeagueEmoji(league: string) {
+  if (league == "mlb") {
+    return "⚾"
+  } 
+  if (league == "nba" || "mcbb") {
+    return "🏀"
+  }
+  if (league == "nfl" || "cfb") {
+    return "🏈"
+  }
+}

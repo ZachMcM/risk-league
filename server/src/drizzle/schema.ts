@@ -209,27 +209,6 @@ export const mlbPlayerStats = pgTable("mlb_player_stats", {
 	unique("mlb_player_stats_player_game_unique").on(table.gameId, table.playerId),
 ]);
 
-export const matchUsers = pgTable("match_users", {
-	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
-	balance: doublePrecision().default(100).notNull(),
-	eloDelta: doublePrecision("elo_delta").default(0).notNull(),
-	status: matchStatus().default('not_resolved').notNull(),
-	id: serial().primaryKey().notNull(),
-	userId: integer("user_id"),
-	matchId: integer("match_id"),
-}, (table) => [
-	foreignKey({
-			columns: [table.matchId],
-			foreignColumns: [matches.id],
-			name: "fk_match"
-		}),
-	foreignKey({
-			columns: [table.userId],
-			foreignColumns: [users.id],
-			name: "fk_user"
-		}),
-]);
-
 export const matchMessages = pgTable("match_messages", {
 	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	content: text().notNull(),
@@ -353,5 +332,27 @@ export const parlays = pgTable("parlays", {
 			columns: [table.matchUserId],
 			foreignColumns: [matchUsers.id],
 			name: "fk_match_user"
+		}),
+]);
+
+export const matchUsers = pgTable("match_users", {
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
+	balance: doublePrecision().default(100).notNull(),
+	eloDelta: doublePrecision("elo_delta").default(0).notNull(),
+	status: matchStatus().default('not_resolved').notNull(),
+	id: serial().primaryKey().notNull(),
+	userId: integer("user_id"),
+	matchId: integer("match_id"),
+	startingBalance: doublePrecision("starting_balance").default(100),
+}, (table) => [
+	foreignKey({
+			columns: [table.matchId],
+			foreignColumns: [matches.id],
+			name: "fk_match"
+		}),
+	foreignKey({
+			columns: [table.userId],
+			foreignColumns: [users.id],
+			name: "fk_user"
 		}),
 ]);

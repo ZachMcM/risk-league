@@ -1,9 +1,16 @@
-import { Stack } from "expo-router";
+import { Stack, useLocalSearchParams } from "expo-router";
+import { View } from "lucide-react-native";
 import { MessagesProvider } from "~/components/providers/MessagesProvider";
-import { ParlayPickerFooter, ParlayProvider } from "~/components/providers/ParlayProvider";
+import {
+  ParlayPickerFooter,
+  ParlayProvider,
+} from "~/components/providers/ParlayProvider";
+import CardHeader from "~/components/ui/fullscreen-modal-header";
 import PageTitle from "~/components/ui/page-title";
 
 export default function Layout() {
+  const { matchId } = useLocalSearchParams() as { matchId: string };
+
   return (
     <MessagesProvider>
       <ParlayProvider>
@@ -22,21 +29,21 @@ export default function Layout() {
             }}
           />
           <Stack.Screen
-            name="players/[id]"
+            name="finalize-parlay"
             options={{
               headerShown: false,
               presentation: "modal",
             }}
           />
           <Stack.Screen
-            name="finalize-parlay"
+            name="parlays/[parlayId]"
             options={{
               headerShown: false,
-              presentation: "modal"
+              presentation: "modal",
             }}
           />
         </Stack>
-        <ParlayPickerFooter/>
+        <ParlayPickerFooter />
       </ParlayProvider>
     </MessagesProvider>
   );

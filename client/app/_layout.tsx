@@ -80,7 +80,7 @@ export default function RootLayout() {
 
   usePlatformSpecificSetup();
   const { isDarkColorScheme, setColorScheme } = useColorScheme();
-  setColorScheme("dark")
+  setColorScheme("dark");
 
   return (
     <SafeAreaProvider>
@@ -88,13 +88,11 @@ export default function RootLayout() {
         <QueryClientProvider client={queryClient}>
           <SessionProvider>
             <RealTimeProvider>
-              <ThemeProvider
-                value={DARK_THEME}
-              >
+              <ThemeProvider value={DARK_THEME}>
                 <SplashScreenController />
                 <RootNavigatior />
-                <StatusBar style={isDarkColorScheme ? "light" : "dark"} />
                 <PortalHost />
+                <StatusBar style={isDarkColorScheme ? "light" : "dark"} />
               </ThemeProvider>
             </RealTimeProvider>
           </SessionProvider>
@@ -146,7 +144,6 @@ export function RootNavigatior() {
         name="matchmaking/[id]"
         options={{
           headerShown: false,
-          presentation: "modal"
         }}
       />
     </Stack>

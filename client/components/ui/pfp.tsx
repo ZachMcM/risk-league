@@ -14,7 +14,7 @@ export default function Pfp({
   return (
     <Avatar
       className={cn(
-        "h-14 w-14 border-2 rounded-full border-primary/40 shadow-lg p-0.5",
+        "h-14 w-14 rounded-full shadow-lg",
         className
       )}
       alt="Profile"
@@ -24,7 +24,7 @@ export default function Pfp({
           uri: image!,
         }}
       />
-      <AvatarFallback className="bg-primary/10">
+      <AvatarFallback className="bg-primary/10 p-1.5 border-2 border-primary/40">
         <Text className="text-primary font-bold text-sm">
           {username.slice(0, 2).toUpperCase()}
         </Text>

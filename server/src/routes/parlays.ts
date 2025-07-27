@@ -9,10 +9,41 @@ import {
   props,
 } from "../drizzle/schema";
 import { authMiddleware } from "./auth";
+import { logger } from "../logger";
 
 export const parlaysRoute = Router();
 
-parlaysRoute.get("/parlays/:matchId", async (req, res) => {
+parlaysRoute.get("/parlays/:id", authMiddleware, async (req, res) => {
+  try {
+    const parlay = await db.query.parlays.findFirst({
+      where: eq(parlays.id, parseInt(req.params.id)),
+      with: {
+        parlayPicks: {
+          with: {
+            prop: {
+              with: {
+                player: {
+                  with: {
+                    team: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    res.json(parlay);
+  } catch (err) {
+    res.status(500).json({
+      error: "Server Error",
+      message: err,
+    });
+  }
+});
+
+parlaysRoute.get("/parlays", async (req, res) => {
   if (!req.query.userId) {
     res.status(400).json({
       error: "Invalid request",
@@ -21,8 +52,16 @@ parlaysRoute.get("/parlays/:matchId", async (req, res) => {
     return;
   }
 
+  if (!req.query.matchId) {
+    res.status(400).json({
+      error: "Invalid request",
+      message: "Invalid query parameters",
+    });
+    return;
+  }
+
   const userId = parseInt(req.query.userId as string);
-  const matchId = parseInt(req.params.matchId);
+  const matchId = parseInt(req.query.matchId as string);
 
   try {
     const matchUser = await db.query.matchUsers.findFirst({
@@ -177,7 +216,7 @@ parlaysRoute.post("/parlays/:matchId", authMiddleware, async (req, res) => {
       });
     }
 
-    res.json(parlay)
+    res.json(parlay);
   } catch (err: any) {
     res.status(500).json({
       error: "Server error",

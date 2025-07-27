@@ -90,6 +90,7 @@ def get_team_last_games(
                 .order_by(desc(MlbGames.game_date))
                 .limit(n_games)
             )
+            
         elif league == "nba":
             query = (
                 select(NbaGames)
@@ -257,7 +258,7 @@ def insert_prop(
     stat: str,
     game_start_time: datetime,
     league: Leagues,
-    pick_options: list[str] = None,
+    pick_options: list[str] | None = None,
 ) -> None:
     """Insert a prop into the database.
 

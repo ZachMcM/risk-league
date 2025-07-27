@@ -20,13 +20,13 @@ def perfect_play_multiplier(n: int) -> float:
         n: The number of picks in the parlay
     """
     multipliers = {
-        2: 3.0,   
-        3: 5.0,    
-        4: 10.0,   
-        5: 20.0,   
-        6: 37.5,   
+        2: 3.0,
+        3: 5.0,
+        4: 10.0,
+        5: 20.0,
+        6: 37.5,
     }
-    
+
     return multipliers[n]
 
 
@@ -40,34 +40,31 @@ def flex_play_multiplier(n: int, hits: int) -> float:
     """
     if n < 2 or n > 10:
         raise ValueError("Number of picks must be between 2 and 10")
-    
+
     if hits < 0 or hits > n:
         raise ValueError("Number of hits must be between 0 and number of picks")
-    
+
     flex_payouts = {
         # 3-pick flex
         (3, 3): 2.25,
-        (3, 2): 1.25, 
-        
-        # 4-pick flex  
+        (3, 2): 1.25,
+        # 4-pick flex
         (4, 4): 5,
         (4, 3): 1.5,
-        
         # 5-pick flex
         (5, 5): 10.0,
         (5, 4): 2.0,
-        (5, 3): 0.4, 
-        
+        (5, 3): 0.4,
         # 6-pick flex
         (6, 6): 25.0,
-        (6, 5): 2.0, 
-        (6, 4): 0.4, 
+        (6, 5): 2.0,
+        (6, 4): 0.4,
     }
-    
+
     # Return exact payout if we have it
     if (n, hits) in flex_payouts:
         return flex_payouts[(n, hits)]
-    
+
     return 0
 
 
@@ -80,6 +77,10 @@ def update_parlay(session: Session, pick_id: str):
         return
 
     parlay = pick.parlay
+
+    if parlay is None:
+        return
+
     picks = parlay.parlay_picks
 
     for pick in picks:
@@ -90,7 +91,7 @@ def update_parlay(session: Session, pick_id: str):
     for pick in picks:
         if pick.status == "hit":
             hit_count += 1
-            
+
     if parlay.type == "perfect":
         if len(picks) != hit_count:
             payout = 0
@@ -99,9 +100,12 @@ def update_parlay(session: Session, pick_id: str):
     else:
         multiplier = flex_play_multiplier(len(picks), hit_count)
         payout = multiplier * parlay.stake
-        
+
     delta = payout - parlay.stake
-    
+
+    if parlay.match_user is None:
+        return
+
     parlay.match_user.balance += payout
     parlay.resolved = True
     parlay.delta = delta
@@ -109,10 +113,21 @@ def update_parlay(session: Session, pick_id: str):
     session.commit()
 
     async def send_updates():
+        if parlay.match_user is None:
+            return
+
+        if parlay.match_user.match is None:
+            return
+
         await send_socket_message(
             namespace="/invalidation",
             message="data-invalidated",
-            data=["parlays", parlay.match_user_id],
+            data=["parlays", parlay.match_user.match_id, parlay.match_user.user_id],
+        )
+        await send_socket_message(
+            namespace="/invalidation",
+            message="data-invalidated",
+            data=["parlay", parlay.id],
         )
         await send_socket_message(
             namespace="/invalidation",

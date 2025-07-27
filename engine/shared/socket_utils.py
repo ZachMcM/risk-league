@@ -5,7 +5,7 @@ import socketio
 logger = setup_logger(__name__)
 
 
-async def send_message(namespace: str, message: str, data: dict = None, query_params: dict = None):
+async def send_message(namespace: str, message: str, data: list | None = None, query_params: dict | None = None):
     """Sends a message to the specified namespace of the socketio server
     
     Args:

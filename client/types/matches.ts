@@ -13,18 +13,19 @@ export type MatchUser = {
   parlaysInProgress: number;
   potentialPayout: number,
   id: number;
-  createdAt: string | null;
+  createdAt: string;
   balance: number;
   eloDelta: number;
   status: "not_resolved" | "loss" | "win" | "draw" | "disqualified";
-  userId: number | null;
-  matchId: number | null;
+  userId: number;
+  matchId: number;
+  startingBalance: number
   user: User;
 };
 
 export type Match = {
   id: number;
-  createdAt: string | null;
+  createdAt: string;
   resolved: boolean;
   gameMode: "nba" | "mlb";
   matchUsers: MatchUser[];

@@ -124,7 +124,8 @@ CREATE TABLE public.match_users (
     status public.match_status DEFAULT 'not_resolved'::public.match_status NOT NULL,
     id integer NOT NULL,
     user_id integer,
-    match_id integer
+    match_id integer,
+    starting_balance double precision DEFAULT 100
 );
 
 
@@ -932,4 +933,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20250713194535'),
     ('20250715010515'),
     ('20250720162735'),
-    ('20250720195013');
+    ('20250720195013'),
+    ('20250726171929');

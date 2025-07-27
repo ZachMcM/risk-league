@@ -14,7 +14,7 @@ export function SearchBar({
     <View className={cn("flex-1 flex-row items-center border border-border rounded-lg px-4")}>
       <Search className="text-muted-foreground" size={16} />
       <Input
-        className="flex-1 bg-transparent border-0"
+        className="flex-1 bg-transparent border-0 h-10"
         {...props}
       />
     </View>

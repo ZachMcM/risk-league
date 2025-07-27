@@ -1,13 +1,13 @@
-import { eq, count } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { Router } from "express";
 import { db } from "../drizzle";
-import { matches, matchMessages, matchUsers, parlays } from "../drizzle/schema";
+import { matches, matchMessages, matchUsers } from "../drizzle/schema";
 import { logger } from "../logger";
-import { authMiddleware } from "./auth";
 import {
   getFlexMultiplier,
   getPerfectPlayMultiplier,
 } from "../utils/parlayMultipliers";
+import { authMiddleware } from "./auth";
 
 export const matchesRoute = Router();
 

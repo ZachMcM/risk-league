@@ -98,8 +98,8 @@ export function ParlayPickerFooter() {
     return;
   }
 
-  const searchParams = useLocalSearchParams<{ id: string }>();
-  const id = parseInt(searchParams.id);
+  const searchParams = useLocalSearchParams<{ matchId: string }>();
+  const matchId = parseInt(searchParams.matchId);
 
   return (
     <View className="flex flex-row items-center justify-between gap-4 border-t border-border p-4">
@@ -120,8 +120,8 @@ export function ParlayPickerFooter() {
         className="flex flex-row items-center gap-3 rounded-full"
         onPress={() =>
           router.navigate({
-            pathname: "/matches/[id]/finalize-parlay",
-            params: { id },
+            pathname: "/matches/[matchId]/finalize-parlay",
+            params: { matchId },
           })
         }
       >

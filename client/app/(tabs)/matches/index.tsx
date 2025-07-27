@@ -6,13 +6,13 @@ import { ScrollContainer } from "~/components/ui/scroll-container";
 import { getMatches } from "~/endpoints";
 
 export default function Matches() {
-  const { session } = useSession()
+  const { session } = useSession();
 
-  if (!session) return
+  if (!session) return;
 
   const { data: matches, isPending: isMatchesPending } = useQuery({
     queryKey: ["matches", session.user.id],
-    queryFn: getMatches,
+    queryFn: async () => await getMatches(),
   });
 
   return (

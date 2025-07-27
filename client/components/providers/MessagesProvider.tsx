@@ -27,8 +27,8 @@ export type MessagesProviderTypes = {
 const MessagesContext = createContext<MessagesProviderTypes | null>(null);
 
 export function MessagesProvider({ children }: { children: ReactNode }) {
-  const searchParams = useLocalSearchParams() as { id: string };
-  const id = parseInt(searchParams.id);
+  const searchParams = useLocalSearchParams() as { matchId: string };
+  const matchId = parseInt(searchParams.matchId);
 
   const { session } = useSession();
 
@@ -39,8 +39,8 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
 
   const { data: messages, isPending: messagesPending } = useQuery({
-    queryKey: ["match", "messages", id],
-    queryFn: async () => getMatchMessages(id),
+    queryKey: ["match", "messages", matchId],
+    queryFn: async () => getMatchMessages(matchId),
   });
 
   function sendMessage(content: string) {
@@ -50,14 +50,14 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
   }
 
   useEffect(() => {
-    if (!session?.user.id || !id) return;
+    if (!session?.user.id || !matchId) return;
 
     console.log("Connecting with params:", {
-      matchId: id.toString(),
+      matchId: matchId.toString(),
       userId: session.user.id.toString(),
     });
     const socket = io(`${process.env.EXPO_PUBLIC_API_URL}/match`, {
-      auth: { matchId: id.toString(), userId: session.user.id.toString() },
+      auth: { matchId: matchId.toString(), userId: session.user.id.toString() },
       transports: ["websocket"],
     });
 
@@ -77,7 +77,7 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
     // Message events
     socket.on("message-received", (messageData: MatchMessage) => {
       queryClient.setQueryData(
-        ["match", "messages", id],
+        ["match", "messages", matchId],
         (prev: MatchMessage[]) => [...prev, messageData]
       );
       if (messageData.user.id != session.user.id) {
@@ -107,7 +107,7 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
       socket.disconnect();
       setIsConnected(false);
     };
-  }, [session?.user.id, id]);
+  }, [session?.user.id, matchId]);
 
   return (
     <MessagesContext.Provider

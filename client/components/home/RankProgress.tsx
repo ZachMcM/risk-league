@@ -23,8 +23,6 @@ export function RankProgress({ rank }: { rank: RankInfo }) {
             </Text>
           </View>
           <Progress
-            indicatorClassName="bg-primary"
-            className="bg-primary/10"
             value={rank.progressToNext * 100}
           />
           <View className="flex flex-row gap-4 items-center justify-center">
@@ -34,7 +32,7 @@ export function RankProgress({ rank }: { rank: RankInfo }) {
             <RankBadge tier={rank.nextRank.tier} level={rank.nextRank.level} />
           </View>
         </View>
-        <View className="flex flex-col items-center pt-6 border-t border-border/50">
+        <View className="flex flex-col items-center pt-6 border-t border-border">
           <Text className="font-bold text-2xl">{rank.pointsToNext}</Text>
           <View className="flex flex-row items-center gap-2">
             <Text className="text-muted-foreground font-medium">

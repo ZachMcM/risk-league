@@ -40,7 +40,7 @@ def recalculate_elo(current_elos: list[int], winner: int | None) -> list[int]:
     R_prime_A = R_A + K * (S_A - E_A)
     R_prime_B = R_B + K * (S_B - E_B)
 
-    return [R_prime_A, R_prime_B]
+    return [round(R_prime_A), round(R_prime_B)]
 
 
 def update_matches():
@@ -58,9 +58,12 @@ def update_matches():
         session.execute(select(Matches).where(~Matches.resolved)).scalars().all()
     )
 
+    # TODO this logic needs to be fixed at somepoint
     for match in unResolvedMatches:
         all_parays_resolved = True
         for user in match.match_users:
+            if len(user.parlays) == 0:
+                all_parays_resolved = True
             for parlay in user.parlays:
                 if not parlay.resolved:
                     all_parays_resolved = False
@@ -114,11 +117,11 @@ def update_matches():
                 [user1.user.elo_rating, user2.user.elo_rating], winner
             )
 
-            user1.elo_delta = new_elos[0] - user1.user.elo_rating
-            user2.elo_delta = new_elos[1] - user2.user.elo_rating
+            user1.elo_delta = max(0, new_elos[0] - user1.user.elo_rating)
+            user2.elo_delta = max(0, new_elos[1] - user2.user.elo_rating)
 
-            user1.user.elo_rating = new_elos[0]
-            user2.user.elo_rating = new_elos[1]
+            user1.user.elo_rating = max(1200, new_elos[0])
+            user2.user.elo_rating = max(1200, new_elos[1])
         else:
             # No ELO changes for double disqualification
             user1.elo_delta = 0
