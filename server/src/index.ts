@@ -36,6 +36,10 @@ const io = new Server(httpServer, {
     origin: "*",
   },
 });
+
+// Make io instance globally accessible
+export { io };
+
 initSocketServer(io);
 
 app.use(limiter);

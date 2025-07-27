@@ -63,7 +63,7 @@ def update_matches():
         all_parays_resolved = True
         for user in match.match_users:
             if len(user.parlays) == 0:
-                all_parays_resolved = True
+                all_parays_resolved = False
             for parlay in user.parlays:
                 if not parlay.resolved:
                     all_parays_resolved = False

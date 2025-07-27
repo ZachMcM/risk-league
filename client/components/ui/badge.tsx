@@ -18,6 +18,10 @@ const badgeVariants = cva(
         success:
           "border-transparent bg-success/10 web:hover:opacity-80 active:opacity-80",
         outline: "text-foreground",
+        foreground:
+          "border-transparent/10 bg-foreground web:hover:opacity-80 active:opacity-80",
+        active:
+          "border-transparent/10 bg-blue-600/10 web:hover:opacity-80 active:opacity-80",
       },
     },
     defaultVariants: {
@@ -34,6 +38,8 @@ const badgeTextVariants = cva("text-xs font-semibold ", {
       destructive: "text-destructive",
       success: "text-success",
       outline: "text-foreground",
+      foreground: "text-background",
+      active: "text-blue-600",
     },
   },
   defaultVariants: {

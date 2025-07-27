@@ -9,7 +9,7 @@ import { Card, CardContent } from "../ui/card";
 import Pfp from "../ui/pfp";
 import { Separator } from "../ui/separator";
 import { Text } from "../ui/text";
-import { getLeagueEmoji } from "~/lib/utils";
+import { getBadgeText, getBadgeVariant } from "~/lib/utils";
 
 export default function MatchListCard({ match }: { match: Match }) {
   const router = useRouter();
@@ -22,33 +22,13 @@ export default function MatchListCard({ match }: { match: Match }) {
     (matchUser) => matchUser.user.id != session?.user.id
   )!;
 
-  const badgeVariant =
-    you.status == "not_resolved"
-      ? you.balance > opponent.balance
-        ? "success"
-        : you.balance < opponent.balance
-        ? "destructive"
-        : "secondary"
-      : you.status == "win"
-      ? "success"
-      : you.status == "loss" || you.status == "disqualified"
-      ? "destructive"
-      : "secondary";
+  const badgeVariant = getBadgeVariant(
+    you.status,
+    you.balance,
+    opponent.balance
+  );
 
-  const badgeText =
-    you.status == "not_resolved"
-      ? you.balance > opponent.balance
-        ? "Winning"
-        : you.balance < opponent.balance
-        ? "Losing"
-        : "Tied"
-      : you.status == "win"
-      ? "Win"
-      : you.status == "loss"
-      ? "Loss"
-      : you.status == "disqualified"
-      ? "Disqualified"
-      : "Tied";
+  const badgeText = getBadgeText(you.status, you.balance, opponent.balance);
 
   return (
     <Pressable
@@ -76,14 +56,9 @@ export default function MatchListCard({ match }: { match: Match }) {
                     {opponent.user.username}
                   </Text>
                 </View>
-                <View className="flex flex-row items-center gap-2">
-                  <Badge variant={badgeVariant} className="self-start">
-                    <Text className="text-sm">{badgeText}</Text>
-                  </Badge>
-                  <Badge variant="secondary" className="self-start rounded-lg">
-                    <Text className="uppercase text-sm">{match.gameMode}</Text>
-                  </Badge>
-                </View>
+                <Badge variant="secondary" className="self-start rounded-lg">
+                  <Text className="uppercase text-sm">{match.gameMode}</Text>
+                </Badge>
               </View>
             </View>
             {!match.resolved ? (
@@ -126,6 +101,9 @@ export default function MatchListCard({ match }: { match: Match }) {
             <View className="flex flex-row justify-center items-center border-t border-border pt-4">
               <View className="flex flex-row items-center gap-2 text-xs text-blue-600">
                 <View className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
+                <Badge variant={badgeVariant} className="self-start">
+                  <Text className="text-base">{badgeText}</Text>
+                </Badge>
                 <Text className="font-medium">Match in progress 🔥</Text>
               </View>
             </View>

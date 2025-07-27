@@ -22,6 +22,7 @@ import {
   getFlexMultiplierTable,
   getPerfectPlayMultiplier,
   getStatName,
+  invalidateQueries,
 } from "~/lib/utils";
 import { Prop } from "~/types/props";
 
@@ -60,9 +61,6 @@ export default function FinalizeParlay() {
         });
       },
       onSuccess: () => {
-        queryClient.invalidateQueries({
-          queryKey: ["parlays", matchId, session?.user.id!],
-        });
         toast.success("Parlay Successfully created", {
           position: "bottom-center",
         });
@@ -238,7 +236,12 @@ export default function FinalizeParlay() {
                             ).toFixed(2)}
                         </Text>
                       </View>
-                    ) : <FlexPlayOutcomes length={parlayPicks.length} stake={stake}/>}
+                    ) : (
+                      <FlexPlayOutcomes
+                        length={parlayPicks.length}
+                        stake={stake}
+                      />
+                    )}
                   </CardContent>
                 </Card>
               </>

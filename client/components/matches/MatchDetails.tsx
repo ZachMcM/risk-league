@@ -6,30 +6,12 @@ import { Card, CardContent } from "../ui/card";
 import Pfp from "../ui/pfp";
 import { Separator } from "../ui/separator";
 import { Text } from "../ui/text";
-import { getLeagueEmoji } from "~/lib/utils";
+import { getBadgeText, getBadgeVariant, getLeagueEmoji } from "~/lib/utils";
 
 export default function MatchDetails({ match }: { match: Match }) {
   const { session } = useSession();
   const currentUser = session?.user.id == match.matchUsers[0].user.id ? 0 : 1;
   const otherUser = currentUser == 0 ? 1 : 0;
-
-  const currentUserStatus = !match.resolved
-    ? match.matchUsers[currentUser].balance >
-      match.matchUsers[otherUser].balance
-      ? "winning"
-      : match.matchUsers[currentUser].balance ==
-        match.matchUsers[otherUser].balance
-      ? "tied"
-      : "losing"
-    : match.matchUsers[currentUser].status;
-
-  const otherUserStatus = !match.resolved
-    ? currentUserStatus == "losing"
-      ? "winning"
-      : currentUserStatus == "tied"
-      ? "tied"
-      : "losing"
-    : match.matchUsers[otherUser].status;
 
   return (
     <Card>
@@ -37,13 +19,13 @@ export default function MatchDetails({ match }: { match: Match }) {
         <MatchUserItem
           matchUser={match.matchUsers[currentUser]}
           currentUser={true}
-          status={currentUserStatus}
+          otherUserBalance={match.matchUsers[otherUser].balance}
         />
         <Separator />
         <MatchUserItem
           matchUser={match.matchUsers[otherUser]}
           currentUser={false}
-          status={otherUserStatus}
+          otherUserBalance={match.matchUsers[currentUser].balance}
         />
       </CardContent>
     </Card>
@@ -53,14 +35,25 @@ export default function MatchDetails({ match }: { match: Match }) {
 function MatchUserItem({
   matchUser,
   currentUser,
-  status,
+  otherUserBalance,
 }: {
   matchUser: MatchUser;
   currentUser: boolean;
-  status: string;
+  otherUserBalance: number;
 }) {
   const totalParlays =
     matchUser.parlaysWon + matchUser.parlaysLost + matchUser.parlaysInProgress;
+
+  const badgeVariant = getBadgeVariant(
+    matchUser.status,
+    matchUser.balance,
+    otherUserBalance
+  );
+  const badgeText = getBadgeText(
+    matchUser.status,
+    matchUser.balance,
+    otherUserBalance
+  );
 
   return (
     <View className="flex flex-col gap-6">
@@ -79,16 +72,8 @@ function MatchUserItem({
             </Text>
           </View>
         </View>
-        <Badge
-          variant={
-            status == "winning" || status == "win"
-              ? "success"
-              : status == "losing" || "loss"
-              ? "destructive"
-              : "secondary"
-          }
-        >
-          <Text className="text-base capitalize">{status}</Text>
+        <Badge variant={badgeVariant}>
+          <Text className="text-base capitalize">{badgeText}</Text>
         </Badge>
       </View>
       <View className="flex flex-row items-center justify-between">

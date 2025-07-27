@@ -2,6 +2,7 @@ import { and, eq, InferInsertModel } from "drizzle-orm";
 import { Router } from "express";
 import { db } from "../drizzle";
 import {
+  matches,
   matchUsers,
   parlayPicks,
   parlays,
@@ -9,7 +10,8 @@ import {
   props,
 } from "../drizzle/schema";
 import { authMiddleware } from "./auth";
-import { logger } from "../logger";
+import { io } from "../index";
+import { invalidateQueries } from "../utils/invalidateQueries";
 
 export const parlaysRoute = Router();
 
@@ -119,6 +121,13 @@ parlaysRoute.post("/parlays/:matchId", authMiddleware, async (req, res) => {
       ),
     });
 
+    const match = await db.query.matches.findFirst({
+      where: eq(matches.id, matchId),
+      with: {
+        matchUsers: true,
+      },
+    });
+
     if (!matchUser) {
       res.status(401).json({
         error: "Unauthorized request",
@@ -215,6 +224,13 @@ parlaysRoute.post("/parlays/:matchId", authMiddleware, async (req, res) => {
         parlayId: parlay.id,
       });
     }
+
+    // Send invalidation message to update client queries
+    invalidateQueries(
+      ["parlays", matchId, userId],
+      ["match", matchId],
+      match?.matchUsers.map((matchUser) => ["matches", matchUser.userId])
+    );
 
     res.json(parlay);
   } catch (err: any) {
