@@ -20,6 +20,7 @@ export function RealTimeProvider({ children }: { children: ReactNode }) {
     socket.on("disconnect", () => setIsConnected(false));
 
     socket.on("data-invalidated", (queryKey: string[]) => {
+      console.log("Query Key to Invalidate", queryKey)
       queryClient.invalidateQueries({
         queryKey,
       });

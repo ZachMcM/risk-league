@@ -1,9 +1,6 @@
-import { router, useLocalSearchParams } from "expo-router";
+import { Link, router, useLocalSearchParams } from "expo-router";
 import { Pressable, View } from "react-native";
-import {
-  getFlexMultiplier,
-  getPerfectPlayMultiplier
-} from "~/lib/utils";
+import { getFlexMultiplier, getPerfectPlayMultiplier } from "~/lib/utils";
 import { Parlay } from "~/types/parlays";
 import { Badge } from "../ui/badge";
 import { Card, CardContent } from "../ui/card";
@@ -15,16 +12,14 @@ export default function ParlayCard({ parlay }: { parlay: Parlay }) {
   const matchId = parseInt(searchParams.matchId);
 
   return (
-    <Pressable
-      onPress={() =>
-        router.navigate({
-          pathname: "/matches/[matchId]/parlays/[parlayId]",
-          params: { matchId, parlayId: parlay.id },
-        })
-      }
+    <Link
+      href={{
+        pathname: "/matches/[matchId]/parlays/[parlayId]",
+        params: { matchId, parlayId: parlay.id },
+      }}
     >
-      <Card>
-        <CardContent className="p-6 flex flex-col gap-6">
+      <Card className="w-full">
+        <CardContent className="p-6 flex flex-col gap-6 w-full flex-1">
           <View className="flex flex-col">
             <View className="flex flex-row justify-between items-center">
               <View className="flex flex-row items-center gap-3">
@@ -100,6 +95,6 @@ export default function ParlayCard({ parlay }: { parlay: Parlay }) {
           {/* TODO images go under here */}
         </CardContent>
       </Card>
-    </Pressable>
+    </Link>
   );
 }

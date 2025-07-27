@@ -1,10 +1,8 @@
-import { PortalHost } from "@rn-primitives/portal";
 import { useQuery } from "@tanstack/react-query";
 import { useLocalSearchParams } from "expo-router";
 import { ActivityIndicator, Pressable, View } from "react-native";
 import FlexPlayOutcomes from "~/components/parlays/FlexPlayOutcomes";
 import { Button } from "~/components/ui/button";
-import { Card, CardContent } from "~/components/ui/card";
 import {
   Dialog,
   DialogClose,
@@ -13,22 +11,19 @@ import {
   DialogHeader,
   DialogTrigger,
 } from "~/components/ui/dialog";
-import { Progress } from "~/components/ui/progress";
 import { ScrollContainer } from "~/components/ui/scroll-container";
 import { Separator } from "~/components/ui/separator";
 import { Text } from "~/components/ui/text";
 import { getParlay } from "~/endpoints";
 
-import { ChevronDown } from "~/lib/icons/ChevronDown";
-import {
-  cn,
-  getFlexMultiplier,
-  getPerfectPlayMultiplier,
-  getStatName,
-} from "~/lib/utils";
-import ModalContainer from "~/components/ui/modal-container";
 import ParlayPickCard from "~/components/parlays/ParlayPickCard";
 import { Badge } from "~/components/ui/badge";
+import ModalContainer from "~/components/ui/modal-container";
+import { ChevronDown } from "~/lib/icons/ChevronDown";
+import {
+  getFlexMultiplier,
+  getPerfectPlayMultiplier
+} from "~/lib/utils";
 
 export default function Parlay() {
   const searchParams = useLocalSearchParams<{

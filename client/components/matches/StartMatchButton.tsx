@@ -22,9 +22,9 @@ export default function StartMatchButton({
 }) {
   const router = useRouter();
 
-  const [selectedGameMode, setSelectedGameMode] = useState<string | null>(null);
+  const [selectedLeague, setSelectedLeague] = useState<string | null>(null);
 
-  const gameModes = [
+  const leagues = [
     {
       id: "nba",
       name: "NBA",
@@ -38,10 +38,10 @@ export default function StartMatchButton({
   ];
 
   const handleStartGame = () => {
-    if (selectedGameMode) {
+    if (selectedLeague) {
       router.navigate({
         pathname: "/matchmaking/[id]",
-        params: { id: selectedGameMode },
+        params: { id: selectedLeague },
       });
     }
   };
@@ -71,24 +71,24 @@ export default function StartMatchButton({
             horizontal
             showsHorizontalScrollIndicator={false}
           >
-            {gameModes.length > 0 ? (
-              gameModes.map((gameMode) => (
+            {leagues.length > 0 ? (
+              leagues.map((league) => (
                 <Pressable
-                  key={gameMode.id}
+                  key={league.id}
                   className={cn(
                     "flex flex-row items-center gap-2 border-2 border-border py-2 px-4 rounded-xl",
-                    selectedGameMode == gameMode.id &&
+                    selectedLeague == league.id &&
                       "border-primary bg-primary/20",
-                    !isActive(gameMode.id) && "opacity-70"
+                    !isActive(league.id) && "opacity-70"
                   )}
                   onPress={() => {
-                    if (isActive(gameMode.id)) {
-                      setSelectedGameMode(gameMode.id);
+                    if (isActive(league.id)) {
+                      setSelectedLeague(league.id);
                     }
                   }}
                 >
-                  {gameMode.icon}
-                  <Text className="text-lg font-bold">{gameMode.name}</Text>
+                  {league.icon}
+                  <Text className="text-lg font-bold">{league.name}</Text>
                 </Pressable>
               ))
             ) : (
@@ -99,17 +99,17 @@ export default function StartMatchButton({
           </ScrollView>
         </View>
         <Button
-          disabled={selectedGameMode == null}
+          disabled={selectedLeague == null}
           onPress={handleStartGame}
           size="lg"
           className="flex flex-row items-center gap-4"
         >
           <Play className="text-white" />
           <Text className="font-bold !text-xl">
-            {selectedGameMode == null
+            {selectedLeague == null
               ? "Select Game Mode"
               : `Start ${
-                  gameModes.find((gameMode) => gameMode.id == selectedGameMode)
+                  leagues.find((league) => league.id == selectedLeague)
                     ?.name
                 } Match`}
           </Text>

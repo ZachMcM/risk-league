@@ -28,13 +28,14 @@ export default function PropsView({ props }: { props: Prop[] }) {
   const searchResults = useMemo(() => {
     if (!searchContent) return filteredProps;
 
-    const searchLower = searchContent.toLowerCase().trim();
+    const searchLower = searchContent.toLocaleLowerCase().trim();
     return props.filter(
       (prop) =>
-        prop.player.name?.toLowerCase().includes(searchLower) ||
-        prop.player.team.fullName?.toLowerCase().includes(searchLower) ||
-        prop.player.team.abbreviation?.toLowerCase().includes(searchLower) ||
-        getStatName(prop.stat).toLowerCase().includes(searchLower)
+        prop.player.name?.toLocaleLowerCase().includes(searchLower) ||
+        prop.player.team.fullName?.toLocaleLowerCase().includes(searchLower) ||
+        prop.player.team.abbreviation?.toLocaleLowerCase().includes(searchLower) ||
+        prop.player.position?.toLocaleLowerCase().includes(searchLower) ||
+        getStatName(prop.stat).toLocaleLowerCase().includes(searchLower)
     );
   }, [props, searchContent, filteredProps]);
 
@@ -70,7 +71,9 @@ export default function PropsView({ props }: { props: Prop[] }) {
         >
           <Pressable
             className="flex flex-row items-center gap-2 border-2 border-border py-2 px-4 rounded-xl"
-            onPress={() => setSearchActivated(true)}
+            onPress={() => {
+              setSearchActivated(true);
+            }}
           >
             <Search className="text-white" size={16} />
             <Text className="font-semibold">Search</Text>

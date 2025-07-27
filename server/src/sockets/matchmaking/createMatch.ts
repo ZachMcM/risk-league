@@ -1,18 +1,18 @@
 import { db } from "../../drizzle";
-import { matches, matchUsers, matchGameMode } from "../../drizzle/schema";
+import { matches, matchUsers } from "../../drizzle/schema";
 
 export async function createMatch({
   user1,
   user2,
-  gameMode
+  league,
 }: {
   user1: number;
   user2: number;
-  gameMode: typeof matchGameMode.enumValues[number]
+  league: string;
 }) {
   const [match] = await db
     .insert(matches)
-    .values({ resolved: false, gameMode })
+    .values({ resolved: false, league })
     .returning({ id: matches.id });
 
   // TODO add randomzied starting balances

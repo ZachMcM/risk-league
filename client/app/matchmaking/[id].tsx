@@ -60,7 +60,7 @@ export default function Matchmaking() {
     }, 2000); // change every 2 seconds
 
     const socket = io(`${process.env.EXPO_PUBLIC_API_URL}/matchmaking`, {
-      auth: { userId: userId.toString(), gameMode: id },
+      auth: { userId: userId.toString(), league: id },
       transports: ["websocket"],
     });
 
@@ -82,7 +82,7 @@ export default function Matchmaking() {
       clearInterval(interval);
       socket.disconnect();
       router.replace({
-        pathname: "/matches/[matchId]",
+        pathname: "/(tabs)/matches/[matchId]",
         params: { matchId },
       });
     });

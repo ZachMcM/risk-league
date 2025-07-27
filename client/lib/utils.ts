@@ -167,6 +167,24 @@ export function getBadgeText(
     : "Tied";
 }
 
+export function getLeftBorderColor(
+  status: MatchStatus,
+  balance: number,
+  oppBalance: number
+) {
+  return status == "not_resolved"
+    ? balance > oppBalance
+      ? "border-l-success"
+      : balance < oppBalance
+      ? "border-l-destructive"
+      : "border-l-border"
+    : status == "win"
+    ? "border-l-success"
+    : status == "loss"
+    ? "border-l-destructive"
+    : "border-l-border";
+}
+
 export function invalidateQueries(
   queryClient: QueryClient,
   ...keys: QueryKey[]

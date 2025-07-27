@@ -17,7 +17,7 @@ class Matches(Base):
 
     resolved: Mapped[bool] = mapped_column(Boolean, server_default=text('false'))
     id: Mapped[int] = mapped_column(Integer, Sequence('matches_new_id_seq', schema='public'), primary_key=True)
-    game_mode: Mapped[str] = mapped_column(Enum('nba', 'nfl', 'mlb', name='match_game_mode'))
+    league: Mapped[str] = mapped_column(Text)
     created_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime(True), server_default=text('CURRENT_TIMESTAMP'))
 
     match_messages: Mapped[List['MatchMessages']] = relationship('MatchMessages', back_populates='match')
@@ -114,6 +114,7 @@ class MatchUsers(Base):
     created_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime(True), server_default=text('CURRENT_TIMESTAMP'))
     user_id: Mapped[Optional[int]] = mapped_column(Integer)
     match_id: Mapped[Optional[int]] = mapped_column(Integer)
+    starting_balance: Mapped[Optional[float]] = mapped_column(Double(53), server_default=text('100'))
 
     match: Mapped[Optional['Matches']] = relationship('Matches', back_populates='match_users')
     user: Mapped[Optional['Users']] = relationship('Users', back_populates='match_users')

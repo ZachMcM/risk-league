@@ -1,6 +1,4 @@
 import { Tabs } from "expo-router";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import PageTitle from "~/components/ui/page-title";
 import { Dices } from "~/lib/icons/Dices";
 import { Home } from "~/lib/icons/Home";
 import { useColorScheme } from "~/lib/useColorScheme";
@@ -40,6 +38,7 @@ export default function TabsLayout() {
           title: "Matches",
           headerShown: false,
           tabBarIcon: ({ color }) => <Dices color={color} />,
+          href: "/(tabs)/matches/",
         }}
       />
     </Tabs>

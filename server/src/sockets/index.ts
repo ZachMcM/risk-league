@@ -9,43 +9,42 @@ import {
 } from "./matchmaking/queue";
 import { logger } from "../logger";
 import { WebSocketRateLimiter } from "../utils/rateLimiter";
-import { matchGameMode } from "../drizzle/schema";
 
 const messageLimiter = new WebSocketRateLimiter(1, 1000); // 5 messages per second
 
 export function initSocketServer(io: Server) {
   io.of("/matchmaking").on("connection", (socket) => {
     const userId = socket.handshake.auth.userId;
-    const gameMode = socket.handshake.auth.gameMode;
+    const league = socket.handshake.auth.league;
 
-    if (!gameMode || !matchGameMode.enumValues.includes(gameMode as any)) {
-      socket.emit("error", { message: "Invalid or missing gameMode" });
+    if (!league) {
+      socket.emit("error", { message: "Invalid or missing league" });
       socket.disconnect();
       return;
     }
 
     logger.info(
-      `User ${userId} connected to matchmaking namespace for ${gameMode}`
+      `User ${userId} connected to matchmaking namespace for ${league}`
     );
 
     socket.join(userId);
-    socket.join(`gameMode:${gameMode}`);
+    socket.join(`league:${league}`);
 
-    addToQueue(userId, gameMode as (typeof matchGameMode.enumValues)[number]);
+    addToQueue(userId, league);
 
     const tryMatchmaking = async () => {
       // Clean up any invalid entries first
       await cleanInvalidEntries();
 
       const pair = await getPair(
-        gameMode as (typeof matchGameMode.enumValues)[number]
+        league
       );
 
       if (pair) {
         const matchId = await createMatch({
           user1: parseInt(pair.user1),
           user2: parseInt(pair.user2),
-          gameMode: gameMode as (typeof matchGameMode.enumValues)[number],
+          league,
         });
 
         const { user1, user2 } = pair;
@@ -73,7 +72,7 @@ export function initSocketServer(io: Server) {
       logger.info(`User ${userId} disconnected`);
       removeFromQueue(
         userId,
-        gameMode as (typeof matchGameMode.enumValues)[number]
+        league
       );
     });
 

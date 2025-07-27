@@ -1,12 +1,11 @@
 import { redis } from "../../redis";
 import { getRank } from "../../utils/getRank";
-import { matchGameMode } from "../../drizzle/schema";
 
-const getQueueKey = (gameMode: string) => `matchmaking:queue:${gameMode}`;
+const getQueueKey = (league: string) => `matchmaking:queue:${league}`;
 
 export async function cleanInvalidEntries() {
-  for (const gameMode of matchGameMode.enumValues) {
-    const queueKey = getQueueKey(gameMode);
+  for (const league of ["mlb", "nba"]) {
+    const queueKey = getQueueKey(league);
     const queue = await redis.lRange(queueKey, 0, -1);
     
     for (const entry of queue) {
@@ -17,21 +16,21 @@ export async function cleanInvalidEntries() {
   }
 }
 
-export async function addToQueue(userId: string, gameMode: typeof matchGameMode.enumValues[number]) {
-  const queueKey = getQueueKey(gameMode);
+export async function addToQueue(userId: string, league: string) {
+  const queueKey = getQueueKey(league);
   await redis.rPush(queueKey, userId.toString());
 }
 
-export async function removeFromQueue(userId: string, gameMode: typeof matchGameMode.enumValues[number]) {
-  const queueKey = getQueueKey(gameMode);
+export async function removeFromQueue(userId: string, league: string) {
+  const queueKey = getQueueKey(league);
   await redis.lRem(queueKey, 0, userId.toString());
 }
 
-export async function getPair(gameMode: typeof matchGameMode.enumValues[number]): Promise<{
+export async function getPair(league: string): Promise<{
   user1: string;
   user2: string;
 } | null> {
-  const queueKey = getQueueKey(gameMode);
+  const queueKey = getQueueKey(league);
   const queue = await redis.lRange(queueKey, 0, -1);
 
   for (let i = 0; i < queue.length; i++) {

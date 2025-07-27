@@ -1,10 +1,11 @@
-import { Href, Link, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { X } from "~/lib/icons/X";
 
 export default function FullScreenModalHeader({ close = false }: { close?: boolean }) {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
 
   return (
     <View
@@ -12,9 +13,9 @@ export default function FullScreenModalHeader({ close = false }: { close?: boole
       className="flex flex-row items-center gap-2 p-4"
     >
       {close && (
-        <Link href="../">
+        <Pressable onPress={() => router.dismiss()}>
           <X size={24} className="text-muted-foreground" />
-        </Link>
+        </Pressable>
       )}
     </View>
   );

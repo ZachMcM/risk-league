@@ -6,6 +6,7 @@ import { Button } from "../ui/button";
 import { truncate } from "lodash";
 import { router, useLocalSearchParams } from "expo-router";
 import { toast } from "sonner-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type ParlayPick = {
   prop: Prop;
@@ -50,13 +51,15 @@ export function ParlayProvider({ children }: { children: ReactNode }) {
 
   function addPick(parlayPick: ParlayPick) {
     if (parlayPicks.length + 1 > 6) {
-      toast.error("Sorry, you can't have more than 6 picks")
-      return
+      toast.error("Sorry, you can't have more than 6 picks");
+      return;
     }
-    const playerExists = parlayPicks.find(pick => pick.prop.player.id == parlayPick.prop.playerId)
+    const playerExists = parlayPicks.find(
+      (pick) => pick.prop.player.id == parlayPick.prop.playerId
+    );
     if (playerExists) {
-      toast.error("Sorry, you can't make multiple picks for the same player")
-      return
+      toast.error("Sorry, you can't make multiple picks for the same player");
+      return;
     }
     setParlayPicks([...parlayPicks, parlayPick]);
   }
@@ -93,16 +96,19 @@ export function useParlayPicks() {
 
 export function ParlayPickerFooter() {
   const { parlayPicks } = useParlayPicks();
-
-  if (parlayPicks.length <= 0) {
-    return;
-  }
-
   const searchParams = useLocalSearchParams<{ matchId: string }>();
   const matchId = parseInt(searchParams.matchId);
+  const insets = useSafeAreaInsets();
+
+  if (parlayPicks.length <= 0) {
+    return null;
+  }
 
   return (
-    <View className="flex flex-row items-center justify-between gap-4 border-t border-border p-4">
+    <View
+      className="flex flex-row items-center justify-between gap-4 border-t border-border p-4"
+      style={{ marginBottom: insets.bottom }}
+    >
       {/* TODO replace with images */}
       <Text className="font-semibold text-muted-foreground">
         {truncate(

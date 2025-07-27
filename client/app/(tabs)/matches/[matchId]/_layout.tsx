@@ -1,16 +1,11 @@
-import { Stack, useLocalSearchParams } from "expo-router";
-import { View } from "lucide-react-native";
+import { Stack } from "expo-router";
 import { MessagesProvider } from "~/components/providers/MessagesProvider";
 import {
   ParlayPickerFooter,
   ParlayProvider,
 } from "~/components/providers/ParlayProvider";
-import CardHeader from "~/components/ui/fullscreen-modal-header";
-import PageTitle from "~/components/ui/page-title";
 
 export default function Layout() {
-  const { matchId } = useLocalSearchParams() as { matchId: string };
-
   return (
     <MessagesProvider>
       <ParlayProvider>
@@ -18,7 +13,7 @@ export default function Layout() {
           <Stack.Screen
             name="index"
             options={{
-              header: (_) => <PageTitle title="Match" back="/(tabs)/matches" />,
+              headerShown: false,
             }}
           />
           <Stack.Screen

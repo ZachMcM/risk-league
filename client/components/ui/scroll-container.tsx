@@ -1,21 +1,16 @@
 import { ReactNode } from "react";
 import { KeyboardAvoidingView, ScrollView, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { cn } from "~/lib/utils";
 
-function ScrollContainer({
+export function ScrollContainer({
   children,
   className,
 }: {
   children?: ReactNode;
   className?: string;
 }) {
-
   return (
-    <KeyboardAvoidingView
-      className="flex-1 flex"
-      behavior="padding"
-    >
+    <KeyboardAvoidingView className="flex-1 flex" behavior="padding">
       <ScrollView
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={{
@@ -29,5 +24,3 @@ function ScrollContainer({
     </KeyboardAvoidingView>
   );
 }
-
-export { ScrollContainer };

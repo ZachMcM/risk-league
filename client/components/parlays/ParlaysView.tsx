@@ -59,7 +59,7 @@ export default function ParlaysView({ parlays }: { parlays: Parlay[] }) {
   };
 
   return (
-    <View className="flex flex-1 flex-col gap-6">
+    <View className="flex flex-1 flex-col gap-6 w-full">
       {searchActivated ? (
         <View className="flex flex-1 flex-row items-center gap-3">
           <SearchBar
@@ -90,7 +90,9 @@ export default function ParlaysView({ parlays }: { parlays: Parlay[] }) {
         >
           <Pressable
             className="flex flex-row items-center gap-2 border-2 border-border py-2 px-4 rounded-xl"
-            onPress={() => setSearchActivated(true)}
+            onPress={() => {
+              setSearchActivated(true);
+            }}
           >
             <Search className="text-white" size={16} />
             <Text className="font-semibold">Search</Text>

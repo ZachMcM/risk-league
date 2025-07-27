@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { router, useLocalSearchParams } from "expo-router";
 import moment from "moment";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, View } from "react-native";
 import { FakeCurrencyInput } from "react-native-currency-input";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -19,10 +19,8 @@ import { CircleMinus } from "~/lib/icons/CircleMinus";
 import {
   cn,
   getFlexMultiplier,
-  getFlexMultiplierTable,
   getPerfectPlayMultiplier,
   getStatName,
-  invalidateQueries,
 } from "~/lib/utils";
 import { Prop } from "~/types/props";
 
@@ -44,8 +42,31 @@ export default function FinalizeParlay() {
 
   const [stake, setStake] = useState<number | null>(0);
   const [type, setType] = useState("perfect");
+  const [formError, setFormError] = useState<null | string>(null);
 
-  const queryClient = useQueryClient();
+  useEffect(() => {
+    if (formError) {
+      if (stake) {
+        if (stake <= userBalance && stake >= 10) {
+          setFormError(null);
+        }
+      }
+    } else {
+      if (stake) {
+        if (stake > userBalance) {
+          const err = `Balance is not enough to place this stake. Maximum stake is ${userBalance}`;
+
+          setFormError(err);
+          return;
+        }
+        if (stake < 10) {
+          const err = "Your stake must be at least $10";
+          setFormError(err);
+          return;
+        }
+      }
+    }
+  }, [formError, stake]);
 
   const { mutate: createParlay, isPending: isCreatingParlayPending } =
     useMutation({
@@ -61,6 +82,7 @@ export default function FinalizeParlay() {
         });
       },
       onSuccess: () => {
+        clearParlay()
         toast.success("Parlay Successfully created", {
           position: "bottom-center",
         });
@@ -77,11 +99,16 @@ export default function FinalizeParlay() {
       return;
     }
     if (stake > userBalance) {
-      toast.error("Balance is not enough to place this stake");
+      const err = `Balance is not enough to place this stake. Maximum stake is ${userBalance}`;
+
+      toast.error(err);
+      setFormError(err);
       return;
     }
-    if (stake <= 0) {
-      toast.error("Your stake must be more than 0");
+    if (stake < 10) {
+      const err = "Your stake must be at least $10";
+      toast.error(err);
+      setFormError(err);
       return;
     }
     createParlay();
@@ -96,7 +123,8 @@ export default function FinalizeParlay() {
           <View className="flex flex-row items-center gap-2">
             <Text className="font-bold text-lg">Current Parlay</Text>
             <Text className="font-semibold text-muted-foreground text-lg">
-              {parlayPicks.length} prop{parlayPicks.length > 1 && "s"} selected
+              {parlayPicks.length} prop{parlayPicks.length > 1 ? "s" : ""}{" "}
+              selected
             </Text>
           </View>
           <Button
@@ -156,10 +184,7 @@ export default function FinalizeParlay() {
             ) ? (
               <>
                 <Card
-                  className={cn(
-                    "w-full",
-                    stake && stake > userBalance && "border-destructive"
-                  )}
+                  className={cn("w-full", formError && "border-destructive")}
                 >
                   <CardContent className="flex flex-col gap-4 p-4">
                     <View className="flex flex-row items-center justify-between">
@@ -185,17 +210,19 @@ export default function FinalizeParlay() {
                       <View className="flex flex-1 flex-col gap-1">
                         <Label>To Win</Label>
                         <Text className="text-xl font-medium">
-                          {stake != null &&
-                            (
-                              (type == "flex"
-                                ? getFlexMultiplier(
-                                    parlayPicks.length,
-                                    parlayPicks.length
-                                  )
-                                : getPerfectPlayMultiplier(
-                                    parlayPicks.length
-                                  )) * stake
-                            ).toFixed(2)}
+                          $
+                          {stake != null
+                            ? (
+                                (type == "flex"
+                                  ? getFlexMultiplier(
+                                      parlayPicks.length,
+                                      parlayPicks.length
+                                    )
+                                  : getPerfectPlayMultiplier(
+                                      parlayPicks.length
+                                    )) * stake
+                              ).toFixed(2)
+                            : "0.00"}
                         </Text>
                       </View>
                     </View>
@@ -229,11 +256,13 @@ export default function FinalizeParlay() {
                           </View>
                         </View>
                         <Text className="font-semibold text-lg">
-                          {stake &&
-                            (
-                              stake *
-                              getPerfectPlayMultiplier(parlayPicks.length)
-                            ).toFixed(2)}
+                          $
+                          {stake
+                            ? (
+                                stake *
+                                getPerfectPlayMultiplier(parlayPicks.length)
+                              ).toFixed(2)
+                            : "0.00"}
                         </Text>
                       </View>
                     ) : (
@@ -274,22 +303,42 @@ export default function FinalizeParlay() {
           ? parlayPicks.length >= 2
           : parlayPicks.length >= 3) && (
           <View
-            className="flex flex-col items-center gap-4 p-6 border-t border-border"
+            className="flex flex-col items-center gap-6 p-6 border-t border-border"
             style={{
               marginBottom: insets.bottom,
             }}
           >
-            <View className="flex flex-row items-center gap-2">
-              <Text className="font-semibold text-lg">Balance:</Text>
-              <Text
-                className={cn(
-                  "font-semibold text-lg",
-                  userBalance == 0 && "text-destructive"
-                )}
-              >
-                ${userBalance}
-              </Text>
+            <View className="flex flex-col gap-1 items-center">
+              <View className="flex flex-row items-center gap-2">
+                <Text
+                  className={cn(
+                    "font-semibold text-lg",
+                    formError && "text-destructive"
+                  )}
+                >
+                  Balance:
+                </Text>
+                <Text
+                  className={cn(
+                    "font-semibold text-lg",
+                    formError
+                      ? "text-destructive"
+                      : stake && stake != 0 && "line-through"
+                  )}
+                >
+                  ${userBalance}
+                </Text>
+                <Text className="font-semibold text-lg">
+                  {!formError && stake ? `$ ${userBalance - stake}` : ""}
+                </Text>
+              </View>
+              {formError && (
+                <Text className="font-semibold text-sm text-destructive text-center">
+                  {formError}
+                </Text>
+              )}
             </View>
+
             <Button
               onPress={handleSubmitParlay}
               size="lg"
@@ -357,7 +406,6 @@ export function PickCard({
                 if (getPick(prop.id) == option) {
                   return;
                 } else {
-                  console.log("update pick");
                   updatePick(prop.id, option);
                 }
               } else {

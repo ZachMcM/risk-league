@@ -14,7 +14,8 @@ export default function Layout() {
       <Stack.Screen
         name="[matchId]"
         options={{
-          headerShown: false,
+          header: (_) => <FullScreenModalHeader close/>,
+          presentation: "fullScreenModal"
         }}
       />
     </Stack>

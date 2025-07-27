@@ -9,7 +9,12 @@ import { Card, CardContent } from "../ui/card";
 import Pfp from "../ui/pfp";
 import { Separator } from "../ui/separator";
 import { Text } from "../ui/text";
-import { getBadgeText, getBadgeVariant } from "~/lib/utils";
+import {
+  cn,
+  getBadgeText,
+  getBadgeVariant,
+  getLeftBorderColor,
+} from "~/lib/utils";
 
 export default function MatchListCard({ match }: { match: Match }) {
   const router = useRouter();
@@ -30,6 +35,12 @@ export default function MatchListCard({ match }: { match: Match }) {
 
   const badgeText = getBadgeText(you.status, you.balance, opponent.balance);
 
+  const borderLeftColor = getLeftBorderColor(
+    you.status,
+    you.balance,
+    opponent.balance
+  );
+
   return (
     <Pressable
       onPress={() =>
@@ -39,7 +50,7 @@ export default function MatchListCard({ match }: { match: Match }) {
         })
       }
     >
-      <Card>
+      <Card className={cn(borderLeftColor)}>
         <CardContent className="flex flex-col gap-6 p-4">
           <View className="flex flex-row items-center justify-between">
             <View className="flex flex-row items-center gap-4">
@@ -57,7 +68,7 @@ export default function MatchListCard({ match }: { match: Match }) {
                   </Text>
                 </View>
                 <Badge variant="secondary" className="self-start rounded-lg">
-                  <Text className="uppercase text-sm">{match.gameMode}</Text>
+                  <Text className="uppercase text-sm">{match.league}</Text>
                 </Badge>
               </View>
             </View>
@@ -97,17 +108,14 @@ export default function MatchListCard({ match }: { match: Match }) {
               </View>
             )}
           </View>
-          {!match.resolved && (
-            <View className="flex flex-row justify-center items-center border-t border-border pt-4">
-              <View className="flex flex-row items-center gap-2 text-xs text-blue-600">
-                <View className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
-                <Badge variant={badgeVariant} className="self-start">
-                  <Text className="text-base">{badgeText}</Text>
-                </Badge>
-                <Text className="font-medium">Match in progress 🔥</Text>
-              </View>
-            </View>
-          )}
+          <View className="flex flex-row items-center justify-center gap-4 border-t border-border pt-4">
+            <Badge variant={badgeVariant} className="self-start">
+              <Text className="text-base">{badgeText}</Text>
+            </Badge>
+            {!match.resolved && (
+              <Text className="font-medium">Match in progress 🔥</Text>
+            )}
+          </View>
         </CardContent>
       </Card>
     </Pressable>
