@@ -276,21 +276,6 @@ export const players = pgTable("players", {
 		}),
 ]);
 
-export const users = pgTable("users", {
-	username: text().notNull(),
-	email: text().notNull(),
-	passwordHash: text("password_hash").notNull(),
-	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
-	image: text(),
-	name: text(),
-	isBot: boolean("is_bot"),
-	eloRating: doublePrecision("elo_rating").default(1200).notNull(),
-	id: serial().primaryKey().notNull(),
-}, (table) => [
-	unique("users_username_key").on(table.username),
-	unique("users_email_key").on(table.email),
-]);
-
 export const props = pgTable("props", {
 	line: doublePrecision().notNull(),
 	currentValue: doublePrecision("current_value").default(0).notNull(),
@@ -355,3 +340,19 @@ export const matches = pgTable("matches", {
 	id: serial().primaryKey().notNull(),
 	league: text().notNull(),
 });
+
+export const users = pgTable("users", {
+	username: text().notNull(),
+	email: text().notNull(),
+	passwordHash: text("password_hash").notNull(),
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
+	image: text(),
+	name: text(),
+	isBot: boolean("is_bot"),
+	eloRating: doublePrecision("elo_rating").default(1200).notNull(),
+	id: serial().primaryKey().notNull(),
+	header: text(),
+}, (table) => [
+	unique("users_username_key").on(table.username),
+	unique("users_email_key").on(table.email),
+]);

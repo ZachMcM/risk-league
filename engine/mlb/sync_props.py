@@ -146,7 +146,7 @@ def sync_props() -> None:
                         update_prop(
                             session,
                             stat,
-                            str(player["player_id"]),
+                            player["player_id"],
                             str(player["raw_game_id"]),
                             player[stat],
                             "mlb",

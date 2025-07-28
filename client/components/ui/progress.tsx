@@ -20,6 +20,7 @@ const progressVariants = cva(
         default: "bg-foreground/10",
         destructive: "bg-destructive/10",
         success: "bg-success/10",
+        primary: "bg-primary/10"
       },
     },
     defaultVariants: {
@@ -34,6 +35,7 @@ const progressIndicatorVariants = cva("h-full", {
       default: "bg-foreground",
       destructive: "bg-destructive",
       success: "bg-success",
+      primary: "bg-primary"
     },
   },
   defaultVariants: {
@@ -47,6 +49,7 @@ const progressTextVariants = cva("font-semibold text-sm text-start", {
       default: "text-foreground",
       destructive: "text-destructive",
       success: "text-success",
+      primary: "text-primary"
     },
   },
   defaultVariants: {

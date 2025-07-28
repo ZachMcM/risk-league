@@ -51,7 +51,7 @@ export default function MatchListCard({ match }: { match: Match }) {
       }
     >
       <Card className={cn(borderLeftColor)}>
-        <CardContent className="flex flex-col gap-2 p-4">
+        <CardContent className="flex flex-col gap-4 p-4">
           <View className="flex flex-row items-center justify-between">
             <View className="flex flex-row items-center gap-4">
               <Pfp

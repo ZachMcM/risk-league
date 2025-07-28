@@ -8,7 +8,6 @@ import {
 import { useRouter } from "expo-router";
 import { createContext, ReactNode, useContext } from "react";
 import { toast } from "sonner-native";
-import { User } from "~/types/user";
 
 type SessionProviderValues = {
   session:
@@ -18,6 +17,7 @@ type SessionProviderValues = {
           username: string;
           email: string;
           image: string | null;
+          header: string | null;
         };
       }
     | undefined

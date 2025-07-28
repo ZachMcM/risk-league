@@ -47,6 +47,8 @@ def update_parlay_picks(session: Session, prop: Props):
             .where(ParlayPicks.pick == "over")
             .values(status="hit")
         )
+        
+    session.commit()
 
     # Get updated picks to send notifications
     picks = (

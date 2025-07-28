@@ -56,6 +56,7 @@ export async function sessionRequest(): Promise<
         username: string;
         email: string;
         image: string | null;
+        header: string | null;
       };
     }
   | undefined

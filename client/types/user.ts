@@ -3,4 +3,5 @@ export type User = {
   username: string;
   image: string | null;
   eloRating: number;
+  header: string | null;
 };

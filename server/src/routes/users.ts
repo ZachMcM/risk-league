@@ -16,6 +16,7 @@ usersRoute.get("/users/:id", authMiddleware, async (req, res) => {
         username: true,
         image: true,
         eloRating: true,
+        header: true
       },
       where: eq(users.id, userId),
     });

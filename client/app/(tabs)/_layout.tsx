@@ -1,4 +1,5 @@
 import { Tabs } from "expo-router";
+import { NAV_THEME } from "~/lib/constants";
 import { Dices } from "~/lib/icons/Dices";
 import { Home } from "~/lib/icons/Home";
 import { useColorScheme } from "~/lib/useColorScheme";
@@ -18,10 +19,10 @@ export default function TabsLayout() {
         tabBarLabelStyle: {
           fontSize: 12,
         },
-        tabBarActiveTintColor: "hsl(324.9505 80.8% 50.9804%)", // from --primary
+        tabBarActiveTintColor: NAV_THEME.dark.primary, // from --primary
         tabBarInactiveTintColor: isDarkColorScheme
-          ? "hsl(223.8136 0% 63.0163%)" // from --muted-foreground .dark:root
-          : "hsl(223.8136 0% 45.1519%)", // from --muted-foreground .root
+          ? NAV_THEME.dark.text // from --muted-foreground .dark:root
+          : NAV_THEME.light.text, // from --muted-foreground .root
       }}
     >
       <Tabs.Screen

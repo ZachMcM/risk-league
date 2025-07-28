@@ -67,9 +67,9 @@ def get_league_mean_mpg(session: Session) -> tuple[float, float]:
     return _league_mean_mpg_cache
 
 
-def is_prop_eligible(mpg: float) -> bool:
+def is_prop_eligible(session: Session, mpg: float) -> bool:
     """Determine if a player is eligible for a prop on a specific stat."""
-    league_mean_mpg, league_sd_mpg = get_league_mean_mpg()
+    league_mean_mpg, league_sd_mpg = get_league_mean_mpg(session=session)
     if mpg <= league_mean_mpg + MPG_SIMGA_COEFF * league_sd_mpg:
         logger.info(f"Skipping player due to low mean mpg.")
         return False
@@ -191,7 +191,7 @@ def main() -> None:
                 "reb_ast",
                 "pts_ast",
             ]:
-                stat_eligibility[stat] = is_prop_eligible(mpg=mpg)
+                stat_eligibility[stat] = is_prop_eligible(session=session, mpg=mpg)
 
             # Skip if no props are eligible
             if not any(stat_eligibility.values()):

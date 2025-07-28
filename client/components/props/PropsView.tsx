@@ -19,7 +19,7 @@ export default function PropsView({ props }: { props: Prop[] }) {
     () =>
       propFilter == "popular"
         ? props
-            .sort((a, b) => a.parlayPicksCount - b.parlayPicksCount)
+            .sort((a, b) => b.parlayPicksCount - a.parlayPicksCount)
             .slice(0, 14)
         : props.filter((prop) => prop.stat == propFilter),
     [props, propFilter]

@@ -22,17 +22,6 @@ CREATE TYPE public.league_type AS ENUM (
 
 
 --
--- Name: match_game_mode; Type: TYPE; Schema: public; Owner: -
---
-
-CREATE TYPE public.match_game_mode AS ENUM (
-    'nba',
-    'nfl',
-    'mlb'
-);
-
-
---
 -- Name: match_status; Type: TYPE; Schema: public; Owner: -
 --
 
@@ -157,7 +146,7 @@ CREATE TABLE public.matches (
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
     resolved boolean DEFAULT false NOT NULL,
     id integer NOT NULL,
-    game_mode public.match_game_mode NOT NULL
+    league text NOT NULL
 );
 
 
@@ -559,7 +548,8 @@ CREATE TABLE public.users (
     name text,
     is_bot boolean,
     elo_rating double precision DEFAULT 1200 NOT NULL,
-    id integer NOT NULL
+    id integer NOT NULL,
+    header text
 );
 
 
@@ -934,4 +924,6 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20250715010515'),
     ('20250720162735'),
     ('20250720195013'),
-    ('20250726171929');
+    ('20250726171929'),
+    ('20250727153942'),
+    ('20250727224732');

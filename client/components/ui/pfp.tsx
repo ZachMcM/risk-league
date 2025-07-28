@@ -24,8 +24,8 @@ export default function Pfp({
           uri: image!,
         }}
       />
-      <AvatarFallback className="bg-primary/10 p-1.5 border-2 border-primary/40">
-        <Text className="text-primary font-bold text-sm">
+      <AvatarFallback>
+        <Text className="font-bold text-sm">
           {username.slice(0, 2).toUpperCase()}
         </Text>
       </AvatarFallback>

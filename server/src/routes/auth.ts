@@ -51,6 +51,8 @@ authRoute.get("/auth/session", authMiddleware, async (_, res) => {
         id: true,
         email: true,
         username: true,
+        image: true,
+        header: true
       },
       where: eq(users.id, userId),
     });
