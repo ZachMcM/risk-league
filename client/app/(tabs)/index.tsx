@@ -64,7 +64,6 @@ export default function Home() {
                 </Text>
                 <Text className="text-muted-foreground text-xl">points</Text>
               </View>
-              <Trophy className="text-muted-foreground" size={18} />
             </View>
           </View>
           <RankBadge

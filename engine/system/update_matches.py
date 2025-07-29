@@ -14,7 +14,7 @@ from shared.socket_utils import send_message as send_socket_message
 logger = setup_logger(__name__)
 
 
-def recalculate_elo(current_elos: list[int], winner: int | None) -> list[int]:
+def recalculate_elo(current_elos: list[float], winner: int | None) -> list[int]:
     """Recalculates each users elo based on the winner of a match
 
     The formula is based on the official formula created by Arpad Elo.
@@ -53,7 +53,7 @@ def update_matches():
 
     logger.info("Finding matches to update")
 
-    matchesToUpdate = []
+    matchesToUpdate: list[Matches] = []
     unResolvedMatches = (
         session.execute(select(Matches).where(~Matches.resolved)).scalars().all()
     )
@@ -110,24 +110,31 @@ def update_matches():
             user1.status = "win"
             user2.status = "loss"
             winner = 1
+            
+        session.commit()
+        
+        if match.type == "competitive":
+            # Calculate ELO changes (only if both users aren't disqualified)
+            if not (user1.status == "disqualified" and user2.status == "disqualified"):
+                if user1.user is None or user2.user is None:
+                    return
+                
+                new_elos = recalculate_elo(
+                    [user1.user.elo_rating, user2.user.elo_rating], winner
+                )
 
-        # Calculate ELO changes (only if both users aren't disqualified)
-        if not (user1.status == "disqualified" and user2.status == "disqualified"):
-            new_elos = recalculate_elo(
-                [user1.user.elo_rating, user2.user.elo_rating], winner
-            )
+                user1.elo_delta = max(0, new_elos[0] - user1.user.elo_rating)
+                user2.elo_delta = max(0, new_elos[1] - user2.user.elo_rating)
 
-            user1.elo_delta = max(0, new_elos[0] - user1.user.elo_rating)
-            user2.elo_delta = max(0, new_elos[1] - user2.user.elo_rating)
-
-            user1.user.elo_rating = max(1200, new_elos[0])
-            user2.user.elo_rating = max(1200, new_elos[1])
-        else:
-            # No ELO changes for double disqualification
-            user1.elo_delta = 0
-            user2.elo_delta = 0
+                user1.user.elo_rating = max(1200, new_elos[0])
+                user2.user.elo_rating = max(1200, new_elos[1])
+            else:
+                # No ELO changes for double disqualification
+                user1.elo_delta = 0
+                user2.elo_delta = 0
 
         match.resolved = True
+        
         session.commit()
 
         async def send_updates():

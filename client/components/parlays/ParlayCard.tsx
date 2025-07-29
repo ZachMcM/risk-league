@@ -46,6 +46,7 @@ export default function ParlayCard({ parlay }: { parlay: Parlay }) {
                       : "destructive"
                     : "default"
                 }
+                className="px-3.5"
               >
                 <Text className="text-sm">
                   {!parlay.resolved

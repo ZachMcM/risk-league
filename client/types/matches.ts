@@ -11,7 +11,7 @@ export type MatchUser = {
   parlaysWon: number;
   parlaysLost: number;
   parlaysInProgress: number;
-  potentialPayout: number,
+  potentialPayout: number;
   id: number;
   createdAt: string;
   balance: number;
@@ -19,8 +19,9 @@ export type MatchUser = {
   status: "not_resolved" | "loss" | "win" | "draw" | "disqualified";
   userId: number;
   matchId: number;
-  startingBalance: number
+  startingBalance: number;
   user: User;
+  eloRatingSnapshot: number;
 };
 
 export type Match = {
@@ -29,6 +30,7 @@ export type Match = {
   resolved: boolean;
   league: "nba" | "mlb";
   matchUsers: MatchUser[];
+  type: string
 };
 
 export type CurrentStatus = "winning" | "losing" | "tied";

@@ -5,10 +5,9 @@ import { useSession } from "../providers/SessionProvider";
 import { Badge } from "../ui/badge";
 import { Card, CardContent } from "../ui/card";
 import ProfileImage from "../ui/profile-image";
+import RankIcon from "../ui/RankIcon";
 import { Separator } from "../ui/separator";
 import { Text } from "../ui/text";
-import RankBadge from "../ui/RankBadge";
-import RankIcon from "../ui/RankIcon";
 
 export default function MatchDetails({ match }: { match: Match }) {
   const { session } = useSession();
@@ -59,7 +58,7 @@ function MatchUserItem({
 
   return (
     <View className="flex flex-col gap-6">
-      <View className="flex flex-row items-center justify-between">
+      <View className="flex flex-row items-start justify-between">
         <View className="flex flex-row items-center gap-4">
           <ProfileImage
             image={matchUser.user.image}
@@ -71,7 +70,7 @@ function MatchUserItem({
             </Text>
             <View className="flex flex-row items-center gap-2">
               <RankIcon
-                tier={getRank(matchUser.user.eloRating).currentRank.tier}
+                tier={getRank(matchUser.eloRatingSnapshot).currentRank.tier}
                 iconClassName="h-4 w-4"
                 gradientStyle={{
                   padding: 5
@@ -83,8 +82,8 @@ function MatchUserItem({
             </View>
           </View>
         </View>
-        <Badge variant={badgeVariant}>
-          <Text className="text-base capitalize">{badgeText}</Text>
+        <Badge className="px-3.5" variant={badgeVariant}>
+          <Text className="text-lg capitalize">{badgeText}</Text>
         </Badge>
       </View>
       <View className="flex flex-row items-center justify-between">

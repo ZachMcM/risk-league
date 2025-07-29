@@ -18,6 +18,7 @@ class Matches(Base):
     resolved: Mapped[bool] = mapped_column(Boolean, server_default=text('false'))
     id: Mapped[int] = mapped_column(Integer, Sequence('matches_new_id_seq', schema='public'), primary_key=True)
     league: Mapped[str] = mapped_column(Text)
+    type: Mapped[str] = mapped_column(Text, server_default=text("'competitive'::text"))
     created_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime(True), server_default=text('CURRENT_TIMESTAMP'))
 
     match_messages: Mapped[List['MatchMessages']] = relationship('MatchMessages', back_populates='match')
@@ -74,6 +75,7 @@ class Users(Base):
     image: Mapped[Optional[str]] = mapped_column(Text)
     name: Mapped[Optional[str]] = mapped_column(Text)
     is_bot: Mapped[Optional[bool]] = mapped_column(Boolean)
+    header: Mapped[Optional[str]] = mapped_column(Text)
 
     match_messages: Mapped[List['MatchMessages']] = relationship('MatchMessages', back_populates='user')
     match_users: Mapped[List['MatchUsers']] = relationship('MatchUsers', back_populates='user')
@@ -111,6 +113,7 @@ class MatchUsers(Base):
     elo_delta: Mapped[float] = mapped_column(Double(53), server_default=text('0'))
     status: Mapped[str] = mapped_column(Enum('not_resolved', 'loss', 'win', 'draw', 'disqualified', name='match_status'), server_default=text("'not_resolved'::match_status"))
     id: Mapped[int] = mapped_column(Integer, Sequence('match_users_new_id_seq', schema='public'), primary_key=True)
+    elo_rating_snapshot: Mapped[float] = mapped_column(Double(53))
     created_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime(True), server_default=text('CURRENT_TIMESTAMP'))
     user_id: Mapped[Optional[int]] = mapped_column(Integer)
     match_id: Mapped[Optional[int]] = mapped_column(Integer)

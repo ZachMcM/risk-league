@@ -312,6 +312,22 @@ export const parlays = pgTable("parlays", {
 		}),
 ]);
 
+export const users = pgTable("users", {
+	username: text().notNull(),
+	email: text().notNull(),
+	passwordHash: text("password_hash").notNull(),
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
+	image: text(),
+	name: text(),
+	isBot: boolean("is_bot"),
+	eloRating: doublePrecision("elo_rating").default(1200).notNull(),
+	id: serial().primaryKey().notNull(),
+	header: text(),
+}, (table) => [
+	unique("users_username_key").on(table.username),
+	unique("users_email_key").on(table.email),
+]);
+
 export const matchUsers = pgTable("match_users", {
 	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
 	balance: doublePrecision().default(100).notNull(),
@@ -321,6 +337,7 @@ export const matchUsers = pgTable("match_users", {
 	userId: integer("user_id"),
 	matchId: integer("match_id"),
 	startingBalance: doublePrecision("starting_balance").default(100),
+	eloRatingSnapshot: doublePrecision("elo_rating_snapshot").notNull(),
 }, (table) => [
 	foreignKey({
 			columns: [table.matchId],
@@ -339,20 +356,5 @@ export const matches = pgTable("matches", {
 	resolved: boolean().default(false).notNull(),
 	id: serial().primaryKey().notNull(),
 	league: text().notNull(),
+	type: text().default('competitive').notNull(),
 });
-
-export const users = pgTable("users", {
-	username: text().notNull(),
-	email: text().notNull(),
-	passwordHash: text("password_hash").notNull(),
-	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
-	image: text(),
-	name: text(),
-	isBot: boolean("is_bot"),
-	eloRating: doublePrecision("elo_rating").default(1200).notNull(),
-	id: serial().primaryKey().notNull(),
-	header: text(),
-}, (table) => [
-	unique("users_username_key").on(table.username),
-	unique("users_email_key").on(table.email),
-]);

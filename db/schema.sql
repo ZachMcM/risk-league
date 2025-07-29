@@ -114,7 +114,8 @@ CREATE TABLE public.match_users (
     id integer NOT NULL,
     user_id integer,
     match_id integer,
-    starting_balance double precision DEFAULT 100
+    starting_balance double precision DEFAULT 100,
+    elo_rating_snapshot double precision NOT NULL
 );
 
 
@@ -146,7 +147,8 @@ CREATE TABLE public.matches (
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
     resolved boolean DEFAULT false NOT NULL,
     id integer NOT NULL,
-    league text NOT NULL
+    league text NOT NULL,
+    type text DEFAULT 'competitive'::text NOT NULL
 );
 
 
@@ -926,4 +928,7 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20250720195013'),
     ('20250726171929'),
     ('20250727153942'),
-    ('20250727224732');
+    ('20250727224732'),
+    ('20250729020046'),
+    ('20250729021255'),
+    ('20250729023751');
