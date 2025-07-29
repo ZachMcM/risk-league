@@ -47,7 +47,7 @@ def update_parlay_picks(session: Session, prop: Props):
             .where(ParlayPicks.pick == "over")
             .values(status="hit")
         )
-        
+
     session.commit()
 
     # Get updated picks to send notifications
@@ -69,6 +69,9 @@ def update_parlay_picks(session: Session, prop: Props):
             if pick.parlay.match_user is None:
                 return
 
+            if prop.resolved:
+                publish_message("parlay_pick_updated", {"id": str(pick.id)})
+
             await send_socket_message(
                 namespace="/invalidation",
                 message="data-invalidated",
@@ -83,8 +86,6 @@ def update_parlay_picks(session: Session, prop: Props):
                 message="data-invalidated",
                 data=["parlay", pick.parlay.id],
             )
-            if prop.resolved:
-                publish_message("parlay_pick_updated", {"id": str(pick.id)})
 
     # Run the async function
     asyncio.run(send_updates())

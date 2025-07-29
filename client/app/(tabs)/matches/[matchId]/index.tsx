@@ -60,24 +60,12 @@ export default function Match() {
               }}
             >
               <MatchDetails match={match} />
-              {match.resolved ? (
-                areParlaysPending ? (
-                  <View className="p-2">
-                    <ActivityIndicator className="p-2" />
-                  </View>
-                ) : (
-                  parlays && (
-                    <View className="flex flex-1 flex-col gap-6 w-full flex-shrink-0">
-                      <ParlaysView parlays={parlays} />
-                    </View>
-                  )
-                )
-              ) : (
-                <Tabs
-                  value={tabsValue}
-                  onValueChange={setTabsValue}
-                  className="flex-col gap-4"
-                >
+              <Tabs
+                value={tabsValue}
+                onValueChange={setTabsValue}
+                className="flex-col gap-4"
+              >
+                {!match.resolved && (
                   <TabsList className="flex-row w-full">
                     <TabsTrigger value="parlays" className="flex-1">
                       <Text>Parlays</Text>
@@ -86,65 +74,65 @@ export default function Match() {
                       <Text>Props</Text>
                     </TabsTrigger>
                   </TabsList>
-                  <TabsContent value="props">
-                    {arePropsPending ? (
-                      <View className="p-2">
-                        <ActivityIndicator className="text-foreground" />
+                )}
+                <TabsContent value="props">
+                  {arePropsPending ? (
+                    <View className="p-2">
+                      <ActivityIndicator className="text-foreground" />
+                    </View>
+                  ) : (
+                    props &&
+                    (props.length == 0 && !match.resolved ? (
+                      <View className="flex flex-col gap-4 p-4 items-center">
+                        <View className="flex flex-col gap-1 items-center">
+                          <Text className="font-bold text-2xl text-center">
+                            No props to bet on
+                          </Text>
+                          <Text className="font-semibold text-muted-foreground text-center">
+                            All games are in progress, there is nothing left to
+                            bet on. Good luck!
+                          </Text>
+                        </View>
                       </View>
                     ) : (
-                      props &&
-                      (props.length == 0 && !match.resolved ? (
-                        <View className="flex flex-col gap-4 p-4 items-center">
-                          <View className="flex flex-col gap-1 items-center">
-                            <Text className="font-bold text-2xl text-center">
-                              No props to bet on
-                            </Text>
-                            <Text className="font-semibold text-muted-foreground text-center">
-                              All games are in progress, there is nothing left
-                              to bet on. Good luck!
-                            </Text>
-                          </View>
+                      <PropsView props={props} />
+                    ))
+                  )}
+                </TabsContent>
+                <TabsContent value="parlays">
+                  {areParlaysPending ? (
+                    <View className="p-2">
+                      <ActivityIndicator className="text-foreground" />
+                    </View>
+                  ) : (
+                    parlays &&
+                    (parlays.length == 0 && !match.resolved ? (
+                      <View className="flex flex-col gap-4 p-4 items-center">
+                        <View className="flex flex-col gap-1 items-center">
+                          <Text className="font-bold text-2xl text-center">
+                            No parlays
+                          </Text>
+                          <Text className="font-semibold text-muted-foreground text-center">
+                            You haven't created any parlays yet, get on it!
+                          </Text>
                         </View>
-                      ) : (
-                        <PropsView props={props} />
-                      ))
-                    )}
-                  </TabsContent>
-                  <TabsContent value="parlays">
-                    {areParlaysPending ? (
-                      <View className="p-2">
-                        <ActivityIndicator className="text-foreground" />
+                        <Button
+                          size="sm"
+                          variant="foreground"
+                          onPress={() => setTabsValue("props")}
+                          className="self-center"
+                        >
+                          <Text>Create Parlay</Text>
+                        </Button>
                       </View>
                     ) : (
-                      parlays &&
-                      (parlays.length == 0 && !match.resolved ? (
-                        <View className="flex flex-col gap-4 p-4 items-center">
-                          <View className="flex flex-col gap-1 items-center">
-                            <Text className="font-bold text-2xl text-center">
-                              No parlays
-                            </Text>
-                            <Text className="font-semibold text-muted-foreground text-center">
-                              You haven't created any parlays yet, get on it!
-                            </Text>
-                          </View>
-                          <Button
-                            size="sm"
-                            variant="foreground"
-                            onPress={() => setTabsValue("props")}
-                            className="self-center"
-                          >
-                            <Text>Create Parlay</Text>
-                          </Button>
-                        </View>
-                      ) : (
-                        <View className="flex flex-1 flex-col gap-6 w-full flex-shrink-0">
-                          <ParlaysView parlays={parlays} />
-                        </View>
-                      ))
-                    )}
-                  </TabsContent>
-                </Tabs>
-              )}
+                      <View className="flex flex-1 flex-col gap-6 w-full flex-shrink-0">
+                        <ParlaysView parlays={parlays} />
+                      </View>
+                    ))
+                  )}
+                </TabsContent>
+              </Tabs>
             </View>
           )
         )}

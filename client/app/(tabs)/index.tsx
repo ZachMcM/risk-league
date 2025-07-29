@@ -2,7 +2,6 @@ import { useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { View } from "react-native";
 import { useSession } from "~/components/providers/SessionProvider";
-import Pfp from "~/components/ui/pfp";
 import RankBadge from "~/components/ui/RankBadge";
 import RankIcon from "~/components/ui/RankIcon";
 import { ScrollContainer } from "~/components/ui/scroll-container";
@@ -12,6 +11,7 @@ import { getRank } from "~/lib/utils";
 import { Trophy } from "~/lib/icons/Trophy";
 import { Progress } from "~/components/ui/progress";
 import { RankText } from "~/components/ui/rank-text";
+import ProfileImage from "~/components/ui/profile-image";
 
 export default function Home() {
   const { session } = useSession();
@@ -45,9 +45,9 @@ export default function Home() {
             />
           )}
         </View>
-        <View className="absolute -bottom-16 left-4">
-          <Pfp
-            className="w-32 h-32 border-4 border-background"
+        <View className="absolute -bottom-16 left-4 p-2 bg-background rounded-lg">
+          <ProfileImage
+            className="w-32 h-32"
             image={session.user.image}
             username={session.user.username}
           />
@@ -80,7 +80,7 @@ export default function Home() {
                 Progress to rank
               </Text>
               <Text className="font-semibold text-primary text-lg">
-                {rank.progressToNext}%
+                {Math.round(rank.progressToNext * 100)}%
               </Text>
             </View>
             <Progress value={rank.progressToNext * 100} variant="primary" />

@@ -1,12 +1,14 @@
 import { View } from "react-native";
+import { getBadgeText, getBadgeVariant, getRank } from "~/lib/utils";
 import { Match, MatchUser } from "~/types/matches";
 import { useSession } from "../providers/SessionProvider";
 import { Badge } from "../ui/badge";
 import { Card, CardContent } from "../ui/card";
-import Pfp from "../ui/pfp";
+import ProfileImage from "../ui/profile-image";
 import { Separator } from "../ui/separator";
 import { Text } from "../ui/text";
-import { getBadgeText, getBadgeVariant, getLeagueEmoji } from "~/lib/utils";
+import RankBadge from "../ui/RankBadge";
+import RankIcon from "../ui/RankIcon";
 
 export default function MatchDetails({ match }: { match: Match }) {
   const { session } = useSession();
@@ -59,17 +61,26 @@ function MatchUserItem({
     <View className="flex flex-col gap-6">
       <View className="flex flex-row items-center justify-between">
         <View className="flex flex-row items-center gap-4">
-          <Pfp
+          <ProfileImage
             image={matchUser.user.image}
             username={matchUser.user.username}
           />
-          <View className="flex flex-col">
-            <Text className="font-extrabold text-lg">
+          <View className="flex flex-col gap-1">
+            <Text className="font-semibold text-muted-foreground text-lg">
               {currentUser ? "You" : "Opponent"}
             </Text>
-            <Text className="font-medium text-xl">
-              {matchUser.user.username}
-            </Text>
+            <View className="flex flex-row items-center gap-2">
+              <RankIcon
+                tier={getRank(matchUser.user.eloRating).currentRank.tier}
+                iconClassName="h-4 w-4"
+                gradientStyle={{
+                  padding: 5
+                }}
+              />
+              <Text className="font-bold text-xl">
+                {matchUser.user.username}
+              </Text>
+            </View>
           </View>
         </View>
         <Badge variant={badgeVariant}>

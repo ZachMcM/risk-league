@@ -13,7 +13,7 @@ import { io } from "socket.io-client";
 import { toast } from "sonner-native";
 import { getMatchMessages } from "~/endpoints";
 import { MatchMessage } from "~/types/matches";
-import Pfp from "../ui/pfp";
+import ProfileImage from "../ui/profile-image";
 import { Text } from "../ui/text";
 import { useSession } from "./SessionProvider";
 
@@ -83,7 +83,7 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
       if (messageData.user.id != session.user.id) {
         toast.custom(
           <View className="flex flex-row gap-3 m-8 items-center p-4 bg-card rounded-2xl">
-            <Pfp
+            <ProfileImage
               className="h-12 w-12"
               image={messageData.user.image}
               username={messageData.user.username}
