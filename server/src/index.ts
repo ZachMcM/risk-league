@@ -12,16 +12,16 @@ import { rateLimit } from "express-rate-limit";
 import { RedisStore } from "rate-limit-redis";
 import { redis } from "./redis";
 
-const limiter = rateLimit({
-  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS!),
-  limit: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS!),
-  standardHeaders: "draft-8",
-  legacyHeaders: false,
-  store: new RedisStore({
-    sendCommand: (...args: string[]) => redis.sendCommand(args),
-  }),
-  validate: { xForwardedForHeader: process.env.X_FORWARDED_FOR == "true" },
-});
+// const limiter = rateLimit({
+//   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS!),
+//   limit: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS!),
+//   standardHeaders: "draft-8",
+//   legacyHeaders: false,
+//   store: new RedisStore({
+//     sendCommand: (...args: string[]) => redis.sendCommand(args),
+//   }),
+//   validate: { xForwardedForHeader: process.env.X_FORWARDED_FOR == "true" },
+// });
 
 const port = process.env.PORT;
 
@@ -42,7 +42,6 @@ export { io };
 
 initSocketServer(io);
 
-app.use(limiter);
 app.use(cors());
 app.use(morgan("combined"));
 app.use(bodyParser.json({ limit: "200mb" }));

@@ -102,11 +102,11 @@ export default function MatchListCard({ match }: { match: Match }) {
                 <Text className="text-base">{badgeText}</Text>
               </Badge>
               <View className="flex flex-row items-center gap-1">
-                <Text className="font-bold text-3xl text-primary">
+                <Text className="font-extrabold text-3xl text-primary">
                   ${you.balance}
                 </Text>
-                <Text className="font-bold text-3xl">-</Text>
-                <Text className="font-bold text-3xl">${opponent.balance}</Text>
+                <Text className="font-extrabold text-3xl">-</Text>
+                <Text className="font-extrabold text-3xl">${opponent.balance}</Text>
               </View>
             </View>
             {match.resolved && (

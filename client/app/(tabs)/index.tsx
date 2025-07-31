@@ -1,17 +1,16 @@
 import { useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { View } from "react-native";
+import StartMatch from "~/components/matches/StartMatch";
 import { useSession } from "~/components/providers/SessionProvider";
-import RankBadge from "~/components/ui/RankBadge";
-import RankIcon from "~/components/ui/RankIcon";
-import { ScrollContainer } from "~/components/ui/scroll-container";
-import { Text } from "~/components/ui/text";
-import { getActiveLeagues, getUser } from "~/endpoints";
-import { getRank } from "~/lib/utils";
-import { Trophy } from "~/lib/icons/Trophy";
+import ProfileImage from "~/components/ui/profile-image";
 import { Progress } from "~/components/ui/progress";
 import { RankText } from "~/components/ui/rank-text";
-import ProfileImage from "~/components/ui/profile-image";
+import RankBadge from "~/components/ui/RankBadge";
+import { ScrollContainer } from "~/components/ui/scroll-container";
+import { Text } from "~/components/ui/text";
+import { getUser } from "~/endpoints";
+import { getRank } from "~/lib/utils";
 
 export default function Home() {
   const { session } = useSession();
@@ -21,11 +20,6 @@ export default function Home() {
   const { data: user, isPending: isUserPending } = useQuery({
     queryKey: ["user", session.user.id],
     queryFn: async () => await getUser(session?.user.id!),
-  });
-
-  const { data: activeLeagues, isPending: isActiveLeaguesPending } = useQuery({
-    queryKey: ["active-leagues"],
-    queryFn: getActiveLeagues,
   });
 
   const rank = getRank(user?.eloRating!);
@@ -96,6 +90,7 @@ export default function Home() {
             </View>
           </View>
         )}
+        <StartMatch/>
       </View>
     </ScrollContainer>
   );

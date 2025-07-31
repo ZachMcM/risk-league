@@ -9,9 +9,8 @@ import {
   pickType,
   props,
 } from "../drizzle/schema";
-import { authMiddleware } from "./auth";
-import { io } from "../index";
 import { invalidateQueries } from "../utils/invalidateQueries";
+import { authMiddleware } from "./auth";
 
 export const parlaysRoute = Router();
 
@@ -68,9 +67,28 @@ parlaysRoute.get("/parlays", async (req, res) => {
   try {
     const matchUser = await db.query.matchUsers.findFirst({
       where: and(
-        eq(matchUsers.matchId, matchId),
-        eq(matchUsers.userId, userId)
+        eq(matchUsers.userId, userId),
+        eq(matchUsers.matchId, matchId)
       ),
+      with: {
+        parlays: {
+          with: {
+            parlayPicks: {
+              with: {
+                prop: {
+                  with: {
+                    player: {
+                      with: {
+                        team: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
     });
 
     if (!matchUser) {
@@ -81,26 +99,7 @@ parlaysRoute.get("/parlays", async (req, res) => {
       return;
     }
 
-    const userParlays = await db.query.parlays.findMany({
-      where: eq(parlays.matchUserId, matchUser.id),
-      with: {
-        parlayPicks: {
-          with: {
-            prop: {
-              with: {
-                player: {
-                  with: {
-                    team: true,
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    });
-
-    res.json(userParlays);
+    res.json(matchUser.parlays);
   } catch (err) {
     res.status(500).json({
       error: "Server Error",
