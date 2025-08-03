@@ -1,14 +1,21 @@
 import { useMemo, useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 import { Search } from "~/lib/icons/Search";
-import { cn, getStatName } from "~/lib/utils";
-import { Prop, propStats } from "~/types/props";
+import { cn } from "~/lib/utils";
+import { Prop } from "~/types/prop";
 import { Button } from "../ui/button";
 import { SearchBar } from "../ui/search-bar";
 import { Text } from "../ui/text";
 import PropCard from "./PropCard";
+import { propStats } from "~/lib/constants";
 
-export default function PropsView({ props }: { props: Prop[] }) {
+export default function PropsView({
+  props,
+  league,
+}: {
+  props: Prop[];
+  league: string;
+}) {
   const [propFilter, setPropFilter] = useState<string>("popular");
   const [searchActivated, setSearchActivated] = useState(false);
   const [searchContent, setSearchContent] = useState<string | undefined>(
@@ -18,10 +25,8 @@ export default function PropsView({ props }: { props: Prop[] }) {
   const filteredProps = useMemo(
     () =>
       propFilter == "popular"
-        ? props
-            .sort((a, b) => b.parlayPicksCount - a.parlayPicksCount)
-            .slice(0, 14)
-        : props.filter((prop) => prop.stat == propFilter),
+        ? props.sort((a, b) => b.picksCount - a.picksCount).slice(0, 14)
+        : props.filter((prop) => prop.statName == propFilter),
     [props, propFilter]
   );
 
@@ -33,9 +38,11 @@ export default function PropsView({ props }: { props: Prop[] }) {
       (prop) =>
         prop.player.name?.toLocaleLowerCase().includes(searchLower) ||
         prop.player.team.fullName?.toLocaleLowerCase().includes(searchLower) ||
-        prop.player.team.abbreviation?.toLocaleLowerCase().includes(searchLower) ||
+        prop.player.team.abbreviation
+          ?.toLocaleLowerCase()
+          .includes(searchLower) ||
         prop.player.position?.toLocaleLowerCase().includes(searchLower) ||
-        getStatName(prop.stat).toLocaleLowerCase().includes(searchLower)
+        prop.statDisplayName.toLocaleLowerCase().includes(searchLower)
     );
   }, [props, searchContent, filteredProps]);
 
@@ -87,18 +94,20 @@ export default function PropsView({ props }: { props: Prop[] }) {
           >
             <Text className="font-semibold">🔥 Popular</Text>
           </Pressable>
-          {propStats.map((stat) => (
-            <Pressable
-              key={stat.id}
-              className={cn(
-                "flex flex-row items-center gap-3 border-2 border-border py-2 px-4 rounded-xl",
-                propFilter == stat.id && "border-primary bg-primary/20"
-              )}
-              onPress={() => setPropFilter(stat.id)}
-            >
-              <Text className="font-semibold">{stat.name}</Text>
-            </Pressable>
-          ))}
+          {propStats
+            .filter((stat) => stat.league == league)
+            .map((stat) => (
+              <Pressable
+                key={stat.id}
+                className={cn(
+                  "flex flex-row items-center gap-3 border-2 border-border py-2 px-4 rounded-xl",
+                  propFilter == stat.id && "border-primary bg-primary/20"
+                )}
+                onPress={() => setPropFilter(stat.id)}
+              >
+                <Text className="font-semibold">{stat.name}</Text>
+              </Pressable>
+            ))}
         </ScrollView>
       )}
       <View className="flex flex-1 flex-row items-center gap-4 flex-wrap">

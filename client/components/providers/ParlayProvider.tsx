@@ -1,6 +1,6 @@
 import { createContext, ReactNode, useContext, useState } from "react";
 import { View } from "react-native";
-import { Prop } from "~/types/props";
+import { Prop } from "~/types/prop";
 import { Text } from "../ui/text";
 import { Button } from "../ui/button";
 import { truncate } from "lodash";
@@ -8,80 +8,80 @@ import { router, useLocalSearchParams } from "expo-router";
 import { toast } from "sonner-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-type ParlayPick = {
+type Pick = {
   prop: Prop;
-  pick: string;
+  choice: string;
 };
 
 export type ParlayProviderTypes = {
-  parlayPicks: ParlayPick[];
-  addPick: (parlayPick: ParlayPick) => void;
+  picks: Pick[];
+  addPick: (pick: Pick) => void;
   removePick: (propId: number) => void;
   updatePick: (propId: number, newPick: string) => void;
   clearParlay: () => void;
-  getParlayCount: () => number;
-  getPick: (propId: number) => string | undefined;
+  getPicksCount: () => number;
+  getPickChoice: (propId: number) => string | undefined;
   isPropPicked: (propId: number) => boolean;
 };
 
 const ParlayContext = createContext<ParlayProviderTypes | null>(null);
 
 export function ParlayProvider({ children }: { children: ReactNode }) {
-  const [parlayPicks, setParlayPicks] = useState<ParlayPick[]>([]);
+  const [picks, setPicks] = useState<Pick[]>([]);
 
   function removePick(propId: number) {
-    const updatedPicks = parlayPicks.filter((pick) => pick.prop.id != propId);
-    setParlayPicks(updatedPicks);
+    const updatedPicks = picks.filter((pick) => pick.prop.id != propId);
+    setPicks(updatedPicks);
   }
 
   function updatePick(propId: number, newPick: string) {
-    const updatedPicks = parlayPicks.map((pick) =>
+    const updatedPicks = picks.map((pick) =>
       pick.prop.id === propId ? { ...pick, pick: newPick } : pick
     );
-    setParlayPicks(updatedPicks);
+    setPicks(updatedPicks);
   }
 
   function clearParlay() {
-    setParlayPicks([]);
+    setPicks([]);
   }
 
-  function getParlayCount() {
-    return parlayPicks.length;
+  function getPicksCount() {
+    return picks.length;
   }
 
-  function addPick(parlayPick: ParlayPick) {
-    if (parlayPicks.length + 1 > 6) {
+  function addPick(newPick: Pick) {
+    if (picks.length + 1 > 6) {
       toast.error("Sorry, you can't have more than 6 picks");
       return;
     }
-    const playerExists = parlayPicks.find(
-      (pick) => pick.prop.player.id == parlayPick.prop.playerId
+    const playerExists = picks.find(
+      (pick) => pick.prop.player.id == newPick.prop.playerId
     );
     if (playerExists) {
       toast.error("Sorry, you can't make multiple picks for the same player");
       return;
     }
-    setParlayPicks([...parlayPicks, parlayPick]);
+    setPicks([...picks, newPick]);
   }
 
-  function getPick(propId: number) {
-    return parlayPicks.find((pick) => pick.prop.id == propId)?.pick;
+  function getPickChoice(propId: number) {
+    return picks.find((pick) => pick.prop.id == propId)?.choice;
   }
 
   function isPropPicked(propId: number) {
-    return !!parlayPicks.find((pick) => pick.prop.id == propId);
+    return !!picks.find((pick) => pick.prop.id == propId);
   }
 
   return (
     <ParlayContext.Provider
       value={{
-        parlayPicks,
+        picks,
         addPick,
         removePick,
         updatePick,
         clearParlay,
-        getParlayCount,
-        getPick,
+        getPicksCount,
+        getPickChoice,
         isPropPicked,
       }}
     >
@@ -90,17 +90,17 @@ export function ParlayProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export function useParlayPicks() {
+export function useParlay() {
   return useContext(ParlayContext) as ParlayProviderTypes;
 }
 
 export function ParlayPickerFooter() {
-  const { parlayPicks } = useParlayPicks();
+  const { picks } = useParlay();
   const searchParams = useLocalSearchParams<{ matchId: string }>();
   const matchId = parseInt(searchParams.matchId);
   const insets = useSafeAreaInsets();
 
-  if (parlayPicks.length <= 0) {
+  if (picks.length <= 0) {
     return null;
   }
 
@@ -112,7 +112,7 @@ export function ParlayPickerFooter() {
       {/* TODO replace with images */}
       <Text className="font-semibold text-muted-foreground">
         {truncate(
-          parlayPicks
+          picks
             .map((pick) => pick.prop.player.name)
             .filter((e, i, self) => i === self.indexOf(e))
             .join(", "),
@@ -133,9 +133,7 @@ export function ParlayPickerFooter() {
       >
         <Text>View Entries</Text>
         <View className="h-8 w-8 rounded-full bg-background flex flex-row justify-center items-center">
-          <Text className="text-foreground font-bold">
-            {parlayPicks.length}
-          </Text>
+          <Text className="text-foreground font-bold">{picks.length}</Text>
         </View>
       </Button>
     </View>

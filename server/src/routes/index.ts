@@ -1,15 +1,17 @@
 import express from "express";
-import { authRoute } from "./auth";
 import { usersRoute } from "./users";
 import { matchesRoute } from "./matches";
 import { propsRoute } from "./props";
-import { activeLeaguesRoute } from "./active-leagues";
 import { parlaysRoute } from "./parlays";
+import { picksRoute } from "./picks";
 
 export const routes = express.Router();
-routes.use(authRoute);
 routes.use(usersRoute);
 routes.use(matchesRoute)
 routes.use(propsRoute)
-routes.use(activeLeaguesRoute)
+<<<<<<< HEAD
 routes.use(parlaysRoute)
+routes.use(picksRoute)
+=======
+routes.use(parlaysRoute)
+>>>>>>> 49a7b3900bee74278d8981ebf95157afb1a4d8da

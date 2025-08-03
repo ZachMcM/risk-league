@@ -1,10 +1,20 @@
 import { ActivityIndicator } from "react-native";
-import { useSession } from "../providers/SessionProvider";
-import { Button } from "../ui/button";
 import { Text } from "../ui/text";
+import { authClient } from "~/lib/auth-client";
+import { Button } from "../ui/button";
+import { router } from "expo-router";
 
 export default function SignOutButton() {
-  const { signOut, isSignOutPending } = useSession();
+  const { isPending } = authClient.useSession();
+  async function signOut() {
+    await authClient.signOut({
+      fetchOptions: {
+        onSuccess: () => {
+          router.navigate("/")
+        }
+      }
+    })
+  }
 
   return (
     <Button
@@ -14,7 +24,7 @@ export default function SignOutButton() {
       className="flex-row gap-2 items-center"
     >
       <Text>Sign Out</Text>
-      {isSignOutPending && <ActivityIndicator className="text-foreground" />}
+      {isPending && <ActivityIndicator className="text-foreground" />}
     </Button>
   );
 }

@@ -11,22 +11,22 @@ import {
   getRank,
   timeAgo,
 } from "~/lib/utils";
-import { Match } from "~/types/matches";
-import { useSession } from "../providers/SessionProvider";
+import { Match } from "~/types/match";
 import { Badge } from "../ui/badge";
 import { Card, CardContent } from "../ui/card";
 import RankBadge from "../ui/RankBadge";
 import { Separator } from "../ui/separator";
 import { Text } from "../ui/text";
 import ProfileImage from "../ui/profile-image";
+import { authClient } from "~/lib/auth-client";
 
 export default function MatchListCard({ match }: { match: Match }) {
-  const { session } = useSession();
+  const { data } = authClient.useSession();
   const you = match.matchUsers.find(
-    (matchUser) => matchUser.user.id == session?.user.id
+    (matchUser) => matchUser.user.id == data?.user.id
   )!;
   const opponent = match.matchUsers.find(
-    (matchUser) => matchUser.user.id != session?.user.id
+    (matchUser) => matchUser.user.id != data?.user.id
   )!;
 
   const badgeVariant = getBadgeVariant(
@@ -75,8 +75,8 @@ export default function MatchListCard({ match }: { match: Match }) {
                       paddingHorizontal: 10,
                       gap: 4,
                     }}
-                    tier={getRank(you.eloRatingSnapshot).currentRank.tier}
-                    level={getRank(you.eloRatingSnapshot).currentRank.level}
+                    tier={getRank(you.pointsSnapshot).currentRank.tier}
+                    level={getRank(you.pointsSnapshot).currentRank.level}
                   />
                 )}
               </View>
@@ -102,24 +102,24 @@ export default function MatchListCard({ match }: { match: Match }) {
                 <Text className="text-base">{badgeText}</Text>
               </Badge>
               <View className="flex flex-row items-center gap-1">
-                <Text className="font-bold text-3xl text-primary">
+                <Text className="font-extrabold text-3xl text-primary">
                   ${you.balance}
                 </Text>
-                <Text className="font-bold text-3xl">-</Text>
-                <Text className="font-bold text-3xl">${opponent.balance}</Text>
+                <Text className="font-extrabold text-3xl">-</Text>
+                <Text className="font-extrabold text-3xl">${opponent.balance}</Text>
               </View>
             </View>
             {match.resolved && (
               <View className="flex flex-row gap-1 items-center">
                 <View className="flex flex-row items-center gap-2 px-2 py-0.5 rounded-lg bg-primary/10">
-                  {you.eloDelta > 0 ? (
+                  {you.pointsDelta > 0 ? (
                     <TrendingUp className="text-primary" size={20} />
                   ) : (
                     <TrendingDown className="text-primary" size={20} />
                   )}
                   <Text className="font-bold text-xl text-primary">
-                    {you.eloDelta > 0 && "+"}
-                    {you.eloDelta} points
+                    {you.pointsDelta > 0 && "+"}
+                    {you.pointsDelta} points
                   </Text>
                 </View>
               </View>

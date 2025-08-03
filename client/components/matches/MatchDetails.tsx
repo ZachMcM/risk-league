@@ -1,17 +1,17 @@
 import { View } from "react-native";
 import { getBadgeText, getBadgeVariant, getRank } from "~/lib/utils";
-import { Match, MatchUser } from "~/types/matches";
-import { useSession } from "../providers/SessionProvider";
+import { Match, MatchUser } from "~/types/match";
 import { Badge } from "../ui/badge";
 import { Card, CardContent } from "../ui/card";
 import ProfileImage from "../ui/profile-image";
 import RankIcon from "../ui/RankIcon";
 import { Separator } from "../ui/separator";
 import { Text } from "../ui/text";
+import { authClient } from "~/lib/auth-client";
 
 export default function MatchDetails({ match }: { match: Match }) {
-  const { session } = useSession();
-  const currentUser = session?.user.id == match.matchUsers[0].user.id ? 0 : 1;
+  const { data } = authClient.useSession();
+  const currentUser = data?.user.id == match.matchUsers[0].user.id ? 0 : 1;
   const otherUser = currentUser == 0 ? 1 : 0;
 
   return (
@@ -70,7 +70,7 @@ function MatchUserItem({
             </Text>
             <View className="flex flex-row items-center gap-2">
               <RankIcon
-                tier={getRank(matchUser.eloRatingSnapshot).currentRank.tier}
+                tier={getRank(matchUser.pointsSnapshot).currentRank.tier}
                 iconClassName="h-4 w-4"
                 gradientStyle={{
                   padding: 5
@@ -97,10 +97,10 @@ function MatchUserItem({
         </View>
         <View className="flex flex-col items-center flex-1 w-full">
           <Text className="font-bold text-2xl">
-            ${matchUser.potentialPayout.toFixed(2)}
+            ${matchUser.payoutPotential.toFixed(2)}
           </Text>
           <Text className="font-medium text-muted-foreground text-sm">
-            Potential Payout
+            Payout Potential
           </Text>
         </View>
         <View className="flex flex-col items-center flex-1 w-full">

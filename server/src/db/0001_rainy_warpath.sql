@@ -1,0 +1,1 @@
+ALTER TABLE "match_user" RENAME COLUMN "elo_delta" TO "points_delta";

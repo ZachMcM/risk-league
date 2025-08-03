@@ -24,15 +24,12 @@ import { Appearance, AppState, Platform } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Toaster } from "sonner-native";
-import {
-  SessionProvider,
-  useSession,
-} from "~/components/providers/SessionProvider";
 import { SplashScreenController } from "~/components/ui/splash";
 import { setAndroidNavigationBar } from "~/lib/android-navigation-bar";
 import { NAV_THEME } from "~/lib/constants";
 import { useColorScheme } from "~/lib/useColorScheme";
 import { RealTimeProvider } from "~/components/providers/RealTimeProvider";
+import { authClient } from "~/lib/auth-client";
 
 onlineManager.setEventListener((setOnline) => {
   const eventSubscription = Network.addNetworkStateListener((state) => {
@@ -86,16 +83,14 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <GestureHandlerRootView>
         <QueryClientProvider client={queryClient}>
-          <SessionProvider>
-            <RealTimeProvider>
-              <ThemeProvider value={DARK_THEME}>
-                <SplashScreenController />
-                <RootNavigatior />
-                <PortalHost />
-                <StatusBar style={isDarkColorScheme ? "light" : "dark"} />
-              </ThemeProvider>
-            </RealTimeProvider>
-          </SessionProvider>
+          <RealTimeProvider>
+            <ThemeProvider value={DARK_THEME}>
+              <SplashScreenController />
+              <RootNavigatior />
+              <PortalHost />
+              <StatusBar style={isDarkColorScheme ? "light" : "dark"} />
+            </ThemeProvider>
+          </RealTimeProvider>
           <Toaster
             toastOptions={{
               style: {
@@ -116,18 +111,11 @@ export default function RootLayout() {
 }
 
 export function RootNavigatior() {
-  const { session } = useSession();
+  const { data } = authClient.useSession();
 
   return (
     <Stack>
-      <Stack.Protected
-        guard={
-          session != null &&
-          session != undefined &&
-          session.user != null &&
-          session.user != undefined
-        }
-      >
+      <Stack.Protected guard={data != null}>
         <Stack.Screen
           name="(tabs)"
           options={{
@@ -135,7 +123,7 @@ export function RootNavigatior() {
           }}
         />
       </Stack.Protected>
-      <Stack.Protected guard={!session?.user}>
+      <Stack.Protected guard={data == null}>
         <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="signin" options={{ headerShown: false }} />
         <Stack.Screen name="signup" options={{ headerShown: false }} />

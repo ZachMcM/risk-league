@@ -1,18 +1,15 @@
 import { SplashScreen } from "expo-router";
 import { useEffect } from "react";
-import { useSession } from "../providers/SessionProvider";
+import { authClient } from "~/lib/auth-client";
 
 export function SplashScreenController() {
-  const { isSessionPending } = useSession();
+  const { isPending } = authClient.useSession();
 
   useEffect(() => {
-    if (!isSessionPending) {
-      // Add small delay to prevent flash
-      setTimeout(() => {
-        SplashScreen.hideAsync();
-      }, 300);
+    if (!isPending) {
+      SplashScreen.hideAsync();
     }
-  }, [isSessionPending]);
+  }, [isPending]);
 
   return null;
 }

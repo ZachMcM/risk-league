@@ -11,14 +11,14 @@ import {
 import { View } from "react-native";
 import { io } from "socket.io-client";
 import { toast } from "sonner-native";
-import { getMatchMessages } from "~/endpoints";
-import { MatchMessage } from "~/types/matches";
 import ProfileImage from "../ui/profile-image";
 import { Text } from "../ui/text";
-import { useSession } from "./SessionProvider";
+import { authClient } from "~/lib/auth-client";
+import { getMessages } from "~/endpoints";
+import { Message } from "~/types/match";
 
 export type MessagesProviderTypes = {
-  messages: MatchMessage[] | undefined;
+  messages: Message[] | undefined;
   sendMessage: (content: string) => void;
   isConnected: boolean;
   messagesPending: boolean;
@@ -30,7 +30,7 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
   const searchParams = useLocalSearchParams() as { matchId: string };
   const matchId = parseInt(searchParams.matchId);
 
-  const { session } = useSession();
+  const { data } = authClient.useSession();
 
   const [isConnected, setIsConnected] = useState(false);
 
@@ -40,7 +40,7 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
 
   const { data: messages, isPending: messagesPending } = useQuery({
     queryKey: ["match", "messages", matchId],
-    queryFn: async () => getMatchMessages(matchId),
+    queryFn: async () => getMessages(matchId),
   });
 
   function sendMessage(content: string) {
@@ -50,14 +50,14 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
   }
 
   useEffect(() => {
-    if (!session?.user.id || !matchId) return;
+    if (!data?.user.id || !matchId) return;
 
     console.log("Connecting with params:", {
-      matchId: matchId.toString(),
-      userId: session.user.id.toString(),
+      matchId: matchId,
+      userId: data.user.id,
     });
     const socket = io(`${process.env.EXPO_PUBLIC_API_URL}/match`, {
-      auth: { matchId: matchId.toString(), userId: session.user.id.toString() },
+      auth: { matchId: matchId.toString(), userId: data.user.id },
       transports: ["websocket"],
     });
 
@@ -75,12 +75,12 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
     });
 
     // Message events
-    socket.on("message-received", (messageData: MatchMessage) => {
+    socket.on("message-received", (messageData: Message) => {
       queryClient.setQueryData(
         ["match", "messages", matchId],
-        (prev: MatchMessage[]) => [...prev, messageData]
+        (prev: Message[]) => [...prev, messageData]
       );
-      if (messageData.user.id != session.user.id) {
+      if (messageData.user.id != data.user.id) {
         toast.custom(
           <View className="flex flex-row gap-3 m-8 items-center p-4 bg-card rounded-2xl">
             <ProfileImage
@@ -107,7 +107,7 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
       socket.disconnect();
       setIsConnected(false);
     };
-  }, [session?.user.id, matchId]);
+  }, [data?.user.id, matchId]);
 
   return (
     <MessagesContext.Provider

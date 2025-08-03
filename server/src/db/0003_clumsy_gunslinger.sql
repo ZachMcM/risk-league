@@ -1,0 +1,1 @@
+ALTER TABLE "prop" DROP COLUMN "raw_game_id";

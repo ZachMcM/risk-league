@@ -3,7 +3,6 @@ import { ActivityIndicator, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import MessagesList from "~/components/matches/MessagesList";
 import { useMessages } from "~/components/providers/MessagesProvider";
-import { Container } from "~/components/ui/container";
 import { Input } from "~/components/ui/input";
 import ModalContainer from "~/components/ui/modal-container";
 import { Text } from "~/components/ui/text";

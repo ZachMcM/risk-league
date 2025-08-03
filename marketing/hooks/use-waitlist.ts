@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { toast } from "sonner"
 import { createClient } from "@/supabase/client"
-import { waitlistSchema, type WaitlistFormData } from "@/lib/schemas"
+import { waitlistSchema, type WaitlistFormData } from "@/lib/validationSchemas"
 
 export function useWaitlist() {
   const [isSubmitting, setIsSubmitting] = useState(false)

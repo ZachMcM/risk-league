@@ -1,23 +1,29 @@
-import { Prop } from "~/types/props";
-import { useParlayPicks } from "../providers/ParlayProvider";
-import { cn, formatCompactNumber, getStatName } from "~/lib/utils";
+import { Prop } from "~/types/prop";
+import { cn, formatCompactNumber } from "~/lib/utils";
 import { Card, CardContent } from "../ui/card";
 import { Text } from "../ui/text";
 import { View } from "react-native";
 import { Badge } from "../ui/badge";
 import moment from "moment";
 import { Button } from "../ui/button";
+import { useParlay } from "../providers/ParlayProvider";
 
-export default function PropCard({ prop, popular }: { prop: Prop; popular?: boolean }) {
-  const { isPropPicked, addPick, removePick, updatePick, getPick } =
-    useParlayPicks();
+export default function PropCard({
+  prop,
+  popular,
+}: {
+  prop: Prop;
+  popular?: boolean;
+}) {
+  const { isPropPicked, addPick, removePick, updatePick, getPickChoice } =
+    useParlay();
 
   return (
     <Card className={cn("w-[48%]", isPropPicked(prop.id) && "border-primary")}>
       <CardContent className="p-4 flex flex-col items-center gap-4">
         {popular && (
           <Text className="self-end text-xs font-semibold text-muted-foreground">
-            🔥 {formatCompactNumber(prop.parlayPicksCount)}
+            🔥 {formatCompactNumber(prop.picksCount)}
           </Text>
         )}
         <View className="flex flex-col items-center gap-1">
@@ -31,39 +37,40 @@ export default function PropCard({ prop, popular }: { prop: Prop; popular?: bool
           </View>
           <Text className="font-bold text-lg">{prop.player.name}</Text>
           <Text className="font-semibold text-muted-foreground text-sm">
-            {/* TODO */}
-            vs ABRV • {moment(prop.gameStartTime).format("ddd h:mm A")}
+            {/* TODO real team info */}
+            {prop.game.awayTeam.fullName} at {prop.game.homeTeam.fullName} •{" "}
+            {moment(prop.game.startTime).format("ddd h:mm A")}
           </Text>
         </View>
         <View className="flex flex-col items-center">
           <Text className="font-extrabold text-2xl">{prop.line}</Text>
           <Text className="text-muted-foreground">
-            {getStatName(prop.stat)}
+            {prop.statDisplayName}
           </Text>
         </View>
         <View className="flex flex-row items-center justify-center gap-1">
-          {prop.pickOptions?.map((option, i) => (
+          {prop.choices?.map((choice, i) => (
             <Button
               onPress={() => {
                 if (isPropPicked(prop.id)) {
-                  if (getPick(prop.id) == option) {
+                  if (getPickChoice(prop.id) == choice) {
                     removePick(prop.id);
                   } else {
                     console.log("update pick");
-                    updatePick(prop.id, option);
+                    updatePick(prop.id, choice);
                   }
                 } else {
-                  addPick({ prop, pick: option });
+                  addPick({ prop, choice });
                 }
               }}
               className={cn(
                 "h-10 flex-grow flex-1 flex-row justify-center items-center bg-secondary border border-secondary",
-                getPick(prop.id) == option && "border-primary bg-primary/20"
+                getPickChoice(prop.id) == choice && "border-primary bg-primary/20"
               )}
               size="sm"
               key={`${prop.id}_option_${i}`}
             >
-              <Text className="capitalize font-semibold">{option}</Text>
+              <Text className="capitalize font-semibold">{choice}</Text>
             </Button>
           ))}
         </View>

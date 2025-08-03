@@ -40,25 +40,3 @@ export function getFlexMultiplier(pickCount: number, hitCount: number): number {
   const key = `${pickCount}-${hitCount}`;
   return flexPayouts[key] || 0;
 }
-
-/**
- * Gets all possible multipliers for a flex play given the number of picks
- * Useful for displaying all possible outcomes to users
- */
-export function getFlexMultiplierTable(
-  pickCount: number
-): { hits: number; multiplier: number }[] {
-  const results: Array<{ hits: number; multiplier: number }> = [];
-
-  // Calculate minimum hits needed (more than half)
-  const minHits = Math.floor(pickCount / 2) + 1;
-
-  for (let hits = minHits; hits <= pickCount; hits++) {
-    const multiplier = getFlexMultiplier(pickCount, hits);
-    if (multiplier > 0) {
-      results.push({ hits, multiplier });
-    }
-  }
-
-  return results.reverse(); // Show perfect score first
-}

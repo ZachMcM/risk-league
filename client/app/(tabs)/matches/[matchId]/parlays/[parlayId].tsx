@@ -45,20 +45,20 @@ export default function Parlay() {
             <View className="flex flex-col gap-8">
               <View className="flex flex-col gap-1 items-center">
                 <Text className="font-bold text-3xl capitalize">
-                  {parlay.parlayPicks.length} Pick {parlay.type} Play
+                  {parlay.picks.length} Pick {parlay.type} Play
                 </Text>
                 <View className="flex flex-row items-center gap-1">
                   <Text className="font-semibold text-lg text-primary">
                     {parlay.type == "flex"
                       ? `${getFlexMultiplier(
-                          parlay.parlayPicks.length,
+                          parlay.picks.length,
                           2
                         )}x-${getFlexMultiplier(
-                          parlay.parlayPicks.length,
-                          parlay.parlayPicks.length
+                          parlay.picks.length,
+                          parlay.picks.length
                         )}x`
                       : `${getPerfectPlayMultiplier(
-                          parlay.parlayPicks.length
+                          parlay.picks.length
                         ).toFixed(2)}x`}
                   </Text>
                   {parlay.type == "flex" && (
@@ -78,7 +78,7 @@ export default function Parlay() {
                           </Text>
                         </DialogHeader>
                         <FlexPlayOutcomes
-                          length={parlay.parlayPicks.length}
+                          length={parlay.picks.length}
                           stake={parlay.stake}
                         />
                         <DialogFooter>
@@ -105,7 +105,7 @@ export default function Parlay() {
                   <Badge
                     variant={
                       parlay.resolved
-                        ? parlay.delta > 0
+                        ? parlay.profit > 0
                           ? "success"
                           : "destructive"
                         : "default"
@@ -113,7 +113,7 @@ export default function Parlay() {
                   >
                     <Text className="text-base">
                       {parlay.resolved
-                        ? parlay.delta > 0
+                        ? parlay.profit > 0
                           ? "Won"
                           : "Lost"
                         : "Active"}
@@ -125,7 +125,7 @@ export default function Parlay() {
                   <Text className="text-muted-foreground font-semibold">
                     {!parlay.resolved
                       ? "Potential Payout"
-                      : parlay.delta > 0
+                      : parlay.profit > 0
                       ? "Amount Won"
                       : "Amount Lost"}
                   </Text>
@@ -135,19 +135,19 @@ export default function Parlay() {
                       ? (
                           (parlay.type == "flex"
                             ? getFlexMultiplier(
-                                parlay.parlayPicks.length,
-                                parlay.parlayPicks.length
+                                parlay.picks.length,
+                                parlay.picks.length
                               )
                             : getPerfectPlayMultiplier(
-                                parlay.parlayPicks.length
+                                parlay.picks.length
                               )) * parlay.stake
                         ).toFixed(2)
-                      : Math.abs(parlay.delta).toFixed(2)}
+                      : Math.abs(parlay.profit).toFixed(2)}
                   </Text>
                 </View>
               </View>
               <View className="flex flex-col gap-4">
-                {parlay.parlayPicks.map((pick) => (
+                {parlay.picks.map((pick) => (
                   <ParlayPickCard pick={pick} key={pick.id} />
                 ))}
               </View>

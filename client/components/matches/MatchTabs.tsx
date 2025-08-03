@@ -2,7 +2,7 @@ import { useState } from "react";
 import { View } from "react-native";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { Text } from "../ui/text";
-import { Match } from "~/types/matches";
+import { Match } from "~/types/match";
 import MatchListCard from "./MatchListCard";
 
 export default function MatchTabs({ matches }: { matches: Match[] }) {

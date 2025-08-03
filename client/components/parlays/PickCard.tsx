@@ -1,10 +1,11 @@
 import { View } from "react-native";
-import { cn, getStatName } from "~/lib/utils";
-import { ParlayPick } from "~/types/parlays";
+import { cn } from "~/lib/utils";
 import { Progress } from "../ui/progress";
 import { Text } from "../ui/text";
 import { ArrowDown, ArrowUp } from "lucide-react-native";
-export default function PickCard({ pick }: { pick: ParlayPick }) {
+import { Pick } from "~/types/parlay";
+
+export default function PickCard({ pick }: { pick: Pick }) {
   return (
     <View
       key={pick.id}
@@ -28,7 +29,7 @@ export default function PickCard({ pick }: { pick: ParlayPick }) {
         </View>
         <View className="flex flex-col">
           <View className="flex flex-row items-center self-end gap-1">
-            {pick.pick == "over" ? (
+            {pick.choice == "over" ? (
               <ArrowUp className="text-muted-foreground" size={20} />
             ) : (
               <ArrowDown className="text-muted-foreground" size={20} />
@@ -36,10 +37,11 @@ export default function PickCard({ pick }: { pick: ParlayPick }) {
             <Text className="text-muted-foreground font-semibold">
               {pick.prop.line}
             </Text>
-          </View>  
-          <Text className="text-muted-foreground font-semibold">{getStatName(pick.prop.stat)}</Text>        
+          </View>
+          <Text className="text-muted-foreground font-semibold">
+            {pick.prop.statDisplayName}
+          </Text>
         </View>
-
       </View>
       <Progress
         showValueText

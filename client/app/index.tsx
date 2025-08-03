@@ -1,5 +1,5 @@
 import { Link, useRouter } from "expo-router";
-import { Image, View } from "react-native";
+import { View } from "react-native";
 import { Button } from "~/components/ui/button";
 import { Card } from "~/components/ui/card";
 import { Container } from "~/components/ui/container";

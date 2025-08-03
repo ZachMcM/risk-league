@@ -3,17 +3,14 @@ import { Controller, FieldValues, useForm } from "react-hook-form";
 import { ActivityIndicator, View } from "react-native";
 import * as z from "zod";
 import { cn } from "~/lib/utils";
-import { useSession } from "../providers/SessionProvider";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Text } from "../ui/text";
+import { authClient } from "~/lib/auth-client";
 
 const schema = z.object({
-  email: z
-    .string()
-    .min(1, { message: "Email is required" })
-    .email({ message: "Invalid email" }),
+  username: z.string().min(1, { message: "Username is required" }),
   password: z
     .string()
     .min(8, { message: "Password can't be less than 8 characters" })
@@ -32,16 +29,19 @@ export default function SignInForm() {
   const { control, handleSubmit } = useForm({
     resolver: zodResolver(schema),
     defaultValues: {
-      email: "",
+      username: "",
       password: "",
     },
   });
 
-  const { signIn, isSignInPending } = useSession();
-
-  function onSubmit(data: FieldValues) {
-    signIn(data as FormValues);
+  async function onSubmit({ username, password }: FormValues) {
+    await authClient.signIn.username({
+      username,
+      password,
+    });
   }
+
+  const { isPending } = authClient.useSession();
 
   return (
     <View className="flex flex-col w-full gap-6">
@@ -53,9 +53,9 @@ export default function SignInForm() {
           fieldState: { error },
         }) => (
           <View className="flex flex-col gap-2">
-            <Label>Email</Label>
+            <Label>Username</Label>
             <Input
-              placeholder="Email"
+              placeholder="Username"
               onBlur={onBlur}
               onChangeText={onChange}
               className={cn(error && "border-destructive")}
@@ -64,7 +64,7 @@ export default function SignInForm() {
             {error && <Text className="text-destructive">{error.message}</Text>}
           </View>
         )}
-        name="email"
+        name="username"
       />
       <Controller
         control={control}
@@ -95,7 +95,7 @@ export default function SignInForm() {
         className="flex-row gap-2 items-center"
       >
         <Text>Sign In</Text>
-        {isSignInPending && <ActivityIndicator className="text-foreground" />}
+        {isPending && <ActivityIndicator className="text-foreground" />}
       </Button>
     </View>
   );

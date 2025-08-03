@@ -1,4 +1,3 @@
-import { ParlayPick } from "~/types/parlays";
 import { Card, CardContent } from "../ui/card";
 import { View } from "react-native";
 import { Text } from "../ui/text";
@@ -6,10 +5,11 @@ import { ArrowDown } from "~/lib/icons/ArrowDown";
 import { ArrowUp } from "~/lib/icons/ArrowUp";
 import { Progress } from "../ui/progress";
 import { X } from "~/lib/icons/X";
-import { cn, getStatName } from "~/lib/utils";
+import { cn } from "~/lib/utils";
 import { Check } from "~/lib/icons/Check";
+import { Pick } from "~/types/parlay";
 
-export default function ParlayPickCard({ pick }: { pick: ParlayPick }) {
+export default function ParlayPickCard({ pick }: { pick: Pick }) {
   return (
     <Card key={pick.id}>
       <CardContent className="p-4 flex flex-col gap-4">
@@ -27,13 +27,13 @@ export default function ParlayPickCard({ pick }: { pick: ParlayPick }) {
                   </Text>
                 </View>
                 <View className="flex flex-row items-center gap-1.5">
-                  {pick.pick == "over" ? (
+                  {pick.choice == "over" ? (
                     <ArrowUp size={18} className="text-foreground" />
                   ) : (
                     <ArrowDown size={18} className="text-foreground" />
                   )}
                   <Text className="font-bold text-lg">
-                    {pick.prop.line} {getStatName(pick.prop.stat)}
+                    {pick.prop.line} {pick.prop.statDisplayName}
                   </Text>
                 </View>
               </View>

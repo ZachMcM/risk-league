@@ -1,15 +1,17 @@
-import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
-import { formatDistanceToNow } from "date-fns";
-import { RankInfo, ranks, Tier } from "~/types/ranks";
-import { propStats } from "~/types/props";
 import { QueryClient, QueryKey } from "@tanstack/react-query";
-import { MatchStatus } from "~/types/matches";
+import { clsx, type ClassValue } from "clsx";
+import { formatDistanceToNow } from "date-fns";
+import { twMerge } from "tailwind-merge";
+import { MatchStatus } from "~/types/match";
+import { RankInfo, ranks } from "~/types/rank";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+/** 
+ * returns a human readable string indicating how long ago the date was
+ */
 export function timeAgo(date: Date | string): string {
   const parsedDate =
     typeof date === "string"
@@ -18,33 +20,37 @@ export function timeAgo(date: Date | string): string {
   return formatDistanceToNow(parsedDate, { addSuffix: true });
 }
 
-export function getRank(eloRating: number): RankInfo {
+/**
+ * Gets the rank for a given number of points
+ */
+export function getRank(points: number): RankInfo {
   for (let i = 0; i < ranks.length; i++) {
-    if (eloRating >= ranks[i].minElo && eloRating < ranks[i].maxElo) {
+    if (points >= ranks[i].minPoints && points < ranks[i].maxPoints) {
       return {
-        eloRating,
+        points,
         currentRank: ranks[i],
         nextRank: i != ranks.length - 1 ? ranks[i + 1] : null,
         progressToNext:
-          (eloRating - ranks[i].minElo) / (ranks[i].maxElo - ranks[i].minElo),
+          (points - ranks[i].minPoints) /
+          (ranks[i].maxPoints - ranks[i].minPoints),
         pointsToNext:
-          i != ranks.length - 1 ? ranks[i + 1].minElo - eloRating : 0,
+          i != ranks.length - 1 ? ranks[i + 1].minPoints - points : 0,
       };
     }
   }
 
   return {
-    eloRating,
+    points,
     currentRank: ranks[0],
     nextRank: ranks[1],
     progressToNext: 0,
-    pointsToNext: ranks[1].minElo - eloRating,
+    pointsToNext: ranks[1].minPoints - points,
   };
 }
 
-export const getStatName = (statId: string) =>
-  propStats.find((stat) => stat.id == statId)?.name!;
-
+/**
+ * Formats a really large number
+ */
 export function formatCompactNumber(num: number) {
   return new Intl.NumberFormat("en-US", {
     notation: "compact",
@@ -95,7 +101,7 @@ export function getFlexMultiplier(pickCount: number, hitCount: number): number {
   return flexPayouts[key] || 0;
 }
 
-/**
+/*
  * Gets all possible multipliers for a flex play given the number of picks
  * Useful for displaying all possible outcomes to users
  */
@@ -117,18 +123,9 @@ export function getFlexMultiplierTable(
   return results.reverse(); // Show perfect score first
 }
 
-export function getLeagueEmoji(league: string) {
-  if (league == "mlb") {
-    return "⚾";
-  }
-  if (league == "nba" || "mcbb") {
-    return "🏀";
-  }
-  if (league == "nfl" || "cfb") {
-    return "🏈";
-  }
-}
-
+/** 
+ * Gets the variant for a status badge
+ */
 export function getBadgeVariant(
   status: MatchStatus,
   balance: number,

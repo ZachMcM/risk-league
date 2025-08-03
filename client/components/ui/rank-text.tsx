@@ -1,4 +1,4 @@
-import { Tier } from "~/types/ranks";
+import { Tier } from "~/types/rank";
 import { Text } from "./text";
 import { cn } from "~/lib/utils";
 import { ReactNode } from "react";

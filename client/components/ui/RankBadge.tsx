@@ -1,5 +1,5 @@
 import { StyleProp, ViewStyle } from "react-native";
-import { Level, Tier } from "~/types/ranks";
+import { Level, Tier } from "~/types/rank";
 import { RankGradient } from "./rank-gradient";
 import { RankText } from "./rank-text";
 import { cn } from "~/lib/utils";

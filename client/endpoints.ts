@@ -1,8 +1,8 @@
-import { deleteItemAsync, getItemAsync, setItemAsync } from "expo-secure-store";
+import { authClient } from "./lib/auth-client";
+import { Match, Message } from "./types/match";
+import { Parlay } from "./types/parlay";
+import { Prop } from "./types/prop";
 import { User } from "./types/user";
-import { Match, MatchMessage } from "./types/matches";
-import { Prop } from "./types/props";
-import { Parlay } from "./types/parlays";
 
 export type HttpRequestParams = {
   endpoint: string;
@@ -15,16 +15,12 @@ export async function httpRequest({
   endpoint,
   method,
   body,
-  tokenOverride,
 }: HttpRequestParams) {
-  const accessToken =
-    tokenOverride != undefined
-      ? tokenOverride
-      : await getItemAsync("Access-Token");
+  const cookies = authClient.getCookie();
 
-  const headers: Record<string, string> = {
-    "Access-Token": accessToken!,
-  };
+  const headers = {
+    Cookie: cookies,
+  } as any;
 
   // Only add Content-Type if body is provided
   if (body !== undefined) {
@@ -46,243 +42,78 @@ export async function httpRequest({
     fetchOptions
   );
 
-  return res;
-}
-
-export async function sessionRequest(): Promise<
-  | {
-      user: {
-        id: number;
-        username: string;
-        email: string;
-        image: string | null;
-        header: string | null;
-      };
-    }
-  | undefined
-  | null
-> {
-  const accessToken = await getItemAsync("Access-Token");
-
-  if (!accessToken) {
-    return null;
-  }
-
-  const res = await httpRequest({
-    endpoint: "/auth/session",
-    method: "GET",
-    tokenOverride: accessToken,
-  });
-
   const data = await res.json();
-  console.log(data);
-
-  if (!res?.ok) {
-    throw new Error(data.message);
-  }
-
-  return data;
-}
-
-export async function signInRequest({
-  email,
-  password,
-}: {
-  email: string;
-  password: string;
-}): Promise<{ id: string }> {
-  const res = await httpRequest({
-    endpoint: "/auth/signin",
-    method: "POST",
-    body: JSON.stringify({ email, password }),
-  });
-  const data = await res.json();
-  console.log(data);
 
   if (!res.ok) {
-    throw new Error(data.message);
+    throw new Error(data.error);
   }
 
-  await setItemAsync("Access-Token", res.headers.get("Access-Token")!);
   return data;
 }
 
-export async function signUpRequest({
-  email,
-  name,
-  username,
-  password,
-}: {
-  email: string;
-  name: string;
-  password: string;
-  username: string;
-}) {
-  const res = await httpRequest({
-    endpoint: "/auth/signup",
-    method: "POST",
-    body: JSON.stringify({ email, name, username, password }),
-  });
-
-  const data = await res.json();
-  console.log(data);
-
-  if (!res.ok) {
-    throw new Error(data.message);
-  }
-
-  await setItemAsync("Access-Token", res.headers.get("Access-Token")!);
-  return data;
-}
-
-export async function signOutRequest() {
-  await deleteItemAsync("Access-Token");
-}
-
-export async function getUser(id: number): Promise<User | undefined | null> {
-  const res = await httpRequest({
+export async function getUser(id: string): Promise<User | undefined | null> {
+  const user = await httpRequest({
     endpoint: `/users/${id}`,
     method: "GET",
   });
-
-  const data = await res.json();
-  console.log(data);
-
-  if (!res.ok) {
-    throw new Error(data.message);
-  }
-
-  return data;
+  return user;
 }
 
 export async function getMatches(): Promise<Match[]> {
-  const res = await httpRequest({
+  const matches = await httpRequest({
     endpoint: "/matches",
     method: "GET",
   });
 
-  const data = await res.json();
-  console.log(data);
-
-  if (!res.ok) {
-    throw new Error(data.message);
-  }
-
-  return data;
+  return matches;
 }
 
 export async function getMatch(id: number): Promise<Match | undefined> {
-  const res = await httpRequest({
+  const match = await httpRequest({
     endpoint: `/matches/${id}`,
     method: "GET",
   });
 
-  const data = await res.json();
-
-  if (!res.ok) {
-    throw new Error(data.message);
-  }
-
-  return data;
+  return match;
 }
 
-export async function getMatchMessages(id: number): Promise<MatchMessage[]> {
-  const res = await httpRequest({
+export async function getMessages(id: number): Promise<Message[]> {
+  const messages = await httpRequest({
     endpoint: `/matches/${id}/messages`,
     method: "GET",
   });
 
-  const data = await res.json();
-  console.log(data);
-
-  if (!res.ok) {
-    throw new Error(data);
-  }
-
-  return data;
+  return messages;
 }
 
 export async function getTodayProps(league: "nba" | "mlb"): Promise<Prop[]> {
-  const res = await httpRequest({
+  const todayProps = await httpRequest({
     endpoint: `/props/today?league=${league}`,
     method: "GET",
   });
 
-  const data = await res.json();
-  console.log("Props", data);
-
-  if (!res.ok) {
-    throw new Error(data);
-  }
-
-  return data;
-}
-
-export async function getAllProps(league: "nba" | "mlb"): Promise<Prop[]> {
-  const res = await httpRequest({
-    endpoint: `/props/all?league=${league}`,
-    method: "GET",
-  });
-
-  const data = await res.json();
-  console.log("Props", data);
-
-  if (!res.ok) {
-    throw new Error(data);
-  }
-
-  return data;
-}
-
-export async function getActiveLeagues(): Promise<string[]> {
-  const res = await httpRequest({
-    endpoint: "/active-leagues",
-    method: "GET",
-  });
-
-  const data = await res.json();
-  console.log(data);
-
-  if (!res.ok) {
-    throw new Error(data);
-  }
-
-  return data;
+  return todayProps;
 }
 
 export async function getParlay(id: number): Promise<Parlay> {
-  const res = await httpRequest({
+  const parlay = await httpRequest({
     endpoint: `/parlays/${id}`,
     method: "GET",
   });
 
-  const data = await res.json();
-  console.log(data);
-
-  if (!res.ok) {
-    throw new Error(data);
-  }
-
-  return data;
+  return parlay;
 }
 
 export async function getParlays(
   matchId: number,
-  userId: number
+  userId: string
 ): Promise<Parlay[]> {
-  const res = await httpRequest({
+  const parlays = await httpRequest({
     endpoint: `/parlays?matchId=${matchId}&userId=${userId}`,
     method: "GET",
   });
 
-  const data = await res.json();
-  console.log(data);
-
-  if (!res.ok) {
-    throw new Error(data);
-  }
-
-  return data;
+  return parlays;
 }
 
 export async function postParlay(
@@ -290,19 +121,12 @@ export async function postParlay(
   parlay: {
     type: string;
     stake: number;
-    picks: { prop: Prop; pick: string }[];
+    picks: { prop: Prop; choice: string }[];
   }
 ) {
-  const res = await httpRequest({
+  await httpRequest({
     endpoint: `/parlays/${matchId}`,
     method: "POST",
     body: JSON.stringify(parlay),
   });
-
-  const data = await res.json();
-  console.log(data);
-
-  if (!data) {
-    throw new Error(data);
-  }
 }

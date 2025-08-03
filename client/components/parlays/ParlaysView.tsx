@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 import { Search } from "~/lib/icons/Search";
 import { cn } from "~/lib/utils";
-import { Parlay } from "~/types/parlays";
+import { Parlay } from "~/types/parlay";
 import { Button } from "../ui/button";
 import { SearchBar } from "../ui/search-bar";
 import { Text } from "../ui/text";
@@ -29,7 +29,7 @@ export default function ParlaysView({ parlays }: { parlays: Parlay[] }) {
       return parlays.filter(
         (parlay) =>
           parlay.type.toLocaleLowerCase().includes(searchLower) ||
-          parlay.parlayPicks.some((pick) => {
+          parlay.picks.some((pick) => {
             return (
               pick.prop.player.name
                 ?.toLocaleLowerCase()
@@ -53,8 +53,8 @@ export default function ParlaysView({ parlays }: { parlays: Parlay[] }) {
         : selectedFilter == "completed"
         ? parlay.resolved
         : selectedFilter == "lost"
-        ? parlay.delta < 0
-        : parlay.delta > 0
+        ? parlay.profit < 0
+        : parlay.profit > 0
     );
   };
 

@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import { View } from "react-native";
 import { io } from "socket.io-client";
 import { toast } from "sonner-native";
-import { useSession } from "~/components/providers/SessionProvider";
 import { Button } from "~/components/ui/button";
 import {
   Card,
@@ -13,10 +12,10 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
-import { Container } from "~/components/ui/container";
 import ModalContainer from "~/components/ui/modal-container";
 import { Progress } from "~/components/ui/progress";
 import { Text } from "~/components/ui/text";
+import { authClient } from "~/lib/auth-client";
 import { Trophy } from "~/lib/icons/Trophy";
 import { Users } from "~/lib/icons/Users";
 import { X } from "~/lib/icons/X";
@@ -35,8 +34,8 @@ export default function Matchmaking() {
   const router = useRouter();
   const queryClient = useQueryClient();
 
-  const { session } = useSession();
-  const userId = session?.user.id!;
+  const { data } = authClient.useSession();
+  const userId = data?.user.id!;
 
   const socketRef = useRef<ReturnType<typeof io> | null>(null);
 

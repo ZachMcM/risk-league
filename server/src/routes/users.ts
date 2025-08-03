@@ -1,39 +1,36 @@
 import { eq } from "drizzle-orm";
 import { Router } from "express";
-import { db } from "../drizzle";
-import { users } from "../drizzle/schema";
-import { authMiddleware } from "./auth";
+import { db } from "../db";
+import { user } from "../db/schema";
+import { authMiddleware } from "../middleware";
 
 export const usersRoute = Router();
 
 usersRoute.get("/users/:id", authMiddleware, async (req, res) => {
-  const userId = parseInt(req.params.id);
-
   try {
-    const user = await db.query.users.findFirst({
+    const userResult = await db.query.user.findFirst({
       columns: {
         id: true,
         username: true,
         image: true,
-        eloRating: true,
-        header: true
+        points: true,
+        header: true,
+        peakPoints: true,
       },
-      where: eq(users.id, userId),
+      where: eq(user.id, req.user?.id!),
     });
 
-    if (!user) {
+    if (!userResult) {
       res.status(404).json({
-        error: "Not Found",
-        message: "No user was found",
+        error: "No user was found",
       });
       return;
     }
 
-    res.json(user);
+    res.json(userResult);
   } catch (err) {
     res.status(404).json({
-      error: "Not Found",
-      message: "No user was found",
+      error: "No user was found",
     });
   }
 });

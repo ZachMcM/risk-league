@@ -1,0 +1,1 @@
+ALTER TABLE "prop" RENAME COLUMN "state_display_name" TO "stat_display_name";

@@ -1,28 +1,23 @@
 import { useQuery } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Fragment, useState } from "react";
-import {
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  ScrollView,
-  View,
-} from "react-native";
+import { ActivityIndicator, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import MatchDetails from "~/components/matches/MatchDetails";
 import ParlaysView from "~/components/parlays/ParlaysView";
 import PropsView from "~/components/props/PropsView";
-import { useSession } from "~/components/providers/SessionProvider";
 import { Button } from "~/components/ui/button";
 import { ScrollContainer } from "~/components/ui/scroll-container";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { Text } from "~/components/ui/text";
 import { getMatch, getParlays, getTodayProps } from "~/endpoints";
+import { authClient } from "~/lib/auth-client";
 import { MessageCircle } from "~/lib/icons/MessageCircle";
 
 export default function Match() {
   const searchParams = useLocalSearchParams<{ matchId: string }>();
   const matchId = parseInt(searchParams.matchId);
-  const { session } = useSession();
+  const { data } = authClient.useSession();
 
   const router = useRouter();
 
@@ -37,9 +32,13 @@ export default function Match() {
     enabled: !!match,
   });
 
+  const yourMatchUserId = match?.matchUsers.find(
+    (matchUser) => matchUser.userId == data?.user.id
+  )?.id;
+
   const { data: parlays, isPending: areParlaysPending } = useQuery({
-    queryKey: ["parlays", matchId, session?.user.id!],
-    queryFn: async () => await getParlays(matchId, session?.user.id!),
+    queryKey: ["parlays", yourMatchUserId],
+    queryFn: async () => await getParlays(matchId, data?.user.id!),
     enabled: !!match,
   });
 
@@ -95,7 +94,7 @@ export default function Match() {
                         </View>
                       </View>
                     ) : (
-                      <PropsView props={props} />
+                      <PropsView props={props} league={match.league} />
                     ))
                   )}
                 </TabsContent>

@@ -1,7 +1,8 @@
 export type User = {
-  id: number;
+  id: string;
   username: string;
   image: string | null;
-  eloRating: number;
+  points: number;
   header: string | null;
+  peakPoints: number
 };

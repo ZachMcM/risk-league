@@ -7,26 +7,25 @@ import { FakeCurrencyInput } from "react-native-currency-input";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
 import FlexPlayOutcomes from "~/components/parlays/FlexPlayOutcomes";
-import { useParlayPicks } from "~/components/providers/ParlayProvider";
-import { useSession } from "~/components/providers/SessionProvider";
+import { useParlay } from "~/components/providers/ParlayProvider";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import { Label } from "~/components/ui/label";
 import ModalContainer from "~/components/ui/modal-container";
 import { Text } from "~/components/ui/text";
 import { getMatch, postParlay } from "~/endpoints";
+import { authClient } from "~/lib/auth-client";
 import { CircleMinus } from "~/lib/icons/CircleMinus";
 import {
   cn,
   getFlexMultiplier,
   getPerfectPlayMultiplier,
-  getStatName,
   invalidateQueries,
 } from "~/lib/utils";
-import { Prop } from "~/types/props";
+import { Prop } from "~/types/prop";
 
 export default function FinalizeParlay() {
-  const { parlayPicks, clearParlay } = useParlayPicks();
+  const { picks, clearParlay } = useParlay();
   const searchParams = useLocalSearchParams<{ matchId: string }>();
   const matchId = parseInt(searchParams.matchId);
 
@@ -35,10 +34,10 @@ export default function FinalizeParlay() {
     queryFn: async () => await getMatch(matchId),
   });
 
-  const { session } = useSession();
+  const { data } = authClient.useSession();
 
   const userBalance = match?.matchUsers.find(
-    (matchUser) => matchUser.user.id == session?.user.id
+    (matchUser) => matchUser.user.id == data?.user.id!
   )?.balance!;
 
   const [stake, setStake] = useState<number | null>(0);
@@ -76,7 +75,7 @@ export default function FinalizeParlay() {
         await postParlay(matchId, {
           type,
           stake: stake!,
-          picks: parlayPicks,
+          picks,
         }),
       onError: (err) => {
         toast.error(err.message, {
@@ -88,7 +87,7 @@ export default function FinalizeParlay() {
         invalidateQueries(
           queryClient,
           ["match", matchId],
-          ["parlays", matchId, session?.user.id!]
+          ["parlays", matchId, data?.user.id!]
         );
         toast.success("Parlay Successfully created", {
           position: "bottom-center",
@@ -130,8 +129,7 @@ export default function FinalizeParlay() {
           <View className="flex flex-row items-center gap-2">
             <Text className="font-bold text-lg">Current Parlay</Text>
             <Text className="font-semibold text-muted-foreground text-lg">
-              {parlayPicks.length} prop{parlayPicks.length > 1 ? "s" : ""}{" "}
-              selected
+              {picks.length} prop{picks.length > 1 ? "s" : ""} selected
             </Text>
           </View>
           <Button
@@ -171,24 +169,20 @@ export default function FinalizeParlay() {
           showsVerticalScrollIndicator={false}
         >
           <View className="flex flex-col gap-4">
-            {parlayPicks.length > 0 && (
+            {picks.length > 0 && (
               <Card>
                 <CardContent className="p-0">
-                  {parlayPicks.map((pick, index) => (
+                  {picks.map((pick, index) => (
                     <PickCard
                       key={pick.prop.id}
                       pick={pick}
-                      isLast={index === parlayPicks.length - 1}
+                      isLast={index === picks.length - 1}
                     />
                   ))}
                 </CardContent>
               </Card>
             )}
-            {(
-              type == "perfect"
-                ? parlayPicks.length >= 2
-                : parlayPicks.length >= 3
-            ) ? (
+            {(type == "perfect" ? picks.length >= 2 : picks.length >= 3) ? (
               <>
                 <Card
                   className={cn("w-full", formError && "border-destructive")}
@@ -222,12 +216,11 @@ export default function FinalizeParlay() {
                             ? (
                                 (type == "flex"
                                   ? getFlexMultiplier(
-                                      parlayPicks.length,
-                                      parlayPicks.length
+                                      picks.length,
+                                      picks.length
                                     )
-                                  : getPerfectPlayMultiplier(
-                                      parlayPicks.length
-                                    )) * stake
+                                  : getPerfectPlayMultiplier(picks.length)) *
+                                stake
                               ).toFixed(2)
                             : "0.00"}
                         </Text>
@@ -250,14 +243,13 @@ export default function FinalizeParlay() {
                       <View className="flex flex-row items-center justify-between">
                         <View className="flex flex-row items-center gap-2">
                           <Text className="font-semibold text-lg">
-                            {parlayPicks.length} out of {parlayPicks.length}{" "}
-                            Correct
+                            {picks.length} out of {picks.length} Correct
                           </Text>
                           <View className="bg-primary/10 py-1 px-2 rounded-lg">
                             <Text className="font-semibold text-primary">
-                              {getPerfectPlayMultiplier(
-                                parlayPicks.length
-                              ).toFixed(2)}
+                              {getPerfectPlayMultiplier(picks.length).toFixed(
+                                2
+                              )}
                               x
                             </Text>
                           </View>
@@ -266,17 +258,13 @@ export default function FinalizeParlay() {
                           $
                           {stake
                             ? (
-                                stake *
-                                getPerfectPlayMultiplier(parlayPicks.length)
+                                stake * getPerfectPlayMultiplier(picks.length)
                               ).toFixed(2)
                             : "0.00"}
                         </Text>
                       </View>
                     ) : (
-                      <FlexPlayOutcomes
-                        length={parlayPicks.length}
-                        stake={stake}
-                      />
+                      <FlexPlayOutcomes length={picks.length} stake={stake} />
                     )}
                   </CardContent>
                 </Card>
@@ -306,9 +294,7 @@ export default function FinalizeParlay() {
             )}
           </View>
         </ScrollView>
-        {(type == "perfect"
-          ? parlayPicks.length >= 2
-          : parlayPicks.length >= 3) && (
+        {(type == "perfect" ? picks.length >= 2 : picks.length >= 3) && (
           <View
             className="flex flex-col items-center gap-6 p-6 border-t border-border"
             style={{
@@ -367,11 +353,11 @@ export function PickCard({
   pick,
   isLast,
 }: {
-  pick: { prop: Prop; pick: string };
+  pick: { prop: Prop; choice: string };
   isLast?: boolean;
 }) {
-  const { isPropPicked, getPick, updatePick, addPick, removePick } =
-    useParlayPicks();
+  const { isPropPicked, getPickChoice, updatePick, addPick, removePick } =
+    useParlay();
   const { prop } = pick;
 
   return (
@@ -396,37 +382,39 @@ export function PickCard({
               {prop.player.position}
             </Text>
           </View>
+
           <Text className="font-semibold text-muted-foreground text-sm">
-            {/* TODO */}
-            vs ABRV • {moment(prop.gameStartTime).format("ddd h:mm A")}
+            {/* TODO real time info */}
+            {prop.game.awayTeam.fullName} at {prop.game.homeTeam.fullName} •{" "}
+            {moment(prop.game.startTime).format("ddd h:mm A")}
           </Text>
           <Text className="font-semibold text-lg">
-            {prop.line} {getStatName(prop.stat)}
+            {prop.line} {prop.statDisplayName}
           </Text>
         </View>
       </View>
       <View className="flex flex-col gap-2">
-        {prop.pickOptions?.map((option, i) => (
+        {prop.choices?.map((choice, i) => (
           <Button
             onPress={() => {
               if (isPropPicked(prop.id)) {
-                if (getPick(prop.id) == option) {
+                if (getPickChoice(prop.id) == choice) {
                   return;
                 } else {
-                  updatePick(prop.id, option);
+                  updatePick(prop.id, choice);
                 }
               } else {
-                addPick({ prop, pick: option });
+                addPick({ prop, choice });
               }
             }}
             className={cn(
               "w-20 flex-row justify-center items-center bg-background border border-border",
-              getPick(prop.id) == option && "border-primary bg-primary/20"
+              getPickChoice(prop.id) == choice && "border-primary bg-primary/20"
             )}
             key={`${prop.id}_option_${i}`}
             size="sm"
           >
-            <Text className="capitalize font-semibold">{option}</Text>
+            <Text className="capitalize font-semibold">{choice}</Text>
           </Button>
         ))}
       </View>

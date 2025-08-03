@@ -2,7 +2,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { ReactNode } from "react";
 import { StyleProp, ViewStyle } from "react-native";
 import { useColorScheme } from "~/lib/useColorScheme";
-import { Tier } from "~/types/ranks";
+import { Tier } from "~/types/rank";
 
 export function RankGradient({
   tier,

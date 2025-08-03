@@ -1,56 +1,26 @@
 import { Router } from "express";
-import { authMiddleware } from "./auth";
-import { db } from "../drizzle";
-import { and, eq, gt, gte, lt, notInArray } from "drizzle-orm";
-import { leagueType, matchUsers, props } from "../drizzle/schema";
+import { and, eq, gt, gte, lt, notInArray, count, inArray } from "drizzle-orm";
 import moment from "moment";
+import {
+  game,
+  matchUser,
+  prop,
+  player,
+  team,
+  pick,
+} from "../db/schema";
+import { db } from "../db";
+import { alias } from "drizzle-orm/pg-core";
+import { authMiddleware } from "../middleware";
 
 export const propsRoute = Router();
-
-propsRoute.get("/props/all", authMiddleware, async (req, res) => {
-  const league = req.query.league;
-
-  if (!league || !leagueType.enumValues.includes(league as any)) {
-    res.status(400).json({
-      error: "Invalid league",
-      message: "League parameter is invalid",
-    });
-    return;
-  }
-
-  try {
-    const allProps = await db.query.props.findMany({
-      where: eq(props.league, league as (typeof leagueType.enumValues)[number]),
-      with: {
-        player: {
-          with: {
-            team: true
-          }
-        },
-        parlayPicks: true,
-      },
-      // TODO delete
-      limit: 10
-    });
-
-    const allPropsWithPickCount = allProps.map((prop) => ({
-      ...prop,
-      parlayPicksCount: prop.parlayPicks.length,
-    }));
-
-    res.json(allPropsWithPickCount);
-  } catch (err) {
-    res.status(500).json({ error: "Server Error", message: err });
-  }
-});
 
 propsRoute.get("/props/today", authMiddleware, async (req, res) => {
   const league = req.query.league;
 
-  if (!league || !leagueType.enumValues.includes(league as any)) {
+  if (!league) {
     res.status(400).json({
-      error: "Invalid league",
-      message: "League parameter is invalid",
+      error: "League parameter is invalid",
     });
     return;
   }
@@ -59,10 +29,10 @@ propsRoute.get("/props/today", authMiddleware, async (req, res) => {
     const startOfDay = moment().startOf("day").toISOString();
     const endOfDay = moment().endOf("day").toISOString();
 
-    const todayMatches = await db.query.matchUsers.findMany({
+    const todayMatches = await db.query.matchUser.findMany({
       where: and(
-        gte(matchUsers.createdAt, startOfDay),
-        lt(matchUsers.createdAt, endOfDay)
+        gte(matchUser.createdAt, startOfDay),
+        lt(matchUser.createdAt, endOfDay)
       ),
       columns: {
         id: true,
@@ -70,7 +40,7 @@ propsRoute.get("/props/today", authMiddleware, async (req, res) => {
       with: {
         parlays: {
           with: {
-            parlayPicks: true,
+            picks: true,
           },
         },
       },
@@ -80,35 +50,111 @@ propsRoute.get("/props/today", authMiddleware, async (req, res) => {
 
     todayMatches.forEach((match) => {
       match.parlays.forEach((parlay) => {
-        parlay.parlayPicks.forEach((pick) => {
+        parlay.picks.forEach((pick) => {
           propsPickedAlready.push(pick.propId!);
         });
       });
     });
 
-    const availableProps = await db.query.props.findMany({
-      where: and(
-        gt(props.gameStartTime, new Date().toISOString()), // games that haven't started
-        eq(props.league, league as (typeof leagueType.enumValues)[number]), // correct league
-        notInArray(props.id, propsPickedAlready)
-      ),
-      with: {
-        player: {
-          with: {
-            team: true
-          }
-        },
-        parlayPicks: true,
-      },
-    });
+    const homeTeam = alias(team, "homeTeam");
+    const awayTeam = alias(team, "awayTeam");
 
-    const availablePropsWithPickCount = availableProps.map((prop) => ({
-      ...prop,
-      parlayPicksCount: prop.parlayPicks.length,
+    const availableProps = await db
+      .select({
+        prop: prop,
+        game: game,
+        player: player,
+        team: team,
+        homeTeam: homeTeam,
+        awayTeam: awayTeam,
+      })
+      .from(prop)
+      .innerJoin(game, eq(prop.gameId, game.id))
+      .innerJoin(player, eq(prop.playerId, player.id))
+      .innerJoin(team, eq(player.teamId, team.id))
+      .innerJoin(homeTeam, eq(game.homeTeamId, homeTeam.id))
+      .innerJoin(awayTeam, eq(game.awayteamId, awayTeam.id))
+      .where(
+        and(
+          gt(game.startTime, new Date().toISOString()), // games that haven't started
+          eq(prop.league, league as string), // correct league
+          notInArray(prop.id, propsPickedAlready)
+        )
+      );
+
+    // Get pick counts for each prop
+    const propIds = availableProps.map((p) => p.prop.id);
+
+    const pickCountsList =
+      propIds.length > 0
+        ? await db
+            .select({
+              propId: pick.propId,
+              count: count(pick.id),
+            })
+            .from(pick)
+            .where(inArray(pick.propId, propIds))
+            .groupBy(pick.propId)
+        : [];
+
+    const availablePropsWithPickCount = availableProps.map((row) => ({
+      ...row.prop,
+      game: {
+        ...row.game,
+        homeTeam: row.homeTeam,
+        awayTeam: row.awayTeam,
+      },
+      player: {
+        ...row.player,
+        team: row.team,
+      },
+      picksCount:
+        pickCountsList.find((pc) => pc.propId === row.prop.id)?.count || 0,
     }));
 
     res.json(availablePropsWithPickCount);
   } catch (err) {
-    res.status(500).json({ error: "Server Error", message: err });
+    res.status(500).json({ error: "Server Error" });
+  }
+});
+
+propsRoute.post("/props", authMiddleware, async (req, res) => {
+  try {
+    const { line, gameId, playerId, statName, statDisplayName, league, choices } = req.body as {
+      line: number | undefined;
+      gameId: number | undefined;
+      playerId: number | undefined;
+      statName: string | undefined;
+      statDisplayName: string | undefined;
+      league: string | undefined;
+      choices: string[] | undefined;
+    };
+
+    if (
+      !line ||
+      !gameId ||
+      !playerId ||
+      !statName ||
+      !statDisplayName ||
+      !league ||
+      !choices
+    ) {
+      res.status(400).json({ error: "Invalid request body" })
+      return
+    }
+
+    const newProp = await db.insert(prop).values({
+      line,
+      gameId,
+      playerId,
+      statDisplayName,
+      statName,
+      league,
+      choices
+    })
+
+    res.json(newProp)
+  } catch (err) {
+    res.status(500).json({ error: "Server Error" });
   }
 });

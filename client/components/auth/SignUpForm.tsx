@@ -3,11 +3,11 @@ import { Controller, FieldValues, useForm } from "react-hook-form";
 import { ActivityIndicator, View } from "react-native";
 import * as z from "zod";
 import { cn } from "~/lib/utils";
-import { useSession } from "../providers/SessionProvider";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Text } from "../ui/text";
+import { authClient } from "~/lib/auth-client";
 
 const schema = z
   .object({
@@ -56,11 +56,15 @@ export default function SignUpForm() {
     },
   });
 
-  const { signUp, isSignUpPending } = useSession();
+  const { isPending } = authClient.useSession();
 
-  function onSubmit(data: FieldValues) {
-    delete data.confirmPassword;
-    signUp(data as Omit<FormValues, "confirmPassword">);
+  async function onSubmit({ email, username, password, name }: FormValues) {
+    await authClient.signUp.email({
+      email,
+      username,
+      password,
+      name,
+    })
   }
 
   return (
@@ -179,7 +183,7 @@ export default function SignUpForm() {
         className="flex-row gap-2 items-center"
       >
         <Text>Sign Up</Text>
-        {isSignUpPending && <ActivityIndicator className="text-foreground" />}
+        {isPending && <ActivityIndicator className="text-foreground" />}
       </Button>
     </View>
   );

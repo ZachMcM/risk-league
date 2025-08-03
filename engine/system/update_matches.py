@@ -32,7 +32,7 @@ def recalculate_elo(current_elos: list[float], winner: int | None) -> list[int]:
         S_B = 1 - S_A
 
     # probability of player one winning
-    E_A = 1 / (1 + pow(10, (R_A - R_B) / 400))
+    E_A = 1 / (1 + pow(10, (R_B - R_A) / 400))
 
     # probability of player two winning
     E_B = 1 - E_A

@@ -3,12 +3,12 @@ import { ScrollView, View } from "react-native";
 import { Text } from "~/components/ui/text";
 import { cn, timeAgo } from "~/lib/utils";
 import { useMessages } from "../providers/MessagesProvider";
-import { useSession } from "../providers/SessionProvider";
 import ProfileImage from "../ui/profile-image";
+import { authClient } from "~/lib/auth-client";
 
 export default function MessagesList() {
   const { messages } = useMessages();
-  const { session } = useSession();
+  const { data } = authClient.useSession();
   const scrollViewRef = useRef<ScrollView>(null);
 
   // Auto-scroll to bottom when new messages arrive
@@ -24,7 +24,7 @@ export default function MessagesList() {
       showsVerticalScrollIndicator={false}
     >
       {messages?.map((message, index) => {
-        const isCurrentUser = session?.user.id && message.user.id === session.user.id;
+        const isCurrentUser = data?.user.id && message.user.id === data?.user.id!;
 
         return (
           <View

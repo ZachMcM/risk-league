@@ -1,7 +1,7 @@
 import { Link, router, useLocalSearchParams } from "expo-router";
 import { Pressable, View } from "react-native";
 import { getFlexMultiplier, getPerfectPlayMultiplier } from "~/lib/utils";
-import { Parlay } from "~/types/parlays";
+import { Parlay } from "~/types/parlay";
 import { Badge } from "../ui/badge";
 import { Card, CardContent } from "../ui/card";
 import { Separator } from "../ui/separator";
@@ -24,24 +24,24 @@ export default function ParlayCard({ parlay }: { parlay: Parlay }) {
             <View className="flex flex-row justify-between items-center">
               <View className="flex flex-row items-center gap-3">
                 <Text className="font-bold text-lg capitalize">
-                  {parlay.parlayPicks.length} Pick {parlay.type} Play
+                  {parlay.picks.length} Pick {parlay.type} Play
                 </Text>
                 <Text className="font-bold text-lg text-primary">
                   {parlay.type == "flex"
                     ? `${getFlexMultiplier(
-                        parlay.parlayPicks.length,
+                        parlay.picks.length,
                         2
                       )}x-${getFlexMultiplier(
-                        parlay.parlayPicks.length,
-                        parlay.parlayPicks.length
+                        parlay.picks.length,
+                        parlay.picks.length
                       )}x`
-                    : `${getPerfectPlayMultiplier(parlay.parlayPicks.length).toFixed(2)}x`}
+                    : `${getPerfectPlayMultiplier(parlay.picks.length).toFixed(2)}x`}
                 </Text>
               </View>
               <Badge
                 variant={
                   parlay.resolved
-                    ? parlay.delta > 0
+                    ? parlay.profit > 0
                       ? "success"
                       : "destructive"
                     : "default"
@@ -51,14 +51,14 @@ export default function ParlayCard({ parlay }: { parlay: Parlay }) {
                 <Text className="text-sm">
                   {!parlay.resolved
                     ? "Active"
-                    : parlay.delta > 0
+                    : parlay.profit > 0
                     ? "Won"
                     : "Lost"}
                 </Text>
               </Badge>
             </View>
             <Text className="font-semibold text-muted-foreground">
-              {parlay.parlayPicks
+              {parlay.picks
                 .map((pick) => pick.prop.player.name)
                 .join(", ")}
             </Text>
@@ -73,7 +73,7 @@ export default function ParlayCard({ parlay }: { parlay: Parlay }) {
               <Text className="text-muted-foreground font-semibold">
                 {!parlay.resolved
                   ? "Potential Payout"
-                  : parlay.delta > 0
+                  : parlay.profit > 0
                   ? "Amount Won"
                   : "Amount Lost"}
               </Text>
@@ -83,13 +83,13 @@ export default function ParlayCard({ parlay }: { parlay: Parlay }) {
                   ? (
                       (parlay.type == "flex"
                         ? getFlexMultiplier(
-                            parlay.parlayPicks.length,
-                            parlay.parlayPicks.length
+                            parlay.picks.length,
+                            parlay.picks.length
                           )
-                        : getPerfectPlayMultiplier(parlay.parlayPicks.length)) *
+                        : getPerfectPlayMultiplier(parlay.picks.length)) *
                       parlay.stake
                     ).toFixed(2)
-                  : Math.abs(parlay.delta).toFixed(2)}
+                  : Math.abs(parlay.profit).toFixed(2)}
               </Text>
             </View>
           </View>
