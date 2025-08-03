@@ -1,6 +1,5 @@
 import { and, eq, InferInsertModel } from "drizzle-orm";
 import { Router } from "express";
-<<<<<<< HEAD
 import { invalidateQueries } from "../utils/invalidateQueries";
 import { db } from "../db";
 import { choiceType, match, matchUser, parlay, pick, prop } from "../db/schema";
@@ -9,19 +8,6 @@ import {
   getFlexMultiplier,
   getPerfectPlayMultiplier,
 } from "../utils/parlayMultipliers";
-=======
-import { db } from "../drizzle";
-import {
-  matches,
-  matchUsers,
-  parlayPicks,
-  parlays,
-  pickType,
-  props,
-} from "../drizzle/schema";
-import { invalidateQueries } from "../utils/invalidateQueries";
-import { authMiddleware } from "./auth";
->>>>>>> 49a7b3900bee74278d8981ebf95157afb1a4d8da
 
 export const parlaysRoute = Router();
 
@@ -74,22 +60,13 @@ parlaysRoute.get("/parlays", async (req, res) => {
   try {
     const matchUserResult = await db.query.matchUser.findFirst({
       where: and(
-<<<<<<< HEAD
         eq(matchUser.userId, req.user?.id!),
         eq(matchUser.matchId, matchId)
-=======
-        eq(matchUsers.userId, userId),
-        eq(matchUsers.matchId, matchId)
->>>>>>> 49a7b3900bee74278d8981ebf95157afb1a4d8da
       ),
       with: {
         parlays: {
           with: {
-<<<<<<< HEAD
             picks: {
-=======
-            parlayPicks: {
->>>>>>> 49a7b3900bee74278d8981ebf95157afb1a4d8da
               with: {
                 prop: {
                   with: {
@@ -107,25 +84,14 @@ parlaysRoute.get("/parlays", async (req, res) => {
       },
     });
 
-<<<<<<< HEAD
     if (!matchUserResult) {
       res.status(404).json({
         error: "No user found to retrieve parlay",
-=======
-    if (!matchUser) {
-      res.status(404).json({
-        error: "Not Found",
-        message: "No user found to retrieve parlays",
->>>>>>> 49a7b3900bee74278d8981ebf95157afb1a4d8da
       });
       return;
     }
 
-<<<<<<< HEAD
     res.json(matchUserResult.parlays);
-=======
-    res.json(matchUser.parlays);
->>>>>>> 49a7b3900bee74278d8981ebf95157afb1a4d8da
   } catch (err) {
     res.status(500).json({
       error: "Server Error",
@@ -147,12 +113,12 @@ parlaysRoute.post("/parlays/:matchId", authMiddleware, async (req, res) => {
           with: {
             matchUsers: {
               columns: {
-                userId: true
-              }
-            }
-          }
-        }
-      }
+                userId: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     if (!matchUserResult) {
@@ -245,7 +211,7 @@ parlaysRoute.post("/parlays/:matchId", authMiddleware, async (req, res) => {
       ["parlays", matchUserResult.id],
       ["match", matchId],
       ["matches", matchUserResult.match.matchUsers[0].userId],
-      ["matches", matchUserResult.match.matchUsers[1].userId],
+      ["matches", matchUserResult.match.matchUsers[1].userId]
     );
 
     res.json(parlay);
@@ -358,7 +324,7 @@ parlaysRoute.patch("/parlays", apiKeyMiddleware, async (req, res) => {
       ["matches", parlayResult.matchUser.match.matchUsers[1].userId]
     );
 
-    res.send("Resolved parlay")
+    res.send("Resolved parlay");
   } catch (err) {
     res.status(500).json({ error: "Server Error" });
   }

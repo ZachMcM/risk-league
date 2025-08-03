@@ -9,9 +9,5 @@ export const routes = express.Router();
 routes.use(usersRoute);
 routes.use(matchesRoute)
 routes.use(propsRoute)
-<<<<<<< HEAD
 routes.use(parlaysRoute)
 routes.use(picksRoute)
-=======
-routes.use(parlaysRoute)
->>>>>>> 49a7b3900bee74278d8981ebf95157afb1a4d8da
