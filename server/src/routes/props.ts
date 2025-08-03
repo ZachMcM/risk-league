@@ -1,14 +1,7 @@
 import { Router } from "express";
 import { and, eq, gt, gte, lt, notInArray, count, inArray } from "drizzle-orm";
 import moment from "moment";
-import {
-  game,
-  matchUser,
-  prop,
-  player,
-  team,
-  pick,
-} from "../db/schema";
+import { game, matchUser, prop, player, team, pick } from "../db/schema";
 import { db } from "../db";
 import { alias } from "drizzle-orm/pg-core";
 import { authMiddleware } from "../middleware";
@@ -32,7 +25,7 @@ propsRoute.get("/props/today", authMiddleware, async (req, res) => {
     const todayMatches = await db.query.matchUser.findMany({
       where: and(
         gte(matchUser.createdAt, startOfDay),
-        lt(matchUser.createdAt, endOfDay)
+        lt(matchUser.createdAt, endOfDay),
       ),
       columns: {
         id: true,
@@ -78,8 +71,8 @@ propsRoute.get("/props/today", authMiddleware, async (req, res) => {
         and(
           gt(game.startTime, new Date().toISOString()), // games that haven't started
           eq(prop.league, league as string), // correct league
-          notInArray(prop.id, propsPickedAlready)
-        )
+          notInArray(prop.id, propsPickedAlready),
+        ),
       );
 
     // Get pick counts for each prop
@@ -120,7 +113,15 @@ propsRoute.get("/props/today", authMiddleware, async (req, res) => {
 
 propsRoute.post("/props", authMiddleware, async (req, res) => {
   try {
-    const { line, gameId, playerId, statName, statDisplayName, league, choices } = req.body as {
+    const {
+      line,
+      gameId,
+      playerId,
+      statName,
+      statDisplayName,
+      league,
+      choices,
+    } = req.body as {
       line: number | undefined;
       gameId: number | undefined;
       playerId: number | undefined;
@@ -139,8 +140,8 @@ propsRoute.post("/props", authMiddleware, async (req, res) => {
       !league ||
       !choices
     ) {
-      res.status(400).json({ error: "Invalid request body" })
-      return
+      res.status(400).json({ error: "Invalid request body" });
+      return;
     }
 
     const newProp = await db.insert(prop).values({
@@ -150,10 +151,10 @@ propsRoute.post("/props", authMiddleware, async (req, res) => {
       statDisplayName,
       statName,
       league,
-      choices
-    })
+      choices,
+    });
 
-    res.json(newProp)
+    res.json(newProp);
   } catch (err) {
     res.status(500).json({ error: "Server Error" });
   }

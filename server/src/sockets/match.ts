@@ -1,7 +1,7 @@
 import { Socket } from "socket.io";
 
 import { eq } from "drizzle-orm";
-import { logger } from "better-auth/*";
+import { logger } from "../logger";
 import { db } from "../db";
 import { message } from "../db/schema";
 import { io } from "..";
@@ -10,7 +10,7 @@ import { WebSocketRateLimiter } from "../utils/webSocketLimiter";
 export async function createMessage(
   content: string,
   userId: string,
-  matchId: number
+  matchId: number,
 ) {
   logger.info("Message recieved", { messageContent: content });
   // Insert message into database
@@ -76,7 +76,7 @@ export function matchHandler(socket: Socket) {
       const messageData = await createMessage(
         data.content,
         userId,
-        parseInt(matchId)
+        parseInt(matchId),
       );
       // Broadcast to all users in the match room
       io.of("/match")

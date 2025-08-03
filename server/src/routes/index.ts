@@ -7,7 +7,7 @@ import { picksRoute } from "./picks";
 
 export const routes = express.Router();
 routes.use(usersRoute);
-routes.use(matchesRoute)
-routes.use(propsRoute)
-routes.use(parlaysRoute)
-routes.use(picksRoute)
+routes.use(matchesRoute);
+routes.use(propsRoute);
+routes.use(parlaysRoute);
+routes.use(picksRoute);

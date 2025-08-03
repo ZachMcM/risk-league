@@ -1,6 +1,6 @@
 import { Socket } from "socket.io";
 import { io } from "..";
-import { logger } from "better-auth/*";
+import { logger } from "../logger";
 
 export function invalidationHandler(socket: Socket) {
   logger.info(`Socket connected to realtime invalidation`);

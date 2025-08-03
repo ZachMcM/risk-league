@@ -5,13 +5,19 @@ export class WebSocketRateLimiter {
   private windowMs: number;
   private keyPrefix: string;
 
-  constructor(maxMessages: number = 5, windowMs: number = 1000, keyPrefix: string = "ws_rate_limit") {
+  constructor(
+    maxMessages: number = 5,
+    windowMs: number = 1000,
+    keyPrefix: string = "ws_rate_limit",
+  ) {
     this.maxMessages = maxMessages;
     this.windowMs = windowMs;
     this.keyPrefix = keyPrefix;
   }
 
-  async checkLimit(identifier: string): Promise<{ allowed: boolean; retryAfter?: number }> {
+  async checkLimit(
+    identifier: string,
+  ): Promise<{ allowed: boolean; retryAfter?: number }> {
     const key = `${this.keyPrefix}:${identifier}`;
     const now = Date.now();
     const windowStart = now - this.windowMs;
@@ -23,9 +29,10 @@ export class WebSocketRateLimiter {
     if (currentCount >= this.maxMessages) {
       // Get the oldest message timestamp to calculate retry time
       const oldestMessage = await redis.zRange(key, 0, 0, { REV: false });
-      const retryAfter = oldestMessage.length > 0 
-        ? parseInt(oldestMessage[0]) + this.windowMs - now
-        : this.windowMs;
+      const retryAfter =
+        oldestMessage.length > 0
+          ? parseInt(oldestMessage[0]) + this.windowMs - now
+          : this.windowMs;
 
       return { allowed: false, retryAfter: Math.max(retryAfter, 0) };
     }

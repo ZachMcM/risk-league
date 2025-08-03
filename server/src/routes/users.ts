@@ -17,7 +17,7 @@ usersRoute.get("/users/:id", authMiddleware, async (req, res) => {
         header: true,
         peakPoints: true,
       },
-      where: eq(user.id, req.user?.id!),
+      where: eq(user.id, res.locals.userId!),
     });
 
     if (!userResult) {

@@ -1,4 +1,4 @@
-import { expo } from "@better-auth/expo/*";
+import { expo } from "@better-auth/expo";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { username } from "better-auth/plugins";
@@ -14,19 +14,19 @@ export const auth = betterAuth({
     provider: "pg",
   }),
   session: {
-    expiresIn: 365 * 24 * 60 * 60 // one year
+    expiresIn: 365 * 24 * 60 * 60, // one year
   },
   user: {
     additionalFields: {
       points: {
         type: "number",
         input: false,
-        required: false
+        required: false,
       },
       header: {
         type: "string",
         input: false,
-        required: false
+        required: false,
       },
     },
   },

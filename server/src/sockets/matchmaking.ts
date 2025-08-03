@@ -119,7 +119,7 @@ export function matchMakingHandler(socket: Socket) {
   }
 
   logger.info(
-    `User ${userId} connected to matchmaking namespace for ${league}`
+    `User ${userId} connected to matchmaking namespace for ${league}`,
   );
 
   socket.join(userId);

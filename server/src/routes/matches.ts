@@ -15,7 +15,7 @@ export const matchesRoute = Router();
 matchesRoute.get("/matches", authMiddleware, async (req, res) => {
   try {
     const matchResults = await db.query.matchUser.findMany({
-      where: eq(matchUser.userId, req.user?.id!),
+      where: eq(matchUser.userId, res.locals.userId!),
       with: {
         match: {
           with: {
@@ -47,10 +47,10 @@ matchesRoute.get("/matches", authMiddleware, async (req, res) => {
         matchUsers: match?.matchUsers.map((mu) => ({
           ...mu,
           parlaysWon: mu.parlays.filter(
-            (parlay) => parlay.profit && parlay.profit > 0
+            (parlay) => parlay.profit && parlay.profit > 0,
           ).length,
           parlaysLost: mu.parlays.filter(
-            (parlay) => parlay.profit && parlay.profit < 0
+            (parlay) => parlay.profit && parlay.profit < 0,
           ).length,
           parlaysInProgress: mu.parlays.filter((parlay) => parlay.resolved)
             .length,
@@ -63,10 +63,10 @@ matchesRoute.get("/matches", authMiddleware, async (req, res) => {
                   (curr.type == "flex"
                     ? getFlexMultiplier(curr.picks.length, curr.picks.length)
                     : getPerfectPlayMultiplier(curr.picks.length)),
-              0
+              0,
             ),
         })),
-      })
+      }),
     );
 
     res.json(matchesWithParlayCounts);
@@ -108,10 +108,10 @@ matchesRoute.get("/matches/:id", authMiddleware, async (req, res) => {
       matchUsers: matchResult?.matchUsers.map((mu) => ({
         ...mu,
         parlaysWon: mu.parlays.filter(
-          (parlay) => parlay.profit && parlay.profit > 0
+          (parlay) => parlay.profit && parlay.profit > 0,
         ).length,
         parlaysLost: mu.parlays.filter(
-          (parlay) => parlay.profit && parlay.profit < 0
+          (parlay) => parlay.profit && parlay.profit < 0,
         ).length,
         parlaysInProgress: mu.parlays.filter((parlay) => !parlay.resolved)
           .length,
@@ -124,7 +124,7 @@ matchesRoute.get("/matches/:id", authMiddleware, async (req, res) => {
                 (curr.type == "flex"
                   ? getFlexMultiplier(curr.picks.length, curr.picks.length)
                   : getPerfectPlayMultiplier(curr.picks.length)),
-            0
+            0,
           ),
       })),
     };
@@ -197,7 +197,7 @@ function recalculatePoints(currentPoints: number[], winner: number | null) {
   return [Math.round(R_prime_A), Math.round(R_prime_B)];
 }
 
-matchesRoute.patch("matches/end", apiKeyMiddleware, async (_, res) => {
+matchesRoute.patch("/matches/end", apiKeyMiddleware, async (_, res) => {
   try {
     const minBetsRequired = parseInt(process.env.MIN_BETS_REQUIRED!);
 
@@ -289,7 +289,7 @@ matchesRoute.patch("matches/end", apiKeyMiddleware, async (_, res) => {
 
         const newPoints = recalculatePoints(
           [matchUser1.user.points, matchUser2.user.points],
-          winner
+          winner,
         );
 
         await db
@@ -326,7 +326,7 @@ matchesRoute.patch("matches/end", apiKeyMiddleware, async (_, res) => {
         ["matches", matchUser1.userId],
         ["matches", matchUser2.userId],
         ["user", matchUser1.userId],
-        ["user", matchUser2.userId]
+        ["user", matchUser2.userId],
       );
     }
 

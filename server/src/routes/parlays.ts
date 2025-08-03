@@ -60,8 +60,8 @@ parlaysRoute.get("/parlays", async (req, res) => {
   try {
     const matchUserResult = await db.query.matchUser.findFirst({
       where: and(
-        eq(matchUser.userId, req.user?.id!),
-        eq(matchUser.matchId, matchId)
+        eq(matchUser.userId, res.locals.userId!),
+        eq(matchUser.matchId, matchId),
       ),
       with: {
         parlays: {
@@ -106,7 +106,7 @@ parlaysRoute.post("/parlays/:matchId", authMiddleware, async (req, res) => {
     const matchUserResult = await db.query.matchUser.findFirst({
       where: and(
         eq(matchUser.matchId, matchId),
-        eq(matchUser.userId, req.user?.id!)
+        eq(matchUser.userId, res.locals.userId!),
       ),
       with: {
         match: {
@@ -211,7 +211,7 @@ parlaysRoute.post("/parlays/:matchId", authMiddleware, async (req, res) => {
       ["parlays", matchUserResult.id],
       ["match", matchId],
       ["matches", matchUserResult.match.matchUsers[0].userId],
-      ["matches", matchUserResult.match.matchUsers[1].userId]
+      ["matches", matchUserResult.match.matchUsers[1].userId],
     );
 
     res.json(parlay);
@@ -321,7 +321,7 @@ parlaysRoute.patch("/parlays", apiKeyMiddleware, async (req, res) => {
       ["parlay", parlayResult.id],
       ["match", parlayResult.matchUser.matchId],
       ["matches", parlayResult.matchUser.match.matchUsers[0].userId],
-      ["matches", parlayResult.matchUser.match.matchUsers[1].userId]
+      ["matches", parlayResult.matchUser.match.matchUsers[1].userId],
     );
 
     res.send("Resolved parlay");
