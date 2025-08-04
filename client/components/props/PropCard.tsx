@@ -1,5 +1,4 @@
 import { Prop } from "~/types/prop";
-import { cn, formatCompactNumber } from "~/lib/utils";
 import { Card, CardContent } from "../ui/card";
 import { Text } from "../ui/text";
 import { View } from "react-native";
@@ -8,6 +7,8 @@ import moment from "moment";
 import { Button } from "../ui/button";
 import { useParlay } from "../providers/ParlayProvider";
 import { Flame } from "~/lib/icons/Flame";
+import { cn } from "~/utils/cn";
+import { formatCompactNumber } from "~/utils/formatCompactNumber";
 
 export default function PropCard({
   prop,
@@ -39,7 +40,7 @@ export default function PropCard({
               {prop.player.position}
             </Text>
           </View>
-          <Text className="font-bold text-lg">{prop.player.name}</Text>
+          <Text className="font-bold text-lg text-ce">{prop.player.name}</Text>
           <Text className="font-semibold text-muted-foreground text-sm text-center">
             {prop.game.awayTeam.abbreviation} at {prop.game.homeTeam.abbreviation} •{" "}
             {moment(prop.game.startTime).format("ddd h:mm A")}

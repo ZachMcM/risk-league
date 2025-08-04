@@ -13,7 +13,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { ChevronDown } from '~/lib/icons/ChevronDown';
-import { cn } from '~/lib/utils';
+import { cn } from "~/utils/cn"
 import { TextClassContext } from '~/components/ui/text';
 
 function Accordion({

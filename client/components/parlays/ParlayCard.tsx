@@ -1,11 +1,11 @@
-import { Link, router, useLocalSearchParams } from "expo-router";
-import { Pressable, View } from "react-native";
-import { getFlexMultiplier, getPerfectPlayMultiplier } from "~/lib/utils";
+import { Link, useLocalSearchParams } from "expo-router";
+import { View } from "react-native";
 import { Parlay } from "~/types/parlay";
 import { Badge } from "../ui/badge";
 import { Card, CardContent } from "../ui/card";
 import { Separator } from "../ui/separator";
 import { Text } from "../ui/text";
+import { getFlexMultiplier, getPerfectPlayMultiplier } from "~/utils/multiplierUtils";
 
 export default function ParlayCard({ parlay }: { parlay: Parlay }) {
   const searchParams = useLocalSearchParams<{ matchId: string }>();
@@ -14,7 +14,7 @@ export default function ParlayCard({ parlay }: { parlay: Parlay }) {
   return (
     <Link
       href={{
-        pathname: "/matches/[matchId]/parlays/[parlayId]",
+        pathname: "/match/[matchId]/parlays/[parlayId]",
         params: { matchId, parlayId: parlay.id },
       }}
     >

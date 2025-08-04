@@ -16,13 +16,10 @@ import { Text } from "~/components/ui/text";
 import { getMatch, postParlay } from "~/endpoints";
 import { authClient } from "~/lib/auth-client";
 import { CircleMinus } from "~/lib/icons/CircleMinus";
-import {
-  cn,
-  getFlexMultiplier,
-  getPerfectPlayMultiplier,
-  invalidateQueries,
-} from "~/lib/utils";
 import { Prop } from "~/types/prop";
+import { cn } from "~/utils/cn";
+import { invalidateQueries } from "~/utils/invalidateQueries";
+import { getFlexMultiplier, getPerfectPlayMultiplier } from "~/utils/multiplierUtils";
 
 export default function FinalizeParlay() {
   const { picks, clearParlay } = useParlay();

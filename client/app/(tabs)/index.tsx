@@ -2,7 +2,6 @@ import { useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { View } from "react-native";
-import StartMatchCard from "~/components/matches/StartMatchCard";
 import StartMatchList from "~/components/matches/StartMatchList";
 import { Button } from "~/components/ui/button";
 import ProfileImage from "~/components/ui/profile-image";
@@ -17,17 +16,14 @@ import { authClient } from "~/lib/auth-client";
 import { ChartBarDecreasing } from "~/lib/icons/ChartBarDecreasing";
 import { Cog } from "~/lib/icons/Cog";
 import { Users } from "~/lib/icons/Users";
-import { getRank } from "~/lib/utils";
 
 export default function Home() {
   const { data } = authClient.useSession();
 
-  const { data: user } = useQuery({
+  const { data: user, isPending: isUserPending } = useQuery({
     queryKey: ["user", data?.user.id],
     queryFn: async () => await getUser(data?.user.id!),
   });
-
-  const rank = !user ? undefined : getRank(user?.peakPoints);
 
   return (
     <ScrollContainer className="px-0 pt-0" safeAreaInsets>
@@ -56,14 +52,10 @@ export default function Home() {
         <View className="flex flex-row items-center justify-between">
           <View className="flex flex-col gap-4 items-start">
             <Text className="font-bold text-2xl">{data?.user.username}</Text>
-            {!rank ? (
+            {isUserPending ? (
               <Skeleton className="h-4 w-1/3" />
             ) : (
-              <RankBadge
-                showIcon
-                level={rank.currentRank.level}
-                tier={rank.currentRank.tier}
-              />
+              user && <RankBadge showIcon rank={user.rank} />
             )}
           </View>
           <View className="flex flex-row items-center gap-2">
@@ -82,36 +74,34 @@ export default function Home() {
             </Button>
           </View>
         </View>
-        {!rank ? (
+        {isUserPending ? (
           <View className="flex flex-col gap-2">
             <Skeleton className="h-2 w-1/2" />
             <Skeleton className="h-4 w-full" />
           </View>
         ) : (
-          rank.nextRank && (
+          user &&
+          user.nextRank && (
             <View className="flex flex-col gap-2">
               <View className="flex flex-row items-center justify-between">
                 <Text className="font-semibold text-muted-foreground text-lg">
                   Progress to next rank
                 </Text>
                 <Text className="font-bold text-primary text-xl">
-                  {Math.round(rank.progressToNext * 100)}%
+                  {user.progressToNextRank}%
                 </Text>
               </View>
               <Progress
                 className="h-5"
-                value={rank.progressToNext * 100}
+                value={user.progressToNextRank}
                 variant="primary"
               />
               <View className="flex flex-row items-center justify-between w-full">
                 <Text className="font-semibold text-muted-foreground flex-1 text-left">
                   0%
                 </Text>
-                <RankText
-                  tier={rank.nextRank.tier}
-                  className="flex-1 text-center"
-                >
-                  {rank.nextRank.tier} {rank.nextRank.level}
+                <RankText tier={user.rank.tier} className="flex-1 text-center">
+                  {user.nextRank.tier} {user.nextRank.level}
                 </RankText>
                 <Text className="font-semibold text-muted-foreground flex-1 text-right">
                   100%
@@ -120,7 +110,7 @@ export default function Home() {
             </View>
           )
         )}
-        <StartMatchList/>
+        <StartMatchList />
       </View>
     </ScrollContainer>
   );

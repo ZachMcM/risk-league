@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 import { Search } from "~/lib/icons/Search";
-import { cn } from "~/lib/utils";
+import { cn } from "~/utils/cn";
 import { Prop } from "~/types/prop";
 import { Button } from "../ui/button";
 import { SearchBar } from "../ui/search-bar";

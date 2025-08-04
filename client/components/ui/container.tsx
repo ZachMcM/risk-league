@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 import { KeyboardAvoidingView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { cn } from "~/lib/utils";
+import { cn } from "~/utils/cn";
 
 function Container({
   children,

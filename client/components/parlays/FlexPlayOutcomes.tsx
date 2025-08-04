@@ -1,6 +1,6 @@
 import { View } from "react-native";
-import { getFlexMultiplierTable } from "~/lib/utils";
 import { Text } from "../ui/text";
+import { getFlexMultiplierTable } from "~/utils/multiplierUtils";
 
 export default function FlexPlayOutcomes({
   length,

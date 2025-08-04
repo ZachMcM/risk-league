@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { TextInput, type TextInputProps } from 'react-native';
-import { cn } from '~/lib/utils';
+import { cn } from "~/utils/cn"
 
 function Input({
   className,

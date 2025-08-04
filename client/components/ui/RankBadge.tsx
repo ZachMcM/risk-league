@@ -1,20 +1,18 @@
 import { StyleProp, ViewStyle } from "react-native";
-import { Level, Tier } from "~/types/rank";
+import { Level, Rank, Tier } from "~/types/rank";
 import { RankGradient } from "./rank-gradient";
 import { RankText } from "./rank-text";
-import { cn } from "~/lib/utils";
+import { cn } from "~/utils/cn";
 import { LogoIcon } from "./logo-icon";
 
 export default function RankBadge({
-  tier,
-  level,
+  rank,
   gradientStyle,
   textClassName,
   iconClassName,
   showIcon = false,
 }: {
-  tier: Tier;
-  level: Level | null;
+  rank: Rank
   gradientStyle?: StyleProp<ViewStyle>;
   textClassName?: string;
   iconClassName?: string;
@@ -33,24 +31,24 @@ export default function RankBadge({
         },
         gradientStyle,
       ]}
-      tier={tier}
+      tier={rank.tier}
     >
       {showIcon && (
         <LogoIcon
           className={cn(
-            tier == "Bronze"
+            rank.tier == "Bronze"
               ? "!text-amber-600"
-              : tier == "Silver"
+              : rank.tier == "Silver"
               ? "!text-gray-400"
-              : tier == "Gold"
+              : rank.tier == "Gold"
               ? "!text-yellow-500"
-              : tier == "Platinum"
+              : rank.tier == "Platinum"
               ? "!text-blue-400"
-              : tier == "Diamond"
+              : rank.tier == "Diamond"
               ? "!text-sky-500"
-              : tier == "Master"
+              : rank.tier == "Master"
               ? "!text-purple-500"
-              : tier == "Elite"
+              : rank.tier == "Elite"
               ? "!text-fuchsia-500"
               : "!text-rose-500",
             "h-5 w-5",
@@ -58,8 +56,8 @@ export default function RankBadge({
           )}
         />
       )}
-      <RankText tier={tier} className={cn("font-bold", textClassName)}>
-        {tier} {level}
+      <RankText tier={rank.tier} className={cn("font-bold", textClassName)}>
+        {rank.tier} {rank.level}
       </RankText>
     </RankGradient>
   );

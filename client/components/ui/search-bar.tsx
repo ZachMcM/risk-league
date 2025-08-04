@@ -1,7 +1,7 @@
 import { TextInput, TextInputProps, View } from "react-native";
 import { Search } from "~/lib/icons/Search";
 import { Input } from "./input";
-import { cn } from "~/lib/utils";
+import { cn } from "~/utils/cn";
 
 export function SearchBar({
   className,

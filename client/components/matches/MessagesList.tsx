@@ -1,10 +1,10 @@
 import { useEffect, useRef } from "react";
 import { ScrollView, View } from "react-native";
 import { Text } from "~/components/ui/text";
-import { cn, timeAgo } from "~/lib/utils";
 import { useMessages } from "../providers/MessagesProvider";
 import ProfileImage from "../ui/profile-image";
 import { authClient } from "~/lib/auth-client";
+import { cn } from "~/utils/cn";
 
 export default function MessagesList() {
   const { messages } = useMessages();

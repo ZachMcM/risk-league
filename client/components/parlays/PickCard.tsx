@@ -5,9 +5,9 @@ import { ArrowDown } from "~/lib/icons/ArrowDown";
 import { ArrowUp } from "~/lib/icons/ArrowUp";
 import { Progress } from "../ui/progress";
 import { X } from "~/lib/icons/X";
-import { cn } from "~/lib/utils";
 import { Check } from "~/lib/icons/Check";
 import { Pick } from "~/types/parlay";
+import { cn } from "~/utils/cn";
 
 export default function PickCard({ pick }: { pick: Pick }) {
   return (

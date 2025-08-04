@@ -1,6 +1,6 @@
 import * as TablePrimitive from '@rn-primitives/table';
 import * as React from 'react';
-import { cn } from '~/lib/utils';
+import { cn } from "~/utils/cn"
 import { TextClassContext } from '~/components/ui/text';
 
 function Table({

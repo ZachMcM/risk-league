@@ -1,3 +1,4 @@
+import { Rank } from "./rank";
 import { User } from "./user";
 
 export type MatchStatus =
@@ -23,7 +24,7 @@ export type MatchUser = {
   matchId: number;
   startingBalance: number;
   user: User;
-  pointsSnapshot: number;
+  rankSnapshot: Rank
 };
 
 export type Match = {

@@ -71,6 +71,20 @@
       "when": 1754321908056,
       "tag": "0009_misty_alex_wilder",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1754332207883,
+      "tag": "0010_chunky_goliath",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1754338268707,
+      "tag": "0011_panoramic_patch",
+      "breakpoints": true
     }
   ]
 }

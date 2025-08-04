@@ -19,8 +19,8 @@ import { getParlay } from "~/endpoints";
 import { Badge } from "~/components/ui/badge";
 import ModalContainer from "~/components/ui/modal-container";
 import { ChevronDown } from "~/lib/icons/ChevronDown";
-import { getFlexMultiplier, getPerfectPlayMultiplier } from "~/lib/utils";
-import { PickCard } from "../finalize-parlay";
+import PickCard from "~/components/parlays/PickCard";
+import { getFlexMultiplier, getPerfectPlayMultiplier } from "~/utils/multiplierUtils";
 
 export default function Parlay() {
   const searchParams = useLocalSearchParams<{

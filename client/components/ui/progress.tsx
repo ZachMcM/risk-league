@@ -9,7 +9,7 @@ import Animated, {
   useDerivedValue,
   withSpring,
 } from "react-native-reanimated";
-import { cn } from "~/lib/utils";
+import { cn } from "~/utils/cn";
 import { Text } from "./text";
 
 const progressVariants = cva(

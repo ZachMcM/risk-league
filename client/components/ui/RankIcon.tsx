@@ -2,7 +2,7 @@ import { StyleProp, ViewStyle } from "react-native";
 import { RankGradient } from "./rank-gradient";
 import { Tier } from "~/types/rank";
 import { LogoIcon } from "./logo-icon";
-import { cn } from "~/lib/utils";
+import { cn } from "~/utils/cn";
 
 export default function RankIcon({
   tier,

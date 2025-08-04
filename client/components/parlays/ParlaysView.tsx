@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 import { Search } from "~/lib/icons/Search";
-import { cn } from "~/lib/utils";
 import { Parlay } from "~/types/parlay";
 import { Button } from "../ui/button";
 import { SearchBar } from "../ui/search-bar";
 import { Text } from "../ui/text";
 import ParlaysCard from "./ParlayCard";
+import { cn } from "~/utils/cn";
 
 const parlayFiltersList = [
   "all",

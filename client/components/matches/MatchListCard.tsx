@@ -3,22 +3,15 @@ import { View } from "react-native";
 import { authClient } from "~/lib/auth-client";
 import { TrendingDown } from "~/lib/icons/TrendingDown";
 import { TrendingUp } from "~/lib/icons/TrendingUp";
-import {
-  cn,
-  getBadgeText,
-  getBadgeVariant,
-  getLeftBorderColor,
-  getRank,
-  timeAgo,
-} from "~/lib/utils";
 import { Match } from "~/types/match";
+import { getBadgeText, getBadgeVariant } from "~/utils/badgeUtils";
+import { cn } from "~/utils/cn";
+import { timeAgo } from "~/utils/timeAgo";
 import { Badge } from "../ui/badge";
 import { Card, CardContent } from "../ui/card";
 import RankBadge from "../ui/RankBadge";
 import { Separator } from "../ui/separator";
 import { Text } from "../ui/text";
-import { useAssets } from "expo-asset";
-import { Image } from "expo-image";
 
 export default function MatchListCard({ match }: { match: Match }) {
   const { data } = authClient.useSession();
@@ -37,11 +30,18 @@ export default function MatchListCard({ match }: { match: Match }) {
 
   const badgeText = getBadgeText(you.status, you.balance, opponent.balance);
 
-  const borderLeftColor = getLeftBorderColor(
-    you.status,
-    you.balance,
-    opponent.balance
-  );
+  const borderLeftColor =
+    you.status == "not_resolved"
+      ? you.balance > opponent.balance
+        ? "border-l-success"
+        : you.balance < opponent.balance
+        ? "border-l-destructive"
+        : "border-l-border"
+      : you.status == "win"
+      ? "border-l-success"
+      : you.status == "loss"
+      ? "border-l-destructive"
+      : "border-l-border";
 
   return (
     <Link
@@ -75,8 +75,7 @@ export default function MatchListCard({ match }: { match: Match }) {
                       paddingHorizontal: 10,
                       gap: 4,
                     }}
-                    tier={getRank(you.pointsSnapshot).currentRank.tier}
-                    level={getRank(you.pointsSnapshot).currentRank.level}
+                    rank={you.rankSnapshot}
                   />
                 )}
               </View>
@@ -106,9 +105,7 @@ export default function MatchListCard({ match }: { match: Match }) {
                   ${you.balance}
                 </Text>
                 <Text className="font-bold text-3xl">-</Text>
-                <Text className="font-bold text-3xl">
-                  ${opponent.balance}
-                </Text>
+                <Text className="font-bold text-3xl">${opponent.balance}</Text>
               </View>
             </View>
             {match.resolved && (

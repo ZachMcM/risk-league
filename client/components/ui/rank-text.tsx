@@ -1,6 +1,6 @@
 import { Tier } from "~/types/rank";
 import { Text } from "./text";
-import { cn } from "~/lib/utils";
+import { cn } from "~/utils/cn";
 import { ReactNode } from "react";
 
 export function RankText({

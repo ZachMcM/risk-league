@@ -2,12 +2,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, FieldValues, useForm } from "react-hook-form";
 import { ActivityIndicator, View } from "react-native";
 import * as z from "zod";
-import { cn } from "~/lib/utils";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Text } from "../ui/text";
 import { authClient } from "~/lib/auth-client";
+import { cn } from "~/utils/cn";
 
 const schema = z
   .object({

@@ -1,17 +1,16 @@
 import { Pressable, View } from "react-native";
 import { authClient } from "~/lib/auth-client";
 import { AlertTriangle } from "~/lib/icons/AlertTriangle";
-import { getBadgeText, getBadgeVariant, getRank } from "~/lib/utils";
 import { Match, MatchUser } from "~/types/match";
+import { Alert, AlertTitle } from "../ui/alert";
 import { Badge } from "../ui/badge";
 import { Card, CardContent } from "../ui/card";
 import ProfileImage from "../ui/profile-image";
 import RankIcon from "../ui/RankIcon";
 import { Separator } from "../ui/separator";
 import { Text } from "../ui/text";
-import { Alert, AlertTitle } from "../ui/alert";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
-import { Button } from "../ui/button";
+import { getBadgeText, getBadgeVariant } from "~/utils/badgeUtils";
 
 export default function MatchDetails({ match }: { match: Match }) {
   const { data } = authClient.useSession();
@@ -114,7 +113,7 @@ function MatchUserItem({
             </Text>
             <View className="flex flex-row items-center gap-2">
               <RankIcon
-                tier={getRank(matchUser.pointsSnapshot).currentRank.tier}
+                tier={matchUser.rankSnapshot.tier}
                 iconClassName="h-4 w-4"
                 gradientStyle={{
                   padding: 5,
