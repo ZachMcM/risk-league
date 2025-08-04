@@ -93,7 +93,7 @@ export default function PropsView({
             )}
             onPress={() => setPropFilter("popular")}
           >
-            <Flame className="text-foreground" size={20} />
+            <Flame className="text-orange-500" size={20} />
             <Text className="font-semibold">Popular</Text>
           </Pressable>
           {propStats

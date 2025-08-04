@@ -5,7 +5,12 @@ import { username } from "better-auth/plugins";
 import { db } from "../db";
 
 export const auth = betterAuth({
-  plugins: [username(), expo()],
+  plugins: [
+    username({
+      usernameNormalization: false,
+    }),
+    expo(),
+  ],
   trustedOrigins: ["riskleague://*"],
   emailAndPassword: {
     enabled: true,

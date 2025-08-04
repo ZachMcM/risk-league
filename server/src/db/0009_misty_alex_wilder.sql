@@ -1,0 +1,1 @@
+ALTER TABLE "match_user" ALTER COLUMN "balance" SET DEFAULT 200;

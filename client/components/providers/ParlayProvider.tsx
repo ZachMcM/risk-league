@@ -126,7 +126,7 @@ export function ParlayPickerFooter() {
         className="flex flex-row items-center gap-3 rounded-full"
         onPress={() =>
           router.navigate({
-            pathname: "/matches/[matchId]/finalize-parlay",
+            pathname: "/match/[matchId]/finalize-parlay",
             params: { matchId },
           })
         }

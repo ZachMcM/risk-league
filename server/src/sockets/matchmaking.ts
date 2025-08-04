@@ -16,12 +16,17 @@ export async function createMatch({
   user2Id: string;
   league: string;
 }) {
+  const startingBalance = Math.round(
+    parseInt(process.env.MIN_STARTING_BALANCE!) +
+      Math.random() *
+        (parseInt(process.env.MAX_STARTING_BALANCE!) -
+          parseInt(process.env.MIN_STARTING_BALANCE!))
+  );
+
   const [matchResult] = await db
     .insert(match)
     .values({ resolved: false, league })
     .returning({ id: match.id });
-
-  // TODO add randomzied starting balances
 
   const { points: user1Points } = (
     await db
@@ -40,12 +45,14 @@ export async function createMatch({
 
   await db.insert(matchUser).values({
     pointsSnapshot: user1Points,
+    startingBalance,
     userId: user1Id,
     matchId: matchResult.id,
   });
 
   await db.insert(matchUser).values({
     pointsSnapshot: user2Points,
+    startingBalance,
     userId: user2Id,
     matchId: matchResult.id,
   });
@@ -119,7 +126,7 @@ export async function matchMakingHandler(socket: Socket) {
   }
 
   logger.info(
-    `User ${userId} connected to matchmaking namespace for ${league}`,
+    `User ${userId} connected to matchmaking namespace for ${league}`
   );
 
   socket.join(userId);
@@ -164,7 +171,7 @@ export async function matchMakingHandler(socket: Socket) {
 
   socket.on("cancel-search", () => {
     logger.info(`User ${userId} cancelled search`);
-    removeFromQueue(userId, league)
+    removeFromQueue(userId, league);
     socket.disconnect();
   });
 }

@@ -30,6 +30,7 @@ import { NAV_THEME } from "~/lib/constants";
 import { useColorScheme } from "~/lib/useColorScheme";
 import { RealTimeProvider } from "~/components/providers/RealTimeProvider";
 import { authClient } from "~/lib/auth-client";
+import PageTitle from "~/components/ui/page-title";
 
 onlineManager.setEventListener((setOnline) => {
   const eventSubscription = Network.addNetworkStateListener((state) => {
@@ -128,7 +129,11 @@ export function RootNavigatior() {
         <Stack.Screen name="signin" options={{ headerShown: false }} />
         <Stack.Screen name="signup" options={{ headerShown: false }} />
       </Stack.Protected>
-      <Stack.Screen name="match" options={{ headerShown: false, presentation: "fullScreenModal" }} />
+      <Stack.Screen name="match" options={{ headerShown: false }} />
+      <Stack.Screen
+        name="career"
+        options={{ headerShown: false, presentation: "modal" }}
+      />
     </Stack>
   );
 }

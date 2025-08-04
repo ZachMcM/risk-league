@@ -20,11 +20,11 @@ export default function PropCard({
     useParlay();
 
   return (
-    <Card className={cn("w-[48%]", isPropPicked(prop.id) && "border-primary")}>
-      <CardContent className="p-4 flex flex-col items-center gap-4">
+    <Card className={cn("w-[48%] self-stretch", isPropPicked(prop.id) && "border-primary")}>
+      <CardContent className="p-4 flex flex-col flex-1 items-center gap-4 justify-between">
         {popular && (
-          <View className="flex flex-row items-center gap-2">
-            <Flame className="text-foreground" size={20} />
+          <View className="flex flex-row items-center gap-1">
+            <Flame className="text-orange-600" size={12} />
             <Text className="self-end text-xs font-semibold text-muted-foreground">
               {formatCompactNumber(prop.picksCount)}
             </Text>
@@ -40,9 +40,8 @@ export default function PropCard({
             </Text>
           </View>
           <Text className="font-bold text-lg">{prop.player.name}</Text>
-          <Text className="font-semibold text-muted-foreground text-sm">
-            {/* TODO real team info */}
-            {prop.game.awayTeam.fullName} at {prop.game.homeTeam.fullName} •{" "}
+          <Text className="font-semibold text-muted-foreground text-sm text-center">
+            {prop.game.awayTeam.abbreviation} at {prop.game.homeTeam.abbreviation} •{" "}
             {moment(prop.game.startTime).format("ddd h:mm A")}
           </Text>
         </View>

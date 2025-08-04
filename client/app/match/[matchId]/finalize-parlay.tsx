@@ -36,32 +36,34 @@ export default function FinalizeParlay() {
 
   const { data } = authClient.useSession();
 
-  const userBalance = match?.matchUsers.find(
+  const { balance, startingBalance} = match?.matchUsers.find(
     (matchUser) => matchUser.user.id == data?.user.id!
-  )?.balance!;
+  )!;
 
   const [stake, setStake] = useState<number | null>(0);
   const [type, setType] = useState("perfect");
   const [formError, setFormError] = useState<null | string>(null);
   const queryClient = useQueryClient();
 
+  const minStake = startingBalance * 0.2 > balance ? balance : startingBalance * 0.2
+
   useEffect(() => {
     if (formError) {
       if (stake) {
-        if (stake <= userBalance && stake >= 10) {
+        if (stake <= balance && stake >= minStake) {
           setFormError(null);
         }
       }
     } else {
       if (stake) {
-        if (stake > userBalance) {
-          const err = `Balance is not enough to place this stake. Maximum stake is ${userBalance}`;
+        if (stake > balance) {
+          const err = `Balance is not enough to place this stake. Maximum stake is ${balance}`;
 
           setFormError(err);
           return;
         }
-        if (stake < 10) {
-          const err = "Your stake must be at least $10";
+        if (stake < minStake) {
+          const err = `Your stake must be at least $${minStake}`;
           setFormError(err);
           return;
         }
@@ -104,15 +106,15 @@ export default function FinalizeParlay() {
       toast.error("You must input a stake");
       return;
     }
-    if (stake > userBalance) {
-      const err = `Balance is not enough to place this stake. Maximum stake is ${userBalance}`;
+    if (stake > balance) {
+      const err = `Balance is not enough to place this stake. Maximum stake is ${balance}`;
 
       toast.error(err);
       setFormError(err);
       return;
     }
-    if (stake < 10) {
-      const err = "Your stake must be at least $10";
+    if (stake < minStake) {
+      const err = `Your stake must be at least $${minStake}`;
       toast.error(err);
       setFormError(err);
       return;
@@ -173,7 +175,7 @@ export default function FinalizeParlay() {
               <Card>
                 <CardContent className="p-0">
                   {picks.map((pick, index) => (
-                    <PickCard
+                    <PickEntryCard
                       key={pick.prop.id}
                       pick={pick}
                       isLast={index === picks.length - 1}
@@ -319,10 +321,10 @@ export default function FinalizeParlay() {
                       : stake && stake != 0 && "line-through"
                   )}
                 >
-                  ${userBalance}
+                  ${balance}
                 </Text>
                 <Text className="font-semibold text-lg">
-                  {!formError && stake ? `$ ${userBalance - stake}` : ""}
+                  {!formError && stake ? `$ ${balance - stake}` : ""}
                 </Text>
               </View>
               {formError && (
@@ -349,7 +351,7 @@ export default function FinalizeParlay() {
   );
 }
 
-export function PickCard({
+export function PickEntryCard({
   pick,
   isLast,
 }: {
@@ -385,7 +387,7 @@ export function PickCard({
 
           <Text className="font-semibold text-muted-foreground text-sm">
             {/* TODO real time info */}
-            {prop.game.awayTeam.fullName} at {prop.game.homeTeam.fullName} •{" "}
+            {prop.game.awayTeam.abbreviation} at {prop.game.homeTeam.abbreviation} •{" "}
             {moment(prop.game.startTime).format("ddd h:mm A")}
           </Text>
           <Text className="font-semibold text-lg">

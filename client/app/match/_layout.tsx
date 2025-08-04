@@ -1,5 +1,6 @@
 import { Stack } from "expo-router";
 import FullScreenModalHeader from "~/components/ui/fullscreen-modal-header";
+import PageTitle from "~/components/ui/page-title";
 
 export default function Layout() {
   return (
@@ -7,7 +8,7 @@ export default function Layout() {
       <Stack.Screen
         name="[matchId]"
         options={{
-          header: (_) => <FullScreenModalHeader close/>,
+          header: (_) => <PageTitle title="Match" back/>,
         }}
       />
     </Stack>

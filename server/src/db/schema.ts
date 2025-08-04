@@ -156,7 +156,7 @@ export const player = pgTable("player", {
 
 export const game = pgTable("game", {
   id: integer().primaryKey().notNull(),
-  startTime: timestamp("startTime", {
+  startTime: timestamp("start_time", {
     withTimezone: true,
     mode: "string",
   }),
@@ -216,7 +216,7 @@ export const matchUser = pgTable("match_user", {
   })
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),
-  balance: doublePrecision().default(100).notNull(),
+  balance: doublePrecision().default(200).notNull(),
   pointsDelta: doublePrecision("points_delta").default(0).notNull(),
   status: matchStatus().default("not_resolved").notNull(),
   id: serial().primaryKey().notNull(),

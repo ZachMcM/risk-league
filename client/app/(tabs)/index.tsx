@@ -1,7 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
+import { router } from "expo-router";
 import { View } from "react-native";
 import StartMatchCard from "~/components/matches/StartMatchCard";
+import StartMatchList from "~/components/matches/StartMatchList";
 import { Button } from "~/components/ui/button";
 import ProfileImage from "~/components/ui/profile-image";
 import { Progress } from "~/components/ui/progress";
@@ -53,23 +55,7 @@ export default function Home() {
       <View className="flex flex-1 flex-col gap-6 px-4 pt-20">
         <View className="flex flex-row items-center justify-between">
           <View className="flex flex-col gap-4 items-start">
-            <View className="flex flex-col gap-1">
-              <Text className="font-bold text-2xl">{data?.user.username}</Text>
-              <View className="flex flex-row items-center gap-2">
-                {!rank ? (
-                  <Skeleton className="h-3 w-1/2" />
-                ) : (
-                  <View className="flex flex-row items-center gap-1">
-                    <Text className="text-primary font-bold text-xl">
-                      {rank.points}
-                    </Text>
-                    <Text className="text-muted-foreground text-xl">
-                      points
-                    </Text>
-                  </View>
-                )}
-              </View>
-            </View>
+            <Text className="font-bold text-2xl">{data?.user.username}</Text>
             {!rank ? (
               <Skeleton className="h-4 w-1/3" />
             ) : (
@@ -87,7 +73,11 @@ export default function Home() {
             <Button size="icon" variant="outline">
               <Users className="text-foreground" size={20} />
             </Button>
-            <Button size="icon" variant="outline">
+            <Button
+              size="icon"
+              variant="outline"
+              onPress={() => router.navigate("/career")}
+            >
               <ChartBarDecreasing className="text-foreground" size={20} />
             </Button>
           </View>
@@ -102,9 +92,9 @@ export default function Home() {
             <View className="flex flex-col gap-2">
               <View className="flex flex-row items-center justify-between">
                 <Text className="font-semibold text-muted-foreground text-lg">
-                  Progress to rank
+                  Progress to next rank
                 </Text>
-                <Text className="font-semibold text-primary text-lg">
+                <Text className="font-bold text-primary text-xl">
                   {Math.round(rank.progressToNext * 100)}%
                 </Text>
               </View>
@@ -115,7 +105,7 @@ export default function Home() {
               />
               <View className="flex flex-row items-center justify-between w-full">
                 <Text className="font-semibold text-muted-foreground flex-1 text-left">
-                  {rank.currentRank.minPoints}
+                  0%
                 </Text>
                 <RankText
                   tier={rank.nextRank.tier}
@@ -124,35 +114,13 @@ export default function Home() {
                   {rank.nextRank.tier} {rank.nextRank.level}
                 </RankText>
                 <Text className="font-semibold text-muted-foreground flex-1 text-right">
-                  {rank.nextRank.maxPoints}
+                  100%
                 </Text>
               </View>
             </View>
           )
         )}
-        <View className="flex flex-row items-center gap-3 flex-wrap">
-          <StartMatchCard
-            image={require("~/assets/images/nba.jpeg")}
-            league="nba"
-          />
-          <StartMatchCard
-            image={require("~/assets/images/nfl.jpeg")}
-            league="nfl"
-          />
-
-          <StartMatchCard
-            image={require("~/assets/images/cfb.jpeg")}
-            league="cfb"
-          />
-          <StartMatchCard
-            image={require("~/assets/images/mcbb.jpeg")}
-            league="mcbb"
-          />
-          <StartMatchCard
-            image={require("~/assets/images/mlb.jpeg")}
-            league="mlb"
-          />
-        </View>
+        <StartMatchList/>
       </View>
     </ScrollContainer>
   );

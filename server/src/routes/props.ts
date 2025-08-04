@@ -5,6 +5,7 @@ import { game, matchUser, prop, player, team, pick } from "../db/schema";
 import { db } from "../db";
 import { alias } from "drizzle-orm/pg-core";
 import { authMiddleware } from "../middleware";
+import { logger } from "../logger";
 
 export const propsRoute = Router();
 
@@ -74,6 +75,8 @@ propsRoute.get("/props/today", authMiddleware, async (req, res) => {
           notInArray(prop.id, propsPickedAlready),
         ),
       );
+
+    logger.debug(availableProps.length)
 
     // Get pick counts for each prop
     const propIds = availableProps.map((p) => p.prop.id);
