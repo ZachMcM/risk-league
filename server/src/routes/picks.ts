@@ -106,7 +106,7 @@ picksRoute.patch("/picks", apiKeyMiddleware, async (req, res) => {
       if (prop.resolved) {
         redis.publish(
           "pick_updated",
-          JSON.stringify({ id: pickToInvalidate.id }),
+          JSON.stringify({ id: pickToInvalidate.id })
         );
       }
 
@@ -114,16 +114,25 @@ picksRoute.patch("/picks", apiKeyMiddleware, async (req, res) => {
         where: eq(pick.id, pickToInvalidate.id),
         with: {
           parlay: {
-            columns: {
-              matchUserId: true,
+            with: {
+              matchUser: {
+                columns: {
+                  matchId: true,
+                  userId: true,
+                },
+              },
             },
           },
         },
       });
 
       invalidateQueries(
-        ["parlays", extendedPick?.parlay.matchUserId!],
-        ["parlay", extendedPick?.parlayId!],
+        [
+          "parlays",
+          extendedPick?.parlay.matchUser.matchId!,
+          extendedPick?.parlay.matchUser.userId!,
+        ],
+        ["parlay", extendedPick?.parlayId!]
       );
     }
 

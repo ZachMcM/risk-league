@@ -17,10 +17,10 @@ const progressVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-foreground/10",
-        destructive: "bg-destructive/10",
-        success: "bg-success/10",
-        primary: "bg-primary/10"
+        default: "bg-foreground/20",
+        destructive: "bg-destructive/20",
+        success: "bg-success/20",
+        primary: "bg-primary/20"
       },
     },
     defaultVariants: {

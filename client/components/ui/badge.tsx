@@ -10,20 +10,20 @@ const badgeVariants = cva(
     variants: {
       variant: {
         default:
-          "border-transparent/10 bg-primary/10 web:hover:opacity-80 active:opacity-80",
+          "border-transparent/20 bg-primary/20 web:hover:opacity-80 active:opacity-80",
         secondary:
           "border-transparent bg-secondary web:hover:opacity-80 active:opacity-80",
         destructive:
-          "border-transparent bg-destructive/10 web:hover:opacity-80 active:opacity-80",
+          "border-transparent bg-destructive/20 web:hover:opacity-80 active:opacity-80",
         success:
-          "border-transparent bg-success/10 web:hover:opacity-80 active:opacity-80",
+          "border-transparent bg-success/20 web:hover:opacity-80 active:opacity-80",
         outline: "text-foreground",
         foreground:
-          "border-transparent/10 bg-foreground web:hover:opacity-80 active:opacity-80",
+          "border-transparent bg-foreground web:hover:opacity-80 active:opacity-80",
         active:
-          "border-transparent/10 bg-blue-600/10 web:hover:opacity-80 active:opacity-80",
+          "border-transparent bg-blue-600/20 web:hover:opacity-80 active:opacity-80",
         background:
-          "bg-background web:hover:opacity-80 active:opacity-80",
+          "border-transparent bg-background web:hover:opacity-80 active:opacity-80",
       },
     },
     defaultVariants: {

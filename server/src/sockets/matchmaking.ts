@@ -61,7 +61,7 @@ export async function cleanInvalidEntries() {
     const queue = await redis.lRange(queueKey, 0, -1);
 
     for (const entry of queue) {
-      if (!entry || isNaN(parseInt(entry))) {
+      if (!entry || entry.trim() === "") {
         await redis.lRem(queueKey, 0, entry);
       }
     }
@@ -70,12 +70,12 @@ export async function cleanInvalidEntries() {
 
 export async function addToQueue(userId: string, league: string) {
   const queueKey = getQueueKey(league);
-  await redis.rPush(queueKey, userId.toString());
+  await redis.rPush(queueKey, userId);
 }
 
 export async function removeFromQueue(userId: string, league: string) {
   const queueKey = getQueueKey(league);
-  await redis.lRem(queueKey, 0, userId.toString());
+  await redis.lRem(queueKey, 0, userId);
 }
 
 export async function getPair(league: string): Promise<{
@@ -94,8 +94,8 @@ export async function getPair(league: string): Promise<{
       const user2Rank = await getRank(user2);
 
       if (
-        user1Rank?.tier == user2Rank?.tier &&
-        user1Rank?.level == user2Rank?.level
+        user1Rank?.tier === user2Rank?.tier &&
+        user1Rank?.level === user2Rank?.level
       ) {
         await redis.lRem(queueKey, 0, user1);
         await redis.lRem(queueKey, 0, user2);
@@ -108,9 +108,9 @@ export async function getPair(league: string): Promise<{
   return null;
 }
 
-export function matchMakingHandler(socket: Socket) {
-  const userId = socket.handshake.auth.userId;
-  const league = socket.handshake.auth.league;
+export async function matchMakingHandler(socket: Socket) {
+  const userId = socket.handshake.auth.userId as string;
+  const league = socket.handshake.auth.league as string;
 
   if (!league) {
     socket.emit("error", { message: "Invalid or missing league" });
@@ -125,7 +125,7 @@ export function matchMakingHandler(socket: Socket) {
   socket.join(userId);
   socket.join(`league:${league}`);
 
-  addToQueue(userId, league);
+  await addToQueue(userId, league);
 
   const tryMatchmaking = async () => {
     // Clean up any invalid entries first
@@ -164,6 +164,7 @@ export function matchMakingHandler(socket: Socket) {
 
   socket.on("cancel-search", () => {
     logger.info(`User ${userId} cancelled search`);
+    removeFromQueue(userId, league)
     socket.disconnect();
   });
 }

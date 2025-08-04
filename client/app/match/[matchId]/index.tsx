@@ -38,7 +38,7 @@ export default function Match() {
 
   const { data: parlays, isPending: areParlaysPending } = useQuery({
     queryKey: ["parlays", yourMatchUserId],
-    queryFn: async () => await getParlays(matchId, data?.user.id!),
+    queryFn: async () => await getParlays(matchId),
     enabled: !!match,
   });
 
@@ -140,7 +140,7 @@ export default function Match() {
       <Button
         onPress={() =>
           router.navigate({
-            pathname: "/matches/[matchId]/messages",
+            pathname: "/match/[matchId]/messages",
             params: { matchId },
           })
         }

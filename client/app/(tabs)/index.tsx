@@ -1,7 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { View } from "react-native";
-import StartMatch from "~/components/matches/StartMatch";
+import StartMatchCard from "~/components/matches/StartMatchCard";
+import { Button } from "~/components/ui/button";
 import ProfileImage from "~/components/ui/profile-image";
 import { Progress } from "~/components/ui/progress";
 import { RankText } from "~/components/ui/rank-text";
@@ -11,6 +12,9 @@ import { Skeleton } from "~/components/ui/skeleton";
 import { Text } from "~/components/ui/text";
 import { getUser } from "~/endpoints";
 import { authClient } from "~/lib/auth-client";
+import { ChartBarDecreasing } from "~/lib/icons/ChartBarDecreasing";
+import { Cog } from "~/lib/icons/Cog";
+import { Users } from "~/lib/icons/Users";
 import { getRank } from "~/lib/utils";
 
 export default function Home() {
@@ -26,8 +30,8 @@ export default function Home() {
   return (
     <ScrollContainer className="px-0 pt-0" safeAreaInsets>
       <View className="relative w-full">
-        <View className="relative overflow-hidden h-48">
-          {data?.user.header ? (
+        <View className="relative overflow-hidden h-40">
+          {!data?.user.header ? (
             <View className="w-full h-full bg-primary" />
           ) : (
             <Image
@@ -40,41 +44,59 @@ export default function Home() {
         </View>
         <View className="absolute -bottom-16 left-4 p-2 bg-background rounded-lg">
           <ProfileImage
-            className="w-32 h-32"
+            className="w-28 h-28"
             image={data?.user.image!}
             username={data?.user.username!}
           />
         </View>
       </View>
       <View className="flex flex-1 flex-col gap-6 px-4 pt-20">
-        <View className="flex flex-col gap-4 items-start">
-          <View className="flex flex-col gap-1">
-            <Text className="font-bold text-2xl">{data?.user.username}</Text>
-            <View className="flex flex-row items-center gap-2">
-              <View className="flex flex-row items-center gap-1">
+        <View className="flex flex-row items-center justify-between">
+          <View className="flex flex-col gap-4 items-start">
+            <View className="flex flex-col gap-1">
+              <Text className="font-bold text-2xl">{data?.user.username}</Text>
+              <View className="flex flex-row items-center gap-2">
                 {!rank ? (
-                  <Skeleton />
+                  <Skeleton className="h-3 w-1/2" />
                 ) : (
-                  <Text className="text-primary font-bold text-xl">
-                    {rank.points}
-                  </Text>
+                  <View className="flex flex-row items-center gap-1">
+                    <Text className="text-primary font-bold text-xl">
+                      {rank.points}
+                    </Text>
+                    <Text className="text-muted-foreground text-xl">
+                      points
+                    </Text>
+                  </View>
                 )}
-                <Text className="text-muted-foreground text-xl">points</Text>
               </View>
             </View>
+            {!rank ? (
+              <Skeleton className="h-4 w-1/3" />
+            ) : (
+              <RankBadge
+                showIcon
+                level={rank.currentRank.level}
+                tier={rank.currentRank.tier}
+              />
+            )}
           </View>
-          {!rank ? (
-            <Skeleton />
-          ) : (
-            <RankBadge
-              showIcon
-              level={rank.currentRank.level}
-              tier={rank.currentRank.tier}
-            />
-          )}
+          <View className="flex flex-row items-center gap-2">
+            <Button size="icon" variant="outline">
+              <Cog className="text-foreground" size={20} />
+            </Button>
+            <Button size="icon" variant="outline">
+              <Users className="text-foreground" size={20} />
+            </Button>
+            <Button size="icon" variant="outline">
+              <ChartBarDecreasing className="text-foreground" size={20} />
+            </Button>
+          </View>
         </View>
         {!rank ? (
-          <Skeleton />
+          <View className="flex flex-col gap-2">
+            <Skeleton className="h-2 w-1/2" />
+            <Skeleton className="h-4 w-full" />
+          </View>
         ) : (
           rank.nextRank && (
             <View className="flex flex-col gap-2">
@@ -86,7 +108,11 @@ export default function Home() {
                   {Math.round(rank.progressToNext * 100)}%
                 </Text>
               </View>
-              <Progress value={rank.progressToNext * 100} variant="primary" />
+              <Progress
+                className="h-5"
+                value={rank.progressToNext * 100}
+                variant="primary"
+              />
               <View className="flex flex-row items-center justify-between w-full">
                 <Text className="font-semibold text-muted-foreground flex-1 text-left">
                   {rank.currentRank.minPoints}
@@ -104,7 +130,29 @@ export default function Home() {
             </View>
           )
         )}
-        <StartMatch />
+        <View className="flex flex-row items-center gap-3 flex-wrap">
+          <StartMatchCard
+            image={require("~/assets/images/nba.jpeg")}
+            league="nba"
+          />
+          <StartMatchCard
+            image={require("~/assets/images/nfl.jpeg")}
+            league="nfl"
+          />
+
+          <StartMatchCard
+            image={require("~/assets/images/cfb.jpeg")}
+            league="cfb"
+          />
+          <StartMatchCard
+            image={require("~/assets/images/mcbb.jpeg")}
+            league="mcbb"
+          />
+          <StartMatchCard
+            image={require("~/assets/images/mlb.jpeg")}
+            league="mlb"
+          />
+        </View>
       </View>
     </ScrollContainer>
   );

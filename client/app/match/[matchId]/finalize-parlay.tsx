@@ -93,7 +93,7 @@ export default function FinalizeParlay() {
           position: "bottom-center",
         });
         router.replace({
-          pathname: "/matches/[matchId]",
+          pathname: "/match/[matchId]",
           params: { matchId },
         });
       },
@@ -283,7 +283,7 @@ export default function FinalizeParlay() {
                   variant="foreground"
                   onPress={() =>
                     router.replace({
-                      pathname: "/matches/[matchId]",
+                      pathname: "/match/[matchId]",
                       params: { matchId },
                     })
                   }

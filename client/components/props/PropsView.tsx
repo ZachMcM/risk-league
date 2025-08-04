@@ -8,6 +8,7 @@ import { SearchBar } from "../ui/search-bar";
 import { Text } from "../ui/text";
 import PropCard from "./PropCard";
 import { propStats } from "~/lib/constants";
+import { Flame } from "~/lib/icons/Flame";
 
 export default function PropsView({
   props,
@@ -92,7 +93,8 @@ export default function PropsView({
             )}
             onPress={() => setPropFilter("popular")}
           >
-            <Text className="font-semibold">🔥 Popular</Text>
+            <Flame className="text-foreground" size={20} />
+            <Text className="font-semibold">Popular</Text>
           </Pressable>
           {propStats
             .filter((stat) => stat.league == league)

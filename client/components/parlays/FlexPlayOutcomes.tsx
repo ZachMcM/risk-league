@@ -15,7 +15,7 @@ export default function FlexPlayOutcomes({
         <Text className="font-semibold text-lg">
           {hits} out of {length} Correct
         </Text>
-        <View className="bg-primary/10 py-1 px-2 rounded-lg">
+        <View className="bg-primary/20 py-1 px-2 rounded-lg">
           <Text className="font-semibold text-primary">
             {multiplier.toFixed(2)}x
           </Text>

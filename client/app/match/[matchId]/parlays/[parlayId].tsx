@@ -16,11 +16,11 @@ import { Separator } from "~/components/ui/separator";
 import { Text } from "~/components/ui/text";
 import { getParlay } from "~/endpoints";
 
-import ParlayPickCard from "~/components/parlays/ParlayPickCard";
 import { Badge } from "~/components/ui/badge";
 import ModalContainer from "~/components/ui/modal-container";
 import { ChevronDown } from "~/lib/icons/ChevronDown";
 import { getFlexMultiplier, getPerfectPlayMultiplier } from "~/lib/utils";
+import { PickCard } from "../finalize-parlay";
 
 export default function Parlay() {
   const searchParams = useLocalSearchParams<{
@@ -138,9 +138,8 @@ export default function Parlay() {
                                 parlay.picks.length,
                                 parlay.picks.length
                               )
-                            : getPerfectPlayMultiplier(
-                                parlay.picks.length
-                              )) * parlay.stake
+                            : getPerfectPlayMultiplier(parlay.picks.length)) *
+                          parlay.stake
                         ).toFixed(2)
                       : Math.abs(parlay.profit).toFixed(2)}
                   </Text>
@@ -148,7 +147,7 @@ export default function Parlay() {
               </View>
               <View className="flex flex-col gap-4">
                 {parlay.picks.map((pick) => (
-                  <ParlayPickCard pick={pick} key={pick.id} />
+                  <PickCard pick={pick} key={pick.id} />
                 ))}
               </View>
             </View>

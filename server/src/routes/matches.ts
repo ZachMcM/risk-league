@@ -12,9 +12,9 @@ import { invalidateQueries } from "../utils/invalidateQueries";
 
 export const matchesRoute = Router();
 
-matchesRoute.get("/matches", authMiddleware, async (req, res) => {
+matchesRoute.get("/matches", authMiddleware, async (_, res) => {
   try {
-    const matchResults = await db.query.matchUser.findMany({
+    const matchUserResults = await db.query.matchUser.findMany({
       where: eq(matchUser.userId, res.locals.userId!),
       with: {
         match: {
@@ -41,9 +41,9 @@ matchesRoute.get("/matches", authMiddleware, async (req, res) => {
       },
     });
 
-    const matchesWithParlayCounts = matchResults.map(
-      ({ match, ...fields }) => ({
-        ...fields,
+    const matchesWithParlayCounts = matchUserResults.map(
+      ({ match, }) => ({
+        ...match,
         matchUsers: match?.matchUsers.map((mu) => ({
           ...mu,
           parlaysWon: mu.parlays.filter(

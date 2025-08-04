@@ -64,7 +64,7 @@ export default function SignUpForm() {
       username,
       password,
       name,
-    })
+    });
   }
 
   return (
@@ -171,6 +171,7 @@ export default function SignUpForm() {
               secureTextEntry
               className={cn(error && "border-destructive")}
               value={value}
+              onSubmitEditing={handleSubmit(onSubmit)}
             />
             {error && <Text className="text-destructive">{error.message}</Text>}
           </View>

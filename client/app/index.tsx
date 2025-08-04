@@ -36,7 +36,7 @@ export default function Index() {
         <View className="flex-col gap-4">
           <Card className="w-full p-6">
             <View className="flex-row gap-4 items-center">
-              <View className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+              <View className="w-10 h-10 bg-primary/20 rounded-lg flex items-center justify-center flex-shrink-0">
                 <Users className="w-5 h-5 text-primary" />
               </View>
               <View className="flex-1">
@@ -52,7 +52,7 @@ export default function Index() {
           </Card>
           <Card className="w-full p-6">
             <View className="flex-row gap-4 items-center">
-              <View className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+              <View className="w-10 h-10 bg-primary/20 rounded-lg flex items-center justify-center flex-shrink-0">
                 <TrendingUp className="w-5 h-5 text-primary" />
               </View>
               <View className="flex-1">

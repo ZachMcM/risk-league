@@ -7,7 +7,7 @@ import {
 } from "better-auth/client/plugins";
 
 export const authClient = createAuthClient({
-  baseURL: process.env.EXPO_PUBLIC_API_URL, // Base URL of your Better Auth backend.
+  baseURL: process.env.EXPO_PUBLIC_API_URL,
   plugins: [
     usernameClient(),
     expoClient({

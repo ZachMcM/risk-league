@@ -7,6 +7,7 @@ import { Badge } from "../ui/badge";
 import moment from "moment";
 import { Button } from "../ui/button";
 import { useParlay } from "../providers/ParlayProvider";
+import { Flame } from "~/lib/icons/Flame";
 
 export default function PropCard({
   prop,
@@ -22,9 +23,12 @@ export default function PropCard({
     <Card className={cn("w-[48%]", isPropPicked(prop.id) && "border-primary")}>
       <CardContent className="p-4 flex flex-col items-center gap-4">
         {popular && (
-          <Text className="self-end text-xs font-semibold text-muted-foreground">
-            🔥 {formatCompactNumber(prop.picksCount)}
-          </Text>
+          <View className="flex flex-row items-center gap-2">
+            <Flame className="text-foreground" size={20} />
+            <Text className="self-end text-xs font-semibold text-muted-foreground">
+              {formatCompactNumber(prop.picksCount)}
+            </Text>
+          </View>
         )}
         <View className="flex flex-col items-center gap-1">
           <View className="flex flex-row items-center gap-2">
@@ -44,9 +48,7 @@ export default function PropCard({
         </View>
         <View className="flex flex-col items-center">
           <Text className="font-extrabold text-2xl">{prop.line}</Text>
-          <Text className="text-muted-foreground">
-            {prop.statDisplayName}
-          </Text>
+          <Text className="text-muted-foreground">{prop.statDisplayName}</Text>
         </View>
         <View className="flex flex-row items-center justify-center gap-1">
           {prop.choices?.map((choice, i) => (
@@ -65,7 +67,8 @@ export default function PropCard({
               }}
               className={cn(
                 "h-10 flex-grow flex-1 flex-row justify-center items-center bg-secondary border border-secondary",
-                getPickChoice(prop.id) == choice && "border-primary bg-primary/20"
+                getPickChoice(prop.id) == choice &&
+                  "border-primary bg-primary/20"
               )}
               size="sm"
               key={`${prop.id}_option_${i}`}

@@ -86,7 +86,7 @@ export async function getMessages(id: number): Promise<Message[]> {
   return messages;
 }
 
-export async function getTodayProps(league: "nba" | "mlb"): Promise<Prop[]> {
+export async function getTodayProps(league: string): Promise<Prop[]> {
   const todayProps = await httpRequest({
     endpoint: `/props/today?league=${league}`,
     method: "GET",
@@ -104,12 +104,9 @@ export async function getParlay(id: number): Promise<Parlay> {
   return parlay;
 }
 
-export async function getParlays(
-  matchId: number,
-  userId: string
-): Promise<Parlay[]> {
+export async function getParlays(matchId: number): Promise<Parlay[]> {
   const parlays = await httpRequest({
-    endpoint: `/parlays?matchId=${matchId}&userId=${userId}`,
+    endpoint: `/parlays?matchId=${matchId}`,
     method: "GET",
   });
 

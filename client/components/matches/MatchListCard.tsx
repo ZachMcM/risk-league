@@ -1,8 +1,8 @@
 import { Link } from "expo-router";
 import { View } from "react-native";
+import { authClient } from "~/lib/auth-client";
 import { TrendingDown } from "~/lib/icons/TrendingDown";
 import { TrendingUp } from "~/lib/icons/TrendingUp";
-import { Trophy } from "~/lib/icons/Trophy";
 import {
   cn,
   getBadgeText,
@@ -17,8 +17,8 @@ import { Card, CardContent } from "../ui/card";
 import RankBadge from "../ui/RankBadge";
 import { Separator } from "../ui/separator";
 import { Text } from "../ui/text";
-import ProfileImage from "../ui/profile-image";
-import { authClient } from "~/lib/auth-client";
+import { useAssets } from "expo-asset";
+import { Image } from "expo-image";
 
 export default function MatchListCard({ match }: { match: Match }) {
   const { data } = authClient.useSession();
@@ -47,7 +47,7 @@ export default function MatchListCard({ match }: { match: Match }) {
     <Link
       className="w-full"
       href={{
-        pathname: "/(tabs)/matches/[matchId]",
+        pathname: "/match/[matchId]",
         params: { matchId: match.id },
       }}
     >
@@ -106,12 +106,14 @@ export default function MatchListCard({ match }: { match: Match }) {
                   ${you.balance}
                 </Text>
                 <Text className="font-extrabold text-3xl">-</Text>
-                <Text className="font-extrabold text-3xl">${opponent.balance}</Text>
+                <Text className="font-extrabold text-3xl">
+                  ${opponent.balance}
+                </Text>
               </View>
             </View>
             {match.resolved && (
               <View className="flex flex-row gap-1 items-center">
-                <View className="flex flex-row items-center gap-2 px-2 py-0.5 rounded-lg bg-primary/10">
+                <View className="flex flex-row items-center gap-2 px-2 py-0.5 rounded-lg bg-primary/20">
                   {you.pointsDelta > 0 ? (
                     <TrendingUp className="text-primary" size={20} />
                   ) : (

@@ -40,17 +40,10 @@ parlaysRoute.get("/parlays/:id", authMiddleware, async (req, res) => {
   }
 });
 
-parlaysRoute.get("/parlays", async (req, res) => {
-  if (!req.query.userId) {
-    res.status(400).json({
-      error: "Invalid request parameters",
-    });
-    return;
-  }
-
+parlaysRoute.get("/parlays", authMiddleware, async (req, res) => {
   if (!req.query.matchId) {
     res.status(400).json({
-      error: "Invalid request parameters",
+      error: "Missing matchId query string",
     });
     return;
   }
@@ -61,7 +54,7 @@ parlaysRoute.get("/parlays", async (req, res) => {
     const matchUserResult = await db.query.matchUser.findFirst({
       where: and(
         eq(matchUser.userId, res.locals.userId!),
-        eq(matchUser.matchId, matchId),
+        eq(matchUser.matchId, matchId)
       ),
       with: {
         parlays: {
@@ -106,7 +99,7 @@ parlaysRoute.post("/parlays/:matchId", authMiddleware, async (req, res) => {
     const matchUserResult = await db.query.matchUser.findFirst({
       where: and(
         eq(matchUser.matchId, matchId),
-        eq(matchUser.userId, res.locals.userId!),
+        eq(matchUser.userId, res.locals.userId!)
       ),
       with: {
         match: {
@@ -208,10 +201,10 @@ parlaysRoute.post("/parlays/:matchId", authMiddleware, async (req, res) => {
 
     // Send invalidation message to update client queries
     invalidateQueries(
-      ["parlays", matchUserResult.id],
       ["match", matchId],
+      ["parlays", matchId, matchUserResult.userId],
       ["matches", matchUserResult.match.matchUsers[0].userId],
-      ["matches", matchUserResult.match.matchUsers[1].userId],
+      ["matches", matchUserResult.match.matchUsers[1].userId]
     );
 
     res.json(parlay);
@@ -242,6 +235,7 @@ parlaysRoute.patch("/parlays", apiKeyMiddleware, async (req, res) => {
                 columns: {
                   balance: true,
                   matchId: true,
+                  userId: true,
                 },
                 with: {
                   match: {
@@ -317,11 +311,15 @@ parlaysRoute.patch("/parlays", apiKeyMiddleware, async (req, res) => {
       .where(eq(matchUser.id, parlayResult.matchUserId));
 
     invalidateQueries(
-      ["parlays", parlayResult.matchUserId],
       ["parlay", parlayResult.id],
+      [
+        "parlays",
+        parlayResult.matchUser.matchId,
+        parlayResult.matchUser.userId,
+      ],
       ["match", parlayResult.matchUser.matchId],
       ["matches", parlayResult.matchUser.match.matchUsers[0].userId],
-      ["matches", parlayResult.matchUser.match.matchUsers[1].userId],
+      ["matches", parlayResult.matchUser.match.matchUsers[1].userId]
     );
 
     res.send("Resolved parlay");

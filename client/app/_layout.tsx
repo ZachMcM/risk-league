@@ -128,12 +128,7 @@ export function RootNavigatior() {
         <Stack.Screen name="signin" options={{ headerShown: false }} />
         <Stack.Screen name="signup" options={{ headerShown: false }} />
       </Stack.Protected>
-      <Stack.Screen
-        name="matchmaking/[id]"
-        options={{
-          headerShown: false,
-        }}
-      />
+      <Stack.Screen name="match" options={{ headerShown: false, presentation: "fullScreenModal" }} />
     </Stack>
   );
 }

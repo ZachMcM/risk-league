@@ -6,14 +6,20 @@ import { Match } from "~/types/match";
 import MatchListCard from "./MatchListCard";
 
 export default function MatchTabs({ matches }: { matches: Match[] }) {
-  const completed = filterMatches(true);
-  const inProgress = filterMatches(false);
-
-  const [matchStatus, setMatchStatus] = useState(inProgress.length == 0 ? "completed" : "in-progress");
-
   function filterMatches(status: boolean) {
     return matches.filter((match) => match.resolved == status);
   }
+
+  const completed = filterMatches(true);
+  const inProgress = filterMatches(false);
+
+  console.log(matches)
+  console.log(completed);
+  console.log(inProgress);
+
+  const [matchStatus, setMatchStatus] = useState(
+    inProgress.length == 0 ? "completed" : "in-progress"
+  );
 
   return (
     <View className="flex flex-1">
