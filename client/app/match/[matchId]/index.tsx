@@ -136,7 +136,6 @@ export default function Match() {
           )
         )}
       </ScrollContainer>
-
       <Button
         onPress={() =>
           router.navigate({

@@ -37,7 +37,7 @@ export default function MessagesList() {
             <View className="flex flex-row gap-4">
               {!isCurrentUser && (
                 <ProfileImage
-                  className="h-12 w-12 flex-shrink-0"
+                  className="h-14 w-14 flex-shrink-0"
                   image={message.user.image}
                   username={message.user.username}
                 />

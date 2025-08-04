@@ -41,33 +41,33 @@ matchesRoute.get("/matches", authMiddleware, async (_, res) => {
       },
     });
 
-    const matchesWithParlayCounts = matchUserResults.map(
-      ({ match, }) => ({
-        ...match,
-        matchUsers: match?.matchUsers.map((mu) => ({
-          ...mu,
-          parlaysWon: mu.parlays.filter(
-            (parlay) => parlay.profit && parlay.profit > 0,
-          ).length,
-          parlaysLost: mu.parlays.filter(
-            (parlay) => parlay.profit && parlay.profit < 0,
-          ).length,
-          parlaysInProgress: mu.parlays.filter((parlay) => parlay.resolved)
-            .length,
-          payoutPotential: mu.parlays
-            .filter((parlay) => !parlay.resolved)
-            .reduce(
-              (accum, curr) =>
-                accum +
-                curr.stake *
-                  (curr.type == "flex"
-                    ? getFlexMultiplier(curr.picks.length, curr.picks.length)
-                    : getPerfectPlayMultiplier(curr.picks.length)),
-              0,
-            ),
-        })),
-      }),
-    );
+    const matchesWithParlayCounts = matchUserResults.map(({ match }) => ({
+      ...match,
+      matchUsers: match?.matchUsers.map((mu) => ({
+        ...mu,
+        totalStaked: mu.parlays.reduce((accum, curr) => accum + curr.stake, 0),
+        totalParlays: mu.parlays.length,
+        parlaysWon: mu.parlays.filter(
+          (parlay) => parlay.profit && parlay.profit > 0
+        ).length,
+        parlaysLost: mu.parlays.filter(
+          (parlay) => parlay.profit && parlay.profit < 0
+        ).length,
+        parlaysInProgress: mu.parlays.filter((parlay) => parlay.resolved)
+          .length,
+        payoutPotential: mu.parlays
+          .filter((parlay) => !parlay.resolved)
+          .reduce(
+            (accum, curr) =>
+              accum +
+              curr.stake *
+                (curr.type == "flex"
+                  ? getFlexMultiplier(curr.picks.length, curr.picks.length)
+                  : getPerfectPlayMultiplier(curr.picks.length)),
+            0
+          ),
+      })),
+    }));
 
     res.json(matchesWithParlayCounts);
   } catch (err) {
@@ -107,11 +107,13 @@ matchesRoute.get("/matches/:id", authMiddleware, async (req, res) => {
       ...matchResult,
       matchUsers: matchResult?.matchUsers.map((mu) => ({
         ...mu,
+        totalStaked: mu.parlays.reduce((accum, curr) => accum + curr.stake, 0),
+        totalParlays: mu.parlays.length,
         parlaysWon: mu.parlays.filter(
-          (parlay) => parlay.profit && parlay.profit > 0,
+          (parlay) => parlay.profit && parlay.profit > 0
         ).length,
         parlaysLost: mu.parlays.filter(
-          (parlay) => parlay.profit && parlay.profit < 0,
+          (parlay) => parlay.profit && parlay.profit < 0
         ).length,
         parlaysInProgress: mu.parlays.filter((parlay) => !parlay.resolved)
           .length,
@@ -124,7 +126,7 @@ matchesRoute.get("/matches/:id", authMiddleware, async (req, res) => {
                 (curr.type == "flex"
                   ? getFlexMultiplier(curr.picks.length, curr.picks.length)
                   : getPerfectPlayMultiplier(curr.picks.length)),
-            0,
+            0
           ),
       })),
     };
@@ -199,7 +201,8 @@ function recalculatePoints(currentPoints: number[], winner: number | null) {
 
 matchesRoute.patch("/matches/end", apiKeyMiddleware, async (_, res) => {
   try {
-    const minBetsRequired = parseInt(process.env.MIN_BETS_REQUIRED!);
+    const minParlaysRequired = parseInt(process.env.MIN_PARLAYS_REQUIRED!);
+    const minPctTotalStaked = parseFloat(process.env.MIN_PCT_TOTAL_STAKED!);
 
     const unResolvedMatches = await db.query.match.findMany({
       where: eq(match.resolved, false),
@@ -228,23 +231,44 @@ matchesRoute.patch("/matches/end", apiKeyMiddleware, async (_, res) => {
       let matchUser1Status: (typeof matchStatus.enumValues)[number];
       let matchUser2Status: (typeof matchStatus.enumValues)[number];
 
+      const matchUser1TotalStaked = matchUser1.parlays.reduce(
+        (accum, curr) => accum + curr.stake,
+        0
+      );
+
+      const matchUser2TotalStaked = matchUser2.parlays.reduce(
+        (accum, curr) => accum + curr.stake,
+        0
+      );
+
+      const matchUser1MinTotalStaked =
+        matchUser1.startingBalance * minPctTotalStaked;
+      const matchUser2MinTotalStaked =
+        matchUser2.startingBalance * minPctTotalStaked;
+
       if (
-        matchUser1.parlays.length < minBetsRequired &&
-        matchUser2.parlays.length >= minBetsRequired
+        (matchUser1.parlays.length < minParlaysRequired ||
+          matchUser1TotalStaked < matchUser1MinTotalStaked) &&
+        matchUser2.parlays.length >= minParlaysRequired &&
+        matchUser2TotalStaked >= matchUser2MinTotalStaked
       ) {
         matchUser1Status = "disqualified";
         matchUser2Status = "win";
         winner = 1;
       } else if (
-        matchUser2.parlays.length < minBetsRequired &&
-        matchUser1.parlays.length >= minBetsRequired
+        (matchUser2.parlays.length < minParlaysRequired ||
+          matchUser2TotalStaked < matchUser2MinTotalStaked) &&
+        matchUser1.parlays.length >= minParlaysRequired &&
+        matchUser1TotalStaked >= matchUser1MinTotalStaked
       ) {
         matchUser1Status = "win";
         matchUser2Status = "disqualified";
         winner = 0;
       } else if (
-        matchUser2.parlays.length < minBetsRequired &&
-        matchUser1.parlays.length < minBetsRequired
+        (matchUser2.parlays.length < minParlaysRequired ||
+          matchUser2TotalStaked < matchUser2MinTotalStaked) &&
+        (matchUser1.parlays.length < minParlaysRequired ||
+          matchUser1TotalStaked < matchUser1MinTotalStaked)
       ) {
         matchUser1Status = "disqualified";
         matchUser2Status = "disqualified";
@@ -289,7 +313,7 @@ matchesRoute.patch("/matches/end", apiKeyMiddleware, async (_, res) => {
 
         const newPoints = recalculatePoints(
           [matchUser1.user.points, matchUser2.user.points],
-          winner,
+          winner
         );
 
         await db
@@ -326,7 +350,7 @@ matchesRoute.patch("/matches/end", apiKeyMiddleware, async (_, res) => {
         ["matches", matchUser1.userId],
         ["matches", matchUser2.userId],
         ["user", matchUser1.userId],
-        ["user", matchUser2.userId],
+        ["user", matchUser2.userId]
       );
     }
 

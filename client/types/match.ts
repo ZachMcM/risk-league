@@ -8,10 +8,12 @@ export type MatchStatus =
   | "win";
 
 export type MatchUser = {
+  totalStaked: number;
   parlaysWon: number;
   parlaysLost: number;
   parlaysInProgress: number;
   payoutPotential: number;
+  totalParlays: number
   id: number;
   createdAt: string;
   balance: number;

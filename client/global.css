@@ -18,7 +18,7 @@
     --muted-foreground: 223.8136 0% 45.1519%;
     --accent: 223.8136 0.0002% 96.0587%;
     --accent-foreground: 223.8136 0% 9.0527%;
-    --destructive: 351.7303 123.6748% 40.5257%;
+    --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 223.8136 -172.5242% 100%;
     --success: 149.95, 100%, 24.27%;
     --success-foreground: 223.8136 -172.5242% 100%;
@@ -42,7 +42,7 @@
     --muted-foreground: 223.8136 0% 63.0163%;
     --accent: 223.8136 0% 25.0471%;
     --accent-foreground: 223.8136 0.0004% 98.0256%;
-    --destructive: 351.7303 123.6748% 40.5257%;
+    --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 223.8136 -172.5242% 100%;
     --success: 142.1 70.6% 45.3%;
     --success-foreground: 223.8136 -172.5242% 100%;

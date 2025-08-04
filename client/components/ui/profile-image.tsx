@@ -14,7 +14,7 @@ export default function ProfileImage({
   return (
     <Avatar
       className={cn(
-        "h-14 w-14 rounded-lg shadow-lg",
+        "h-14 w-14 rounded-lg",
         className
       )}
       alt="Profile"

@@ -43,7 +43,7 @@ export default function Messages() {
           returnKeyType="send"
         />
         <Text className="text-center text-muted-foreground text-sm">
-          Keep it friendly and respectful during your match 😁
+          Keep it friendly and respectful during your match
         </Text>
       </View>
     </ModalContainer>
