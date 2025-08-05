@@ -353,7 +353,9 @@ matchesRoute.patch("/matches/end", apiKeyMiddleware, async (_, res) => {
         ["matches", matchUser1.userId],
         ["matches", matchUser2.userId],
         ["user", matchUser1.userId],
-        ["user", matchUser2.userId]
+        ["user", matchUser2.userId],
+        ["career", matchUser1.userId],
+        ["career", matchUser2.userId]
       );
     }
 

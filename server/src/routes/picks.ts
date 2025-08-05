@@ -132,7 +132,8 @@ picksRoute.patch("/picks", apiKeyMiddleware, async (req, res) => {
           extendedPick?.parlay.matchUser.matchId!,
           extendedPick?.parlay.matchUser.userId!,
         ],
-        ["parlay", extendedPick?.parlayId!]
+        ["parlay", extendedPick?.parlayId!],
+        ["career", extendedPick?.parlay.matchUser.userId!]
       );
     }
 

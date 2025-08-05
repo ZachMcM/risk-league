@@ -30,19 +30,6 @@ export default function MatchListCard({ match }: { match: Match }) {
 
   const badgeText = getBadgeText(you.status, you.balance, opponent.balance);
 
-  const borderLeftColor =
-    you.status == "not_resolved"
-      ? you.balance > opponent.balance
-        ? "border-l-success"
-        : you.balance < opponent.balance
-        ? "border-l-destructive"
-        : "border-l-border"
-      : you.status == "win"
-      ? "border-l-success"
-      : you.status == "loss"
-      ? "border-l-destructive"
-      : "border-l-border";
-
   return (
     <Link
       className="w-full"
@@ -51,7 +38,7 @@ export default function MatchListCard({ match }: { match: Match }) {
         params: { matchId: match.id },
       }}
     >
-      <Card className={cn("w-full", borderLeftColor)}>
+      <Card className="w-full">
         <CardContent className="flex flex-col gap-3 p-4 items-start">
           <View className="flex flex-col gap-2">
             <View className="flex flex-row items-center justify-between w-full">

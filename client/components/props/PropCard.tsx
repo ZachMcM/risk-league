@@ -40,7 +40,7 @@ export default function PropCard({
               {prop.player.position}
             </Text>
           </View>
-          <Text className="font-bold text-lg text-ce">{prop.player.name}</Text>
+          <Text className="font-bold text-lg text-center">{prop.player.name}</Text>
           <Text className="font-semibold text-muted-foreground text-sm text-center">
             {prop.game.awayTeam.abbreviation} at {prop.game.homeTeam.abbreviation} •{" "}
             {moment(prop.game.startTime).format("ddd h:mm A")}

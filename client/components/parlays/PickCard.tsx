@@ -41,9 +41,9 @@ export default function PickCard({ pick }: { pick: Pick }) {
                 className={cn(
                   "h-6 w-6 border-2 border-border rounded-full flex justify-center items-center",
                   pick.status != "not_resolved" &&
-                    (pick.status == "hit"
-                      ? "bg-success border-success"
-                      : "bg-destructive border-destructive")
+                    (pick.status == "hit" && "bg-success border-success",
+                    pick.status == "missed" &&
+                      "bg-destructive border-destructive")
                 )}
               >
                 {pick.status != "not_resolved" &&
@@ -54,7 +54,13 @@ export default function PickCard({ pick }: { pick: Pick }) {
                       className="text-foreground"
                     />
                   ) : (
-                    <X strokeWidth={3} size={16} className="text-foreground" />
+                    pick.status == "missed" && (
+                      <X
+                        strokeWidth={3}
+                        size={16}
+                        className="text-foreground"
+                      />
+                    )
                   ))}
               </View>
             </View>

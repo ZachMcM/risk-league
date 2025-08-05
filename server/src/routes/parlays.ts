@@ -175,12 +175,13 @@ parlaysRoute.post("/parlays/:matchId", authMiddleware, async (req, res) => {
         });
         return;
       }
+      existingPlayerIds.push(pick.prop.playerId!);
     }
 
     await db
       .update(matchUser)
       .set({ balance: matchUserResult.balance - body.stake })
-      .where(eq(matchUser.id, matchUser.id));
+      .where(eq(matchUser.id, matchUserResult.id));
 
     const [parlayResult] = await db
       .insert(parlay)
@@ -207,7 +208,7 @@ parlaysRoute.post("/parlays/:matchId", authMiddleware, async (req, res) => {
       ["matches", matchUserResult.match.matchUsers[1].userId]
     );
 
-    res.json(parlay);
+    res.json(parlayResult);
   } catch (err: any) {
     res.status(500).json({
       error: "Server error",
@@ -319,7 +320,8 @@ parlaysRoute.patch("/parlays", apiKeyMiddleware, async (req, res) => {
       ],
       ["match", parlayResult.matchUser.matchId],
       ["matches", parlayResult.matchUser.match.matchUsers[0].userId],
-      ["matches", parlayResult.matchUser.match.matchUsers[1].userId]
+      ["matches", parlayResult.matchUser.match.matchUsers[1].userId],
+      ["career", parlayResult.matchUser.userId]
     );
 
     res.send("Resolved parlay");

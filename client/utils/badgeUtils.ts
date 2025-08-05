@@ -13,7 +13,7 @@ export function getBadgeVariant(
       ? "success"
       : balance < oppBalance
       ? "destructive"
-      : "active"
+      : "default"
     : status == "win"
     ? "success"
     : status == "loss" || status == "disqualified"

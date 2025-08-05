@@ -19,7 +19,10 @@ import { CircleMinus } from "~/lib/icons/CircleMinus";
 import { Prop } from "~/types/prop";
 import { cn } from "~/utils/cn";
 import { invalidateQueries } from "~/utils/invalidateQueries";
-import { getFlexMultiplier, getPerfectPlayMultiplier } from "~/utils/multiplierUtils";
+import {
+  getFlexMultiplier,
+  getPerfectPlayMultiplier,
+} from "~/utils/multiplierUtils";
 
 export default function FinalizeParlay() {
   const { picks, clearParlay } = useParlay();
@@ -33,7 +36,7 @@ export default function FinalizeParlay() {
 
   const { data } = authClient.useSession();
 
-  const { balance, startingBalance} = match?.matchUsers.find(
+  const { balance } = match?.matchUsers.find(
     (matchUser) => matchUser.user.id == data?.user.id!
   )!;
 
@@ -42,7 +45,8 @@ export default function FinalizeParlay() {
   const [formError, setFormError] = useState<null | string>(null);
   const queryClient = useQueryClient();
 
-  const minStake = startingBalance * 0.2 > balance ? balance : startingBalance * 0.2
+  const minStake =
+    balance * 0.2 > balance ? balance : balance * 0.2;
 
   useEffect(() => {
     if (formError) {
@@ -86,15 +90,14 @@ export default function FinalizeParlay() {
         invalidateQueries(
           queryClient,
           ["match", matchId],
-          ["parlays", matchId, data?.user.id!]
+          ["parlays", matchId, data?.user.id!],
+          ["props", matchId, data?.user.id],
+          ["career", data?.user.id!]
         );
         toast.success("Parlay Successfully created", {
           position: "bottom-center",
         });
-        router.replace({
-          pathname: "/match/[matchId]",
-          params: { matchId },
-        });
+        router.dismiss();
       },
     });
 
@@ -162,9 +165,8 @@ export default function FinalizeParlay() {
         <ScrollView
           contentContainerStyle={{
             flexGrow: 1,
-            paddingVertical: 24,
           }}
-          className="flex flex-1 w-full px-4"
+          className="flex flex-1 w-full px-4 pt-10"
           showsVerticalScrollIndicator={false}
         >
           <View className="flex flex-col gap-4">
@@ -384,7 +386,8 @@ export function PickEntryCard({
 
           <Text className="font-semibold text-muted-foreground text-sm">
             {/* TODO real time info */}
-            {prop.game.awayTeam.abbreviation} at {prop.game.homeTeam.abbreviation} •{" "}
+            {prop.game.awayTeam.abbreviation} at{" "}
+            {prop.game.homeTeam.abbreviation} •{" "}
             {moment(prop.game.startTime).format("ddd h:mm A")}
           </Text>
           <Text className="font-semibold text-lg">

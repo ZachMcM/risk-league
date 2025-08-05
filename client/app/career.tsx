@@ -1,12 +1,248 @@
+import { useQuery } from "@tanstack/react-query";
 import { View } from "react-native";
+import { Card, CardContent } from "~/components/ui/card";
 import ModalContainer from "~/components/ui/modal-container";
+import { Progress } from "~/components/ui/progress";
 import { ScrollContainer } from "~/components/ui/scroll-container";
+import { Skeleton } from "~/components/ui/skeleton";
+import { Text } from "~/components/ui/text";
+import { getCareer } from "~/endpoints";
+import { authClient } from "~/lib/auth-client";
+import { Trophy } from "~/lib/icons/Trophy";
+import { Star } from "~/lib/icons/Star";
+import RankBadge from "~/components/ui/RankBadge";
 
 export default function Career() {
+  const { data } = authClient.useSession();
+
+  const { data: career, isPending: isCareerPending } = useQuery({
+    queryKey: ["career", data?.user.id!],
+    queryFn: async () => await getCareer(data?.user.id!),
+  });
+
   return (
     <ModalContainer>
-      <ScrollContainer>
-        <View></View>
+      <ScrollContainer className="pt-10">
+        {isCareerPending ? (
+          <View className="flex flex-col gap-3">
+            <Skeleton className="h-32 flex-1 self-stretch" />
+            <Skeleton className="h-32 flex-1 self-stretch" />
+            <View className="flex flex-row items-center gap-3">
+              <Skeleton className="h-32 flex-1 self-stretch" />
+              <Skeleton className="h-32 flex-1 self-stretch" />
+            </View>
+            <Skeleton className="h-32 flex-1 self-stretch" />
+          </View>
+        ) : (
+          career && (
+            <View className="flex flex-col gap-6">
+              <View className="flex flex-col gap-1 items-center">
+                <Text className="font-bold text-3xl text-center">
+                  Your Career
+                </Text>
+                <Text className="font-semibold text-lg text-muted-foreground w-4/5 text-center">
+                  Comprehensive career statistics
+                </Text>
+              </View>
+              <View className="flex flex-col gap-4">
+                <View className="flex flex-row gap-4">
+                  <Card className="flex-1 self-stretch">
+                    <CardContent className="p-6 flex flex-col gap-4">
+                      <Text className="font-bold">Peak Rank</Text>
+                      <RankBadge
+                        gradientStyle={{ alignSelf: "flex-start" }}
+                        rank={career.peakRank}
+                        showIcon
+                      />
+                    </CardContent>
+                  </Card>
+                  <Card className="flex-1 self-stretch">
+                    <CardContent className="p-6 flex flex-col gap-4">
+                      <Text className="font-bold">Current Rank</Text>
+                      <RankBadge
+                        gradientStyle={{ alignSelf: "flex-start" }}
+                        rank={career.currentRank}
+                        showIcon
+                      />
+                    </CardContent>
+                  </Card>
+                </View>
+                <Card className="flex-1 self-stretch">
+                  <CardContent className="p-6 flex flex-col gap-4">
+                    <View className="flex flex-col gap-2">
+                      <View className="flex flex-row items-center justify-between">
+                        <Text className="font-bold">Match Record</Text>
+                        <Trophy className="text-muted-foreground" size={16} />
+                      </View>
+                      <Text className="text-2xl font-bold">
+                        {career.matchStats.wins}-{career.matchStats.draws}-
+                        {career.matchStats.losses}
+                      </Text>
+                    </View>
+                    <View className="flex flex-col gap-1.5">
+                      <View className="flex flex-row items-center justify-between">
+                        <Text className="font-semibold text-lg">Win Rate</Text>
+                        <Text className="font-bold text-lg">
+                          {career.matchStats.total == 0
+                            ? 0
+                            : career.matchStats.wins / career.matchStats.total}
+                          %
+                        </Text>
+                      </View>
+                      <Progress
+                        value={
+                          career.matchStats.total == 0
+                            ? 0
+                            : career.matchStats.wins / career.matchStats.total
+                        }
+                        variant="primary"
+                      />
+                      <View className="flex flex-row items-center justify-between">
+                        <Text className="text-muted-foreground font-semibold">
+                          {career.matchStats.wins} wins
+                        </Text>
+                        <Text className="text-muted-foreground font-semibold">
+                          {career.matchStats.draws} draws
+                        </Text>
+                        <Text className="text-muted-foreground font-semibold">
+                          {career.matchStats.losses} losses
+                        </Text>
+                      </View>
+                    </View>
+                  </CardContent>
+                </Card>
+                <Card className="flex-1 self-stretch">
+                  <CardContent className="p-6 flex flex-col gap-4">
+                    <View className="flex flex-col gap-2">
+                      <View className="flex flex-row items-center justify-between">
+                        <Text className="font-bold">Parlay Record</Text>
+                        <Trophy className="text-muted-foreground" size={16} />
+                      </View>
+                      <Text className="text-2xl font-bold">
+                        {career.parlayStats.wins}-{career.parlayStats.losses}
+                      </Text>
+                    </View>
+                    <View className="flex flex-col gap-1.5">
+                      <View className="flex flex-row items-center justify-between">
+                        <Text className="font-semibold text-lg">Win Rate</Text>
+                        <Text className="font-bold text-lg">
+                          {career.parlayStats.total == 0
+                            ? 0
+                            : career.parlayStats.wins /
+                              career.parlayStats.total}
+                          %
+                        </Text>
+                      </View>
+                      <Progress
+                        value={
+                          career.parlayStats.total == 0
+                            ? 0
+                            : career.parlayStats.wins / career.parlayStats.total
+                        }
+                        variant="primary"
+                      />
+                      <View className="flex flex-row items-center justify-between">
+                        <Text className="text-muted-foreground font-semibold">
+                          {career.parlayStats.wins} wins
+                        </Text>
+                        <Text className="text-muted-foreground font-semibold">
+                          {career.parlayStats.losses} losses
+                        </Text>
+                      </View>
+                    </View>
+                  </CardContent>
+                </Card>
+                {career.mostBetPlayer && career.mostBetTeam && (
+                  <View className="flex flex-row items-center gap-4">
+                    <Card className="flex-1 self-stretch">
+                      <CardContent className="p-6 flex flex-col gap-4">
+                        <View className="flex flex-row items-center justify-between">
+                          <Text className="font-bold">Most Bet Player</Text>
+                          <Star className="text-muted-foreground" size={16} />
+                        </View>
+                        <View className="flex flex-col gap-1 items-center">
+                          {/* TODO image goes here */}
+                          <Text className="text-2xl font-bold text-center">
+                            {career.mostBetPlayer.player.name}
+                          </Text>
+                          <Text className="text-muted-foreground font-semibold text-center">
+                            {career.mostBetPlayer.count} Picks Placed
+                          </Text>
+                        </View>
+                      </CardContent>
+                    </Card>
+                    <Card className="flex-1 self-stretch">
+                      <CardContent className="p-6 flex flex-col gap-4">
+                        <View className="flex flex-row items-center justify-between">
+                          <Text className="font-bold">Most Bet Team</Text>
+                          <Star className="text-muted-foreground" size={16} />
+                        </View>
+                        <View className="flex flex-col gap-1 items-center">
+                          {/* TODO image goes here */}
+                          <Text className="text-2xl font-bold text-center">
+                            {career.mostBetTeam.team.fullName}
+                          </Text>
+                          <Text className="text-muted-foreground font-semibold text-center">
+                            {career.mostBetTeam.count} Picks Placed
+                          </Text>
+                        </View>
+                      </CardContent>
+                    </Card>
+                  </View>
+                )}
+                <Card className="flex-1 self-stretch">
+                  <CardContent className="p-6 flex flex-col gap-3">
+                    <Text className="font-bold text-2xl">Summary</Text>
+                    <View className="flex flex-row items-center flex-wrap gap-4 self-start">
+                      <View className="flex flex-col items-center w-[48%]">
+                        <Text className="font-bold text-2xl text-primary text-center">
+                          {career.matchStats.total}
+                        </Text>
+                        <Text className="text-muted-foreground text-center">
+                          Total Matches
+                        </Text>
+                      </View>
+                      <View className="flex flex-col items-center w-[48%]">
+                        <Text className="font-bold text-2xl text-primary text-center">
+                          {career.parlayStats.total}
+                        </Text>
+                        <Text className="text-muted-foreground text-center">
+                          Total Parlays
+                        </Text>
+                      </View>
+                      <View className="flex flex-col items-center w-[48%]">
+                        <Text className="font-bold text-2xl text-primary text-center">
+                          {career.matchStats.total == 0
+                            ? 0
+                            : (career.matchStats.wins /
+                                career.matchStats.total) *
+                              100}
+                          %
+                        </Text>
+                        <Text className="text-muted-foreground text-center">
+                          Match Win Rate
+                        </Text>
+                      </View>
+                      <View className="flex flex-col items-center w-[48%]">
+                        <Text className="font-bold text-2xl text-primary text-center">
+                          {career.parlayStats.total == 0
+                            ? 0
+                            : (career.parlayStats.wins /
+                                career.parlayStats.total) *
+                              100}
+                          %
+                        </Text>
+                        <Text className="text-muted-foreground text-center">
+                          Parlay Win Rate
+                        </Text>
+                      </View>
+                    </View>
+                  </CardContent>
+                </Card>
+              </View>
+            </View>
+          )
+        )}
       </ScrollContainer>
     </ModalContainer>
   );

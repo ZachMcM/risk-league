@@ -25,6 +25,8 @@ export default function Home() {
     queryFn: async () => await getUser(data?.user.id!),
   });
 
+  console.log(user)
+
   return (
     <ScrollContainer className="px-0 pt-0" safeAreaInsets>
       <View className="relative w-full">
@@ -92,7 +94,6 @@ export default function Home() {
                 </Text>
               </View>
               <Progress
-                className="h-5"
                 value={user.progressToNextRank}
                 variant="primary"
               />

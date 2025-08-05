@@ -5,7 +5,35 @@ export type User = {
   username: string;
   image: string | null;
   header: string | null;
-  rank: Rank
+  rank: Rank;
   nextRank: Rank;
-  progressToNextRank: number
+  progressToNextRank: number;
+};
+
+export type Career = {
+  currentRank: Rank;
+  peakRank: Rank;
+  matchStats: {
+    total: number;
+    wins: number;
+    draws: number;
+    losses: number;
+  };
+  parlayStats: {
+    total: number;
+    wins: number;
+    losses: number;
+  };
+  mostBetPlayer: {
+    player: {
+      name: string;
+    };
+    count: number;
+  } | null;
+  mostBetTeam: {
+    team: {
+      fullName: String;
+    };
+    count: number;
+  } | null;
 };

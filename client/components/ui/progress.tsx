@@ -132,7 +132,7 @@ function Indicator({
     return (
       <View
         className={cn(
-          "h-full w-full flex-1 bg-primary web:transition-all",
+          "h-full w-full flex-1 web:transition-all",
           className
         )}
         style={{ transform: `translateX(-${100 - (value ?? 0)}%)` }}

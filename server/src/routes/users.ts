@@ -8,6 +8,7 @@ import { findRank } from "../utils/findRank";
 import { number } from "better-auth/*";
 import { getMaxKey } from "../utils/getMaxKey";
 import { findNextRank } from "../utils/findNextRank";
+import { logger } from "../logger";
 
 export const usersRoute = Router();
 
@@ -38,9 +39,9 @@ usersRoute.get("/users/:id", authMiddleware, async (_, res) => {
       ...userResult,
       rank,
       nextRank,
-      progressToNextTrank: nextRank
+      progressToNextRank: nextRank
         ? Math.round(
-            ((nextRank.minPoints - userResult.points) /
+            ((userResult.points - rank.minPoints) /
               (nextRank.minPoints - rank.minPoints)) *
               100
           )
@@ -89,7 +90,6 @@ usersRoute.get("/users/:id/career", authMiddleware, async (_, res) => {
                         player: {
                           columns: {
                             name: true,
-                            position: true,
                             id: true,
                           },
                           with: {
@@ -120,12 +120,11 @@ usersRoute.get("/users/:id/career", authMiddleware, async (_, res) => {
       return;
     }
 
-    const pickedPlayers: Map<number, { name: string; position: string }> =
+    const pickedPlayers: Map<number, { name: string; }> =
       new Map();
     const pickedPlayersCount: Map<number, number> = new Map();
 
-    const pickedTeams: Map<number, { id: number; fullName: string }> =
-      new Map();
+    const pickedTeams: Map<number, { fullName: string }> = new Map();
     const pickedTeamsCount: Map<number, number> = new Map();
 
     for (const matchUser of userResult.matchUsers) {
@@ -151,7 +150,11 @@ usersRoute.get("/users/:id/career", authMiddleware, async (_, res) => {
       }
     }
 
+    const mostBetPlayerId = getMaxKey(pickedPlayersCount);
+    const mostBetTeamId = getMaxKey(pickedTeamsCount);
+
     res.json({
+      currentRank: findRank(userResult.points),
       peakRank: findRank(userResult.peakPoints),
       matchStats: {
         total: userResult.matchUsers.filter(
@@ -166,7 +169,7 @@ usersRoute.get("/users/:id/career", authMiddleware, async (_, res) => {
         losses: userResult.matchUsers.filter(
           (matchUser) =>
             matchUser.status == "disqualified" || matchUser.status == "loss"
-        ),
+        ).length,
       },
       parlayStats: {
         total: userResult.matchUsers
@@ -197,14 +200,20 @@ usersRoute.get("/users/:id/career", authMiddleware, async (_, res) => {
             0
           ),
       },
-      mostBetPlayer: {
-        player: pickedPlayers.get(getMaxKey(pickedPlayersCount)),
-        numParlays: pickedPlayersCount.get(getMaxKey(pickedPlayersCount)),
-      },
-      mostBetTeam: {
-        team: pickedTeams.get(getMaxKey(pickedTeamsCount)),
-        numParlays: pickedTeamsCount.get(getMaxKey(pickedTeamsCount)),
-      },
+      mostBetPlayer:
+        mostBetPlayerId == null
+          ? null
+          : {
+              player: pickedPlayers.get(mostBetPlayerId),
+              count: pickedPlayersCount.get(mostBetPlayerId),
+            },
+      mostBetTeam:
+        mostBetTeamId == null
+          ? null
+          : {
+              team: pickedTeams.get(mostBetTeamId),
+              count: pickedTeamsCount.get(mostBetTeamId),
+            },
     });
   } catch (err) {
     res.status(500).json({

@@ -37,7 +37,7 @@ export default function Parlay() {
 
   return (
     <ModalContainer>
-      <ScrollContainer className="pt-6">
+      <ScrollContainer className="pt-10">
         {isParlayPending ? (
           <ActivityIndicator className="text-foreground" />
         ) : (

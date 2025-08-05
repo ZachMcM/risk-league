@@ -24,7 +24,7 @@ export function ScrollContainer({
           marginBottom: insets.bottom,
         }}
       >
-        <View className={cn("flex flex-1 px-4 pt-2 pb-10", className)}>
+        <View className={cn("flex flex-1 px-4 pt-2 pb-16", className)}>
           {children}
         </View>
       </ScrollView>

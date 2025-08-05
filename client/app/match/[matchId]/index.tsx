@@ -27,19 +27,14 @@ export default function Match() {
   });
 
   const { data: props, isPending: arePropsPending } = useQuery({
-    queryKey: ["props", matchId],
+    queryKey: ["props", matchId, data?.user.id],
     queryFn: async () => await getTodayProps(match?.league!),
     enabled: !!match,
   });
 
-  const yourMatchUserId = match?.matchUsers.find(
-    (matchUser) => matchUser.userId == data?.user.id
-  )?.id;
-
   const { data: parlays, isPending: areParlaysPending } = useQuery({
-    queryKey: ["parlays", yourMatchUserId],
+    queryKey: ["parlays", matchId, data?.user.id!],
     queryFn: async () => await getParlays(matchId),
-    enabled: !!match,
   });
 
   const [tabsValue, setTabsValue] = useState("parlays");

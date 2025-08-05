@@ -2,7 +2,7 @@ import { authClient } from "./lib/auth-client";
 import { Match, Message } from "./types/match";
 import { Parlay } from "./types/parlay";
 import { Prop } from "./types/prop";
-import { User } from "./types/user";
+import { Career, User } from "./types/user";
 
 export type HttpRequestParams = {
   endpoint: string;
@@ -56,7 +56,19 @@ export async function getUser(id: string): Promise<User | undefined | null> {
     endpoint: `/users/${id}`,
     method: "GET",
   });
+
   return user;
+}
+
+export async function getCareer(
+  id: string
+): Promise<Career | undefined | null> {
+  const career = await httpRequest({
+    endpoint: `/users/${id}/career`,
+    method: "GET",
+  });
+
+  return career;
 }
 
 export async function getMatches(): Promise<Match[]> {
