@@ -25,25 +25,29 @@ export default function Career() {
   return (
     <ModalContainer>
       <ScrollContainer className="pt-10">
-        {isCareerPending ? (
-          <View className="flex flex-col gap-3">
-            <Skeleton className="h-32 flex-1 self-stretch" />
-            <Skeleton className="h-32 flex-1 self-stretch" />
-            <View className="flex flex-row items-center gap-3">
-              <Skeleton className="h-32 flex-1 self-stretch" />
-              <Skeleton className="h-32 flex-1 self-stretch" />
-            </View>
-            <Skeleton className="h-32 flex-1 self-stretch" />
+        <View className="flex flex-col gap-6">
+          <View className="flex flex-col gap-1 items-center">
+            <Text className="font-bold text-3xl text-center">Career</Text>
+            <Text className="font-semibold text-lg text-muted-foreground w-4/5 text-center">
+              Comprehensive career statistics
+            </Text>
           </View>
-        ) : (
-          career && (
-            <View className="flex flex-col gap-6">
-              <View className="flex flex-col gap-1 items-center">
-                <Text className="font-bold text-3xl text-center">Career</Text>
-                <Text className="font-semibold text-lg text-muted-foreground w-4/5 text-center">
-                  Comprehensive career statistics
-                </Text>
+          {isCareerPending ? (
+            <View className="flex flex-col gap-3">
+              <View className="flex flex-row items-center gap-3">
+                <Skeleton className="h-40 flex-1 self-stretch" />
+                <Skeleton className="h-40 flex-1 self-stretch" />
               </View>
+              <Skeleton className="h-48 flex-1 self-stretch" />
+              <Skeleton className="h-48 flex-1 self-stretch" />
+              <Skeleton className="h-48 flex-1 self-stretch" />
+              <View className="flex flex-row items-center gap-3">
+                <Skeleton className="h-40 flex-1 self-stretch" />
+                <Skeleton className="h-40 flex-1 self-stretch" />
+              </View>
+            </View>
+          ) : (
+            career && (
               <View className="flex flex-col gap-4">
                 <View className="flex flex-row gap-4">
                   <Card className="flex-1 self-stretch">
@@ -94,7 +98,11 @@ export default function Career() {
                         <Text className="font-bold text-lg">
                           {career.matchStats.total == 0
                             ? "0%"
-                            : `${Math.round((career.matchStats.wins / career.matchStats.total) * 100)}%`}
+                            : `${Math.round(
+                                (career.matchStats.wins /
+                                  career.matchStats.total) *
+                                  100
+                              )}%`}
                         </Text>
                       </View>
                       <Progress
@@ -136,7 +144,11 @@ export default function Career() {
                         <Text className="font-bold text-lg">
                           {career.parlayStats.total == 0
                             ? "0%"
-                            : `${Math.round((career.parlayStats.wins / career.parlayStats.total) * 100)}%`}
+                            : `${Math.round(
+                                (career.parlayStats.wins /
+                                  career.parlayStats.total) *
+                                  100
+                              )}%`}
                         </Text>
                       </View>
                       <Progress
@@ -246,9 +258,9 @@ export default function Career() {
                   </CardContent>
                 </Card>
               </View>
-            </View>
-          )
-        )}
+            )
+          )}
+        </View>
       </ScrollContainer>
     </ModalContainer>
   );
