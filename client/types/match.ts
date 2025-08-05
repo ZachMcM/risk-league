@@ -14,17 +14,18 @@ export type MatchUser = {
   parlaysLost: number;
   parlaysInProgress: number;
   payoutPotential: number;
-  totalParlays: number
+  totalParlays: number;
   id: number;
   createdAt: string;
   balance: number;
   pointsDelta: number;
+  progressionDelta: number | null;
   status: "not_resolved" | "loss" | "win" | "draw" | "disqualified";
   userId: string;
   matchId: number;
   startingBalance: number;
   user: User;
-  rankSnapshot: Rank
+  rankSnapshot: Rank;
 };
 
 export type Match = {
@@ -33,7 +34,7 @@ export type Match = {
   resolved: boolean;
   league: string;
   matchUsers: MatchUser[];
-  type: string
+  type: string;
 };
 
 export type CurrentStatus = "winning" | "losing" | "tied";

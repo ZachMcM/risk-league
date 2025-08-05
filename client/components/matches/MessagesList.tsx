@@ -5,6 +5,7 @@ import { useMessages } from "../providers/MessagesProvider";
 import ProfileImage from "../ui/profile-image";
 import { authClient } from "~/lib/auth-client";
 import { cn } from "~/utils/cn";
+import { timeAgo } from "~/utils/dateUtils";
 
 export default function MessagesList() {
   const { messages } = useMessages();

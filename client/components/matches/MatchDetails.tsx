@@ -64,9 +64,11 @@ export default function MatchDetails({ match }: { match: Match }) {
             <Pressable>
               <Alert variant="destructive">
                 <AlertTriangle className="text-destructive" size={20} />
-                <AlertTitle>{`You need to create ${
-                  minParlaysReq - currentMatchUser.totalParlays
-                } more parlays`}</AlertTitle>
+                <AlertTitle>
+                  You need to create{" "}
+                  {minParlaysReq - currentMatchUser.totalParlays} more parlay
+                  {minParlaysReq - currentMatchUser.totalParlays > 1 && "s"}
+                </AlertTitle>
               </Alert>
             </Pressable>
           </TooltipTrigger>

@@ -25,7 +25,7 @@ export default function Home() {
     queryFn: async () => await getUser(data?.user.id!),
   });
 
-  console.log(user)
+  console.log(user);
 
   return (
     <ScrollContainer className="px-0 pt-0" safeAreaInsets>
@@ -83,20 +83,17 @@ export default function Home() {
           </View>
         ) : (
           user &&
-          user.nextRank && (
+          (user.nextRank && user.progression !== null ? (
             <View className="flex flex-col gap-2">
               <View className="flex flex-row items-center justify-between">
-                <Text className="font-semibold text-muted-foreground text-lg">
+                <Text className="font-semibold text-muted-foreground text-xl">
                   Progress to next rank
                 </Text>
-                <Text className="font-bold text-primary text-xl">
-                  {user.progressToNextRank}%
+                <Text className="font-bold text-primary text-2xl">
+                  {user.progression}%
                 </Text>
               </View>
-              <Progress
-                value={user.progressToNextRank}
-                variant="primary"
-              />
+              <Progress value={user.progression} variant="primary" />
               <View className="flex flex-row items-center justify-between w-full">
                 <Text className="font-semibold text-muted-foreground flex-1 text-left">
                   0%
@@ -109,7 +106,16 @@ export default function Home() {
                 </Text>
               </View>
             </View>
-          )
+          ) : (
+            <View className="flex flex-row gap-1 items-center">
+              <Text className="font-bold text-2xl text-primary">
+                {user.points}
+              </Text>
+              <Text className="font-bold text-2xl text-muted-foreground">
+                points
+              </Text>
+            </View>
+          ))
         )}
         <StartMatchList />
       </View>

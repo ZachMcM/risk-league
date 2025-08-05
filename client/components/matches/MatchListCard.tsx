@@ -5,13 +5,12 @@ import { TrendingDown } from "~/lib/icons/TrendingDown";
 import { TrendingUp } from "~/lib/icons/TrendingUp";
 import { Match } from "~/types/match";
 import { getBadgeText, getBadgeVariant } from "~/utils/badgeUtils";
-import { cn } from "~/utils/cn";
-import { timeAgo } from "~/utils/timeAgo";
 import { Badge } from "../ui/badge";
 import { Card, CardContent } from "../ui/card";
 import RankBadge from "../ui/RankBadge";
 import { Separator } from "../ui/separator";
 import { Text } from "../ui/text";
+import { timeAgo } from "~/utils/dateUtils";
 
 export default function MatchListCard({ match }: { match: Match }) {
   const { data } = authClient.useSession();
@@ -96,18 +95,18 @@ export default function MatchListCard({ match }: { match: Match }) {
               </View>
             </View>
             {match.resolved && (
-              <View className="flex flex-row gap-1 items-center">
-                <View className="flex flex-row items-center gap-2 px-2 py-0.5 rounded-lg bg-primary/20">
-                  {you.pointsDelta > 0 ? (
-                    <TrendingUp className="text-primary" size={20} />
-                  ) : (
-                    <TrendingDown className="text-primary" size={20} />
-                  )}
-                  <Text className="font-bold text-xl text-primary">
-                    {you.pointsDelta > 0 && "+"}
-                    {you.pointsDelta} points
-                  </Text>
-                </View>
+              <View className="flex flex-row items-center gap-2">
+                {you.pointsDelta > 0 ? (
+                  <TrendingUp className="text-primary" size={20} />
+                ) : (
+                  <TrendingDown className="text-primary" size={20} />
+                )}
+                <Text className="font-bold text-xl text-primary">
+                  {you.pointsDelta > 0 && "+"}
+                  {you.progressionDelta
+                    ? `${you.progressionDelta} progression`
+                    : `${you.pointsDelta} points`}
+                </Text>
               </View>
             )}
           </View>

@@ -6,13 +6,15 @@ export type User = {
   image: string | null;
   header: string | null;
   rank: Rank;
-  nextRank: Rank;
-  progressToNextRank: number;
+  nextRank: Rank | null;
+  points: number
+  progression: number | null;
 };
 
 export type Career = {
   currentRank: Rank;
   peakRank: Rank;
+  pointsTimeline: { x: string; y: number }[];
   matchStats: {
     total: number;
     wins: number;

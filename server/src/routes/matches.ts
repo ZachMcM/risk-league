@@ -10,6 +10,7 @@ import { matchUser, match, message, matchStatus, user } from "../db/schema";
 import { apiKeyMiddleware, authMiddleware } from "../middleware";
 import { invalidateQueries } from "../utils/invalidateQueries";
 import { findRank } from "../utils/findRank";
+import { calculateProgressionDelta } from "../utils/calculateProgressionDelta";
 
 export const matchesRoute = Router();
 
@@ -46,6 +47,10 @@ matchesRoute.get("/matches", authMiddleware, async (_, res) => {
       ...match,
       matchUsers: match?.matchUsers.map((mu) => ({
         ...mu,
+        progressionDelta: calculateProgressionDelta(
+          mu.pointsSnapshot,
+          mu.pointsDelta
+        ),
         rankSnapshot: findRank(mu.pointsSnapshot),
         totalStaked: mu.parlays.reduce((accum, curr) => accum + curr.stake, 0),
         totalParlays: mu.parlays.length,
@@ -109,6 +114,10 @@ matchesRoute.get("/matches/:id", authMiddleware, async (req, res) => {
       ...matchResult,
       matchUsers: matchResult?.matchUsers.map((mu) => ({
         ...mu,
+        progressionDelta: calculateProgressionDelta(
+          mu.pointsSnapshot,
+          mu.pointsDelta
+        ),
         rankSnapshot: findRank(mu.pointsSnapshot),
         totalStaked: mu.parlays.reduce((accum, curr) => accum + curr.stake, 0),
         totalParlays: mu.parlays.length,

@@ -10,6 +10,8 @@ import { getCareer } from "~/endpoints";
 import { authClient } from "~/lib/auth-client";
 import { Trophy } from "~/lib/icons/Trophy";
 import { Star } from "~/lib/icons/Star";
+import { Crown } from "~/lib/icons/Crown";
+import { TrendingUp } from "~/lib/icons/TrendingUp";
 import RankBadge from "~/components/ui/RankBadge";
 
 export default function Career() {
@@ -37,9 +39,7 @@ export default function Career() {
           career && (
             <View className="flex flex-col gap-6">
               <View className="flex flex-col gap-1 items-center">
-                <Text className="font-bold text-3xl text-center">
-                  Your Career
-                </Text>
+                <Text className="font-bold text-3xl text-center">Career</Text>
                 <Text className="font-semibold text-lg text-muted-foreground w-4/5 text-center">
                   Comprehensive career statistics
                 </Text>
@@ -48,9 +48,15 @@ export default function Career() {
                 <View className="flex flex-row gap-4">
                   <Card className="flex-1 self-stretch">
                     <CardContent className="p-6 flex flex-col gap-4">
-                      <Text className="font-bold">Peak Rank</Text>
+                      <View className="flex flex-row items-center justify-between">
+                        <Text className="font-bold">Peak Rank</Text>
+                        <TrendingUp
+                          className="text-muted-foreground"
+                          size={16}
+                        />
+                      </View>
                       <RankBadge
-                        gradientStyle={{ alignSelf: "flex-start" }}
+                        gradientStyle={{ alignSelf: "center" }}
                         rank={career.peakRank}
                         showIcon
                       />
@@ -58,9 +64,12 @@ export default function Career() {
                   </Card>
                   <Card className="flex-1 self-stretch">
                     <CardContent className="p-6 flex flex-col gap-4">
-                      <Text className="font-bold">Current Rank</Text>
+                      <View className="flex flex-row items-center justify-between">
+                        <Text className="font-bold">Current Rank</Text>
+                        <Crown className="text-muted-foreground" size={16} />
+                      </View>
                       <RankBadge
-                        gradientStyle={{ alignSelf: "flex-start" }}
+                        gradientStyle={{ alignSelf: "center" }}
                         rank={career.currentRank}
                         showIcon
                       />
@@ -84,9 +93,8 @@ export default function Career() {
                         <Text className="font-semibold text-lg">Win Rate</Text>
                         <Text className="font-bold text-lg">
                           {career.matchStats.total == 0
-                            ? 0
-                            : career.matchStats.wins / career.matchStats.total}
-                          %
+                            ? "0%"
+                            : `${Math.round((career.matchStats.wins / career.matchStats.total) * 100)}%`}
                         </Text>
                       </View>
                       <Progress
@@ -127,10 +135,8 @@ export default function Career() {
                         <Text className="font-semibold text-lg">Win Rate</Text>
                         <Text className="font-bold text-lg">
                           {career.parlayStats.total == 0
-                            ? 0
-                            : career.parlayStats.wins /
-                              career.parlayStats.total}
-                          %
+                            ? "0%"
+                            : `${Math.round((career.parlayStats.wins / career.parlayStats.total) * 100)}%`}
                         </Text>
                       </View>
                       <Progress
@@ -194,7 +200,7 @@ export default function Career() {
                   <CardContent className="p-6 flex flex-col gap-3">
                     <Text className="font-bold text-2xl">Summary</Text>
                     <View className="flex flex-row items-center flex-wrap gap-4 self-start">
-                      <View className="flex flex-col items-center w-[48%]">
+                      <View className="flex flex-col items-center w-[47%]">
                         <Text className="font-bold text-2xl text-primary text-center">
                           {career.matchStats.total}
                         </Text>
@@ -202,7 +208,7 @@ export default function Career() {
                           Total Matches
                         </Text>
                       </View>
-                      <View className="flex flex-col items-center w-[48%]">
+                      <View className="flex flex-col items-center w-[47%]">
                         <Text className="font-bold text-2xl text-primary text-center">
                           {career.parlayStats.total}
                         </Text>
@@ -210,7 +216,7 @@ export default function Career() {
                           Total Parlays
                         </Text>
                       </View>
-                      <View className="flex flex-col items-center w-[48%]">
+                      <View className="flex flex-col items-center w-[47%]">
                         <Text className="font-bold text-2xl text-primary text-center">
                           {career.matchStats.total == 0
                             ? 0
@@ -223,7 +229,7 @@ export default function Career() {
                           Match Win Rate
                         </Text>
                       </View>
-                      <View className="flex flex-col items-center w-[48%]">
+                      <View className="flex flex-col items-center w-[47%]">
                         <Text className="font-bold text-2xl text-primary text-center">
                           {career.parlayStats.total == 0
                             ? 0

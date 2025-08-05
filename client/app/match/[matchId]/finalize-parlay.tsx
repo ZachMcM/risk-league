@@ -45,8 +45,7 @@ export default function FinalizeParlay() {
   const [formError, setFormError] = useState<null | string>(null);
   const queryClient = useQueryClient();
 
-  const minStake =
-    balance * 0.2 > balance ? balance : balance * 0.2;
+  const minStake = balance * 0.2;
 
   useEffect(() => {
     if (formError) {
