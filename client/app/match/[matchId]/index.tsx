@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Fragment, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import MatchDetails from "~/components/matches/MatchDetails";
@@ -39,6 +39,10 @@ export default function Match() {
 
   const [tabsValue, setTabsValue] = useState("parlays");
   const insets = useSafeAreaInsets();
+
+  useEffect(() => {
+    setTabsValue("parlays");
+  }, [match?.resolved]);
 
   return (
     <Fragment>
@@ -121,7 +125,10 @@ export default function Match() {
                       </View>
                     ) : (
                       <View className="flex flex-1 flex-col gap-6 w-full flex-shrink-0">
-                        <ParlaysView parlays={parlays} />
+                        <ParlaysView
+                          parlays={parlays}
+                          resolved={match.resolved}
+                        />
                       </View>
                     ))
                   )}

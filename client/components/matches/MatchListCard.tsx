@@ -103,9 +103,9 @@ export default function MatchListCard({ match }: { match: Match }) {
                 )}
                 <Text className="font-bold text-xl text-primary">
                   {you.pointsDelta > 0 && "+"}
-                  {you.progressionDelta
-                    ? `${you.progressionDelta} progression`
-                    : `${you.pointsDelta} points`}
+                  {you.progressionDelta !== null
+                    ? `${you.progressionDelta} Progression`
+                    : `${you.pointsDelta} Points`}
                 </Text>
               </View>
             )}

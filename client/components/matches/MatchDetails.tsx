@@ -19,9 +19,10 @@ export default function MatchDetails({ match }: { match: Match }) {
   const currentMatchUser = match.matchUsers[currentMatchUserIndex];
   const otherMatchUser = match.matchUsers[currentMatchUserIndex == 0 ? 1 : 0];
 
-  const minTotalStaked =
+  const minTotalStaked = Math.round(
     parseFloat(process.env.EXPO_PUBLIC_MIN_PCT_TOTAL_STAKED!) *
-    currentMatchUser.startingBalance;
+      currentMatchUser.startingBalance
+  );
   const minParlaysReq = parseInt(process.env.EXPO_PUBLIC_MIN_PARLAYS_REQUIRED!);
 
   return (

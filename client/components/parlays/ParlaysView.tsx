@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 import { Search } from "~/lib/icons/Search";
 import { Parlay } from "~/types/parlay";
@@ -16,7 +16,13 @@ const parlayFiltersList = [
   "lost",
 ] as const;
 
-export default function ParlaysView({ parlays }: { parlays: Parlay[] }) {
+export default function ParlaysView({
+  parlays,
+  resolved,
+}: {
+  parlays: Parlay[];
+  resolved: boolean;
+}) {
   const [searchActivated, setSearchActivated] = useState(false);
   const [searchContent, setSearchContent] = useState("");
   const [parlayFilter, setParlayFilter] =
@@ -60,62 +66,77 @@ export default function ParlaysView({ parlays }: { parlays: Parlay[] }) {
 
   return (
     <View className="flex flex-1 flex-col gap-6 w-full">
-      {searchActivated ? (
-        <View className="flex flex-1 flex-row items-center gap-3">
-          <SearchBar
-            value={searchContent}
-            onChangeText={setSearchContent}
-            placeholder="Search"
-          />
-          <Button
-            size="sm"
-            variant="foreground"
-            onPress={() => {
-              setSearchActivated(false);
-              setSearchContent("");
-            }}
-          >
-            <Text>Cancel</Text>
-          </Button>
+      {parlays.length == 0 ? (
+        <View className="flex flex-col gap-4 p-4 items-center">
+          <View className="flex flex-col gap-1 items-center">
+            <Text className="font-bold text-2xl text-center">No Parlays</Text>
+            <Text className="font-semibold text-muted-foreground text-center">
+              {resolved
+                ? "Next time place a parlay to avoid diqualification!"
+                : "Go place some picks!"}
+            </Text>
+          </View>
         </View>
       ) : (
-        <ScrollView
-          contentContainerStyle={{
-            flexDirection: "row",
-            alignItems: "center",
-            gap: 10,
-          }}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-        >
-          <Pressable
-            className="flex flex-row items-center gap-2 border-2 border-border py-2 px-4 rounded-xl"
-            onPress={() => {
-              setSearchActivated(true);
-            }}
-          >
-            <Search className="text-white" size={16} />
-            <Text className="font-semibold">Search</Text>
-          </Pressable>
-          {parlayFiltersList.map((filter) => (
-            <Pressable
-              key={filter}
-              className={cn(
-                "flex flex-row items-center gap-3 border-2 border-border py-2 px-4 rounded-xl",
-                parlayFilter == filter && "border-primary bg-primary/20"
-              )}
-              onPress={() => setParlayFilter(filter)}
+        <Fragment>
+          {searchActivated ? (
+            <View className="flex flex-1 flex-row items-center gap-3">
+              <SearchBar
+                value={searchContent}
+                onChangeText={setSearchContent}
+                placeholder="Search"
+              />
+              <Button
+                size="sm"
+                variant="foreground"
+                onPress={() => {
+                  setSearchActivated(false);
+                  setSearchContent("");
+                }}
+              >
+                <Text>Cancel</Text>
+              </Button>
+            </View>
+          ) : (
+            <ScrollView
+              contentContainerStyle={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 10,
+              }}
+              horizontal
+              showsHorizontalScrollIndicator={false}
             >
-              <Text className="font-semibold capitalize">
-                {filter} ({filteredParlays(filter).length})
-              </Text>
-            </Pressable>
+              <Pressable
+                className="flex flex-row items-center gap-2 border-2 border-border py-2 px-4 rounded-xl"
+                onPress={() => {
+                  setSearchActivated(true);
+                }}
+              >
+                <Search className="text-white" size={16} />
+                <Text className="font-semibold">Search</Text>
+              </Pressable>
+              {parlayFiltersList.map((filter) => (
+                <Pressable
+                  key={filter}
+                  className={cn(
+                    "flex flex-row items-center gap-3 border-2 border-border py-2 px-4 rounded-xl",
+                    parlayFilter == filter && "border-primary bg-primary/20"
+                  )}
+                  onPress={() => setParlayFilter(filter)}
+                >
+                  <Text className="font-semibold capitalize">
+                    {filter} ({filteredParlays(filter).length})
+                  </Text>
+                </Pressable>
+              ))}
+            </ScrollView>
+          )}
+          {filteredParlays().map((parlay) => (
+            <ParlaysCard key={parlay.id} parlay={parlay} />
           ))}
-        </ScrollView>
+        </Fragment>
       )}
-      {filteredParlays().map((parlay) => (
-        <ParlaysCard key={parlay.id} parlay={parlay} />
-      ))}
     </View>
   );
 }

@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { auth } from "./utils/auth";
 import { fromNodeHeaders } from "better-auth/node";
+import { logger } from "./logger";
 
 export const authMiddleware = async (
   req: Request,

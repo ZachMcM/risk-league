@@ -233,7 +233,7 @@ matchesRoute.patch("/matches/end", apiKeyMiddleware, async (_, res) => {
     });
 
     // TODO determine which matches to resolve
-    const matchesToEndList = unResolvedMatches.filter((match) => {});
+    const matchesToEndList = unResolvedMatches.filter((match) => true);
 
     for (const matchToEnd of matchesToEndList) {
       const matchUser1 = matchToEnd.matchUsers[0];
@@ -253,10 +253,12 @@ matchesRoute.patch("/matches/end", apiKeyMiddleware, async (_, res) => {
         0
       );
 
-      const matchUser1MinTotalStaked =
-        matchUser1.startingBalance * minPctTotalStaked;
-      const matchUser2MinTotalStaked =
-        matchUser2.startingBalance * minPctTotalStaked;
+      const matchUser1MinTotalStaked = Math.round(
+        matchUser1.startingBalance * minPctTotalStaked
+      );
+      const matchUser2MinTotalStaked = Math.round(
+        matchUser2.startingBalance * minPctTotalStaked
+      );
 
       if (
         (matchUser1.parlays.length < minParlaysRequired ||
@@ -317,44 +319,42 @@ matchesRoute.patch("/matches/end", apiKeyMiddleware, async (_, res) => {
 
       if (matchToEnd.type == "competitive") {
         if (
-          matchUser1Status == "disqualified" &&
-          matchUser2Status == "disqualified"
+          matchUser1Status != "disqualified" ||
+          matchUser2Status != "disqualified"
         ) {
-          continue;
+          const newPoints = recalculatePoints(
+            [matchUser1.user.points, matchUser2.user.points],
+            winner
+          );
+
+          await db
+            .update(matchUser)
+            .set({
+              pointsDelta: Math.max(0, newPoints[0] - matchUser1.user.points),
+            })
+            .where(eq(matchUser.id, matchUser1.id));
+
+          await db
+            .update(matchUser)
+            .set({
+              pointsDelta: Math.max(0, newPoints[1] - matchUser2.user.points),
+            })
+            .where(eq(matchUser.id, matchUser2.id));
+
+          await db
+            .update(user)
+            .set({
+              points: Math.max(1000, newPoints[0]),
+            })
+            .where(eq(user.id, matchUser1.userId));
+
+          await db
+            .update(user)
+            .set({
+              points: Math.max(1000, newPoints[1]),
+            })
+            .where(eq(user.id, matchUser2.userId));
         }
-
-        const newPoints = recalculatePoints(
-          [matchUser1.user.points, matchUser2.user.points],
-          winner
-        );
-
-        await db
-          .update(matchUser)
-          .set({
-            pointsDelta: Math.max(0, newPoints[0] - matchUser1.user.points),
-          })
-          .where(eq(matchUser.id, matchUser1.id));
-
-        await db
-          .update(matchUser)
-          .set({
-            pointsDelta: Math.max(0, newPoints[1] - matchUser2.user.points),
-          })
-          .where(eq(matchUser.id, matchUser2.id));
-
-        await db
-          .update(user)
-          .set({
-            points: Math.max(1000, newPoints[0]),
-          })
-          .where(eq(user.id, matchUser1.userId));
-
-        await db
-          .update(user)
-          .set({
-            points: Math.max(1000, newPoints[1]),
-          })
-          .where(eq(user.id, matchUser2.userId));
       }
 
       invalidateQueries(
