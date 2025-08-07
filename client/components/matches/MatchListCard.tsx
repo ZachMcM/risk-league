@@ -11,6 +11,7 @@ import RankBadge from "../ui/RankBadge";
 import { Separator } from "../ui/separator";
 import { Text } from "../ui/text";
 import { timeAgo } from "~/utils/dateUtils";
+import LeagueLogo from "../ui/league-logos/LeagueLogo";
 
 export default function MatchListCard({ match }: { match: Match }) {
   const { data } = authClient.useSession();
@@ -41,30 +42,29 @@ export default function MatchListCard({ match }: { match: Match }) {
         <CardContent className="flex flex-col gap-3 p-4 items-start">
           <View className="flex flex-col gap-2">
             <View className="flex flex-row items-center justify-between w-full">
-              <View className="flex-1 items-start">
-                <Text className="font-semibold text-muted-foreground capitalize">
+              <View className="flex flex-row items-center gap-2">
+                <View className="flex flex-row items-center gap-1">
+                  <LeagueLogo league={match.league} />
+                  <Text className="text-lg uppercase font-bold">
+                    {match.league}
+                  </Text>
+                </View>
+                <Text className="font-semibold text-muted-foreground capitalize text-lg">
                   {match.type}
                 </Text>
               </View>
-              <View className="flex-1 items-center">
-                <Badge variant="secondary" className="px-3.5">
-                  <Text className="text-base uppercase">{match.league}</Text>
-                </Badge>
-              </View>
-              <View className="flex-1 items-end">
-                {match.type == "competitive" && (
-                  <RankBadge
-                    showIcon
-                    iconClassName="h-4 w-4"
-                    textClassName="text-sm"
-                    gradientStyle={{
-                      paddingHorizontal: 10,
-                      gap: 4,
-                    }}
-                    rank={you.rankSnapshot}
-                  />
-                )}
-              </View>
+              {match.type == "competitive" && (
+                <RankBadge
+                  showIcon
+                  iconClassName="h-4 w-4"
+                  textClassName="text-sm"
+                  gradientStyle={{
+                    paddingHorizontal: 10,
+                    gap: 4,
+                  }}
+                  rank={you.rankSnapshot}
+                />
+              )}
             </View>
             <View className="flex flex-row items-center justify-between">
               <View className="flex flex-row items-center gap-1">

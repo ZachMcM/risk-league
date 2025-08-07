@@ -1,4 +1,5 @@
 import { authClient } from "./lib/auth-client";
+import { League } from "./lib/constants";
 import { Match, Message } from "./types/match";
 import { Parlay } from "./types/parlay";
 import { Prop } from "./types/prop";
@@ -119,7 +120,7 @@ export async function postMessage(matchId: number, content: string) {
   });
 }
 
-export async function getTodayProps(league: string): Promise<Prop[]> {
+export async function getTodayProps(league: League): Promise<Prop[]> {
   const todayProps = await httpRequest({
     endpoint: `/props/today?league=${league}`,
     method: "GET",

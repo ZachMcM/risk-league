@@ -12,7 +12,7 @@ export default function ModalContainer({ children }: { children: ReactNode }) {
         </View>
         {children}
       </Container>
-      <PortalHost name="modal" />
+      <PortalHost name="inside-modal-page" />
     </Fragment>
   );
 }

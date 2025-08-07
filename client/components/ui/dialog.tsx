@@ -123,7 +123,7 @@ function DialogTitle({
   return (
     <DialogPrimitive.Title
       className={cn(
-        'text-lg native:text-xl text-foreground font-semibold leading-none tracking-tight',
+        'text-lg native:text-xl text-foreground font-bold leading-none tracking-tight',
         className
       )}
       {...props}

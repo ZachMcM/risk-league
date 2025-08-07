@@ -27,7 +27,7 @@ export default function Messages() {
 
   const queryClient = useQueryClient();
 
-  const { mutate: sendMessage, isPending: isSendingMessagePending } =
+  const { mutate: sendMessage } =
     useMutation({
       mutationFn: async ({ content }: { content: string }) =>
         postMessage(matchId, content),
@@ -62,7 +62,7 @@ export default function Messages() {
 
         return { previousMessages };
       },
-      onError: (err, newMessage, context) => {
+      onError: (err, _, context) => {
         console.log(err);
         toast.error("There was an error sending your message");
         queryClient.setQueryData(

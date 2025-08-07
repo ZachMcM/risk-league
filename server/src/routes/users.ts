@@ -9,6 +9,7 @@ import { findNextRank } from "../utils/findNextRank";
 import { findRank } from "../utils/findRank";
 import { getMaxKey } from "../utils/getMaxKey";
 import { invalidateQueries } from "../utils/invalidateQueries";
+import { io } from "..";
 
 export const usersRoute = Router();
 
@@ -374,6 +375,19 @@ usersRoute.post("/users/friendships", authMiddleware, async (req, res) => {
       ["friendships", res.locals.userId!]
     );
 
+    const outgoingUser = await db.query.user.findFirst({
+      where: eq(user.id, res.locals.userId!),
+      columns: {
+        id: true,
+        image: true,
+        username: true,
+      },
+    });
+
+    io.of("/realtime")
+      .to(`user:${incomingId}`)
+      .emit("friend-request", outgoingUser);
+
     res.json(newFriendRequest);
   } catch (error) {
     logger.debug(error);
@@ -458,6 +472,19 @@ usersRoute.patch("/users/friendships", authMiddleware, async (req, res) => {
       ["friendships", outgoingId],
       ["friendships", res.locals.userId!]
     );
+
+    const incomingUser = await db.query.user.findFirst({
+      where: eq(user.id, res.locals.userId!),
+      columns: {
+        id: true,
+        image: true,
+        username: true,
+      },
+    });
+
+    io.of("/realtime")
+      .to(`user:${outgoingId}`)
+      .emit("friend-request-accepted", incomingUser);
 
     res.json(updatedFriendship);
   } catch (error) {

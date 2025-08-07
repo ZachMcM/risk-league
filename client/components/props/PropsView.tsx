@@ -7,7 +7,7 @@ import { Button } from "../ui/button";
 import { SearchBar } from "../ui/search-bar";
 import { Text } from "../ui/text";
 import PropCard from "./PropCard";
-import { propStats } from "~/lib/constants";
+import { League, propStats } from "~/lib/constants";
 import { Flame } from "~/lib/icons/Flame";
 
 export default function PropsView({
@@ -15,7 +15,7 @@ export default function PropsView({
   league,
 }: {
   props: Prop[];
-  league: string;
+  league: League;
 }) {
   const [propFilter, setPropFilter] = useState<string>("popular");
   const [searchActivated, setSearchActivated] = useState(false);

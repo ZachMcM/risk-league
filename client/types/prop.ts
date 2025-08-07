@@ -1,3 +1,5 @@
+import { League } from "~/lib/constants";
+
 export type Team = {
   id: number;
   fullName: string | null;
@@ -6,7 +8,7 @@ export type Team = {
   city: string | null;
   state: string | null;
   yearFounded: number | null;
-  league: "nba" | "mlb";
+  league: League;
 };
 
 export type Player = {
@@ -14,7 +16,7 @@ export type Player = {
   name: string | null;
   id: number;
   teamId: number | null;
-  league: "nba" | "mlb";
+  league: League;
   updatedAt: string | null;
   position: string | null;
   height: string | null;
@@ -25,7 +27,7 @@ export type Player = {
 export type Prop = {
   picksCount: number;
   id: number;
-  league: string;
+  league: League;
   playerId: number | null;
   createdAt: string | null;
   resolved: boolean;
@@ -43,7 +45,7 @@ export type Game = {
   startTime: string;
   homeTeamId: number;
   awayTeamId: number;
-  league: string;
+  league: League;
   homeTeam: Team;
   awayTeam: Team;
 };

@@ -19,8 +19,11 @@ export default function MessagesList({ messages }: { messages: Message[] }) {
   return (
     <ScrollView
       ref={scrollViewRef}
-      className="flex-1 p-8 w-full"
+      className="flex-1 px-6 w-full"
       showsVerticalScrollIndicator={false}
+      contentContainerStyle={{
+        paddingVertical: 12,
+      }}
     >
       {messages?.map((message, index) => {
         const isCurrentUser =

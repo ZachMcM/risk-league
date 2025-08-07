@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogTrigger } from "../ui/dialog";
 import { LogoIcon } from "../ui/logo-icon";
 import { Progress } from "../ui/progress";
 import { Text } from "../ui/text";
+import { League } from "~/lib/constants";
 
 const messages = [
   "Matching skill levels...",
@@ -22,7 +23,7 @@ const messages = [
 
 interface MatchmakingDialogProps {
   children: React.ReactNode;
-  league: string;
+  league: League;
 }
 
 export default function MatchmakingDialog({

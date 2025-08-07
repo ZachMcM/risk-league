@@ -8,8 +8,9 @@ import { Message } from "~/types/match";
 import ProfileImage from "../ui/profile-image";
 import { Text } from "../ui/text";
 import { Card, CardContent } from "../ui/card";
+import { Link } from "expo-router";
 
-const RealTimeContext = createContext<{ isConnected: boolean }>({
+const RealtimeContext = createContext<{ isConnected: boolean }>({
   isConnected: false,
 });
 
@@ -37,14 +38,10 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
       },
     });
 
-    console.log("Socket created, adding listeners");
-
     socket.on("connect", () => {
-      console.log("Socket connected!");
       setIsConnected(true);
     });
     socket.on("disconnect", () => {
-      console.log("Socket disconnected!");
       setIsConnected(false);
     });
 
@@ -54,29 +51,83 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
       });
     });
 
-    socket.on("match-message-received", (message: Message) => {
-      console.log("Message received:", message);
-      console.log("Current user ID:", data?.user.id);
-      console.log("Message user ID:", message.userId);
+    socket.on(
+      "friend-request",
+      ({ username, image }: { username: string; image: string }) => {
+        toast.custom(
+          <Link href="/social" className="m-2">
+            <Card>
+              <CardContent className="flex flex-row gap-3 items-center p-4">
+                <ProfileImage
+                  className="h-12 w-12"
+                  image={image}
+                  username={username}
+                />
+                <View className="flex flex-col w-full">
+                  <Text className="font-bold">{username}</Text>
+                  <Text className="text-lg font-semibold">
+                    Requested to be friends!
+                  </Text>
+                </View>
+              </CardContent>
+            </Card>
+          </Link>
+        );
+      }
+    );
 
+    socket.on(
+      "friend-request-accepted",
+      ({ username, image }: { username: string; image: string }) => {
+        toast.custom(
+          <Link href="/social" className="m-2">
+            <Card>
+              <CardContent className="flex flex-row gap-3 items-center p-4">
+                <ProfileImage
+                  className="h-12 w-12"
+                  image={image}
+                  username={username}
+                />
+                <View className="flex flex-col w-full">
+                  <Text className="font-bold">{username}</Text>
+                  <Text className="text-lg font-semibold">
+                    Accepted your friend request!
+                  </Text>
+                </View>
+              </CardContent>
+            </Card>
+          </Link>
+        );
+      }
+    );
+
+    socket.on("match-message-received", (message: Message) => {
       if (message.userId !== data?.user.id) {
         console.log("Showing toast notification");
         toast.custom(
-          <Card className="m-2">
-            <CardContent className="flex flex-row gap-3 items-center p-4">
-              <ProfileImage
-                className="h-12 w-12"
-                image={message.user.image}
-                username={message.user.username}
-              />
-              <View className="flex flex-col w-full">
-                <Text className="font-bold text-lg">
-                  {message.user.username}
-                </Text>
-                <Text className="max-w-[80%]">{message.content}</Text>
-              </View>
-            </CardContent>
-          </Card>
+          <Link
+            className="m-2"
+            href={{
+              pathname: "/match/[matchId]",
+              params: { matchId: message.matchId, openMessages: "true" },
+            }}
+          >
+            <Card>
+              <CardContent className="flex flex-row gap-3 items-center p-4">
+                <ProfileImage
+                  className="h-12 w-12"
+                  image={message.user.image}
+                  username={message.user.username}
+                />
+                <View className="flex flex-col w-full">
+                  <Text className="font-bold">{message.user.username}</Text>
+                  <Text className="max-w-[80%] text-lg font-semibold">
+                    {message.content}
+                  </Text>
+                </View>
+              </CardContent>
+            </Card>
+          </Link>
         );
       }
     });
@@ -87,8 +138,8 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
   }, [queryClient, data?.user.id]);
 
   return (
-    <RealTimeContext.Provider value={{ isConnected }}>
+    <RealtimeContext.Provider value={{ isConnected }}>
       {children}
-    </RealTimeContext.Provider>
+    </RealtimeContext.Provider>
   );
 }

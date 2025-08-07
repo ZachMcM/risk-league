@@ -15,7 +15,7 @@ import { authClient } from "~/lib/auth-client";
 import { MessageCircle } from "~/lib/icons/MessageCircle";
 
 export default function Match() {
-  const searchParams = useLocalSearchParams<{ matchId: string }>();
+  const searchParams = useLocalSearchParams<{ matchId: string; openMessages?: string }>();
   const matchId = parseInt(searchParams.matchId);
   const { data } = authClient.useSession();
 
@@ -43,6 +43,15 @@ export default function Match() {
   useEffect(() => {
     setTabsValue("parlays");
   }, [match?.resolved]);
+
+  useEffect(() => {
+    if (searchParams.openMessages === "true") {
+      router.navigate({
+        pathname: "/match/[matchId]/messages",
+        params: { matchId: searchParams.matchId },
+      });
+    }
+  }, [searchParams.openMessages, searchParams.matchId, router]);
 
   return (
     <Fragment>

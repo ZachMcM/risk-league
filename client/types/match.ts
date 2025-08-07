@@ -1,3 +1,4 @@
+import { League } from "~/lib/constants";
 import { Rank } from "./rank";
 import { User } from "./user";
 
@@ -36,7 +37,7 @@ export type Match = {
   id: number;
   createdAt: string;
   resolved: boolean;
-  league: string;
+  league: League;
   matchUsers: MatchUser[];
   type: string;
 };

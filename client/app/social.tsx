@@ -1,20 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { debounce } from "lodash";
 import { useCallback, useState } from "react";
-import { ActivityIndicator, View } from "react-native";
+import { ActivityIndicator, Pressable, View } from "react-native";
 import { toast } from "sonner-native";
 import { Button } from "~/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuPortal,
-  DropdownMenuSeparator,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
-  DropdownMenuTrigger,
-} from "~/components/ui/dropdown-menu";
+import { Card, CardContent } from "~/components/ui/card";
+import { Dialog, DialogContent, DialogTrigger } from "~/components/ui/dialog";
+import LeagueLogo from "~/components/ui/league-logos/LeagueLogo";
 import ModalContainer from "~/components/ui/modal-container";
 import ProfileImage from "~/components/ui/profile-image";
 import RankBadge from "~/components/ui/RankBadge";
@@ -31,15 +23,16 @@ import {
   postFriendRequest,
 } from "~/endpoints";
 import { authClient } from "~/lib/auth-client";
+import { leagues } from "~/lib/constants";
 import { Check } from "~/lib/icons/Check";
-import { Dices } from "~/lib/icons/Dices";
+import { Play } from "~/lib/icons/Play";
 import { Search } from "~/lib/icons/Search";
+import { Swords } from "~/lib/icons/Swords";
 import { UserMinus } from "~/lib/icons/UserMinus";
 import { UserPlus } from "~/lib/icons/UserPlus";
 import { Friendship, User } from "~/types/user";
 import { cn } from "~/utils/cn";
 import { formatCompactNumber } from "~/utils/formatCompactNumber";
-import { Ellipsis } from "~/lib/icons/Ellipsis";
 
 export default function Friends() {
   const { data } = authClient.useSession();
@@ -234,54 +227,136 @@ function UserCard({
   friendship?: Friendship;
 }) {
   const { data } = authClient.useSession();
-
   console.log(friendship);
 
   const queryClient = useQueryClient();
 
-  const {
-    mutate: sendFriendRequest,
-    isPending: isSendingFriendRequestPending,
-  } = useMutation({
+  const { mutate: sendFriendRequest } = useMutation({
     mutationFn: async () => await postFriendRequest(user.id),
-    onError: (err) => {
+    onMutate: async () => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({
+        queryKey: ["friendships", data?.user.id],
+      });
+
+      // Snapshot the previous value
+      const previousFriendships = queryClient.getQueryData<Friendship[]>([
+        "friendships",
+        data?.user.id,
+      ]);
+
+      // Optimistically update to the new value
+      const newFriendship: Friendship = {
+        friend: user,
+        status: "pending",
+        outgoingId: data?.user.id!,
+        incomingId: user.id,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      queryClient.setQueryData<Friendship[]>(
+        ["friendships", data?.user.id],
+        (old) => [...(old || []), newFriendship]
+      );
+
+      // Return a context object with the snapshotted value
+      return { previousFriendships };
+    },
+    onError: (err, _, context) => {
+      // If the mutation fails, use the context returned from onMutate to roll back
+      queryClient.setQueryData(
+        ["friendships", data?.user.id],
+        context?.previousFriendships
+      );
       toast.error(err.message, {
         position: "bottom-center",
       });
     },
-    onSuccess: () => {
+    onSettled: () => {
       queryClient.invalidateQueries({
         queryKey: ["friendships", data?.user.id],
       });
     },
   });
 
-  const { mutate: removeFriendship, isPending: isRemovingFriendshipPending } =
-    useMutation({
-      mutationFn: async () => await deleteFriendship(user.id),
-      onError: (err) => {
-        toast.error(err.message, {
-          position: "bottom-center",
-        });
-      },
-      onSuccess: () => {
-        queryClient.invalidateQueries({
-          queryKey: ["friendships", data?.user.id],
-        });
-      },
-    });
+  const { mutate: removeFriendship } = useMutation({
+    mutationFn: async () => await deleteFriendship(user.id),
+    onMutate: async () => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({
+        queryKey: ["friendships", data?.user.id],
+      });
 
-  const {
-    mutate: acceptFriendRequest,
-    isPending: isAcceptingFriendRequestPending,
-  } = useMutation({
-    mutationFn: async () => await patchFriendRequest(user.id),
-    onError: (err) => {
+      // Snapshot the previous value
+      const previousFriendships = queryClient.getQueryData<Friendship[]>([
+        "friendships",
+        data?.user.id,
+      ]);
+
+      // Optimistically update to the new value by removing the friendship
+      queryClient.setQueryData<Friendship[]>(
+        ["friendships", data?.user.id],
+        (old) => (old || []).filter((f) => f.friend.id !== user.id)
+      );
+
+      // Return a context object with the snapshotted value
+      return { previousFriendships };
+    },
+    onError: (err, _, context) => {
+      // If the mutation fails, use the context returned from onMutate to roll back
+      queryClient.setQueryData(
+        ["friendships", data?.user.id],
+        context?.previousFriendships
+      );
       toast.error(err.message, {
         position: "bottom-center",
       });
     },
-    onSuccess: () => {
+    onSettled: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["friendships", data?.user.id],
+      });
+    },
+  });
+
+  const { mutate: acceptFriendRequest } = useMutation({
+    mutationFn: async () => await patchFriendRequest(user.id),
+    onMutate: async () => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({
+        queryKey: ["friendships", data?.user.id],
+      });
+
+      // Snapshot the previous value
+      const previousFriendships = queryClient.getQueryData<Friendship[]>([
+        "friendships",
+        data?.user.id,
+      ]);
+
+      // Optimistically update to the new value by changing status to accepted
+      queryClient.setQueryData<Friendship[]>(
+        ["friendships", data?.user.id],
+        (old) =>
+          (old || []).map((f) =>
+            f.friend.id === user.id ? { ...f, status: "accepted" as const } : f
+          )
+      );
+
+      // Return a context object with the snapshotted value
+      return { previousFriendships };
+    },
+    onError: (err, _, context) => {
+      // If the mutation fails, use the context returned from onMutate to roll back
+      queryClient.setQueryData(
+        ["friendships", data?.user.id],
+        context?.previousFriendships
+      );
+      toast.error(err.message, {
+        position: "bottom-center",
+      });
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({
         queryKey: ["friendships", data?.user.id],
       });
@@ -312,31 +387,64 @@ function UserCard({
       </View>
       {friendship ? (
         friendship.status == "accepted" ? (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button size="icon" variant="outline">
-                <Ellipsis className="text-foreground" size={20} />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-48 mt-2" portalHost="modal">
-              <DropdownMenuItem className="flex flex-row items-center gap-2">
-                <Dices size={18} className="text-foreground" />
-                <Text>Friendly Match</Text>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onPress={() => removeFriendship()}
-                className="flex flex-row items-center gap-2"
+          <View className="flex flex-row items-center gap-2">
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button size="sm" className="flex flex-row items-center gap-2">
+                  <Swords className="text-foreground" size={18} />
+                  <Text className="font-bold">Play</Text>
+                </Button>
+              </DialogTrigger>
+              <DialogContent
+                className="w-[375px]"
+                portalHost="inside-modal-page"
               >
-                {isRemovingFriendshipPending ? (
-                  <ActivityIndicator className="text-foreground" />
-                ) : (
-                  <UserMinus className="text-foreground" size={18} />
-                )}
-                <Text>Remove Friend</Text>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                <View className="flex flex-col gap-6">
+                  <View className="flex flex-row items-center gap-3">
+                    <ProfileImage
+                      className="h-12 w-12"
+                      username={user.username}
+                      image={user.image}
+                    />
+                    <View className="flex flex-col">
+                      <Text className="font-bold text-lg">{user.username}</Text>
+                      <Text className="text-muted-foreground">
+                        Request to play a friendly match!
+                      </Text>
+                    </View>
+                  </View>
+                  <Text className="font-bold text-xl">Choose a League</Text>
+                  <View className="flex flex-row items-center gap-3 flex-wrap">
+                    {leagues.map((league) => (
+                      <Pressable key={league} className="w-[48%] self-stretch">
+                        <Card>
+                          <CardContent className="flex flex-col gap-2 items-center p-6">
+                            <LeagueLogo size={42} league={league} />
+                            <Text className="font-bold text-2xl text-center uppercase">
+                              {league}
+                            </Text>
+                            <Button
+                              size="icon"
+                              className="rounded-full bg-primary/20 border border-primary h-9 w-9"
+                            >
+                              <Play className="text-foreground" size={14} />
+                            </Button>
+                          </CardContent>
+                        </Card>
+                      </Pressable>
+                    ))}
+                  </View>
+                </View>
+              </DialogContent>
+            </Dialog>
+            <Button
+              variant="outline"
+              size="icon"
+              onPress={() => removeFriendship()}
+            >
+              <UserMinus size={18} className="text-foreground" />
+            </Button>
+          </View>
         ) : (
           friendship.status == "pending" &&
           friendship.incomingId == data?.user.id && (
@@ -345,11 +453,7 @@ function UserCard({
               size="icon"
               onPress={() => acceptFriendRequest()}
             >
-              {isAcceptingFriendRequestPending ? (
-                <ActivityIndicator className="text-foreground" />
-              ) : (
-                <Check className="text-foreground" size={18} />
-              )}
+              <Check className="text-foreground" size={18} />
             </Button>
           )
         )
@@ -359,11 +463,7 @@ function UserCard({
           variant="outline"
           size="icon"
         >
-          {isSendingFriendRequestPending ? (
-            <ActivityIndicator className="text-foreground" />
-          ) : (
-            <UserPlus className="text-foreground" size={18} />
-          )}
+          <UserPlus className="text-foreground" size={18} />
         </Button>
       )}
     </View>

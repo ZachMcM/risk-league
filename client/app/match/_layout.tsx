@@ -8,7 +8,7 @@ export default function Layout() {
       <Stack.Screen
         name="[matchId]"
         options={{
-          header: (_) => <PageTitle title="Match" back/>,
+          headerShown: false,
         }}
       />
     </Stack>

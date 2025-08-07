@@ -20,7 +20,15 @@ import { Badge } from "~/components/ui/badge";
 import ModalContainer from "~/components/ui/modal-container";
 import { ChevronDown } from "~/lib/icons/ChevronDown";
 import PickCard from "~/components/parlays/PickCard";
-import { getFlexMultiplier, getPerfectPlayMultiplier } from "~/utils/multiplierUtils";
+import {
+  getFlexMultiplier,
+  getPerfectPlayMultiplier,
+} from "~/utils/multiplierUtils";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "~/components/ui/popover";
 
 export default function Parlay() {
   const searchParams = useLocalSearchParams<{
@@ -62,34 +70,22 @@ export default function Parlay() {
                         ).toFixed(2)}x`}
                   </Text>
                   {parlay.type == "flex" && (
-                    <Dialog>
-                      <DialogTrigger asChild>
+                    <Popover>
+                      <PopoverTrigger asChild>
                         <Pressable>
                           <ChevronDown className="text-primary" size={18} />
                         </Pressable>
-                      </DialogTrigger>
-                      <DialogContent
-                        className="w-[375px]"
-                        portalHost="modal-portal"
-                      >
-                        <DialogHeader>
-                          <Text className="font-bold text-lg">
-                            Flex Play Payout Outcomes
-                          </Text>
-                        </DialogHeader>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[375px]" portalHost="inside-modal-page">
+                        <Text className="font-bold text-lg">
+                          Flex Play Payout Outcomes
+                        </Text>
                         <FlexPlayOutcomes
                           length={parlay.picks.length}
                           stake={parlay.stake}
                         />
-                        <DialogFooter>
-                          <DialogClose asChild>
-                            <Button>
-                              <Text>Close</Text>
-                            </Button>
-                          </DialogClose>
-                        </DialogFooter>
-                      </DialogContent>
-                    </Dialog>
+                      </PopoverContent>
+                    </Popover>
                   )}
                 </View>
               </View>

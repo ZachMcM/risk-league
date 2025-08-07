@@ -2,7 +2,8 @@ import { useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { View } from "react-native";
-import StartMatchList from "~/components/matches/StartMatchList";
+import MatchmakingDialog from "~/components/matches/MatchmakingDialog";
+import StartMatchCard from "~/components/matches/StartMatchCard";
 import { Button } from "~/components/ui/button";
 import ProfileImage from "~/components/ui/profile-image";
 import { Progress } from "~/components/ui/progress";
@@ -13,6 +14,7 @@ import { Skeleton } from "~/components/ui/skeleton";
 import { Text } from "~/components/ui/text";
 import { getUserRank } from "~/endpoints";
 import { authClient } from "~/lib/auth-client";
+import { leagues } from "~/lib/constants";
 import { ChartBarDecreasing } from "~/lib/icons/ChartBarDecreasing";
 import { Cog } from "~/lib/icons/Cog";
 import { Users } from "~/lib/icons/Users";
@@ -24,7 +26,7 @@ export default function Home() {
     queryKey: ["user", data?.user.id],
     queryFn: getUserRank,
   });
-  
+
   return (
     <ScrollContainer className="px-0 pt-0" safeAreaInsets>
       <View className="relative w-full">
@@ -119,7 +121,11 @@ export default function Home() {
             </View>
           ))
         )}
-        <StartMatchList />
+        <View className="flex flex-row items-center gap-3 flex-wrap">
+          {leagues.map((league) => (
+            <StartMatchCard key={league} league={league} />
+          ))}
+        </View>
       </View>
     </ScrollContainer>
   );
