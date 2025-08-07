@@ -2,7 +2,8 @@ import { authClient } from "./lib/auth-client";
 import { Match, Message } from "./types/match";
 import { Parlay } from "./types/parlay";
 import { Prop } from "./types/prop";
-import { Career, User } from "./types/user";
+import { Rank } from "./types/rank";
+import { Career, Friendship, User } from "./types/user";
 
 export type HttpRequestParams = {
   endpoint: string;
@@ -51,20 +52,32 @@ export async function httpRequest({
   return data;
 }
 
-export async function getUser(id: string): Promise<User | undefined | null> {
+export async function getUserRank(): Promise<{
+  rank: Rank;
+  nextRank: Rank;
+  progression: number;
+  points: number;
+}> {
   const user = await httpRequest({
-    endpoint: `/users/${id}`,
+    endpoint: "/users/rank",
     method: "GET",
   });
 
   return user;
 }
 
-export async function getCareer(
-  id: string
-): Promise<Career | undefined | null> {
+export async function getUsers(searchQuery: string): Promise<User[]> {
+  const users = await httpRequest({
+    endpoint: `/users?searchQuery=${searchQuery}`,
+    method: "GET",
+  });
+
+  return users;
+}
+
+export async function getCareer(): Promise<Career> {
   const career = await httpRequest({
-    endpoint: `/users/${id}/career`,
+    endpoint: "/users/career",
     method: "GET",
   });
 
@@ -80,7 +93,7 @@ export async function getMatches(): Promise<Match[]> {
   return matches;
 }
 
-export async function getMatch(id: number): Promise<Match | undefined> {
+export async function getMatch(id: number): Promise<Match> {
   const match = await httpRequest({
     endpoint: `/matches/${id}`,
     method: "GET",
@@ -137,5 +150,37 @@ export async function postParlay(
     endpoint: `/parlays/${matchId}`,
     method: "POST",
     body: JSON.stringify(parlay),
+  });
+}
+
+export async function getFriends(): Promise<Friendship[]> {
+  const friends = await httpRequest({
+    endpoint: "/users/friendships",
+    method: "GET",
+  });
+
+  return friends;
+}
+
+export async function postFriendRequest(incomingId: string) {
+  await httpRequest({
+    endpoint: "/users/friendships",
+    method: "POST",
+    body: JSON.stringify({ incomingId }),
+  });
+}
+
+export async function deleteFriendship(otherId: string) {
+  await httpRequest({
+    endpoint: `/users/friendships?otherId=${otherId}`,
+    method: "DELETE",
+  });
+}
+
+export async function patchFriendRequest(outgoingId: string) {
+  await httpRequest({
+    endpoint: `/users/friendships`,
+    method: "PATCH",
+    body: JSON.stringify({ outgoingId }),
   });
 }

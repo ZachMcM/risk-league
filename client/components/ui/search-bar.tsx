@@ -11,10 +11,13 @@ export function SearchBar({
   ref?: React.RefObject<TextInput>;
 }) {
   return (
-    <View className={cn("flex-1 flex-row items-center border border-border rounded-lg px-4")}>
+    <View className="flex-row items-center border border-border rounded-lg px-4 min-h-11">
       <Search className="text-muted-foreground" size={16} />
       <Input
-        className="flex-1 bg-transparent border-0 h-10"
+        className={cn(
+          "flex-1 self-center bg-transparent border-0 h-11 py-0",
+          className
+        )}
         {...props}
       />
     </View>

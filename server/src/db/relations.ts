@@ -1,5 +1,6 @@
 import { relations } from "drizzle-orm";
 import {
+  friendship,
   game,
   match,
   matchUser,
@@ -14,6 +15,12 @@ import {
 
 export const userRelations = relations(user, ({ many }) => ({
   matchUsers: many(matchUser),
+  incomingFriendships: many(friendship, {
+    relationName: "incomingFriendships",
+  }),
+  outgoingFriendships: many(friendship, {
+    relationName: "outgoingFriendships",
+  }),
 }));
 
 export const matchRelations = relations(match, ({ many }) => ({
@@ -93,4 +100,17 @@ export const matchUserRelations = relations(matchUser, ({ one, many }) => ({
     references: [match.id],
   }),
   parlays: many(parlay),
+}));
+
+export const friendshipRelations = relations(friendship, ({ one }) => ({
+  incomingUser: one(user, {
+    fields: [friendship.incomingId],
+    references: [user.id],
+    relationName: "incomingFriendships",
+  }),
+  outgoingUser: one(user, {
+    fields: [friendship.outgoingId],
+    references: [user.id],
+    relationName: "outgoingFriendships",
+  }),
 }));

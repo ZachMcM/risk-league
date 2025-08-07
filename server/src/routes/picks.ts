@@ -5,6 +5,7 @@ import { and, eq } from "drizzle-orm";
 import { pick, prop } from "../db/schema";
 import { redis } from "../redis";
 import { invalidateQueries } from "../utils/invalidateQueries";
+import { logger } from "../logger";
 
 export const picksRoute = Router();
 
@@ -138,7 +139,8 @@ picksRoute.patch("/picks", apiKeyMiddleware, async (req, res) => {
     }
 
     res.send(`${picksToInvalidateList.length} picks updated`);
-  } catch (err) {
-    res.status(500).json({ error: "Server Error" });
+  } catch (error) {
+    logger.error(error);
+    res.status(500).json({ error });
   }
 });

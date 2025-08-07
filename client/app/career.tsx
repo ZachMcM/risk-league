@@ -19,16 +19,16 @@ export default function Career() {
 
   const { data: career, isPending: isCareerPending } = useQuery({
     queryKey: ["career", data?.user.id!],
-    queryFn: async () => await getCareer(data?.user.id!),
+    queryFn: getCareer,
   });
 
   return (
     <ModalContainer>
-      <ScrollContainer className="pt-10">
+      <ScrollContainer className="pt-6">
         <View className="flex flex-col gap-6">
-          <View className="flex flex-col gap-1 items-center">
-            <Text className="font-bold text-3xl text-center">Career</Text>
-            <Text className="font-semibold text-lg text-muted-foreground w-4/5 text-center">
+          <View className="flex flex-col gap-1">
+            <Text className="font-bold text-4xl">Career</Text>
+            <Text className="font-semibold text-lg text-muted-foreground w-4/5">
               Comprehensive career statistics
             </Text>
           </View>
@@ -60,7 +60,7 @@ export default function Career() {
                         />
                       </View>
                       <RankBadge
-                        gradientStyle={{ alignSelf: "center" }}
+                        gradientStyle={{ alignSelf: "flex-start" }}
                         rank={career.peakRank}
                         showIcon
                       />
@@ -73,7 +73,7 @@ export default function Career() {
                         <Crown className="text-muted-foreground" size={16} />
                       </View>
                       <RankBadge
-                        gradientStyle={{ alignSelf: "center" }}
+                        gradientStyle={{ alignSelf: "flex-start" }}
                         rank={career.currentRank}
                         showIcon
                       />

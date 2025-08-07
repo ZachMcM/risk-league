@@ -8,6 +8,7 @@ import {
   getFlexMultiplier,
   getPerfectPlayMultiplier,
 } from "../utils/parlayMultipliers";
+import { logger } from "../logger";
 
 export const parlaysRoute = Router();
 
@@ -33,9 +34,10 @@ parlaysRoute.get("/parlays/:id", authMiddleware, async (req, res) => {
     });
 
     res.json(parlayResult);
-  } catch (err) {
+  } catch (error) {
+    logger.error(error);
     res.status(500).json({
-      error: "Server Error",
+      error,
     });
   }
 });
@@ -85,9 +87,10 @@ parlaysRoute.get("/parlays", authMiddleware, async (req, res) => {
     }
 
     res.json(matchUserResult.parlays);
-  } catch (err) {
+  } catch (error) {
+    logger.error(error);
     res.status(500).json({
-      error: "Server Error",
+      error,
     });
   }
 });
@@ -121,7 +124,7 @@ parlaysRoute.post("/parlays/:matchId", authMiddleware, async (req, res) => {
       return;
     }
 
-    const body = req.body as {
+    const { stake, type, picks } = req.body as {
       stake: number | null | undefined;
       type: "flex" | "perfect" | null | undefined;
       picks:
@@ -133,66 +136,66 @@ parlaysRoute.post("/parlays/:matchId", authMiddleware, async (req, res) => {
         | undefined;
     };
 
-    if (!body.stake) {
+    if (!stake) {
       res.status(400).json({ error: "Invalid parlay stake" });
       return;
     }
 
-    if (!body.type) {
+    if (!type) {
       res.status(400).json({ error: "Invalid parlay type" });
       return;
     }
 
-    if (!body.picks || body.picks.length == 0) {
+    if (!picks || picks.length == 0) {
       res.status(400).json({ error: "Invalid picks" });
       return;
     }
 
-    if (body.type == "flex" && body.picks.length < 3) {
+    if (type == "flex" && picks.length < 3) {
       res.status(400).json({
         error: "Cannot be a flex play and have less than 3 picks",
       });
       return;
     }
 
-    if (body.type == "perfect" && body.picks.length < 2) {
+    if (type == "perfect" && picks.length < 2) {
       res.status(400).json({
         error: "Cannot be a perfect play and have less than 2 picks",
       });
       return;
     }
 
-    if (body.picks.length > 6) {
+    if (picks.length > 6) {
       res.status(400).json({ error: "Too many picks" });
       return;
     }
 
     const existingPlayerIds: number[] = [];
-    for (const pick of body.picks) {
-      if (existingPlayerIds.includes(pick.prop.playerId!)) {
+    for (const pickEntry of picks) {
+      if (existingPlayerIds.includes(pickEntry.prop.playerId!)) {
         res.status(400).json({
           error: "Cannot pick the same player twice",
         });
         return;
       }
-      existingPlayerIds.push(pick.prop.playerId!);
+      existingPlayerIds.push(pickEntry.prop.playerId!);
     }
 
     await db
       .update(matchUser)
-      .set({ balance: matchUserResult.balance - body.stake })
+      .set({ balance: matchUserResult.balance - stake })
       .where(eq(matchUser.id, matchUserResult.id));
 
     const [parlayResult] = await db
       .insert(parlay)
       .values({
-        stake: body.stake,
-        type: body.type,
+        stake,
+        type,
         matchUserId: matchUserResult.id,
       })
       .returning({ id: parlay.id });
 
-    for (const pickEntry of body.picks) {
+    for (const pickEntry of picks) {
       await db.insert(pick).values({
         propId: pickEntry.prop.id!,
         parlayId: parlayResult.id,
@@ -211,7 +214,7 @@ parlaysRoute.post("/parlays/:matchId", authMiddleware, async (req, res) => {
     res.json(parlayResult);
   } catch (err: any) {
     res.status(500).json({
-      error: "Server error",
+      error: err,
     });
   }
 });
@@ -325,7 +328,8 @@ parlaysRoute.patch("/parlays", apiKeyMiddleware, async (req, res) => {
     );
 
     res.send("Resolved parlay");
-  } catch (err) {
-    res.status(500).json({ error: "Server Error" });
+  } catch (error) {
+    logger.error(error);
+    res.status(500).json({ error });
   }
 });

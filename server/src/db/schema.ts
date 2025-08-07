@@ -1,14 +1,36 @@
-import { sql } from "drizzle-orm";
 import {
   boolean,
   doublePrecision,
   integer,
   pgEnum,
   pgTable,
+  primaryKey,
   serial,
   text,
   timestamp,
 } from "drizzle-orm/pg-core";
+
+export const matchStatus = pgEnum("match_status", [
+  "not_resolved",
+  "loss",
+  "win",
+  "draw",
+  "disqualified",
+]);
+export const parlayType = pgEnum("parlay_type", ["perfect", "flex"]);
+export const pickStatus = pgEnum("pick_status", [
+  "hit",
+  "missed",
+  "not_resolved",
+  "did_not_play",
+  "tie",
+]);
+export const choiceType = pgEnum("choice_type", ["over", "under"]);
+
+export const friendshipStatus = pgEnum("friendship_status", [
+  "pending",
+  "accepted",
+]);
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -67,33 +89,16 @@ export const verification = pgTable("verification", {
   value: text("value").notNull(),
   expiresAt: timestamp("expires_at").notNull(),
   createdAt: timestamp("created_at").$defaultFn(
-    () => /* @__PURE__ */ new Date(),
+    () => /* @__PURE__ */ new Date()
   ),
   updatedAt: timestamp("updated_at").$defaultFn(
-    () => /* @__PURE__ */ new Date(),
+    () => /* @__PURE__ */ new Date()
   ),
 });
 
-export const matchStatus = pgEnum("match_status", [
-  "not_resolved",
-  "loss",
-  "win",
-  "draw",
-  "disqualified",
-]);
-export const parlayType = pgEnum("parlay_type", ["perfect", "flex"]);
-export const pickStatus = pgEnum("pick_status", [
-  "hit",
-  "missed",
-  "not_resolved",
-  "did_not_play",
-  "tie",
-]);
-export const choiceType = pgEnum("choiceType", ["over", "under"]);
-
 export const message = pgTable("message", {
   createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
-    .default(sql`CURRENT_TIMESTAMP`)
+    .defaultNow()
     .notNull(),
   content: text().notNull(),
   id: serial().primaryKey().notNull(),
@@ -112,7 +117,7 @@ export const pick = pgTable("pick", {
     withTimezone: true,
     mode: "string",
   })
-    .default(sql`CURRENT_TIMESTAMP`)
+    .defaultNow()
     .notNull(),
   id: serial().primaryKey().notNull(),
   parlayId: integer("parlay_id")
@@ -145,7 +150,7 @@ export const player = pgTable("player", {
     withTimezone: true,
     mode: "string",
   })
-    .default(sql`CURRENT_TIMESTAMP`)
+    .defaultNow()
     .notNull(),
   height: text().notNull(),
   weight: text().notNull(),
@@ -175,7 +180,7 @@ export const prop = pgTable("prop", {
     withTimezone: true,
     mode: "string",
   })
-    .default(sql`CURRENT_TIMESTAMP`)
+    .defaultNow()
     .notNull(),
   statName: text("stat_name").notNull(),
   statDisplayName: text("stat_display_name").notNull(),
@@ -197,7 +202,7 @@ export const parlay = pgTable("parlay", {
     withTimezone: true,
     mode: "string",
   })
-    .default(sql`CURRENT_TIMESTAMP`)
+    .defaultNow()
     .notNull(),
   id: serial().primaryKey().notNull(),
   matchUserId: integer("match_user_id")
@@ -213,7 +218,7 @@ export const matchUser = pgTable("match_user", {
     withTimezone: true,
     mode: "string",
   })
-    .default(sql`CURRENT_TIMESTAMP`)
+    .defaultNow()
     .notNull(),
   balance: doublePrecision().default(200).notNull(),
   pointsDelta: doublePrecision("points_delta").default(0).notNull(),
@@ -234,10 +239,36 @@ export const match = pgTable("match", {
     withTimezone: true,
     mode: "string",
   })
-    .default(sql`CURRENT_TIMESTAMP`)
+    .defaultNow()
     .notNull(),
   resolved: boolean().default(false).notNull(),
   id: serial().primaryKey().notNull(),
   league: text().notNull(),
   type: text().default("competitive").notNull(),
 });
+
+export const friendship = pgTable(
+  "friendship",
+  {
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+      mode: "string",
+    })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", {
+      withTimezone: true,
+      mode: "string",
+    })
+      .defaultNow()
+      .notNull(),
+    incomingId: text("incoming_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    outgoingId: text("outgoing_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    status: friendshipStatus().default("pending").notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.outgoingId, table.incomingId] })]
+);

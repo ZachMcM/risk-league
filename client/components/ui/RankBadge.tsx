@@ -4,6 +4,7 @@ import { RankGradient } from "./rank-gradient";
 import { RankText } from "./rank-text";
 import { cn } from "~/utils/cn";
 import { LogoIcon } from "./logo-icon";
+import { cva } from "class-variance-authority";
 
 export default function RankBadge({
   rank,
@@ -22,7 +23,7 @@ export default function RankBadge({
     <RankGradient
       style={[
         {
-          paddingHorizontal: 16,
+          paddingHorizontal: 14,
           paddingVertical: 4,
           display: "flex",
           flexDirection: "row",

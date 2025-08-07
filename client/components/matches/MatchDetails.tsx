@@ -11,6 +11,7 @@ import { Separator } from "../ui/separator";
 import { Text } from "../ui/text";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 import { getBadgeText, getBadgeVariant } from "~/utils/badgeUtils";
+import { Fragment } from "react";
 
 export default function MatchDetails({ match }: { match: Match }) {
   const { data } = authClient.useSession();
@@ -42,41 +43,48 @@ export default function MatchDetails({ match }: { match: Match }) {
           />
         </CardContent>
       </Card>
-      {currentMatchUser.totalStaked < minTotalStaked && (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Pressable>
-              <Alert variant="destructive">
-                <AlertTriangle className="text-destructive" size={20} />
-                <AlertTitle>{`You need to stake $${
-                  minTotalStaked - currentMatchUser.totalStaked
-                } more`}</AlertTitle>
-              </Alert>
-            </Pressable>
-          </TooltipTrigger>
-          <TooltipContent>
-            <Text>Must have at least ${minTotalStaked} in total staked</Text>
-          </TooltipContent>
-        </Tooltip>
-      )}
-      {currentMatchUser.totalParlays < minParlaysReq && (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Pressable>
-              <Alert variant="destructive">
-                <AlertTriangle className="text-destructive" size={20} />
-                <AlertTitle>
-                  You need to create{" "}
-                  {minParlaysReq - currentMatchUser.totalParlays} more parlay
-                  {minParlaysReq - currentMatchUser.totalParlays > 1 && "s"}
-                </AlertTitle>
-              </Alert>
-            </Pressable>
-          </TooltipTrigger>
-          <TooltipContent>
-            <Text>Must have at least {minParlaysReq} parlays</Text>
-          </TooltipContent>
-        </Tooltip>
+      {!match.resolved && (
+        <Fragment>
+          {currentMatchUser.totalStaked < minTotalStaked && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Pressable>
+                  <Alert variant="destructive">
+                    <AlertTriangle className="text-destructive" size={20} />
+                    <AlertTitle>{`You need to stake $${
+                      minTotalStaked - currentMatchUser.totalStaked
+                    } more`}</AlertTitle>
+                  </Alert>
+                </Pressable>
+              </TooltipTrigger>
+              <TooltipContent>
+                <Text>
+                  Must have at least ${minTotalStaked} in total staked
+                </Text>
+              </TooltipContent>
+            </Tooltip>
+          )}
+          {currentMatchUser.totalParlays < minParlaysReq && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Pressable>
+                  <Alert variant="destructive">
+                    <AlertTriangle className="text-destructive" size={20} />
+                    <AlertTitle>
+                      You need to create{" "}
+                      {minParlaysReq - currentMatchUser.totalParlays} more
+                      parlay
+                      {minParlaysReq - currentMatchUser.totalParlays > 1 && "s"}
+                    </AlertTitle>
+                  </Alert>
+                </Pressable>
+              </TooltipTrigger>
+              <TooltipContent>
+                <Text>Must have at least {minParlaysReq} parlays</Text>
+              </TooltipContent>
+            </Tooltip>
+          )}
+        </Fragment>
       )}
     </View>
   );

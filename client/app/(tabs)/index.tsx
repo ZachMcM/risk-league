@@ -11,7 +11,7 @@ import RankBadge from "~/components/ui/RankBadge";
 import { ScrollContainer } from "~/components/ui/scroll-container";
 import { Skeleton } from "~/components/ui/skeleton";
 import { Text } from "~/components/ui/text";
-import { getUser } from "~/endpoints";
+import { getUserRank } from "~/endpoints";
 import { authClient } from "~/lib/auth-client";
 import { ChartBarDecreasing } from "~/lib/icons/ChartBarDecreasing";
 import { Cog } from "~/lib/icons/Cog";
@@ -22,7 +22,7 @@ export default function Home() {
 
   const { data: user, isPending: isUserPending } = useQuery({
     queryKey: ["user", data?.user.id],
-    queryFn: async () => await getUser(data?.user.id!),
+    queryFn: getUserRank,
   });
 
   console.log(user);
@@ -62,17 +62,21 @@ export default function Home() {
           </View>
           <View className="flex flex-row items-center gap-2">
             <Button size="icon" variant="outline">
-              <Cog className="text-foreground" size={20} />
+              <Cog className="text-foreground" size={18} />
             </Button>
-            <Button size="icon" variant="outline">
-              <Users className="text-foreground" size={20} />
+            <Button
+              size="icon"
+              variant="outline"
+              onPress={() => router.navigate("/social")}
+            >
+              <Users className="text-foreground" size={18} />
             </Button>
             <Button
               size="icon"
               variant="outline"
               onPress={() => router.navigate("/career")}
             >
-              <ChartBarDecreasing className="text-foreground" size={20} />
+              <ChartBarDecreasing className="text-foreground" size={18} />
             </Button>
           </View>
         </View>

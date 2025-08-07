@@ -1,5 +1,4 @@
 import { Rank } from "./rank";
-import { User } from "./user";
 
 export type MatchStatus =
   | "disqualified"
@@ -24,7 +23,11 @@ export type MatchUser = {
   userId: string;
   matchId: number;
   startingBalance: number;
-  user: User;
+  user: {
+    id: string;
+    username: string;
+    image: string;
+  };
   rankSnapshot: Rank;
 };
 
@@ -45,5 +48,9 @@ export type Message = {
   userId: string;
   matchId: number;
   content: string;
-  user: User;
+  user: {
+    id: string;
+    username: string;
+    image: string;
+  };
 };

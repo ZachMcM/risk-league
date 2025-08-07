@@ -96,9 +96,10 @@ export default function MatchListCard({ match }: { match: Match }) {
             </View>
             {match.resolved && (
               <View className="flex flex-row items-center gap-2">
-                {you.pointsDelta > 0 ? (
+                {you.pointsDelta > 0 && (
                   <TrendingUp className="text-primary" size={20} />
-                ) : (
+                )}
+                {you.pointsDelta < 0 && (
                   <TrendingDown className="text-primary" size={20} />
                 )}
                 <Text className="font-bold text-xl text-primary">

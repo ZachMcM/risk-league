@@ -109,8 +109,9 @@ propsRoute.get("/props/today", authMiddleware, async (req, res) => {
     }));
 
     res.json(availablePropsWithPickCount);
-  } catch (err) {
-    res.status(500).json({ error: "Server Error" });
+  } catch (error) {
+    logger.error(error);
+    res.status(500).json({ error });
   }
 });
 
@@ -158,7 +159,8 @@ propsRoute.post("/props", authMiddleware, async (req, res) => {
     });
 
     res.json(newProp);
-  } catch (err) {
-    res.status(500).json({ error: "Server Error" });
+  } catch (error) {
+    logger.error(error);
+    res.status(500).json({ error });
   }
 });

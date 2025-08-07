@@ -1,0 +1,1 @@
+ALTER TYPE "public"."friendship_status" ADD VALUE 'declined';

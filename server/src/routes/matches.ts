@@ -28,7 +28,6 @@ matchesRoute.get("/matches", authMiddleware, async (_, res) => {
                     id: true,
                     username: true,
                     image: true,
-                    points: true,
                   },
                 },
                 parlays: {
@@ -77,9 +76,9 @@ matchesRoute.get("/matches", authMiddleware, async (_, res) => {
     }));
 
     res.json(matchesWithParlayCounts);
-  } catch (err) {
-    logger.error(err);
-    res.status(500).json({ err: "Server Error" });
+  } catch (error) {
+    logger.error(error);
+    res.status(500).json({ error });
   }
 });
 
@@ -97,7 +96,6 @@ matchesRoute.get("/matches/:id", authMiddleware, async (req, res) => {
                 id: true,
                 username: true,
                 image: true,
-                points: true,
               },
             },
             parlays: {
@@ -146,7 +144,7 @@ matchesRoute.get("/matches/:id", authMiddleware, async (req, res) => {
     res.json(matchWithParlayCounts);
   } catch (err: any) {
     logger.error(err);
-    res.status(500).json({ error: "Server Error" });
+    res.status(500).json({ error: err });
   }
 });
 
@@ -159,9 +157,6 @@ matchesRoute.get("/matches/:id/messages", authMiddleware, async (req, res) => {
       with: {
         user: {
           columns: {
-            id: true,
-            username: true,
-            image: true,
             points: true,
           },
         },
@@ -170,9 +165,9 @@ matchesRoute.get("/matches/:id/messages", authMiddleware, async (req, res) => {
     });
 
     res.json(messages);
-  } catch (err) {
-    logger.error(err);
-    res.status(500).json({ error: "Server Error" });
+  } catch (error) {
+    logger.error(error);
+    res.status(500).json({ error });
   }
 });
 
@@ -369,7 +364,8 @@ matchesRoute.patch("/matches/end", apiKeyMiddleware, async (_, res) => {
     }
 
     res.send(`${matchesToEndList.length} matches ended`);
-  } catch (err) {
-    res.status(500).json({ error: "Server Error" });
+  } catch (error) {
+    logger.error(error);
+    res.status(500).json({ error });
   }
 });

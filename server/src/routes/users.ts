@@ -1,16 +1,52 @@
-import { eq } from "drizzle-orm";
+import { and, eq, ilike, ne, or } from "drizzle-orm";
 import { Router } from "express";
 import { db } from "../db";
-import { user } from "../db/schema";
+import { friendship, user } from "../db/schema";
+import { logger } from "../logger";
 import { authMiddleware } from "../middleware";
+import { calculateProgression } from "../utils/calculateProgression";
 import { findNextRank } from "../utils/findNextRank";
 import { findRank } from "../utils/findRank";
 import { getMaxKey } from "../utils/getMaxKey";
-import { calculateProgression } from "../utils/calculateProgression";
+import { invalidateQueries } from "../utils/invalidateQueries";
 
 export const usersRoute = Router();
 
-usersRoute.get("/users/:id", authMiddleware, async (_, res) => {
+usersRoute.get("/users", authMiddleware, async (req, res) => {
+  try {
+    const searchQuery = (req.query.searchQuery as string | undefined) || "";
+
+    if (!searchQuery) {
+      res.json([]);
+      return;
+    }
+
+    const usersResults = await db.query.user.findMany({
+      where: and(
+        ilike(user.username, `%${searchQuery}%`),
+        ne(user.id, res.locals.userId!)
+      ),
+      columns: {
+        id: true,
+        username: true,
+        image: true,
+        points: true,
+      },
+    });
+
+    res.json(
+      usersResults.map((user) => ({
+        ...user,
+        rank: findRank(user.points),
+      }))
+    );
+  } catch (error) {
+    logger.error(error);
+    res.status(500).json({ error });
+  }
+});
+
+usersRoute.get("/users/rank", authMiddleware, async (_, res) => {
   try {
     const userResult = await db.query.user.findFirst({
       columns: {
@@ -34,19 +70,20 @@ usersRoute.get("/users/:id", authMiddleware, async (_, res) => {
     const nextRank = findNextRank(userResult.points);
 
     res.json({
-      ...userResult,
       rank,
       nextRank,
-      progression: calculateProgression(userResult.points)
+      progression: calculateProgression(userResult.points),
+      points: userResult.points,
     });
-  } catch (err) {
+  } catch (error) {
+    logger.error(error);
     res.status(500).json({
-      error: "Server Error",
+      error,
     });
   }
 });
 
-usersRoute.get("/users/:id/career", authMiddleware, async (_, res) => {
+usersRoute.get("/users/career", authMiddleware, async (_, res) => {
   try {
     const userResult = await db.query.user.findFirst({
       columns: {
@@ -238,9 +275,193 @@ usersRoute.get("/users/:id/career", authMiddleware, async (_, res) => {
               count: pickedTeamsCount.get(mostBetTeamId),
             },
     });
-  } catch (err) {
+  } catch (error) {
+    logger.error(error);
     res.status(500).json({
-      error: "Server Error",
+      error,
     });
+  }
+});
+
+usersRoute.get("/users/friendships", authMiddleware, async (_, res) => {
+  try {
+    const friendshipResults = await db.query.friendship.findMany({
+      where: or(
+        eq(friendship.incomingId, res.locals.userId!),
+        eq(friendship.outgoingId, res.locals.userId!)
+      ),
+      with: {
+        incomingUser: {
+          columns: {
+            id: true,
+            points: true,
+            image: true,
+            username: true,
+          },
+        },
+        outgoingUser: {
+          columns: {
+            id: true,
+            points: true,
+            image: true,
+            username: true,
+          },
+        },
+      },
+    });
+
+    const friends = friendshipResults.map((friendship) => ({
+      friend:
+        friendship.incomingId == res.locals.userId
+          ? {
+              ...friendship.outgoingUser,
+              rank: findRank(friendship.outgoingUser.points),
+            }
+          : {
+              ...friendship.incomingUser,
+              rank: findRank(friendship.incomingUser.points),
+            },
+      status: friendship.status,
+      outgoingId: friendship.outgoingId,
+      incomingId: friendship.incomingId,
+      createdAt: friendship.createdAt,
+      updatedAt: friendship.updatedAt,
+    }));
+
+    res.json(friends);
+  } catch (error) {
+    logger.error(error);
+    res.status(500).json({
+      error,
+    });
+  }
+});
+
+usersRoute.post("/users/friendships", authMiddleware, async (req, res) => {
+  try {
+    const { incomingId } = req.body as {
+      incomingId: string | undefined;
+    };
+
+    if (!incomingId) {
+      res.status(400).json({
+        error: "Invalid request body",
+      });
+      return;
+    }
+
+    const existingFriendship = await db.query.friendship.findFirst({
+      where: and(
+        eq(friendship.outgoingId, res.locals.userId!),
+        eq(friendship.incomingId, incomingId)
+      ),
+    });
+
+    if (existingFriendship) {
+      res
+        .status(400)
+        .json({ error: "You cannot send multiple friend requests" });
+      return;
+    }
+
+    const newFriendRequest = await db.insert(friendship).values({
+      incomingId,
+      outgoingId: res.locals.userId!,
+    });
+
+    invalidateQueries(
+      ["friendships", incomingId],
+      ["friendships", res.locals.userId!]
+    );
+
+    res.json(newFriendRequest);
+  } catch (error) {
+    logger.debug(error);
+    res.status(500).json({
+      error,
+    });
+  }
+});
+
+usersRoute.delete("/users/friendships", authMiddleware, async (req, res) => {
+  try {
+    const otherId = req.query.otherId as string | undefined;
+
+    if (!otherId) {
+      res.status(400).json({ error: "Invalid request body" });
+      return;
+    }
+
+    const friendshipResult = await db.query.friendship.findFirst({
+      where: or(
+        and(
+          eq(friendship.incomingId, otherId),
+          eq(friendship.outgoingId, res.locals.userId!)
+        ),
+        and(
+          eq(friendship.incomingId, res.locals.userId!),
+          eq(friendship.outgoingId, otherId)
+        )
+      ),
+    });
+
+    if (!friendshipResult) {
+      res.status(400).json({ error: "Invalid request, no friendship found" });
+      return;
+    }
+
+    await db
+      .delete(friendship)
+      .where(
+        and(
+          eq(friendship.incomingId, friendshipResult.incomingId),
+          eq(friendship.outgoingId, friendshipResult.outgoingId)
+        )
+      );
+
+    invalidateQueries(
+      ["friendships", friendshipResult.incomingId],
+      ["friendships", friendshipResult.outgoingId]
+    );
+
+    res.status(200);
+  } catch (error) {
+    logger.error(error);
+    res.status(500).json({ error });
+  }
+});
+
+usersRoute.patch("/users/friendships", authMiddleware, async (req, res) => {
+  try {
+    const { outgoingId } = req.body as {
+      outgoingId: string | undefined;
+    };
+
+    if (!outgoingId) {
+      res.status(400).json({ error: "Invalid request body" });
+      return;
+    }
+
+    const updatedFriendship = await db
+      .update(friendship)
+      .set({
+        status: "accepted",
+      })
+      .where(
+        and(
+          eq(friendship.outgoingId, outgoingId),
+          eq(friendship.incomingId, res.locals.userId!)
+        )
+      );
+
+    invalidateQueries(
+      ["friendships", outgoingId],
+      ["friendships", res.locals.userId!]
+    );
+
+    res.json(updatedFriendship);
+  } catch (error) {
+    logger.error(error);
+    res.status(500).json({ error });
   }
 });

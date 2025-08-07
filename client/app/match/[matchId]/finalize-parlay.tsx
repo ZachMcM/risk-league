@@ -165,7 +165,7 @@ export default function FinalizeParlay() {
           contentContainerStyle={{
             flexGrow: 1,
           }}
-          className="flex flex-1 w-full px-4 pt-10"
+          className="flex flex-1 w-full px-4 pt-6"
           showsVerticalScrollIndicator={false}
         >
           <View className="flex flex-col gap-4">
@@ -271,7 +271,7 @@ export default function FinalizeParlay() {
               </>
             ) : (
               <View className="flex flex-col items-center gap-4 p-6">
-                <Text className="text-3xl font-bold text-center">
+                <Text className="text-4xl font-bold text-center">
                   More picks needed
                 </Text>
                 <Text className="text-muted-foreground text-lg font-medium text-center">

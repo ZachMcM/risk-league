@@ -2,13 +2,9 @@ import { Rank } from "./rank";
 
 export type User = {
   id: string;
+  image: string;
   username: string;
-  image: string | null;
-  header: string | null;
   rank: Rank;
-  nextRank: Rank | null;
-  points: number
-  progression: number | null;
 };
 
 export type Career = {
@@ -38,4 +34,13 @@ export type Career = {
     };
     count: number;
   } | null;
+};
+
+export type Friendship = {
+  friend: User
+  status: "pending" | "accepted";
+  outgoingId: string;
+  incomingId: string;
+  createdAt: string;
+  updatedAt: string;
 };
