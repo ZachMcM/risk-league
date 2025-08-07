@@ -1,4 +1,5 @@
 import { Rank } from "./rank";
+import { User } from "./user";
 
 export type MatchStatus =
   | "disqualified"
@@ -53,4 +54,14 @@ export type Message = {
     username: string;
     image: string;
   };
+};
+
+export type FriendlyMatchRequest = {
+  id: number;
+  createdAt: string;
+  updatedAt: string;
+  incomingId: string;
+  outgoingId: string;
+  friend: User;
+  status: "pending" | "declined" | "accepted";
 };

@@ -138,18 +138,20 @@ export default function Match() {
           )
         )}
       </ScrollContainer>
-      <Button
-        onPress={() =>
-          router.navigate({
-            pathname: "/match/[matchId]/messages",
-            params: { matchId },
-          })
-        }
-        size="icon"
-        className="rounded-full absolute bottom-6 right-6"
-      >
-        <MessageCircle className="text-white" />
-      </Button>
+      {!match?.resolved && (
+        <Button
+          onPress={() =>
+            router.navigate({
+              pathname: "/match/[matchId]/messages",
+              params: { matchId },
+            })
+          }
+          size="icon"
+          className="rounded-full absolute bottom-6 right-6"
+        >
+          <MessageCircle className="text-white" />
+        </Button>
+      )}
     </Fragment>
   );
 }

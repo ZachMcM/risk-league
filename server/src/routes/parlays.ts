@@ -43,16 +43,16 @@ parlaysRoute.get("/parlays/:id", authMiddleware, async (req, res) => {
 });
 
 parlaysRoute.get("/parlays", authMiddleware, async (req, res) => {
-  if (!req.query.matchId) {
-    res.status(400).json({
-      error: "Missing matchId query string",
-    });
-    return;
-  }
-
-  const matchId = parseInt(req.query.matchId as string);
-
   try {
+    if (!req.query.matchId) {
+      res.status(400).json({
+        error: "Missing matchId query string",
+      });
+      return;
+    }
+
+    const matchId = parseInt(req.query.matchId as string);
+
     const matchUserResult = await db.query.matchUser.findFirst({
       where: and(
         eq(matchUser.userId, res.locals.userId!),
@@ -96,9 +96,9 @@ parlaysRoute.get("/parlays", authMiddleware, async (req, res) => {
 });
 
 parlaysRoute.post("/parlays/:matchId", authMiddleware, async (req, res) => {
-  const matchId = parseInt(req.params.matchId);
-
   try {
+    const matchId = parseInt(req.params.matchId);
+
     const matchUserResult = await db.query.matchUser.findFirst({
       where: and(
         eq(matchUser.matchId, matchId),

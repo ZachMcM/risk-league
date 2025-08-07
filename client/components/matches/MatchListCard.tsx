@@ -94,7 +94,7 @@ export default function MatchListCard({ match }: { match: Match }) {
                 <Text className="font-bold text-3xl">${opponent.balance}</Text>
               </View>
             </View>
-            {match.resolved && (
+            {match.resolved && match.type == "competitive" && (
               <View className="flex flex-row items-center gap-2">
                 {you.pointsDelta > 0 && (
                   <TrendingUp className="text-primary" size={20} />

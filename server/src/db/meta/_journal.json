@@ -127,6 +127,20 @@
       "when": 1754502203161,
       "tag": "0017_empty_rocket_racer",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1754542963516,
+      "tag": "0018_shiny_loners",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1754544959957,
+      "tag": "0019_common_sphinx",
+      "breakpoints": true
     }
   ]
 }

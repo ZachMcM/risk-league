@@ -10,23 +10,23 @@ import { logger } from "../logger";
 export const propsRoute = Router();
 
 propsRoute.get("/props/today", authMiddleware, async (req, res) => {
-  const league = req.query.league;
-
-  if (!league) {
-    res.status(400).json({
-      error: "League parameter is invalid",
-    });
-    return;
-  }
-
   try {
+    const league = req.query.league;
+
+    if (!league) {
+      res.status(400).json({
+        error: "League parameter is invalid",
+      });
+      return;
+    }
+    
     const startOfDay = moment().startOf("day").toISOString();
     const endOfDay = moment().endOf("day").toISOString();
 
     const todayMatches = await db.query.matchUser.findMany({
       where: and(
         gte(matchUser.createdAt, startOfDay),
-        lt(matchUser.createdAt, endOfDay),
+        lt(matchUser.createdAt, endOfDay)
       ),
       columns: {
         id: true,
@@ -72,11 +72,11 @@ propsRoute.get("/props/today", authMiddleware, async (req, res) => {
         and(
           gt(game.startTime, new Date().toISOString()), // games that haven't started
           eq(prop.league, league as string), // correct league
-          notInArray(prop.id, propsPickedAlready),
-        ),
+          notInArray(prop.id, propsPickedAlready)
+        )
       );
 
-    logger.debug(availableProps.length)
+    logger.debug(availableProps.length);
 
     // Get pick counts for each prop
     const propIds = availableProps.map((p) => p.prop.id);

@@ -44,13 +44,13 @@ function DropdownMenuSubTrigger({
   return (
     <TextClassContext.Provider
       value={cn(
-        'select-none text-sm native:text-lg text-primary',
+        'select-none text-sm native:text-lg text-foreground',
         open && 'native:text-accent-foreground'
       )}
     >
       <DropdownMenuPrimitive.SubTrigger
         className={cn(
-          'flex flex-row web:cursor-default web:select-none gap-2 items-center web:focus:bg-accent web:hover:bg-accent active:bg-accent rounded-sm px-2 py-1.5 native:py-2 web:outline-none',
+          'flex flex-row web:cursor-default web:select-none gap-2 items-center web:focus:bg-accent web:hover:bg-accent active:bg-accent rounded-lg px-2 py-1.5 native:py-2 web:outline-none',
           open && 'bg-accent',
           inset && 'pl-8',
           className
@@ -66,22 +66,26 @@ function DropdownMenuSubTrigger({
 
 function DropdownMenuSubContent({
   className,
+  portalHost,
   ...props
 }: DropdownMenuPrimitive.SubContentProps & {
   ref?: React.RefObject<DropdownMenuPrimitive.SubContentRef>;
+  portalHost?: string;
 }) {
   const { open } = DropdownMenuPrimitive.useSubContext();
   return (
-    <DropdownMenuPrimitive.SubContent
-      className={cn(
-        'z-50 min-w-[8rem] overflow-hidden rounded-md border border-border mt-1 bg-popover p-1 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2',
-        open
-          ? 'web:animate-in web:fade-in-0 web:zoom-in-95'
-          : 'web:animate-out web:fade-out-0 web:zoom-out',
-        className
-      )}
-      {...props}
-    />
+    <DropdownMenuPrimitive.Portal hostName={portalHost}>
+      <DropdownMenuPrimitive.SubContent
+        className={cn(
+          'z-50 min-w-[8rem] overflow-hidden rounded-2xl border border-border mt-1 bg-popover p-1 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2',
+          open
+            ? 'web:animate-in web:fade-in-0 web:zoom-in-95'
+            : 'web:animate-out web:fade-out-0 web:zoom-out',
+          className
+        )}
+        {...props}
+      />
+    </DropdownMenuPrimitive.Portal>
   );
 }
 
@@ -115,7 +119,7 @@ function DropdownMenuContent({
       >
         <DropdownMenuPrimitive.Content
           className={cn(
-            'z-50 min-w-[8rem] overflow-hidden rounded-md border border-border bg-popover p-1 web:data-[side=bottom]:slide-in-from-top-2 web:data-[side=left]:slide-in-from-right-2 web:data-[side=right]:slide-in-from-left-2 web:data-[side=top]:slide-in-from-bottom-2',
+            'z-50 min-w-[8rem] overflow-hidden rounded-xl border border-border bg-popover p-1 web:data-[side=bottom]:slide-in-from-top-2 web:data-[side=left]:slide-in-from-right-2 web:data-[side=right]:slide-in-from-left-2 web:data-[side=top]:slide-in-from-bottom-2',
             open
               ? 'web:animate-in web:fade-in-0 web:zoom-in-95'
               : 'web:animate-out web:fade-out-0 web:zoom-out-95',
@@ -141,7 +145,7 @@ function DropdownMenuItem({
     <TextClassContext.Provider value='select-none text-sm native:text-lg text-popover-foreground web:group-focus:text-accent-foreground'>
       <DropdownMenuPrimitive.Item
         className={cn(
-          'relative flex flex-row web:cursor-default gap-2 items-center rounded-sm px-2 py-1.5 native:py-2 web:outline-none web:focus:bg-accent active:bg-accent web:hover:bg-accent group',
+          'relative flex flex-row web:cursor-default gap-2 items-center rounded-lg px-2 py-1.5 native:py-2 web:outline-none web:focus:bg-accent active:bg-accent web:hover:bg-accent group',
           inset && 'pl-8',
           props.disabled && 'opacity-50 web:pointer-events-none',
           className

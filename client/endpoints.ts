@@ -111,6 +111,14 @@ export async function getMessages(id: number): Promise<Message[]> {
   return messages;
 }
 
+export async function postMessage(matchId: number, content: string) {
+  await httpRequest({
+    endpoint: `/matches/${matchId}/messages`,
+    method: "POST",
+    body: JSON.stringify({ content }),
+  });
+}
+
 export async function getTodayProps(league: string): Promise<Prop[]> {
   const todayProps = await httpRequest({
     endpoint: `/props/today?league=${league}`,

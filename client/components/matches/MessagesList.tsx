@@ -1,14 +1,13 @@
 import { useEffect, useRef } from "react";
 import { ScrollView, View } from "react-native";
 import { Text } from "~/components/ui/text";
-import { useMessages } from "../providers/MessagesProvider";
-import ProfileImage from "../ui/profile-image";
 import { authClient } from "~/lib/auth-client";
+import { Message } from "~/types/match";
 import { cn } from "~/utils/cn";
 import { timeAgo } from "~/utils/dateUtils";
+import ProfileImage from "../ui/profile-image";
 
-export default function MessagesList() {
-  const { messages } = useMessages();
+export default function MessagesList({ messages }: { messages: Message[] }) {
   const { data } = authClient.useSession();
   const scrollViewRef = useRef<ScrollView>(null);
 
@@ -17,7 +16,6 @@ export default function MessagesList() {
     scrollViewRef.current?.scrollToEnd({ animated: true });
   }, [messages]);
 
-
   return (
     <ScrollView
       ref={scrollViewRef}
@@ -25,7 +23,8 @@ export default function MessagesList() {
       showsVerticalScrollIndicator={false}
     >
       {messages?.map((message, index) => {
-        const isCurrentUser = data?.user.id && message.user.id === data?.user.id!;
+        const isCurrentUser =
+          data?.user.id && message.user.id === data?.user.id!;
 
         return (
           <View
@@ -38,7 +37,7 @@ export default function MessagesList() {
             <View className="flex flex-row gap-4">
               {!isCurrentUser && (
                 <ProfileImage
-                  className="h-14 w-14 flex-shrink-0"
+                  className="h-12 w-12 flex-shrink-0"
                   image={message.user.image}
                   username={message.user.username}
                 />

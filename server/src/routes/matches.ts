@@ -1,4 +1,4 @@
-import { eq, InferSelectModel } from "drizzle-orm";
+import { and, eq, InferSelectModel, or } from "drizzle-orm";
 import { Router } from "express";
 import { logger } from "../logger";
 import {
@@ -6,11 +6,22 @@ import {
   getPerfectPlayMultiplier,
 } from "../utils/parlayMultipliers";
 import { db } from "../db";
-import { matchUser, match, message, matchStatus, user } from "../db/schema";
+import {
+  matchUser,
+  match,
+  message,
+  matchStatus,
+  user,
+  friendlyMatchRequest,
+  friendship,
+  friendlyMatchRequestStatus,
+} from "../db/schema";
 import { apiKeyMiddleware, authMiddleware } from "../middleware";
 import { invalidateQueries } from "../utils/invalidateQueries";
 import { findRank } from "../utils/findRank";
 import { calculateProgressionDelta } from "../utils/calculateProgressionDelta";
+import { createMatch } from "../sockets/matchmaking";
+import { io } from "..";
 
 export const matchesRoute = Router();
 
@@ -83,9 +94,9 @@ matchesRoute.get("/matches", authMiddleware, async (_, res) => {
 });
 
 matchesRoute.get("/matches/:id", authMiddleware, async (req, res) => {
-  const matchId = parseInt(req.params.id);
-
   try {
+    const matchId = parseInt(req.params.id);
+
     const matchResult = await db.query.match.findFirst({
       where: eq(match.id, matchId),
       with: {
@@ -149,15 +160,17 @@ matchesRoute.get("/matches/:id", authMiddleware, async (req, res) => {
 });
 
 matchesRoute.get("/matches/:id/messages", authMiddleware, async (req, res) => {
-  const matchId = req.params.id;
-
   try {
+    const matchId = req.params.id;
+
     const messages = await db.query.message.findMany({
       where: eq(message.matchId, parseInt(matchId)),
       with: {
         user: {
           columns: {
-            points: true,
+            id: true,
+            image: true,
+            username: true,
           },
         },
       },
@@ -165,6 +178,63 @@ matchesRoute.get("/matches/:id/messages", authMiddleware, async (req, res) => {
     });
 
     res.json(messages);
+  } catch (error) {
+    logger.error(error);
+    res.status(500).json({ error });
+  }
+});
+
+matchesRoute.post("/matches/:id/messages", authMiddleware, async (req, res) => {
+  try {
+    const { content } = req.body as {
+      content: string | undefined;
+    };
+
+    if (!content) {
+      res
+        .status(400)
+        .json({ error: "Invalid request body, missing message content" });
+      return;
+    }
+
+    const [newMessage] = await db
+      .insert(message)
+      .values({
+        userId: res.locals.userId!,
+        content,
+        matchId: parseInt(req.params.id),
+      })
+      .returning({ id: message.id });
+
+    invalidateQueries(["match", parseInt(req.params.id), "messages"]);
+
+    const messageWithUser = await db.query.message.findFirst({
+      where: eq(message.id, newMessage.id),
+      with: {
+        user: {
+          columns: {
+            id: true,
+            username: true,
+            image: true,
+          },
+        },
+      },
+    });
+
+    const matchUsers = await db.query.matchUser.findMany({
+      where: eq(matchUser.matchId, parseInt(req.params.id)),
+      columns: {
+        userId: true,
+      },
+    });
+
+    for (const user of matchUsers) {
+      io.of("/realtime")
+        .to(`user:${user.userId}`)
+        .emit("match-message-received", messageWithUser);
+    }
+
+    res.json(newMessage.id);
   } catch (error) {
     logger.error(error);
     res.status(500).json({ error });
@@ -369,3 +439,166 @@ matchesRoute.patch("/matches/end", apiKeyMiddleware, async (_, res) => {
     res.status(500).json({ error });
   }
 });
+
+matchesRoute.post(
+  "/matches/friendly-match-requests",
+  authMiddleware,
+  async (req, res) => {
+    try {
+      const { incomingId, league } = req.body as {
+        incomingId: string | undefined;
+        league: string | undefined;
+      };
+
+      if (!incomingId || !league) {
+        res.status(400).json({ error: "Invalid request body" });
+        return;
+      }
+
+      const friendshipResult = await db.query.friendship.findFirst({
+        where: and(
+          eq(friendship.incomingId, incomingId),
+          eq(friendship.outgoingId, res.locals.userId!)
+        ),
+      });
+
+      if (!friendshipResult) {
+        res
+          .status(400)
+          .json({ error: "You can only start friendly matches with friends" });
+        return;
+      }
+
+      const [newFriendlyMatchRequest] = await db
+        .insert(friendlyMatchRequest)
+        .values({
+          incomingId,
+          outgoingId: res.locals.userId!,
+          league,
+        })
+        .returning({ id: friendlyMatchRequest.id });
+
+      res.json(newFriendlyMatchRequest);
+    } catch (error) {
+      logger.error(error);
+      res.status(500).json({ error });
+    }
+  }
+);
+
+matchesRoute.get(
+  "/matches/friend-match-requests",
+  authMiddleware,
+  async (_, res) => {
+    try {
+      const friendlyMatchRequests =
+        await db.query.friendlyMatchRequest.findMany({
+          where: and(
+            or(
+              eq(friendlyMatchRequest.incomingId, res.locals.userId!),
+              eq(friendlyMatchRequest.outgoingId, res.locals.userId!)
+            ),
+            eq(friendlyMatchRequest.status, "pending")
+          ),
+          with: {
+            outgoingUser: {
+              columns: {
+                id: true,
+                points: true,
+                image: true,
+                username: true,
+              },
+            },
+            incomingUser: {
+              columns: {
+                id: true,
+                points: true,
+                image: true,
+                username: true,
+              },
+            },
+          },
+        });
+
+      res.json(
+        friendlyMatchRequests.map((request) => ({
+          status: request.status,
+          outgoingId: request.outgoingId,
+          incomingId: request.incomingId,
+          createdAt: request.createdAt,
+          updatedAt: request.updatedAt,
+          friend:
+            request.incomingId == res.locals.userId!
+              ? request.incomingUser
+              : request.outgoingUser,
+        }))
+      );
+    } catch (error) {
+      logger.error(error);
+      res.status(500).json({ error });
+    }
+  }
+);
+
+matchesRoute.patch(
+  "/matches/friend-match-requests/:id",
+  authMiddleware,
+  async (req, res) => {
+    try {
+      const requestId = parseInt(req.params.id);
+
+      const { status } = req.body as {
+        status: "accepted" | "declined" | undefined;
+      };
+
+      if (!status) {
+        res
+          .status(400)
+          .json({ error: "Invalid request body, missing newStatus" });
+        return;
+      }
+
+      const [updatedRequest] = await db
+        .update(friendlyMatchRequest)
+        .set({
+          status,
+        })
+        .where(
+          and(
+            eq(friendlyMatchRequest.id, requestId),
+            or(
+              eq(friendlyMatchRequest.incomingId, res.locals.userId!),
+              eq(friendlyMatchRequest.outgoingId, res.locals.userId!)
+            )
+          )
+        )
+        .returning({
+          id: friendlyMatchRequest.id,
+          outgoingId: friendlyMatchRequest.outgoingId,
+          incomingId: friendlyMatchRequest.incomingId,
+          league: friendlyMatchRequest.league,
+        });
+
+      if (!updatedRequest) {
+        res.status(404).json({ error: "No friendly match request found" });
+        return;
+      }
+
+      if (status == "declined") {
+        res.json(updatedRequest);
+        return;
+      }
+
+      const newMatchId = await createMatch({
+        user1Id: updatedRequest.outgoingId,
+        user2Id: updatedRequest.incomingId,
+        league: updatedRequest.league,
+        type: "friendly",
+      });
+
+      res.json(newMatchId);
+    } catch (error) {
+      logger.error(error);
+    }
+  }
+);

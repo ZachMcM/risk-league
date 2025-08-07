@@ -26,11 +26,10 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Toaster } from "sonner-native";
 import { SplashScreenController } from "~/components/ui/splash";
 import { setAndroidNavigationBar } from "~/lib/android-navigation-bar";
+import { authClient } from "~/lib/auth-client";
 import { NAV_THEME } from "~/lib/constants";
 import { useColorScheme } from "~/lib/useColorScheme";
-import { RealTimeProvider } from "~/components/providers/RealTimeProvider";
-import { authClient } from "~/lib/auth-client";
-import PageTitle from "~/components/ui/page-title";
+import { RealtimeProvider } from "~/components/providers/RealtimeProvider";
 
 onlineManager.setEventListener((setOnline) => {
   const eventSubscription = Network.addNetworkStateListener((state) => {
@@ -58,7 +57,7 @@ SplashScreen.preventAutoHideAsync();
 
 export {
   // Catch any errors thrown by the Layout component.
-  ErrorBoundary,
+  ErrorBoundary
 } from "expo-router";
 
 const queryClient = new QueryClient();
@@ -81,33 +80,35 @@ export default function RootLayout() {
   setColorScheme("dark");
 
   return (
-    <SafeAreaProvider>
-      <GestureHandlerRootView>
-        <QueryClientProvider client={queryClient}>
-          <RealTimeProvider>
-            <ThemeProvider value={DARK_THEME}>
-              <SplashScreenController />
-              <RootNavigatior />
-              <PortalHost />
-              <StatusBar style={isDarkColorScheme ? "light" : "dark"} />
-            </ThemeProvider>
-          </RealTimeProvider>
-          <Toaster
-            toastOptions={{
-              style: {
-                backgroundColor: isDarkColorScheme
-                  ? "hsl(223.8136 0% 9.0527%)" // from --card .dark:root
-                  : "hsl(223.8136 -172.5242% 100%)", // from --card .root
-                borderColor: isDarkColorScheme
-                  ? "hsl(223.8136 0% 15.5096%)" // from --border .dark:root
-                  : "hsl(223.8136 0.0001% 89.8161%)", // from --border .root
-                borderWidth: 1,
-              },
-            }}
-          />
-        </QueryClientProvider>
-      </GestureHandlerRootView>
-    </SafeAreaProvider>
+    <React.Fragment>
+      <SafeAreaProvider>
+        <GestureHandlerRootView>
+          <QueryClientProvider client={queryClient}>
+            <RealtimeProvider>
+              <ThemeProvider value={DARK_THEME}>
+                <SplashScreenController />
+                <RootNavigatior />
+                <StatusBar style={isDarkColorScheme ? "light" : "dark"} />
+              </ThemeProvider>
+            </RealtimeProvider>
+            <Toaster
+              toastOptions={{
+                style: {
+                  backgroundColor: isDarkColorScheme
+                    ? "hsl(223.8136 0% 9.0527%)" // from --card .dark:root
+                    : "hsl(223.8136 -172.5242% 100%)", // from --card .root
+                  borderColor: isDarkColorScheme
+                    ? "hsl(223.8136 0% 15.5096%)" // from --border .dark:root
+                    : "hsl(223.8136 0.0001% 89.8161%)", // from --border .root
+                  borderWidth: 1,
+                },
+              }}
+            />
+          </QueryClientProvider>
+        </GestureHandlerRootView>
+      </SafeAreaProvider>
+      <PortalHost />
+    </React.Fragment>
   );
 }
 

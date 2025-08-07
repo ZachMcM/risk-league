@@ -24,9 +24,7 @@ export default function Home() {
     queryKey: ["user", data?.user.id],
     queryFn: getUserRank,
   });
-
-  console.log(user);
-
+  
   return (
     <ScrollContainer className="px-0 pt-0" safeAreaInsets>
       <View className="relative w-full">

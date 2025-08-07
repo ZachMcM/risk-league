@@ -4,6 +4,17 @@ import { useCallback, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
 import { toast } from "sonner-native";
 import { Button } from "~/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuPortal,
+  DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuTrigger,
+} from "~/components/ui/dropdown-menu";
 import ModalContainer from "~/components/ui/modal-container";
 import ProfileImage from "~/components/ui/profile-image";
 import RankBadge from "~/components/ui/RankBadge";
@@ -28,6 +39,7 @@ import { UserPlus } from "~/lib/icons/UserPlus";
 import { Friendship, User } from "~/types/user";
 import { cn } from "~/utils/cn";
 import { formatCompactNumber } from "~/utils/formatCompactNumber";
+import { Ellipsis } from "~/lib/icons/Ellipsis";
 
 export default function Friends() {
   const { data } = authClient.useSession();
@@ -132,24 +144,23 @@ export default function Friends() {
                       user={user}
                     />
                   ))}
-              {
-                (searchResults?.length == 0 && (
-                  <View className="flex flex-col gap-4 p-4 items-center">
-                    <View className="flex flex-col gap-1 items-center">
-                      <Search size={28} className="text-muted-foreground"/>
-                      <Text className="font-bold text-2xl text-center">
-                        {searchQuery === ""
-                          ? "Search for friends"
-                          : "No results found"}
-                      </Text>
-                      <Text className="font-semibold text-muted-foreground text-center max-w-sm">
-                        {searchQuery === ""
-                          ? "Enter a username to find people"
-                          : "Try searching with a different term"}
-                      </Text>
-                    </View>
+              {searchResults?.length == 0 && (
+                <View className="flex flex-col gap-4 p-4 items-center">
+                  <View className="flex flex-col gap-1 items-center">
+                    <Search size={28} className="text-muted-foreground" />
+                    <Text className="font-bold text-2xl text-center">
+                      {searchQuery === ""
+                        ? "Search for friends"
+                        : "No results found"}
+                    </Text>
+                    <Text className="font-semibold text-muted-foreground text-center max-w-sm">
+                      {searchQuery === ""
+                        ? "Enter a username to find people"
+                        : "Try searching with a different term"}
+                    </Text>
                   </View>
-                ))}
+                </View>
+              )}
             </TabsContent>
             <TabsContent value="requests" className="flex flex-col gap-4">
               {areFriendshipsPending ? (
@@ -301,26 +312,31 @@ function UserCard({
       </View>
       {friendship ? (
         friendship.status == "accepted" ? (
-          <View className="flex flex-row items-center gap-2">
-            <Button
-              variant="outline"
-              className="flex flex-row items-center gap-2"
-            >
-              <Dices size={18} className="text-foreground" />
-              <Text>Play</Text>
-            </Button>
-            <Button
-              onPress={() => removeFriendship()}
-              variant="outline"
-              size="icon"
-            >
-              {isRemovingFriendshipPending ? (
-                <ActivityIndicator className="text-foreground" />
-              ) : (
-                <UserMinus className="text-foreground" size={18} />
-              )}
-            </Button>
-          </View>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button size="icon" variant="outline">
+                <Ellipsis className="text-foreground" size={20} />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-48 mt-2" portalHost="modal">
+              <DropdownMenuItem className="flex flex-row items-center gap-2">
+                <Dices size={18} className="text-foreground" />
+                <Text>Friendly Match</Text>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onPress={() => removeFriendship()}
+                className="flex flex-row items-center gap-2"
+              >
+                {isRemovingFriendshipPending ? (
+                  <ActivityIndicator className="text-foreground" />
+                ) : (
+                  <UserMinus className="text-foreground" size={18} />
+                )}
+                <Text>Remove Friend</Text>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         ) : (
           friendship.status == "pending" &&
           friendship.incomingId == data?.user.id && (

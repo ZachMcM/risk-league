@@ -11,10 +11,12 @@ export async function createMatch({
   user1Id,
   user2Id,
   league,
+  type = "competitive",
 }: {
   user1Id: string;
   user2Id: string;
   league: string;
+  type?: string;
 }) {
   const startingBalance = Math.round(
     parseInt(process.env.MIN_STARTING_BALANCE!) +
@@ -25,7 +27,7 @@ export async function createMatch({
 
   const [matchResult] = await db
     .insert(match)
-    .values({ resolved: false, league })
+    .values({ resolved: false, league, type })
     .returning({ id: match.id });
 
   const { points: user1Points } = (
@@ -63,7 +65,7 @@ export async function createMatch({
 const getQueueKey = (league: string) => `matchmaking:queue:${league}`;
 
 export async function cleanInvalidEntries() {
-  for (const league of ["mlb", "nba"]) {
+  for (const league of ["mlb", "nba", "nfl", "mccb", "cfb"]) {
     const queueKey = getQueueKey(league);
     const queue = await redis.lRange(queueKey, 0, -1);
 

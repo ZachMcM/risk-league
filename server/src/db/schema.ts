@@ -32,6 +32,11 @@ export const friendshipStatus = pgEnum("friendship_status", [
   "accepted",
 ]);
 
+export const friendlyMatchRequestStatus = pgEnum(
+  "friendly_match_request_status",
+  ["pending", "accepted", "declined"]
+);
+
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
@@ -272,3 +277,27 @@ export const friendship = pgTable(
   },
   (table) => [primaryKey({ columns: [table.outgoingId, table.incomingId] })]
 );
+
+export const friendlyMatchRequest = pgTable("friendly_match_request", {
+  id: serial().primaryKey().notNull(),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+    mode: "string",
+  })
+    .defaultNow()
+    .notNull(),
+  updatedAt: timestamp("updated_at", {
+    withTimezone: true,
+    mode: "string",
+  })
+    .defaultNow()
+    .notNull(),
+  incomingId: text("incoming_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  outgoingId: text("outgoing_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  status: friendlyMatchRequestStatus().default("pending").notNull(),
+  league: text().notNull(),
+});
