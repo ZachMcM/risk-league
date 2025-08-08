@@ -9,6 +9,7 @@ import { Text } from "../ui/text";
 import PropCard from "./PropCard";
 import { League, propStats } from "~/lib/constants";
 import { Flame } from "~/lib/icons/Flame";
+import { FlatList } from "react-native-gesture-handler";
 
 export default function PropsView({
   props,
@@ -69,11 +70,12 @@ export default function PropsView({
         </View>
       ) : (
         <ScrollView
-          contentContainerStyle={{
-            flexDirection: "row",
-            alignItems: "center",
-            gap: 10,
-          }}
+          // contentContainerStyle={{
+          //   flexDirection: "row",
+          //   alignItems: "center",
+          //   gap: 10,
+          // }}
+          contentContainerClassName="flex flex-row items-center gap-2 flex-1"
           horizontal
           showsHorizontalScrollIndicator={false}
         >
@@ -112,15 +114,18 @@ export default function PropsView({
             ))}
         </ScrollView>
       )}
-      <View className="flex flex-1 flex-row items-center gap-4 flex-wrap">
-        {(searchActivated ? searchResults : filteredProps).map((prop) => (
+      <FlatList
+        contentContainerClassName=""
+        className="flex-1"
+        data={searchActivated ? searchResults : filteredProps}
+        renderItem={({ item }) => (
           <PropCard
-            key={prop.id}
-            prop={prop}
             popular={!searchActivated && propFilter == "popular"}
+            prop={item}
           />
-        ))}
-      </View>
+        )}
+        keyExtractor={(item) => item.id.toString()}
+      />
     </View>
   );
 }

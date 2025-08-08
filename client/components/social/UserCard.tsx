@@ -250,7 +250,7 @@ export function UserCard({
           <View className="flex flex-row items-center gap-2">
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
-                <Button className="bg-primary/20 border border-primary flex flex-row items-center gap-1">
+                <Button size="sm" className="bg-primary/20 border border-primary flex flex-row items-center gap-1">
                   <Dices className="text-foreground" size={18} />
                   <Text className="font-bold">Play</Text>
                 </Button>

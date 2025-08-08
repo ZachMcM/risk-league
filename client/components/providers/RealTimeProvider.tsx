@@ -284,38 +284,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
 
     socket.on(
       "friendly-match-request-accepted",
-      ({
-        image,
-        username,
-        matchId,
-        id,
-        league,
-      }: {
-        image: string;
-        username: string;
-        matchId: number;
-        id: string;
-        league: League;
-      }) => {
-        if (data.user.id !== id) {
-          toast.custom(
-            <Card className="m-3">
-              <CardContent className="flex flex-row gap-3 items-center px-4 py-3">
-                <ProfileImage
-                  className="h-12 w-12"
-                  image={image}
-                  username={username}
-                />
-                <View className="flex flex-col w-full">
-                  <Text className="font-bold text-lg">{username}</Text>
-                  <Text className="text-muted-foreground font-semibold max-w-[80%]">
-                    Accpeted your {league.toUpperCase()} friendly match request!
-                  </Text>
-                </View>
-              </CardContent>
-            </Card>
-          );
-        }
+      ({ matchId }: { matchId: number }) => {
         router.dismissAll();
         router.navigate({
           pathname: "/match/[matchId]",

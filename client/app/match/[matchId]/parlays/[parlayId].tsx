@@ -29,6 +29,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
+import { FlatList } from "react-native-gesture-handler";
 
 export default function Parlay() {
   const searchParams = useLocalSearchParams<{
@@ -76,7 +77,10 @@ export default function Parlay() {
                           <ChevronDown className="text-primary" size={18} />
                         </Pressable>
                       </PopoverTrigger>
-                      <PopoverContent className="w-[375px]" portalHost="inside-modal-page">
+                      <PopoverContent
+                        className="w-[375px]"
+                        portalHost="inside-modal-page"
+                      >
                         <Text className="font-bold text-lg">
                           Flex Play Payout Outcomes
                         </Text>

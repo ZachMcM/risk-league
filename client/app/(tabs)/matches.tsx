@@ -1,8 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { ActivityIndicator, View } from "react-native";
 import MatchTabs from "~/components/matches/MatchTabs";
-import { ScrollContainer } from "~/components/ui/scroll-container";
-import { Text } from "~/components/ui/text";
+import { Container } from "~/components/ui/container";
 import { getMatches } from "~/endpoints";
 import { authClient } from "~/lib/auth-client";
 
@@ -15,14 +14,14 @@ export default function Matches() {
   });
 
   return (
-    <ScrollContainer>
+    <Container className="pt-2">
       <View className="flex flex-1 flex-col gap-6">
         {isMatchesPending ? (
-          <ActivityIndicator className="text-foreground" />
+          <ActivityIndicator className="text-foreground p-4" />
         ) : (
           matches && <MatchTabs matches={matches} />
         )}
       </View>
-    </ScrollContainer>
+    </Container>
   );
 }

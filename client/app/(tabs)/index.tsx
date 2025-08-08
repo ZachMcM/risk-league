@@ -2,7 +2,6 @@ import { useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { View } from "react-native";
-import MatchmakingDialog from "~/components/matches/MatchmakingDialog";
 import StartMatchCard from "~/components/matches/StartMatchCard";
 import { Button } from "~/components/ui/button";
 import ProfileImage from "~/components/ui/profile-image";

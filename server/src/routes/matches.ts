@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { Router } from "express";
 import { io } from "..";
 import { db } from "../db";
@@ -36,6 +36,8 @@ matchesRoute.get("/matches", authMiddleware, async (_, res) => {
           },
         },
       },
+      orderBy: desc(matchUser.createdAt),
+      limit: 50,
     });
 
     const matchesWithParlayCounts = matchUserResults.map(({ match }) => ({

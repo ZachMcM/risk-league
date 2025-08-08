@@ -5,8 +5,9 @@ import { Parlay } from "~/types/parlay";
 import { Button } from "../ui/button";
 import { SearchBar } from "../ui/search-bar";
 import { Text } from "../ui/text";
-import ParlaysCard from "./ParlayCard";
 import { cn } from "~/utils/cn";
+import { FlatList } from "react-native-gesture-handler";
+import ParlayCard from "./ParlayCard";
 
 const parlayFiltersList = [
   "all",
@@ -132,9 +133,11 @@ export default function ParlaysView({
               ))}
             </ScrollView>
           )}
-          {filteredParlays().map((parlay) => (
-            <ParlaysCard key={parlay.id} parlay={parlay} />
-          ))}
+          <FlatList
+            data={filteredParlays()}
+            renderItem={({ item }) => <ParlayCard parlay={item} />}
+            keyExtractor={(item) => item.id.toString()}
+          />
         </Fragment>
       )}
     </View>

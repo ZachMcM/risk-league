@@ -1,9 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { router, useLocalSearchParams } from "expo-router";
+import { pick } from "lodash";
 import moment from "moment";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, View } from "react-native";
 import { FakeCurrencyInput } from "react-native-currency-input";
+import { FlatList } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
 import FlexPlayOutcomes from "~/components/parlays/FlexPlayOutcomes";
@@ -174,9 +176,9 @@ export default function FinalizeParlay() {
                 <CardContent className="p-0">
                   {picks.map((pick, index) => (
                     <PickEntryCard
-                      key={pick.prop.id}
                       pick={pick}
-                      isLast={index === picks.length - 1}
+                      isLast={index == picks.length - 1}
+                      key={pick.prop.id}
                     />
                   ))}
                 </CardContent>

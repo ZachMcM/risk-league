@@ -1,11 +1,12 @@
+import { router } from "expo-router";
 import { useState } from "react";
 import { View } from "react-native";
+import { FlatList } from "react-native-gesture-handler";
+import { Match } from "~/types/match";
+import { Button } from "../ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { Text } from "../ui/text";
-import { Match } from "~/types/match";
 import MatchListCard from "./MatchListCard";
-import { Button } from "../ui/button";
-import { router } from "expo-router";
 
 export default function MatchTabs({ matches }: { matches: Match[] }) {
   function filterMatches(status: boolean) {
@@ -38,7 +39,7 @@ export default function MatchTabs({ matches }: { matches: Match[] }) {
             <Text>Completed ({completed.length})</Text>
           </TabsTrigger>
         </TabsList>
-        <TabsContent value="in-progress" className="flex flex-col gap-4">
+        <TabsContent value="in-progress">
           {inProgress.length == 0 ? (
             <View className="flex flex-col gap-4 p-4 items-center">
               <View className="flex flex-col gap-1 items-center">
@@ -58,12 +59,15 @@ export default function MatchTabs({ matches }: { matches: Match[] }) {
               </Button>
             </View>
           ) : (
-            inProgress.map((match) => (
-              <MatchListCard key={match.id} match={match} />
-            ))
+            <FlatList
+              contentContainerClassName="flex flex-col gap-4 pb-20"
+              data={inProgress}
+              renderItem={({ item }) => <MatchListCard match={item} />}
+              keyExtractor={(item) => item.id.toString()}
+            />
           )}
         </TabsContent>
-        <TabsContent value="completed" className="flex flex-col gap-4">
+        <TabsContent value="completed">
           {completed.length == 0 ? (
             <View className="flex flex-col gap-4 p-4 items-center">
               <View className="flex flex-col gap-1 items-center">
@@ -83,9 +87,12 @@ export default function MatchTabs({ matches }: { matches: Match[] }) {
               </Button>
             </View>
           ) : (
-            completed.map((match) => (
-              <MatchListCard key={match.id} match={match} />
-            ))
+            <FlatList
+              contentContainerClassName="flex flex-col gap-4 pb-20"
+              data={completed}
+              renderItem={({ item }) => <MatchListCard match={item} />}
+              keyExtractor={(item) => item.id.toString()}
+            />
           )}
         </TabsContent>
       </Tabs>

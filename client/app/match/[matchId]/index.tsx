@@ -3,11 +3,10 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { Fragment, useEffect, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import MatchDetails from "~/components/matches/MatchDetails";
 import ParlaysView from "~/components/parlays/ParlaysView";
 import PropsView from "~/components/props/PropsView";
 import { Button } from "~/components/ui/button";
-import { ScrollContainer } from "~/components/ui/scroll-container";
+import { Container } from "~/components/ui/container";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { Text } from "~/components/ui/text";
 import { getMatch, getParlays, getTodayProps } from "~/endpoints";
@@ -70,7 +69,7 @@ export default function Match() {
 
   return (
     <Fragment>
-      <ScrollContainer className="pb-32">
+      <Container className="pt-2">
         {isMatchPending ? (
           <ActivityIndicator className="text-foreground" />
         ) : (
@@ -81,11 +80,11 @@ export default function Match() {
                 marginBottom: insets.bottom,
               }}
             >
-              <MatchDetails match={match} />
+              {/* <MatchDetails match={match} /> */}
               <Tabs
                 value={tabsValue}
                 onValueChange={setTabsValue}
-                className="flex-col gap-4"
+                className="flex-col gap-4 flex-1"
               >
                 {!match.resolved && (
                   <TabsList className="flex-row w-full">
@@ -97,7 +96,7 @@ export default function Match() {
                     </TabsTrigger>
                   </TabsList>
                 )}
-                <TabsContent value="props">
+                <TabsContent value="props" className="flex-1">
                   {arePropsPending ? (
                     <View className="p-2">
                       <ActivityIndicator className="text-foreground" />
@@ -121,11 +120,9 @@ export default function Match() {
                     ))
                   )}
                 </TabsContent>
-                <TabsContent value="parlays">
+                <TabsContent value="parlays" className="flex-1">
                   {areParlaysPending ? (
-                    <View className="p-2">
-                      <ActivityIndicator className="text-foreground" />
-                    </View>
+                    <ActivityIndicator className="text-foreground p-4" />
                   ) : (
                     parlays &&
                     (parlays.length == 0 && !match.resolved ? (
@@ -161,7 +158,7 @@ export default function Match() {
             </View>
           )
         )}
-      </ScrollContainer>
+      </Container>
       {!match?.resolved && (
         <Button
           onPress={() =>

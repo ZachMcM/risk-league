@@ -179,8 +179,6 @@ friendlyMatchRequestsRoute.patch(
         io.of("/realtime")
           .to(`user:${userId}`)
           .emit("friendly-match-request-accepted", {
-            ...userResult,
-            league: updatedRequest.league,
             matchId: newMatchId,
           });
       }
