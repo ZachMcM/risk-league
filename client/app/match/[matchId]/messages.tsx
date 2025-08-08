@@ -27,50 +27,50 @@ export default function Messages() {
 
   const queryClient = useQueryClient();
 
-  const { mutate: sendMessage } =
-    useMutation({
-      mutationFn: async ({ content }: { content: string }) =>
-        postMessage(matchId, content),
-      onMutate: async ({ content }) => {
-        await queryClient.cancelQueries({
-          queryKey: ["match", matchId, "messages"],
-        });
+  const { mutate: sendMessage } = useMutation({
+    mutationFn: async ({ content }: { content: string }) =>
+      postMessage(matchId, content),
+    onMutate: async ({ content }) => {
+      await queryClient.cancelQueries({
+        queryKey: ["match", matchId, "messages"],
+      });
 
-        const previousMessages = queryClient.getQueryData([
-          "match",
-          matchId,
-          "messages",
-        ]);
-        queryClient.setQueryData(
-          ["match", matchId, "messages"],
-          (old: Message[]) => [
-            ...old,
-            {
-              id: Math.round(Math.random() * 100),
-              content,
-              createdAt: new Date().toISOString(),
-              userId: data?.user.id,
-              matchId,
-              user: {
-                id: data?.user.id,
-                image: data?.user.image,
-                username: data?.user.username,
-              },
+      const previousMessages = queryClient.getQueryData([
+        "match",
+        matchId,
+        "messages",
+      ]);
+      
+      queryClient.setQueryData(
+        ["match", matchId, "messages"],
+        (old: Message[]) => [
+          ...(old || []),
+          {
+            id: Math.round(Math.random() * 100),
+            content,
+            createdAt: new Date().toISOString(),
+            userId: data?.user.id,
+            matchId,
+            user: {
+              id: data?.user.id,
+              image: data?.user.image,
+              username: data?.user.username,
             },
-          ]
-        );
+          },
+        ]
+      );
 
-        return { previousMessages };
-      },
-      onError: (err, _, context) => {
-        console.log(err);
-        toast.error("There was an error sending your message");
-        queryClient.setQueryData(
-          ["match", matchId, "messages"],
-          context?.previousMessages
-        );
-      },
-    });
+      return { previousMessages };
+    },
+    onError: (err, _, context) => {
+      console.log(err);
+      toast.error("There was an error sending your message");
+      queryClient.setQueryData(
+        ["match", matchId, "messages"],
+        context?.previousMessages
+      );
+    },
+  });
 
   const insets = useSafeAreaInsets();
   const [inputValue, setInputValue] = useState("");

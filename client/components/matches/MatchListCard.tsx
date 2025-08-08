@@ -42,15 +42,15 @@ export default function MatchListCard({ match }: { match: Match }) {
         <CardContent className="flex flex-col gap-3 p-4 items-start">
           <View className="flex flex-col gap-2">
             <View className="flex flex-row items-center justify-between w-full">
-              <View className="flex flex-row items-center gap-2">
-                <View className="flex flex-row items-center gap-1">
-                  <LeagueLogo league={match.league} />
+              <View className="flex flex-row items-center gap-1">
+                <View className="flex flex-row items-center gap-2">
+                  <LeagueLogo league={match.league} size={26} />
                   <Text className="text-lg uppercase font-bold">
                     {match.league}
                   </Text>
                 </View>
                 <Text className="font-semibold text-muted-foreground capitalize text-lg">
-                  {match.type}
+                  {match.type} Match
                 </Text>
               </View>
               {match.type == "competitive" && (
@@ -66,7 +66,7 @@ export default function MatchListCard({ match }: { match: Match }) {
                 />
               )}
             </View>
-            <View className="flex flex-row items-center justify-between">
+            <View className="flex flex-row items-center justify-between w-full">
               <View className="flex flex-row items-center gap-1">
                 <Text className="text-muted-foreground font-semibold text-lg">
                   vs

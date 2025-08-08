@@ -43,7 +43,7 @@ export default function StartMatchCard({
         </View>
         <View className="flex flex-col justify-between gap-3 p-4 flex-1">
           <View className="flex flex-row items-center gap-2">
-            <LeagueLogo league={league} />
+            <LeagueLogo size={28} league={league} />
             <Text className="font-extrabold text-2xl uppercase">{league}</Text>
           </View>
           <MatchmakingDialog league={league}>

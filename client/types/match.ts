@@ -9,13 +9,35 @@ export type MatchStatus =
   | "not_resolved"
   | "win";
 
-export type MatchUser = {
+export type ExtendedMatchUser = {
   totalStaked: number;
   parlaysWon: number;
   parlaysLost: number;
   parlaysInProgress: number;
   payoutPotential: number;
   totalParlays: number;
+  id: number;
+  createdAt: string;
+  balance: number;
+  pointsDelta: number;
+  progressionDelta: number | null;
+  status: "not_resolved" | "loss" | "win" | "draw" | "disqualified";
+  userId: string;
+  matchId: number;
+  startingBalance: number;
+  user: {
+    id: string;
+    username: string;
+    image: string;
+  };
+  rankSnapshot: Rank;
+};
+
+export type ExtendedMatch = Match & {
+  matchUsers: ExtendedMatchUser[];
+};
+
+export type MatchUser = {
   id: number;
   createdAt: string;
   balance: number;
@@ -59,6 +81,7 @@ export type Message = {
 
 export type FriendlyMatchRequest = {
   id: number;
+  league: League;
   createdAt: string;
   updatedAt: string;
   incomingId: string;

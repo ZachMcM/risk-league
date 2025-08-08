@@ -15,7 +15,11 @@ import { authClient } from "~/lib/auth-client";
 import { MessageCircle } from "~/lib/icons/MessageCircle";
 
 export default function Match() {
-  const searchParams = useLocalSearchParams<{ matchId: string; openMessages?: string }>();
+  const searchParams = useLocalSearchParams<{
+    matchId: string;
+    openSubRoute?: string;
+    subRouteId?: string;
+  }>();
   const matchId = parseInt(searchParams.matchId);
   const { data } = authClient.useSession();
 
@@ -45,13 +49,24 @@ export default function Match() {
   }, [match?.resolved]);
 
   useEffect(() => {
-    if (searchParams.openMessages === "true") {
+    if (searchParams.openSubRoute === "messages") {
       router.navigate({
         pathname: "/match/[matchId]/messages",
         params: { matchId: searchParams.matchId },
       });
+    } else if (
+      searchParams.openSubRoute == "parlays" &&
+      searchParams.subRouteId
+    ) {
+      router.navigate({
+        pathname: "/match/[matchId]/parlays/[parlayId]",
+        params: {
+          matchId: searchParams.matchId,
+          parlayId: searchParams.subRouteId,
+        },
+      });
     }
-  }, [searchParams.openMessages, searchParams.matchId, router]);
+  }, [searchParams.openSubRoute, searchParams.matchId, router]);
 
   return (
     <Fragment>
@@ -158,7 +173,7 @@ export default function Match() {
           size="icon"
           className="rounded-full absolute bottom-6 right-6"
         >
-          <MessageCircle className="text-white" />
+          <MessageCircle className="text-primary-foreground" />
         </Button>
       )}
     </Fragment>

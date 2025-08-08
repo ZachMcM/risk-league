@@ -113,7 +113,7 @@ export default function ParlaysView({
                   setSearchActivated(true);
                 }}
               >
-                <Search className="text-white" size={16} />
+                <Search className="text-foreground" size={16} />
                 <Text className="font-semibold">Search</Text>
               </Pressable>
               {parlayFiltersList.map((filter) => (

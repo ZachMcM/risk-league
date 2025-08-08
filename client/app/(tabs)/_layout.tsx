@@ -19,7 +19,8 @@ export default function TabsLayout() {
           backgroundColor: "hsl(var(--background))",
           borderTopColor: "hsl(var(--border))",
           borderTopWidth: 1,
-          paddingTop: 6,
+          paddingBottom: 6,
+          paddingTop: 6
         },
         tabBarLabelStyle: {
           fontSize: 12,

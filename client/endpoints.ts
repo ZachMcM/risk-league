@@ -1,6 +1,11 @@
 import { authClient } from "./lib/auth-client";
 import { League } from "./lib/constants";
-import { Match, Message } from "./types/match";
+import {
+  ExtendedMatch,
+  FriendlyMatchRequest,
+  Match,
+  Message,
+} from "./types/match";
 import { Parlay } from "./types/parlay";
 import { Prop } from "./types/prop";
 import { Rank } from "./types/rank";
@@ -94,7 +99,7 @@ export async function getMatches(): Promise<Match[]> {
   return matches;
 }
 
-export async function getMatch(id: number): Promise<Match> {
+export async function getMatch(id: number): Promise<ExtendedMatch> {
   const match = await httpRequest({
     endpoint: `/matches/${id}`,
     method: "GET",
@@ -164,7 +169,7 @@ export async function postParlay(
 
 export async function getFriends(): Promise<Friendship[]> {
   const friends = await httpRequest({
-    endpoint: "/users/friendships",
+    endpoint: "/friendships",
     method: "GET",
   });
 
@@ -173,7 +178,7 @@ export async function getFriends(): Promise<Friendship[]> {
 
 export async function postFriendRequest(incomingId: string) {
   await httpRequest({
-    endpoint: "/users/friendships",
+    endpoint: "/friendships",
     method: "POST",
     body: JSON.stringify({ incomingId }),
   });
@@ -181,15 +186,48 @@ export async function postFriendRequest(incomingId: string) {
 
 export async function deleteFriendship(otherId: string) {
   await httpRequest({
-    endpoint: `/users/friendships?otherId=${otherId}`,
+    endpoint: `/friendships?otherId=${otherId}`,
     method: "DELETE",
   });
 }
 
 export async function patchFriendRequest(outgoingId: string) {
   await httpRequest({
-    endpoint: `/users/friendships`,
+    endpoint: "/friendships",
     method: "PATCH",
     body: JSON.stringify({ outgoingId }),
   });
+}
+
+export async function postFriendlyMatchRequest(
+  incomingId: string,
+  league: League
+) {
+  await httpRequest({
+    endpoint: "/friendly-match-requests",
+    method: "POST",
+    body: JSON.stringify({ incomingId, league }),
+  });
+}
+
+export async function patchFriendlyMatchRequest(
+  id: number,
+  status: "declined" | "accepted"
+) {
+  await httpRequest({
+    endpoint: `/friendly-match-requests/${id}`,
+    method: "PATCH",
+    body: JSON.stringify({ status }),
+  });
+}
+
+export async function getFriendlyMatchRequests(): Promise<
+  FriendlyMatchRequest[]
+> {
+  const friendlyMatchRequests = await httpRequest({
+    endpoint: "/friendly-match-requests",
+    method: "GET",
+  });
+
+  return friendlyMatchRequests;
 }

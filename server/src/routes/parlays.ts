@@ -1,14 +1,15 @@
 import { and, eq, InferInsertModel } from "drizzle-orm";
 import { Router } from "express";
-import { invalidateQueries } from "../utils/invalidateQueries";
 import { db } from "../db";
-import { choiceType, match, matchUser, parlay, pick, prop } from "../db/schema";
+import { choiceType, matchUser, parlay, pick, prop } from "../db/schema";
+import { logger } from "../logger";
 import { apiKeyMiddleware, authMiddleware } from "../middleware";
+import { invalidateQueries } from "../utils/invalidateQueries";
 import {
   getFlexMultiplier,
   getPerfectPlayMultiplier,
 } from "../utils/parlayMultipliers";
-import { logger } from "../logger";
+import { io } from "..";
 
 export const parlaysRoute = Router();
 
@@ -326,6 +327,14 @@ parlaysRoute.patch("/parlays", apiKeyMiddleware, async (req, res) => {
       ["matches", parlayResult.matchUser.match.matchUsers[1].userId],
       ["career", parlayResult.matchUser.userId]
     );
+
+    io.of("/realtime")
+      .to(`user:${parlayResult.matchUser.userId}`)
+      .emit("parlay-resolved", {
+        league: parlayResult.matchUser.match.league,
+        matchId: parlayResult.matchUser.matchId,
+        parlayId: parlayResult.id,
+      });
 
     res.send("Resolved parlay");
   } catch (error) {

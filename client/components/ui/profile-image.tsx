@@ -12,19 +12,13 @@ export default function ProfileImage({
   className?: string;
 }) {
   return (
-    <Avatar
-      className={cn(
-        "h-14 w-14 rounded-lg",
-        className
-      )}
-      alt="Profile"
-    >
+    <Avatar className={cn("h-14 w-14 rounded-lg", className)} alt="Profile">
       <AvatarImage
         source={{
           uri: image!,
         }}
       />
-      <AvatarFallback className="rounded-lg">
+      <AvatarFallback className={cn("rounded-lg", className)}>
         <Text className="font-bold text-sm">
           {username.slice(0, 2).toUpperCase()}
         </Text>

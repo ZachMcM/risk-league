@@ -1,7 +1,12 @@
 import { Pressable, View } from "react-native";
 import { authClient } from "~/lib/auth-client";
 import { AlertTriangle } from "~/lib/icons/AlertTriangle";
-import { Match, MatchUser } from "~/types/match";
+import {
+  ExtendedMatch,
+  ExtendedMatchUser,
+  Match,
+  MatchUser,
+} from "~/types/match";
 import { Alert, AlertTitle } from "../ui/alert";
 import { Badge } from "../ui/badge";
 import { Card, CardContent } from "../ui/card";
@@ -12,8 +17,9 @@ import { Text } from "../ui/text";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 import { getBadgeText, getBadgeVariant } from "~/utils/badgeUtils";
 import { Fragment } from "react";
+import LeagueLogo from "../ui/league-logos/LeagueLogo";
 
-export default function MatchDetails({ match }: { match: Match }) {
+export default function MatchDetails({ match }: { match: ExtendedMatch }) {
   const { data } = authClient.useSession();
   const currentMatchUserIndex =
     data?.user.id == match.matchUsers[0].user.id ? 0 : 1;
@@ -30,6 +36,17 @@ export default function MatchDetails({ match }: { match: Match }) {
     <View className="flex flex-col gap-4">
       <Card>
         <CardContent className="px-4 py-6 flex flex-col gap-6">
+          <View className="flex flex-row items-center gap-1">
+            <View className="flex flex-row items-center gap-2">
+              <LeagueLogo league={match.league} size={26} />
+              <Text className="text-lg uppercase font-bold">
+                {match.league}
+              </Text>
+            </View>
+            <Text className="font-semibold text-muted-foreground capitalize text-lg">
+              {match.type} Match
+            </Text>
+          </View>
           <MatchUserItem
             matchUser={currentMatchUser}
             currentUser={true}
@@ -95,7 +112,7 @@ function MatchUserItem({
   currentUser,
   otherUserBalance,
 }: {
-  matchUser: MatchUser;
+  matchUser: ExtendedMatchUser;
   currentUser: boolean;
   otherUserBalance: number;
 }) {
