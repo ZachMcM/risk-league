@@ -116,7 +116,7 @@ export default function PropsView({
         </View>
       ) : (
         <FlatList
-          contentContainerClassName="pb-72"
+          contentContainerClassName="pb-80"
           showsVerticalScrollIndicator={false}
           data={filteredProps()}
           renderItem={({ item }) => <PropCard prop={item} />}

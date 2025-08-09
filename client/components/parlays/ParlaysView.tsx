@@ -132,7 +132,7 @@ export default function ParlaysView({ parlays }: { parlays: Parlay[] }) {
         </View>
       ) : (
         <FlatList
-          contentContainerClassName="flex flex-col gap-3 pb-72"
+          contentContainerClassName="flex flex-col gap-3 pb-80"
           showsVerticalScrollIndicator={false}
           data={filteredParlays()}
           renderItem={({ item }) => <ParlayCard parlay={item} />}

@@ -40,14 +40,14 @@ export default function MatchDetails({ match }: { match: ExtendedMatch }) {
           <ProfileImage
             image={currentMatchUser.user.image}
             username={currentMatchUser.user.username}
-            className="h-10 w-10"
+            className="h-12 w-12"
           />
           <View className="flex flex-col">
             <Text className="font-bold text-xl">
               ${currentMatchUser.balance.toFixed(2)}
             </Text>
             <Text className="font-semibold text-muted-foreground text-sm">
-              {currentMatchUser.user.username}
+              You
             </Text>
           </View>
         </View>
@@ -66,7 +66,7 @@ export default function MatchDetails({ match }: { match: ExtendedMatch }) {
           <ProfileImage
             image={otherMatchUser.user.image}
             username={otherMatchUser.user.username}
-            className="h-10 w-10"
+            className="h-12 w-12"
           />
         </View>
       </View>
@@ -96,7 +96,7 @@ export default function MatchDetails({ match }: { match: ExtendedMatch }) {
           />
         </CardContent>
       </Card> */}
-      {!match.resolved && (
+      {/* {!match.resolved && (
         <Fragment>
           {currentMatchUser.totalStaked < minTotalStaked && (
             <Tooltip>
@@ -138,7 +138,7 @@ export default function MatchDetails({ match }: { match: ExtendedMatch }) {
             </Tooltip>
           )}
         </Fragment>
-      )}
+      )} */}
     </View>
   );
 }
