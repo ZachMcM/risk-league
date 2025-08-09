@@ -1,15 +1,13 @@
-import { useMemo, useState } from "react";
-import { Pressable, ScrollView, View } from "react-native";
+import { useState } from "react";
+import { FlatList, ScrollView, View } from "react-native";
+import { League, propStats } from "~/lib/constants";
 import { Search } from "~/lib/icons/Search";
-import { cn } from "~/utils/cn";
 import { Prop } from "~/types/prop";
+import { cn } from "~/utils/cn";
 import { Button } from "../ui/button";
 import { SearchBar } from "../ui/search-bar";
 import { Text } from "../ui/text";
 import PropCard from "./PropCard";
-import { League, propStats } from "~/lib/constants";
-import { Flame } from "~/lib/icons/Flame";
-import { FlatList } from "react-native-gesture-handler";
 
 export default function PropsView({
   props,
@@ -18,44 +16,42 @@ export default function PropsView({
   props: Prop[];
   league: League;
 }) {
-  const [propFilter, setPropFilter] = useState<string>("popular");
+  const [propFilter, setPropFilter] = useState<string>(
+    propStats.filter((stat) => stat.league == league)[0].id
+  );
   const [searchActivated, setSearchActivated] = useState(false);
-  const [searchContent, setSearchContent] = useState<string | undefined>(
-    undefined
-  );
+  const [searchContent, setSearchContent] = useState<string>("");
 
-  const filteredProps = useMemo(
-    () =>
-      propFilter == "popular"
-        ? props.sort((a, b) => b.picksCount - a.picksCount).slice(0, 14)
-        : props.filter((prop) => prop.statName == propFilter),
-    [props, propFilter]
-  );
+  const filteredProps = (filter?: string) => {
+    if (searchActivated) {
+      const searchLower = searchContent.toLocaleLowerCase().trim();
 
-  const searchResults = useMemo(() => {
-    if (!searchContent) return filteredProps;
-
-    const searchLower = searchContent.toLocaleLowerCase().trim();
-    return props.filter(
-      (prop) =>
-        prop.player.name?.toLocaleLowerCase().includes(searchLower) ||
-        prop.player.team.fullName?.toLocaleLowerCase().includes(searchLower) ||
-        prop.player.team.abbreviation
-          ?.toLocaleLowerCase()
-          .includes(searchLower) ||
-        prop.player.position?.toLocaleLowerCase().includes(searchLower) ||
-        prop.statDisplayName.toLocaleLowerCase().includes(searchLower)
-    );
-  }, [props, searchContent, filteredProps]);
+      return props.filter(
+        (prop) =>
+          prop.player.name?.toLocaleLowerCase().includes(searchLower) ||
+          prop.player.team.fullName
+            ?.toLocaleLowerCase()
+            .includes(searchLower) ||
+          prop.player.team.abbreviation
+            ?.toLocaleLowerCase()
+            .includes(searchLower) ||
+          prop.player.position?.toLocaleLowerCase().includes(searchLower) ||
+          prop.statDisplayName?.toLocaleLowerCase().includes(searchLower)
+      );
+    }
+    const selectedFilter = filter ?? propFilter;
+    return props.filter((prop) => prop.statName == selectedFilter);
+  };
 
   return (
-    <View className="flex flex-1 flex-col gap-6">
+    <View className="flex flex-col gap-4">
       {searchActivated ? (
-        <View className="flex flex-1 flex-row items-center gap-3">
+        <View className="flex flex-row items-center gap-3 w-full py-1 h-11">
           <SearchBar
             value={searchContent}
             onChangeText={setSearchContent}
             placeholder="Search"
+            className="flex-1 h-11"
           />
           <Button
             size="sm"
@@ -69,63 +65,67 @@ export default function PropsView({
           </Button>
         </View>
       ) : (
-        <ScrollView
-          // contentContainerStyle={{
-          //   flexDirection: "row",
-          //   alignItems: "center",
-          //   gap: 10,
-          // }}
-          contentContainerClassName="flex flex-row items-center gap-2 flex-1"
-          horizontal
-          showsHorizontalScrollIndicator={false}
-        >
-          <Pressable
-            className="flex flex-row items-center gap-2 border-2 border-border py-2 px-4 rounded-xl"
-            onPress={() => {
-              setSearchActivated(true);
-            }}
+        <View className="h-11">
+          <ScrollView
+            contentContainerClassName="flex flex-row items-center gap-2 py-1 h-11"
+            horizontal
+            showsHorizontalScrollIndicator={false}
           >
-            <Search className="text-foreground" size={16} />
-            <Text className="font-semibold">Search</Text>
-          </Pressable>
-          <Pressable
-            className={cn(
-              "flex flex-row items-center gap-3 border-2 border-border py-2 px-4 rounded-xl",
-              propFilter == "popular" && "border-primary bg-primary/20"
-            )}
-            onPress={() => setPropFilter("popular")}
-          >
-            <Flame className="text-orange-500" size={20} />
-            <Text className="font-semibold">Popular</Text>
-          </Pressable>
-          {propStats
-            .filter((stat) => stat.league == league)
-            .map((stat) => (
-              <Pressable
-                key={stat.id}
-                className={cn(
-                  "flex flex-row items-center gap-3 border-2 border-border py-2 px-4 rounded-xl",
-                  propFilter == stat.id && "border-primary bg-primary/20"
-                )}
-                onPress={() => setPropFilter(stat.id)}
-              >
-                <Text className="font-semibold">{stat.name}</Text>
-              </Pressable>
-            ))}
-        </ScrollView>
+            <Button
+              className="flex flex-row items-center justify-center gap-2"
+              variant="outline"
+              size="sm"
+              onPress={() => {
+                setSearchActivated(true);
+              }}
+            >
+              <Search className="text-foreground" size={16} />
+              <Text className="font-semibold">Search</Text>
+            </Button>
+            {propStats
+              .filter((stat) => stat.league == league)
+              .map((stat) => (
+                <Button
+                  key={stat.id}
+                  variant="outline"
+                  size="sm"
+                  className={cn(
+                    "border-2 border-border/80 shadow-sm min-w-0",
+                    propFilter == stat.id && "border-primary bg-primary/20"
+                  )}
+                  onPress={() => setPropFilter(stat.id)}
+                >
+                  <Text className="font-semibold">{stat.name}</Text>
+                </Button>
+              ))}
+          </ScrollView>
+        </View>
       )}
-      <FlatList
-        contentContainerClassName=""
-        className="flex-1"
-        data={searchActivated ? searchResults : filteredProps}
-        renderItem={({ item }) => (
-          <PropCard
-            popular={!searchActivated && propFilter == "popular"}
-            prop={item}
-          />
-        )}
-        keyExtractor={(item) => item.id.toString()}
-      />
+      {filteredProps().length == 0 ? (
+        <View className="flex flex-col gap-4 p-4 items-center">
+          <View className="flex flex-col gap-4 items-center">
+            <View className="flex flex-col gap-1 items-center">
+              <Text className="font-bold text-2xl text-center">
+                No prop results
+              </Text>
+              <Text className="font-semibold text-muted-foreground text-center max-w-sm">
+                Try a different filter
+              </Text>
+            </View>
+          </View>
+        </View>
+      ) : (
+        <FlatList
+          contentContainerClassName="pb-72"
+          showsVerticalScrollIndicator={false}
+          data={filteredProps()}
+          renderItem={({ item }) => <PropCard prop={item} />}
+          keyExtractor={(item) => item.id.toString()}
+          numColumns={2}
+          columnWrapperStyle={{ gap: 12 }}
+          contentContainerStyle={{ gap: 12 }}
+        />
+      )}
     </View>
   );
 }

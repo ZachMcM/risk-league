@@ -239,6 +239,7 @@ export function UserCard({
             gradientStyle={{
               paddingHorizontal: 10,
               gap: 4,
+              alignSelf: "flex-start"
             }}
             rank={user.rank}
             showIcon

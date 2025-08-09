@@ -84,14 +84,14 @@ export default function MatchListCard({ match }: { match: Match }) {
           <View className="flex flex-row items-end justify-between w-full">
             <View className="flex flex-col gap-2 items-start">
               <Badge className="px-3.5" variant={badgeVariant}>
-                <Text className="text-base">{badgeText}</Text>
+                <Text className="text-sm">{badgeText}</Text>
               </Badge>
               <View className="flex flex-row items-center gap-1">
-                <Text className="font-bold text-3xl text-primary">
-                  ${you.balance}
+                <Text className="font-bold text-2xl text-primary">
+                  ${you.balance.toFixed(2)}
                 </Text>
-                <Text className="font-bold text-3xl">-</Text>
-                <Text className="font-bold text-3xl">${opponent.balance}</Text>
+                <Text className="font-bold text-2xl">-</Text>
+                <Text className="font-bold text-2xl">${opponent.balance.toFixed(2)}</Text>
               </View>
             </View>
             {match.resolved && match.type == "competitive" && (
@@ -102,10 +102,10 @@ export default function MatchListCard({ match }: { match: Match }) {
                 {you.pointsDelta < 0 && (
                   <TrendingDown className="text-primary" size={20} />
                 )}
-                <Text className="font-bold text-xl text-primary">
-                  {you.pointsDelta > 0 && "+"}
+                <Text className="font-bold text-2xl text-primary">
+                  {you.pointsDelta >= 0 && "+"}
                   {you.progressionDelta !== null
-                    ? `${you.progressionDelta} Progression`
+                    ? `${you.progressionDelta}%`
                     : `${you.pointsDelta} Points`}
                 </Text>
               </View>

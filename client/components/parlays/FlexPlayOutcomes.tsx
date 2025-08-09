@@ -11,7 +11,7 @@ export default function FlexPlayOutcomes({
   stake: number | null;
 }) {
   return getFlexMultiplierTable(length).map(({ hits, multiplier }) => (
-    <FlexOutcomeItem stake={stake} hits={hits} multiplier={multiplier} />
+    <FlexOutcomeItem length={length} stake={stake} hits={hits} multiplier={multiplier} />
   ));
 }
 
@@ -19,10 +19,12 @@ function FlexOutcomeItem({
   hits,
   multiplier,
   stake,
+  length
 }: {
   hits: number;
   multiplier: number;
   stake: number | null;
+  length: number
 }) {
   return (
     <View key={hits} className="flex flex-row items-center justify-between">

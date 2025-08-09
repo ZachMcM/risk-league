@@ -1,36 +1,25 @@
+import moment from "moment";
+import { View } from "react-native";
 import { Prop } from "~/types/prop";
+import { cn } from "~/utils/cn";
+import { useParlay } from "../providers/ParlayProvider";
+import { Badge } from "../ui/badge";
+import { Button } from "../ui/button";
 import { Card, CardContent } from "../ui/card";
 import { Text } from "../ui/text";
-import { View } from "react-native";
-import { Badge } from "../ui/badge";
-import moment from "moment";
-import { Button } from "../ui/button";
-import { useParlay } from "../providers/ParlayProvider";
-import { Flame } from "~/lib/icons/Flame";
-import { cn } from "~/utils/cn";
-import { formatCompactNumber } from "~/utils/formatCompactNumber";
 
-export default function PropCard({
-  prop,
-  popular,
-}: {
-  prop: Prop;
-  popular?: boolean;
-}) {
+export default function PropCard({ prop }: { prop: Prop }) {
   const { isPropPicked, addPick, removePick, updatePick, getPickChoice } =
     useParlay();
 
+  // Safety check for essential prop data
+  if (!prop.player?.name || !prop.line || !prop.choices) {
+    return null;
+  }
+
   return (
-    <Card className={cn("w-[48%] self-stretch", isPropPicked(prop.id) && "border-primary")}>
-      <CardContent className="p-4 flex flex-col flex-1 items-center gap-4 justify-between">
-        {popular && (
-          <View className="flex flex-row items-center gap-1">
-            <Flame className="text-orange-600" size={12} />
-            <Text className="self-end text-xs font-semibold text-muted-foreground">
-              {formatCompactNumber(prop.picksCount)}
-            </Text>
-          </View>
-        )}
+    <Card className={cn("flex-1 max-w-[48%]", isPropPicked(prop.id) && "border-primary")}>
+      <CardContent className="p-4 flex flex-col items-center gap-4">
         <View className="flex flex-col items-center gap-1">
           <View className="flex flex-row items-center gap-2">
             <Badge variant="secondary">
@@ -40,9 +29,12 @@ export default function PropCard({
               {prop.player.position}
             </Text>
           </View>
-          <Text className="font-bold text-lg text-center">{prop.player.name}</Text>
+          <Text className="font-bold text-lg text-center">
+            {prop.player.name}
+          </Text>
           <Text className="font-semibold text-muted-foreground text-sm text-center">
-            {prop.game.awayTeam.abbreviation} at {prop.game.homeTeam.abbreviation} •{" "}
+            {prop.game.awayTeam.abbreviation} at{" "}
+            {prop.game.homeTeam.abbreviation} •{" "}
             {moment(prop.game.startTime).format("ddd h:mm A")}
           </Text>
         </View>

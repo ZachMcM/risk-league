@@ -1,11 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { router, useLocalSearchParams } from "expo-router";
-import { pick } from "lodash";
 import moment from "moment";
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, View } from "react-native";
 import { FakeCurrencyInput } from "react-native-currency-input";
-import { FlatList } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
 import FlexPlayOutcomes from "~/components/parlays/FlexPlayOutcomes";
@@ -42,12 +40,12 @@ export default function FinalizeParlay() {
     (matchUser) => matchUser.user.id == data?.user.id!
   )!;
 
-  const [stake, setStake] = useState<number | null>(0);
+  const minStake = Math.round(balance * 0.2);
+
+  const [stake, setStake] = useState<number | null>(minStake);
   const [type, setType] = useState("perfect");
   const [formError, setFormError] = useState<null | string>(null);
   const queryClient = useQueryClient();
-
-  const minStake = balance * 0.2;
 
   useEffect(() => {
     if (formError) {
@@ -74,7 +72,7 @@ export default function FinalizeParlay() {
   }, [formError, stake]);
 
   const { mutate: createParlay, isPending: isCreatingParlayPending } =
-    useMutation({
+    useMutation<{ id: number }, Error, void>({
       mutationFn: async () =>
         await postParlay(matchId, {
           type,
@@ -86,7 +84,7 @@ export default function FinalizeParlay() {
           position: "bottom-center",
         });
       },
-      onSuccess: () => {
+      onSuccess: ({ id }: { id: number }) => {
         clearParlay();
         invalidateQueries(
           queryClient,
@@ -98,7 +96,11 @@ export default function FinalizeParlay() {
         toast.success("Parlay Successfully created", {
           position: "bottom-center",
         });
-        router.dismiss();
+        router.dismissAll();
+        router.navigate({
+          pathname: "/match/[matchId]/parlays/[parlayId]",
+          params: { matchId, parlayId: id }
+        })
       },
     });
 
@@ -164,10 +166,8 @@ export default function FinalizeParlay() {
           </Pressable>
         </View>
         <ScrollView
-          contentContainerStyle={{
-            flexGrow: 1,
-          }}
-          className="flex flex-1 w-full px-4 pt-6"
+          contentContainerClassName="flex-grow py-6"
+          className="flex flex-1 w-full px-4"
           showsVerticalScrollIndicator={false}
         >
           <View className="flex flex-col gap-4">
@@ -185,7 +185,7 @@ export default function FinalizeParlay() {
               </Card>
             )}
             {(type == "perfect" ? picks.length >= 2 : picks.length >= 3) ? (
-              <>
+              <Fragment>
                 <Card
                   className={cn("w-full", formError && "border-destructive")}
                 >
@@ -270,35 +270,40 @@ export default function FinalizeParlay() {
                     )}
                   </CardContent>
                 </Card>
-              </>
+              </Fragment>
             ) : (
-              <View className="flex flex-col items-center gap-4 p-6">
-                <Text className="text-4xl font-bold text-center">
-                  More picks needed
-                </Text>
-                <Text className="text-muted-foreground text-lg font-medium text-center">
-                  {type == "perfect"
-                    ? "You need at least 2 picks for a perfect play"
-                    : "You need at least 3 picks for a flex play"}
-                </Text>
-                <Button
-                  variant="foreground"
-                  onPress={() =>
-                    router.replace({
-                      pathname: "/match/[matchId]",
-                      params: { matchId },
-                    })
-                  }
-                >
-                  <Text className="font-semibold">Add Pick</Text>
-                </Button>
+              <View className="flex flex-col gap-4 p-4 items-center">
+                <View className="flex flex-col gap-4 items-center">
+                  <View className="flex flex-col gap-1 items-center">
+                    <Text className="font-bold text-2xl text-center">
+                      Not enough picks
+                    </Text>
+                    <Text className="font-semibold text-muted-foreground text-center max-w-sm">
+                      {type == "perfect"
+                        ? "You need at least 2 picks for a perfect play"
+                        : "You need at least 3 picks for a flex play"}
+                    </Text>
+                  </View>
+                  <Button
+                    size="sm"
+                    onPress={() =>
+                      router.replace({
+                        pathname: "/match/[matchId]",
+                        params: { matchId },
+                      })
+                    }
+                    variant="foreground"
+                  >
+                    <Text className="font-semibold">Add Picks</Text>
+                  </Button>
+                </View>
               </View>
             )}
           </View>
         </ScrollView>
         {(type == "perfect" ? picks.length >= 2 : picks.length >= 3) && (
           <View
-            className="flex flex-col items-center gap-6 p-6 border-t border-border"
+            className="flex flex-col items-center gap-4 p-4 border-t border-border"
             style={{
               marginBottom: insets.bottom,
             }}
@@ -321,10 +326,12 @@ export default function FinalizeParlay() {
                       : stake && stake != 0 && "line-through"
                   )}
                 >
-                  ${balance}
+                  ${balance.toFixed(2)}
                 </Text>
                 <Text className="font-semibold text-lg">
-                  {!formError && stake ? `$ ${balance - stake}` : ""}
+                  {!formError && stake
+                    ? `$ ${(balance - stake).toFixed(2)}`
+                    : ""}
                 </Text>
               </View>
               {formError && (
@@ -333,10 +340,8 @@ export default function FinalizeParlay() {
                 </Text>
               )}
             </View>
-
             <Button
               onPress={handleSubmitParlay}
-              size="lg"
               className="w-full flex flex-row items-center gap-2"
             >
               <Text className="font-bold">Submit Parlay</Text>
@@ -411,7 +416,7 @@ export function PickEntryCard({
               }
             }}
             className={cn(
-              "w-20 flex-row justify-center items-center bg-background border border-border",
+              "w-20 flex-row justify-center items-center bg-secondary border border-border",
               getPickChoice(prop.id) == choice && "border-primary bg-primary/20"
             )}
             key={`${prop.id}_option_${i}`}

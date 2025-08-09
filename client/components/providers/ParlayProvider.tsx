@@ -36,7 +36,7 @@ export function ParlayProvider({ children }: { children: ReactNode }) {
 
   function updatePick(propId: number, newPick: string) {
     const updatedPicks = picks.map((pick) =>
-      pick.prop.id === propId ? { ...pick, pick: newPick } : pick
+      pick.prop.id === propId ? { ...pick, choice: newPick } : pick
     );
     setPicks(updatedPicks);
   }
@@ -106,8 +106,8 @@ export function ParlayPickerFooter() {
 
   return (
     <View
-      className="flex flex-row items-center justify-between gap-4 border-t border-border p-4 pb-0"
-      style={{ marginBottom: insets.bottom }}
+      className="flex flex-row items-center justify-between gap-4 border-t border-border p-4"
+      style={{ paddingBottom: insets.bottom }}
     >
       {/* TODO replace with images */}
       <Text className="font-semibold text-muted-foreground">
@@ -117,7 +117,7 @@ export function ParlayPickerFooter() {
             .filter((e, i, self) => i === self.indexOf(e))
             .join(", "),
           {
-            length: 30,
+            length: 25,
           }
         )}
       </Text>

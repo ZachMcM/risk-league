@@ -159,8 +159,8 @@ export async function postParlay(
     stake: number;
     picks: { prop: Prop; choice: string }[];
   }
-) {
-  await httpRequest({
+): Promise<{ id: number }> {
+  return await httpRequest({
     endpoint: `/parlays/${matchId}`,
     method: "POST",
     body: JSON.stringify(parlay),

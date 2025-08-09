@@ -20,6 +20,8 @@ export default function MessagesList({ messages }: { messages: Message[] }) {
   return (
     <FlatList
       contentContainerClassName="flex-1 px-6 w-full pb-20"
+              showsVerticalScrollIndicator={false}
+
       data={messages}
       renderItem={({ item }) => <MessageCard message={item} />}
       keyExtractor={(item, index) =>

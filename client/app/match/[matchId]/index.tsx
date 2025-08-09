@@ -70,94 +70,90 @@ export default function Match() {
   return (
     <Fragment>
       <Container className="pt-2">
-        {isMatchPending ? (
-          <ActivityIndicator className="text-foreground" />
-        ) : (
-          match && (
-            <View
-              className="flex flex-col flex-1 gap-8"
-              style={{
-                marginBottom: insets.bottom,
-              }}
-            >
-              {/* <MatchDetails match={match} /> */}
-              <Tabs
-                value={tabsValue}
-                onValueChange={setTabsValue}
-                className="flex-col gap-4 flex-1"
-              >
-                {!match.resolved && (
-                  <TabsList className="flex-row w-full">
-                    <TabsTrigger value="parlays" className="flex-1">
-                      <Text>Parlays</Text>
-                    </TabsTrigger>
-                    <TabsTrigger value="props" className="flex-1">
-                      <Text>Props</Text>
-                    </TabsTrigger>
-                  </TabsList>
-                )}
-                <TabsContent value="props" className="flex-1">
-                  {arePropsPending ? (
-                    <View className="p-2">
-                      <ActivityIndicator className="text-foreground" />
-                    </View>
-                  ) : (
-                    props &&
-                    (props.length == 0 && !match.resolved ? (
-                      <View className="flex flex-col gap-4 p-4 items-center">
-                        <View className="flex flex-col gap-1 items-center">
-                          <Text className="font-bold text-2xl text-center">
-                            No props to bet on
-                          </Text>
-                          <Text className="font-semibold text-muted-foreground text-center">
-                            All games are in progress, there is nothing left to
-                            bet on. Good luck!
-                          </Text>
-                        </View>
-                      </View>
-                    ) : (
-                      <PropsView props={props} league={match.league} />
-                    ))
+        <View className="flex flex-1 flex-col gap-6">
+          {isMatchPending ? (
+            <ActivityIndicator className="text-foreground p-4" />
+          ) : (
+            match && (
+              <View className="flex flex-1">
+                <Tabs
+                  value={tabsValue}
+                  onValueChange={setTabsValue}
+                  className="flex flex-col gap-4"
+                >
+                  {!match.resolved && (
+                    <TabsList className="flex-row w-full">
+                      <TabsTrigger value="parlays" className="flex-1">
+                        <Text>Parlays</Text>
+                      </TabsTrigger>
+                      <TabsTrigger value="props" className="flex-1">
+                        <Text>Props</Text>
+                      </TabsTrigger>
+                    </TabsList>
                   )}
-                </TabsContent>
-                <TabsContent value="parlays" className="flex-1">
-                  {areParlaysPending ? (
-                    <ActivityIndicator className="text-foreground p-4" />
-                  ) : (
-                    parlays &&
-                    (parlays.length == 0 && !match.resolved ? (
-                      <View className="flex flex-col gap-4 p-4 items-center">
-                        <View className="flex flex-col gap-1 items-center">
-                          <Text className="font-bold text-2xl text-center">
-                            No parlays
-                          </Text>
-                          <Text className="font-semibold text-muted-foreground text-center">
-                            You haven't created any parlays yet, get on it!
-                          </Text>
-                        </View>
-                        <Button
-                          size="sm"
-                          variant="foreground"
-                          onPress={() => setTabsValue("props")}
-                          className="self-center"
-                        >
-                          <Text>Create Parlay</Text>
-                        </Button>
-                      </View>
+                  <TabsContent value="props">
+                    {arePropsPending ? (
+                      <ActivityIndicator className="p-4 text-foreground" />
                     ) : (
-                      <View className="flex flex-1 flex-col gap-6 w-full flex-shrink-0">
-                        <ParlaysView
-                          parlays={parlays}
-                          resolved={match.resolved}
-                        />
-                      </View>
-                    ))
-                  )}
-                </TabsContent>
-              </Tabs>
-            </View>
-          )
-        )}
+                      props &&
+                      (props.length == 0 && !match.resolved ? (
+                        <View className="flex flex-col gap-4 p-4 items-center">
+                          <View className="flex flex-col gap-1 items-center">
+                            <Text className="font-bold text-2xl text-center">
+                              No props to bet on
+                            </Text>
+                            <Text className="font-semibold text-muted-foreground text-center">
+                              All games are in progress, there is nothing left
+                              to bet on. Good luck!
+                            </Text>
+                          </View>
+                        </View>
+                      ) : (
+                        <PropsView props={props} league={match.league} />
+                      ))
+                    )}
+                  </TabsContent>
+                  <TabsContent value="parlays">
+                    {areParlaysPending ? (
+                      <ActivityIndicator className="p-4 text-foreground" />
+                    ) : (
+                      parlays &&
+                      (parlays.length == 0 ? (
+                        <View className="flex flex-col gap-4 p-4 items-center">
+                          <View className="flex flex-col gap-4 items-center">
+                            <View className="flex flex-col gap-1 items-center">
+                              <Text className="font-bold text-2xl text-center">
+                                No parlays currently
+                              </Text>
+                              <Text className="font-semibold text-muted-foreground text-center max-w-sm">
+                                {match.resolved
+                                  ? "Next time place at least 2 parlays to avoid disqualification"
+                                  : "Go place some parlays"}
+                              </Text>
+                            </View>
+                            {!match.resolved && (
+                              <Button
+                                onPress={() => setTabsValue("props")}
+                                variant="foreground"
+                                size="sm"
+                              >
+                                <Text className="font-semibold">
+                                  Find Picks
+                                </Text>
+                              </Button>
+                            )}
+                          </View>
+                        </View>
+                      ) : (
+                        <ParlaysView parlays={parlays} />
+                      ))
+                    )}
+                  </TabsContent>
+                </Tabs>
+              </View>
+            )
+          )}
+        </View>
       </Container>
       {!match?.resolved && (
         <Button

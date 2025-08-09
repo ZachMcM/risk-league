@@ -18,11 +18,12 @@ export function ScrollContainer({
     <KeyboardAvoidingView className="flex-1 flex" behavior="padding">
       <ScrollView
         keyboardShouldPersistTaps="handled"
+        contentContainerClassName="flex-grow"
         contentContainerStyle={{
-          flexGrow: 1,
           marginTop: safeAreaInsets ? insets.top : 0,
           marginBottom: insets.bottom,
         }}
+        showsVerticalScrollIndicator={false}
       >
         <View className={cn("flex flex-1 px-4 pt-2 pb-16", className)}>
           {children}

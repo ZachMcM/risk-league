@@ -156,6 +156,8 @@ export default function Friends() {
             ) : (
               <FlatList
                 contentContainerClassName="flex flex-col gap-4 pb-16"
+                        showsVerticalScrollIndicator={false}
+
                 className="flex-1"
                 data={searchResults}
                 renderItem={({ item }) => (
@@ -187,6 +189,8 @@ export default function Friends() {
             ) : (
               <FlatList
                 contentContainerClassName="flex flex-col gap-4 pb-16"
+                        showsVerticalScrollIndicator={false}
+
                 className="flex-1"
                 data={friendRequests}
                 renderItem={({ item }) => (
@@ -222,6 +226,8 @@ export default function Friends() {
             ) : (
               <FlatList
                 contentContainerClassName="flex flex-col gap-4 pb-16"
+                        showsVerticalScrollIndicator={false}
+
                 className="flex-1"
                 data={friends}
                 renderItem={({ item }) => (

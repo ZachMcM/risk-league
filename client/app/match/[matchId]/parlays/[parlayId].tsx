@@ -46,7 +46,7 @@ export default function Parlay() {
 
   return (
     <ModalContainer>
-      <ScrollContainer className="pt-10">
+      <ScrollContainer className="pt-6">
         {isParlayPending ? (
           <ActivityIndicator className="text-foreground" />
         ) : (
@@ -98,7 +98,7 @@ export default function Parlay() {
                   <Text className="text-muted-foreground font-semibold">
                     Stake
                   </Text>
-                  <Text className="font-bold text-3xl">${parlay.stake}</Text>
+                  <Text className="font-bold text-2xl">${parlay.stake}</Text>
                 </View>
                 <View className="flex flex-col gap-1 items-center">
                   <Separator className="h-6" orientation="vertical" />
@@ -129,7 +129,7 @@ export default function Parlay() {
                       ? "Amount Won"
                       : "Amount Lost"}
                   </Text>
-                  <Text className="font-bold text-3xl">
+                  <Text className="font-bold text-2xl">
                     $
                     {!parlay.resolved
                       ? (

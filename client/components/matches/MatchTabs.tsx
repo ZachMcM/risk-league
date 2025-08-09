@@ -29,7 +29,7 @@ export default function MatchTabs({ matches }: { matches: Match[] }) {
       <Tabs
         value={matchStatus}
         onValueChange={setMatchStatus}
-        className="flex-col gap-4"
+        className="flex flex-col gap-4"
       >
         <TabsList className="flex-row w-full">
           <TabsTrigger value="in-progress" className="flex-1">
@@ -60,7 +60,8 @@ export default function MatchTabs({ matches }: { matches: Match[] }) {
             </View>
           ) : (
             <FlatList
-              contentContainerClassName="flex flex-col gap-4 pb-20"
+              contentContainerClassName="flex flex-col gap-3 pb-20"
+              showsVerticalScrollIndicator={false}
               data={inProgress}
               renderItem={({ item }) => <MatchListCard match={item} />}
               keyExtractor={(item) => item.id.toString()}
@@ -88,7 +89,8 @@ export default function MatchTabs({ matches }: { matches: Match[] }) {
             </View>
           ) : (
             <FlatList
-              contentContainerClassName="flex flex-col gap-4 pb-20"
+              contentContainerClassName="flex flex-col gap-3 pb-20"
+              showsVerticalScrollIndicator={false}
               data={completed}
               renderItem={({ item }) => <MatchListCard match={item} />}
               keyExtractor={(item) => item.id.toString()}
