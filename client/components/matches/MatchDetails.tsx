@@ -1,26 +1,22 @@
+import { router } from "expo-router";
 import { Pressable, View } from "react-native";
 import { authClient } from "~/lib/auth-client";
 import { AlertTriangle } from "~/lib/icons/AlertTriangle";
-import { ExtendedMatch, MatchUser } from "~/types/match";
-import { cn } from "~/utils/cn";
+import { ChartColumnIncreasing } from "~/lib/icons/CharColumnIncreasing";
+import { MessageCircle } from "~/lib/icons/MessageCircle";
+import { ExtendedMatch, ExtendedMatchUser } from "~/types/match";
+import { getBadgeText, getBadgeVariant } from "~/utils/badgeUtils";
 import { Alert, AlertTitle } from "../ui/alert";
+import { Badge } from "../ui/badge";
+import { Button } from "../ui/button";
 import ProfileImage from "../ui/profile-image";
 import { Text } from "../ui/text";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
-import { Button } from "../ui/button";
-import { ChartColumnIncreasing } from "~/lib/icons/CharColumnIncreasing";
-import { MessageCircle } from "~/lib/icons/MessageCircle";
-import { router } from "expo-router";
-import { getBadgeText, getBadgeVariant } from "~/utils/badgeUtils";
-import { Badge } from "../ui/badge";
-import { Separator } from "../ui/separator";
 
 export default function MatchDetails({ match }: { match: ExtendedMatch }) {
   const { data } = authClient.useSession();
-  const currentMatchUserIndex =
-    data?.user.id == match.matchUsers[0].user.id ? 0 : 1;
-  const currentMatchUser = match.matchUsers[currentMatchUserIndex];
-  const otherMatchUser = match.matchUsers[currentMatchUserIndex == 0 ? 1 : 0];
+  const currentMatchUser = match.matchUsers.find((mu: ExtendedMatchUser) => mu.userId === data?.user.id)!;
+  const otherMatchUser = match.matchUsers.find((mu: ExtendedMatchUser) => mu.userId !== data?.user.id)!;
 
   const minTotalStaked = Math.round(
     parseFloat(process.env.EXPO_PUBLIC_MIN_PCT_TOTAL_STAKED!) *
@@ -49,7 +45,7 @@ export default function MatchDetails({ match }: { match: ExtendedMatch }) {
             className="h-14 w-14"
           />
           <View className="flex flex-col">
-            <Text className="font-bold text-2xl text-primary">
+            <Text className="font-bold text-2xl">
               ${currentMatchUser.balance.toFixed(2)}
             </Text>
             <Text className="font-semibold text-muted-foreground">You</Text>

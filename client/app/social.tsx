@@ -4,21 +4,17 @@ import { debounce } from "lodash";
 import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
 import { FlatList } from "react-native-gesture-handler";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { FriendlyMatchRequestCard } from "~/components/social/FriendlyMatchRequestCard";
 import { UserCard } from "~/components/social/UserCard";
 import { Button } from "~/components/ui/button";
 import { Container } from "~/components/ui/container";
 import ModalContainer from "~/components/ui/modal-container";
-import { ScrollContainer } from "~/components/ui/scroll-container";
 import { SearchBar } from "~/components/ui/search-bar";
-import { Skeleton } from "~/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { Text } from "~/components/ui/text";
 import { getFriendlyMatchRequests, getFriends, getUsers } from "~/endpoints";
 import { authClient } from "~/lib/auth-client";
 import { Search } from "~/lib/icons/Search";
-
 import { cn } from "~/utils/cn";
 import { formatCompactNumber } from "~/utils/formatCompactNumber";
 
@@ -76,13 +72,8 @@ export default function Friends() {
 
   return (
     <ModalContainer>
-      <Container className="flex-col gap-4 pt-6">
-        <View className="flex flex-col gap-1">
-          <Text className="font-bold text-4xl">Social</Text>
-          <Text className="font-semibold text-lg text-muted-foreground w-4/5">
-            View and manage your friends
-          </Text>
-        </View>
+      <Container className="flex-col gap-4 pt-10 pb-0">
+        <Text className="font-bold text-4xl">Social</Text>
         {areFriendlyMatchRequestsPending ? (
           <ActivityIndicator className="text-foreground" />
         ) : (
@@ -155,7 +146,7 @@ export default function Friends() {
               </View>
             ) : (
               <FlatList
-                contentContainerClassName="flex flex-col gap-4 pb-16"
+                contentContainerClassName="flex flex-col gap-6 pb-8"
                 showsVerticalScrollIndicator={false}
                 className="flex-1"
                 data={searchResults}
@@ -187,7 +178,7 @@ export default function Friends() {
               </View>
             ) : (
               <FlatList
-                contentContainerClassName="flex flex-col gap-4 pb-16"
+                contentContainerClassName="flex flex-col gap-6 pb-8"
                 showsVerticalScrollIndicator={false}
                 className="flex-1"
                 data={friendRequests}
@@ -223,7 +214,7 @@ export default function Friends() {
               </View>
             ) : (
               <FlatList
-                contentContainerClassName="flex flex-col gap-4 pb-16"
+                contentContainerClassName="flex flex-col gap-6 pb-8"
                 showsVerticalScrollIndicator={false}
                 className="flex-1"
                 data={friends}

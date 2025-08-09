@@ -37,23 +37,17 @@ export default function Props() {
 
   return (
     <ModalContainer>
-      <Container className="flex-col gap-4 pt-6 pb-0 flex-1 flex-grow">
+      <Container className="flex-col gap-4 pt-10 pb-0 flex-1 flex-grow">
         {arePropsPending ? (
           <ActivityIndicator className="text-foreground p-4" />
         ) : (
           props !== undefined &&
           match !== undefined && (
             <View className="flex flex-col gap-6 flex-1">
-              <View className="flex flex-col gap-1 items-center">
-                <View className="flex flex-col items-center gap-1">
-                  <LeagueLogo league={match.league} size={42} />
-                  <Text className="font-bold text-3xl">
-                    Props
-                  </Text>
-                </View>
-                <Text className="font-semibold text-lg text-muted-foreground w-4/5 text-center">
-                  See all {match.league.toUpperCase()} props for{" "}
-                  {formatDate(match.createdAt)}
+              <View className="flex flex-row self-start items-center gap-2 border-b-2 pb-2 border-primary">
+                <LeagueLogo league={match.league} size={26} />
+                <Text className="font-bold text-xl">
+                  {match.league.toUpperCase()} Props
                 </Text>
               </View>
               <PropsView props={props} league={match.league} />

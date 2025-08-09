@@ -29,7 +29,7 @@ export default function Home() {
   return (
     <ScrollContainer className="px-0" safeAreaInsets>
       <View className="relative w-full">
-        <View className="relative overflow-hidden h-40">
+        <View className="relative overflow-hidden h-36">
           {!data?.user.header ? (
             <View className="w-full h-full bg-primary" />
           ) : (
@@ -41,7 +41,7 @@ export default function Home() {
             />
           )}
         </View>
-        <View className="absolute -bottom-16 left-4 p-2 bg-background rounded-lg">
+        <View className="absolute -bottom-16 left-4 p-2 bg-background rounded-full">
           <ProfileImage
             className="w-28 h-28"
             image={data?.user.image!}

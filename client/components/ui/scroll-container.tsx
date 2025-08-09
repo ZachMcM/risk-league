@@ -21,6 +21,7 @@ export function ScrollContainer({
         contentContainerClassName="flex-grow"
         contentContainerStyle={{
           marginTop: safeAreaInsets ? insets.top : 0,
+          marginBottom: safeAreaInsets ? insets.bottom : 0
         }}
         showsVerticalScrollIndicator={false}
       >

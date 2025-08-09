@@ -18,6 +18,7 @@ import {
 import { ChevronDown } from "~/lib/icons/ChevronDown";
 import {
   getFlexMultiplier,
+  getFlexMultiplierTable,
   getPerfectPlayMultiplier,
 } from "~/utils/multiplierUtils";
 
@@ -36,7 +37,7 @@ export default function Parlay() {
 
   return (
     <ModalContainer>
-      <ScrollContainer className="pt-6">
+      <ScrollContainer className="pt-10">
         {isParlayPending ? (
           <ActivityIndicator className="text-foreground p-4" />
         ) : (
@@ -46,42 +47,45 @@ export default function Parlay() {
                 <Text className="font-bold text-3xl capitalize">
                   {parlay.picks.length} Pick {parlay.type} Play
                 </Text>
-                <View className="flex flex-row items-center gap-1">
-                  <Text className="font-semibold text-lg text-primary">
-                    {parlay.type == "flex"
-                      ? `${getFlexMultiplier(
-                          parlay.picks.length,
-                          2
-                        )}x-${getFlexMultiplier(
-                          parlay.picks.length,
-                          parlay.picks.length
-                        )}x`
-                      : `${getPerfectPlayMultiplier(
-                          parlay.picks.length
-                        ).toFixed(2)}x`}
-                  </Text>
-                  {parlay.type == "flex" && (
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Pressable>
-                          <ChevronDown className="text-primary" size={18} />
-                        </Pressable>
-                      </PopoverTrigger>
-                      <PopoverContent
-                        className="w-[375px]"
-                        portalHost="inside-modal-page"
-                      >
-                        <Text className="font-bold text-lg">
-                          Flex Play Payout Outcomes
-                        </Text>
-                        <FlexPlayOutcomes
-                          length={parlay.picks.length}
-                          stake={parlay.stake}
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  )}
-                </View>
+                <Popover>
+                  <PopoverTrigger disabled={parlay.type == "perfect"} asChild>
+                    <Pressable className="flex flex-row items-center gap-1">
+                      <Text className="font-semibold text-lg text-primary">
+                        {parlay.type == "flex"
+                          ? `${(() => {
+                              const table = getFlexMultiplierTable(
+                                parlay.picks.length
+                              );
+                              const minMultiplier =
+                                table[table.length - 1]?.multiplier || 0;
+                              const maxMultiplier = table[0]?.multiplier || 0;
+                              return `${minMultiplier.toFixed(
+                                2
+                              )}x-${maxMultiplier.toFixed(2)}x`;
+                            })()}`
+                          : `${getPerfectPlayMultiplier(
+                              parlay.picks.length
+                            ).toFixed(2)}x`}
+                      </Text>
+                      {parlay.type == "flex" && (
+                        <ChevronDown className="text-primary" size={18} />
+                      )}
+                    </Pressable>
+                  </PopoverTrigger>
+                  <PopoverContent
+                    className="w-4/5 flex flex-col gap-3"
+                    align="center"
+                    portalHost="inside-modal-page"
+                  >
+                    <Text className="font-bold text-lg">
+                      Flex Play Payout Outcomes
+                    </Text>
+                    <FlexPlayOutcomes
+                      length={parlay.picks.length}
+                      stake={parlay.stake}
+                    />
+                  </PopoverContent>
+                </Popover>
               </View>
               <View className="flex flex-row items-center justify-between">
                 <View className="flex flex-col items-center flex-1 w-full">

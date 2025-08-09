@@ -23,7 +23,7 @@ export default function PickCard({ pick }: { pick: Pick }) {
                     {pick.prop.player.name}
                   </Text>
                   <Text className="text-muted-foreground text-sm">
-                    {pick.prop.player.position}
+                    ({pick.prop.player.position})
                   </Text>
                 </View>
                 <View className="flex flex-row items-center gap-1.5">

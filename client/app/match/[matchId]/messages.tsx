@@ -11,8 +11,9 @@ import ModalContainer from "~/components/ui/modal-container";
 import { Text } from "~/components/ui/text";
 import { getMatch, getMessages, postMessage } from "~/endpoints";
 import { authClient } from "~/lib/auth-client";
-import { Message } from "~/types/match";
+import { ExtendedMatchUser, Message } from "~/types/match";
 import { SendHorizontal } from "~/lib/icons/SendHorizontal";
+import ProfileImage from "~/components/ui/profile-image";
 
 export default function Messages() {
   const searchParams = useLocalSearchParams<{ matchId: string }>();
@@ -87,13 +88,29 @@ export default function Messages() {
     }
   };
 
+  const otherMatchUser = match?.matchUsers.find((mu: ExtendedMatchUser) => mu.userId !== data?.user.id)!;
+
   return (
     <ModalContainer>
       <View className="flex flex-1 flex-col">
         {areMessagesPending ? (
           <ActivityIndicator className="text-foreground" />
         ) : (
-          messages && <MessagesList messages={messages} />
+          messages &&
+          (messages.length == 0 ? (
+            <View className="flex flex-col gap-4 px-4 py-8 items-center">
+              <View className="flex flex-col gap-4 items-center">
+                <View className="flex flex-col gap-1 items-center">
+                  <ProfileImage className="h-20 w-20" username={otherMatchUser.user.username} image={otherMatchUser.user.username} />
+                  <Text className="font-bold text-xl text-center">
+                    {otherMatchUser.user.username}
+                  </Text>
+                </View>
+              </View>
+            </View>
+          ) : (
+            <MessagesList messages={messages} />
+          ))
         )}
       </View>
       <View
@@ -114,7 +131,12 @@ export default function Messages() {
             returnKeyType="send"
             className="flex-1 self-center bg-transparent border-0 h-10 py-0"
           />
-          <Button variant="foreground" className="h-9 w-9 m-1.5 rounded-full" size="icon" onPress={handleSendMessage}>
+          <Button
+            variant="foreground"
+            className="h-9 w-9 m-1.5 rounded-full"
+            size="icon"
+            onPress={handleSendMessage}
+          >
             <SendHorizontal className="text-background" size={18} />
           </Button>
         </View>

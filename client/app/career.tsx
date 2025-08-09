@@ -24,20 +24,15 @@ export default function Career() {
 
   return (
     <ModalContainer>
-      <ScrollContainer className="pt-6">
+      <ScrollContainer className="pt-10">
         <View className="flex flex-col gap-6">
-          <View className="flex flex-col gap-1">
-            <Text className="font-bold text-4xl">Career</Text>
-            <Text className="font-semibold text-lg text-muted-foreground w-4/5">
-              Comprehensive career statistics
-            </Text>
-          </View>
+          <Text className="font-bold text-4xl">Career</Text>
           {isCareerPending ? (
             <View className="flex flex-col gap-3">
-              <View className="flex flex-row items-center gap-3">
+              {/* <View className="flex flex-row items-center gap-3">
                 <Skeleton className="h-40 flex-1 self-stretch" />
                 <Skeleton className="h-40 flex-1 self-stretch" />
-              </View>
+              </View> */}
               <Skeleton className="h-48 flex-1 self-stretch" />
               <Skeleton className="h-48 flex-1 self-stretch" />
               <Skeleton className="h-48 flex-1 self-stretch" />
@@ -49,7 +44,7 @@ export default function Career() {
           ) : (
             career && (
               <View className="flex flex-col gap-4">
-                <View className="flex flex-row gap-4">
+                {/* <View className="flex flex-row gap-4">
                   <Card className="flex-1 self-stretch">
                     <CardContent className="p-6 flex flex-col gap-4">
                       <View className="flex flex-row items-center justify-between">
@@ -79,7 +74,7 @@ export default function Career() {
                       />
                     </CardContent>
                   </Card>
-                </View>
+                </View> */}
                 <Card className="flex-1 self-stretch">
                   <CardContent className="p-6 flex flex-col gap-4">
                     <View className="flex flex-col gap-2">

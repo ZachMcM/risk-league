@@ -67,7 +67,7 @@ export default function Match() {
             <View className="flex flex-1 flex-col gap-6">
               <MatchDetails match={match} />
               <View className="flex flex-col gap-4">
-                <View className="flex flex-row items-center justify-between">
+                <View className="flex flex-row items-end justify-between">
                   <Text className="font-bold text-2xl">Parlays</Text>
                   {!match.resolved && (
                     <Button

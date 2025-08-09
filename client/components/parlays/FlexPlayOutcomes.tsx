@@ -1,7 +1,6 @@
 import { View } from "react-native";
-import { Text } from "../ui/text";
 import { getFlexMultiplierTable } from "~/utils/multiplierUtils";
-import { FlatList } from "react-native-gesture-handler";
+import { Text } from "../ui/text";
 
 export default function FlexPlayOutcomes({
   length,
@@ -11,7 +10,13 @@ export default function FlexPlayOutcomes({
   stake: number | null;
 }) {
   return getFlexMultiplierTable(length).map(({ hits, multiplier }, index) => (
-    <FlexOutcomeItem key={index} length={length} stake={stake} hits={hits} multiplier={multiplier} />
+    <FlexOutcomeItem
+      key={index}
+      length={length}
+      stake={stake}
+      hits={hits}
+      multiplier={multiplier}
+    />
   ));
 }
 
@@ -19,17 +24,20 @@ function FlexOutcomeItem({
   hits,
   multiplier,
   stake,
-  length
+  length,
 }: {
   hits: number;
   multiplier: number;
   stake: number | null;
-  length: number
+  length: number;
 }) {
   return (
-    <View key={hits} className="flex flex-row items-center justify-between">
+    <View
+      key={hits}
+      className="flex flex-row items-center gap-4 justify-between"
+    >
       <View className="flex flex-row items-center gap-2">
-        <Text className="font-semibold text-lg">
+        <Text className="text-lg">
           {hits} out of {length} Correct
         </Text>
         <View className="bg-primary/20 py-1 px-2 rounded-lg">

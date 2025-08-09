@@ -33,6 +33,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
     }
 
     console.log("Creating socket connection for user:", data.user.id);
+    console.log(pathname.substring(pathname.lastIndexOf("/")));
 
     const socket = io(`${process.env.EXPO_PUBLIC_API_URL}/realtime`, {
       transports: ["websocket"],

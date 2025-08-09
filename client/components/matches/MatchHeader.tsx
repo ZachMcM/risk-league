@@ -25,7 +25,7 @@ export default function MatchHeader() {
 
   return (
     <View
-      className="flex flex-row items-center gap-2 p-4"
+      className="flex flex-row items-center gap-2 px-3 py-4"
       style={{
         marginTop: insets.top,
       }}
@@ -36,7 +36,7 @@ export default function MatchHeader() {
       {match && (
         <View className="flex flex-row items-center gap-1.5">
           <View className="flex flex-row items-center gap-2">
-            <LeagueLogo league={match.league} size={26} />
+            <LeagueLogo league={match.league} size={28} />
             <Text className="text-lg uppercase font-bold">{match.league}</Text>
           </View>
           <Text className="font-semibold text-muted-foreground capitalize text-lg">

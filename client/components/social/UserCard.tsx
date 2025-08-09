@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 import { Pressable, View } from "react-native";
 import { toast } from "sonner-native";
 import {
@@ -10,7 +11,6 @@ import {
 import { authClient } from "~/lib/auth-client";
 import { League, leagues } from "~/lib/constants";
 import { Check } from "~/lib/icons/Check";
-import { Dices } from "~/lib/icons/Dices";
 import { Play } from "~/lib/icons/Play";
 import { UserMinus } from "~/lib/icons/UserMinus";
 import { UserPlus } from "~/lib/icons/UserPlus";
@@ -24,7 +24,7 @@ import { Dialog, DialogContent, DialogTrigger } from "../ui/dialog";
 import LeagueLogo from "../ui/league-logos/LeagueLogo";
 import ProfileImage from "../ui/profile-image";
 import { Text } from "../ui/text";
-import { useState } from "react";
+import { Swords } from "~/lib/icons/Swords";
 
 export function UserCard({
   user,
@@ -235,11 +235,11 @@ export function UserCard({
           <Text className="font-bold text-xl">{user.username}</Text>
           <RankBadge
             iconClassName="h-4 w-4"
-            textClassName="text-sm"
+            textClassName="text-xs"
             gradientStyle={{
-              paddingHorizontal: 10,
+              paddingHorizontal: 8,
               gap: 4,
-              alignSelf: "flex-start"
+              alignSelf: "flex-start",
             }}
             rank={user.rank}
             showIcon
@@ -251,9 +251,13 @@ export function UserCard({
           <View className="flex flex-row items-center gap-2">
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
-                <Button size="sm" className="flex flex-row items-center gap-2">
-                  <Dices className="text-foreground" size={18} />
-                  <Text className="font-bold">Play</Text>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="gap-2 px-4 flex flex-row items-center"
+                >
+                  <Swords className="text-foreground" size={18} />
+                  <Text>Play</Text>
                 </Button>
               </DialogTrigger>
               <DialogContent
@@ -293,7 +297,7 @@ export function UserCard({
                             <Text className="font-bold text-2xl text-center uppercase">
                               {league}
                             </Text>
-                            <View className="rounded-full bg-primary/20 border border-primary h-9 w-9 flex items-center justify-center">
+                            <View className="rounded-full bg-primary h-9 w-9 flex items-center justify-center">
                               <Play className="text-foreground" size={14} />
                             </View>
                           </CardContent>

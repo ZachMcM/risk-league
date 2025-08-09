@@ -32,7 +32,7 @@ export default function PropCard({ prop }: { prop: Prop }) {
           <Text className="font-bold text-lg text-center">
             {prop.player.name}
           </Text>
-          <Text className="font-semibold text-muted-foreground text-sm text-center">
+          <Text className="font-semibold text-muted-foreground text-sm text-center max-w-[75%]">
             {prop.game.awayTeam.abbreviation} at{" "}
             {prop.game.homeTeam.abbreviation} •{" "}
             {moment(prop.game.startTime).format("ddd h:mm A")}

@@ -126,7 +126,7 @@ export default function FinalizeParlay() {
   return (
     <ModalContainer>
       <View className="flex flex-1 flex-col">
-        <View className="flex flex-row items-center justify-between p-6">
+        <View className="flex flex-row items-center justify-between py-6 px-4">
           <View className="flex flex-row items-center gap-2">
             <Text className="font-bold text-lg">Current Parlay</Text>
             <Text className="font-semibold text-muted-foreground text-lg">
@@ -136,7 +136,8 @@ export default function FinalizeParlay() {
           <Button
             onPress={() => clearParlay()}
             variant="foreground"
-            className="rounded-full"
+            size="sm"
+            className="rounded-full h-10 px-4"
           >
             <Text>Clear all</Text>
           </Button>
