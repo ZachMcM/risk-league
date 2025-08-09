@@ -10,8 +10,8 @@ export default function FlexPlayOutcomes({
   length: number;
   stake: number | null;
 }) {
-  return getFlexMultiplierTable(length).map(({ hits, multiplier }) => (
-    <FlexOutcomeItem length={length} stake={stake} hits={hits} multiplier={multiplier} />
+  return getFlexMultiplierTable(length).map(({ hits, multiplier }, index) => (
+    <FlexOutcomeItem key={index} length={length} stake={stake} hits={hits} multiplier={multiplier} />
   ));
 }
 

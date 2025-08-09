@@ -27,7 +27,7 @@ export default function Home() {
   });
 
   return (
-    <ScrollContainer className="px-0 pt-0" safeAreaInsets>
+    <ScrollContainer className="px-0" safeAreaInsets>
       <View className="relative w-full">
         <View className="relative overflow-hidden h-40">
           {!data?.user.header ? (

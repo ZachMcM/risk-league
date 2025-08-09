@@ -1,24 +1,19 @@
 import { Pressable, View } from "react-native";
 import { authClient } from "~/lib/auth-client";
 import { AlertTriangle } from "~/lib/icons/AlertTriangle";
-import {
-  ExtendedMatch,
-  ExtendedMatchUser,
-  Match,
-  MatchUser,
-} from "~/types/match";
+import { ExtendedMatch, MatchUser } from "~/types/match";
+import { cn } from "~/utils/cn";
 import { Alert, AlertTitle } from "../ui/alert";
-import { Badge } from "../ui/badge";
-import { Card, CardContent } from "../ui/card";
 import ProfileImage from "../ui/profile-image";
-import RankIcon from "../ui/RankIcon";
-import { Separator } from "../ui/separator";
 import { Text } from "../ui/text";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
+import { Button } from "../ui/button";
+import { ChartColumnIncreasing } from "~/lib/icons/CharColumnIncreasing";
+import { MessageCircle } from "~/lib/icons/MessageCircle";
+import { router } from "expo-router";
 import { getBadgeText, getBadgeVariant } from "~/utils/badgeUtils";
-import { Fragment } from "react";
-import LeagueLogo from "../ui/league-logos/LeagueLogo";
-import { cn } from "~/utils/cn";
+import { Badge } from "../ui/badge";
+import { Separator } from "../ui/separator";
 
 export default function MatchDetails({ match }: { match: ExtendedMatch }) {
   const { data } = authClient.useSession();
@@ -33,71 +28,85 @@ export default function MatchDetails({ match }: { match: ExtendedMatch }) {
   );
   const minParlaysReq = parseInt(process.env.EXPO_PUBLIC_MIN_PARLAYS_REQUIRED!);
 
+  const badgeVariant = getBadgeVariant(
+    currentMatchUser.status,
+    currentMatchUser.balance,
+    otherMatchUser.balance
+  );
+  const badgeText = getBadgeText(
+    currentMatchUser.status,
+    currentMatchUser.balance,
+    otherMatchUser.balance
+  );
+
   return (
-    <View className="flex flex-col gap-4">
+    <View className="flex flex-col gap-6">
       <View className="flex w-full flex-row items-center justify-between">
-        <View className="flex flex-row items-center gap-2">
+        <View className="flex flex-row items-center gap-2.5">
           <ProfileImage
             image={currentMatchUser.user.image}
             username={currentMatchUser.user.username}
-            className="h-12 w-12"
+            className="h-14 w-14"
           />
           <View className="flex flex-col">
-            <Text className="font-bold text-xl">
+            <Text className="font-bold text-2xl text-primary">
               ${currentMatchUser.balance.toFixed(2)}
             </Text>
-            <Text className="font-semibold text-muted-foreground text-sm">
-              You
-            </Text>
+            <Text className="font-semibold text-muted-foreground">You</Text>
           </View>
         </View>
-        <View className=" h-8 w-8 flex justify-center items-center rounded-full bg-primary">
-          <Text className="font-semibold">vs</Text>
+        <View className="flex flex-col gap-2 items-center">
+          <View className="px-1.5 py-0.5 flex justify-center items-center rounded-full bg-primary">
+            <Text className="font-semibold">vs</Text>
+          </View>
         </View>
-        <View className="flex flex-row items-center gap-2">
+        <View className="flex flex-row items-center gap-2.5">
           <View className="flex flex-col items-end">
-            <Text className="font-bold text-xl">
+            <Text className="font-bold text-2xl">
               ${otherMatchUser.balance.toFixed(2)}
             </Text>
-            <Text className="font-semibold text-muted-foreground text-sm">
+            <Text className="font-semibold text-muted-foreground">
               {otherMatchUser.user.username}
             </Text>
           </View>
           <ProfileImage
             image={otherMatchUser.user.image}
             username={otherMatchUser.user.username}
-            className="h-12 w-12"
+            className="h-14 w-14"
           />
         </View>
       </View>
-      {/* <Card>
-        <CardContent className="px-4 py-6 flex flex-col gap-6">
-          <View className="flex flex-row items-center gap-1">
-            <View className="flex flex-row items-center gap-2">
-              <LeagueLogo league={match.league} size={26} />
-              <Text className="text-lg uppercase font-bold">
-                {match.league}
-              </Text>
-            </View>
-            <Text className="font-semibold text-muted-foreground capitalize text-lg">
-              {match.type} Match
-            </Text>
-          </View>
-          <MatchUserItem
-            matchUser={currentMatchUser}
-            currentUser={true}
-            otherUserBalance={otherMatchUser.balance}
-          />
-          <Separator />
-          <MatchUserItem
-            matchUser={otherMatchUser}
-            currentUser={false}
-            otherUserBalance={currentMatchUser.balance}
-          />
-        </CardContent>
-      </Card> */}
-      {/* {!match.resolved && (
-        <Fragment>
+            <View className="flex flex-row items-center justify-between">
+        <Badge className="px-3.5" variant={badgeVariant}>
+          <Text className="text-base capitalize">{badgeText}</Text>
+        </Badge>
+        <View className="flex flex-row items-center gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-8 flex flex-row items-center gap-2 rounded-lg"
+          >
+            <ChartColumnIncreasing size={14} className="text-foreground" />
+            <Text className="!text-sm">Stats</Text>
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-8 flex flex-row items-center gap-2 rounded-lg"
+            onPress={() =>
+              router.navigate({
+                pathname: "/match/[matchId]/messages",
+                params: { matchId: match.id },
+              })
+            }
+          >
+            <MessageCircle size={14} className="text-foreground" />
+            <Text className="!text-sm">Messages</Text>
+          </Button>
+        </View>
+      </View>
+      {!match.resolved && (
+        <View className="flex flex-col gap-3">
           {currentMatchUser.totalStaked < minTotalStaked && (
             <Tooltip>
               <TooltipTrigger asChild>
@@ -137,34 +146,8 @@ export default function MatchDetails({ match }: { match: ExtendedMatch }) {
               </TooltipContent>
             </Tooltip>
           )}
-        </Fragment>
-      )} */}
-    </View>
-  );
-}
-
-function MatchUserItem({
-  matchUser,
-  className,
-}: {
-  matchUser: MatchUser;
-  className?: string;
-}) {
-  return (
-    <View className={cn("flex flex-row items-center gap-3", className)}>
-      <ProfileImage
-        image={matchUser.user.image}
-        username={matchUser.user.username}
-        className="h-12 w-12"
-      />
-      <View className="flex flex-col">
-        <Text className="font-bold text-2xl">
-          ${matchUser.balance.toFixed(2)}
-        </Text>
-        <Text className="font-semibold text-muted-foreground">
-          {matchUser.user.username}
-        </Text>
-      </View>
+        </View>
+      )}
     </View>
   );
 }

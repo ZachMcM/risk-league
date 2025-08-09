@@ -9,7 +9,7 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import ModalContainer from "~/components/ui/modal-container";
 import { Text } from "~/components/ui/text";
-import { getMessages, postMessage } from "~/endpoints";
+import { getMatch, getMessages, postMessage } from "~/endpoints";
 import { authClient } from "~/lib/auth-client";
 import { Message } from "~/types/match";
 import { SendHorizontal } from "~/lib/icons/SendHorizontal";
@@ -19,6 +19,11 @@ export default function Messages() {
   const matchId = parseInt(searchParams.matchId);
 
   const { data } = authClient.useSession();
+
+  const { data: match } = useQuery({
+    queryKey: ["match", matchId],
+    queryFn: async () => await getMatch(matchId),
+  });
 
   const { data: messages, isPending: areMessagesPending } = useQuery({
     queryKey: ["match", matchId, "messages"],
@@ -40,7 +45,7 @@ export default function Messages() {
         matchId,
         "messages",
       ]);
-      
+
       queryClient.setQueryData(
         ["match", matchId, "messages"],
         (old: Message[]) => [
@@ -93,22 +98,26 @@ export default function Messages() {
       </View>
       <View
         style={{
-          marginBottom: insets.bottom,
+          paddingBottom: insets.bottom,
         }}
         className="border-t border-border p-6 bg-background flex flex-row items-center gap-2"
       >
-        <Input
-          value={inputValue}
-          onChangeText={setInputValue}
-          onSubmitEditing={handleSendMessage}
-          editable={!areMessagesPending}
-          placeholder={!areMessagesPending ? "Type a message..." : "Loading..."}
-          returnKeyType="send"
-          className="flex-1"
-        />
-        <Button variant="secondary" size="icon" onPress={handleSendMessage}>
-          <SendHorizontal className="text-foreground" size={20} />
-        </Button>
+        <View className="flex flex-row items-center border border-border bg-card min-h-10 px-2 rounded-full">
+          <Input
+            value={inputValue}
+            onChangeText={setInputValue}
+            onSubmitEditing={handleSendMessage}
+            editable={!areMessagesPending && !match?.resolved}
+            placeholder={
+              !areMessagesPending ? "Type a message..." : "Loading..."
+            }
+            returnKeyType="send"
+            className="flex-1 self-center bg-transparent border-0 h-10 py-0"
+          />
+          <Button variant="foreground" className="h-9 w-9 m-1.5 rounded-full" size="icon" onPress={handleSendMessage}>
+            <SendHorizontal className="text-background" size={18} />
+          </Button>
+        </View>
       </View>
     </ModalContainer>
   );

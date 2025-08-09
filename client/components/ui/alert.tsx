@@ -5,7 +5,7 @@ import { cn } from "~/utils/cn";
 import { Text, TextClassContext } from "~/components/ui/text";
 
 const alertVariants = cva(
-  "relative w-full bg-card border border-border rounded-2xl border px-4 py-3 flex-row items-start gap-3",
+  "relative w-full bg-card border border-border rounded-2xl border px-4 py-2.5 flex-row items-start gap-3",
   {
     variants: {
       variant: {

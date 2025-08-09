@@ -2,34 +2,24 @@ import { useQuery } from "@tanstack/react-query";
 import { useLocalSearchParams } from "expo-router";
 import { ActivityIndicator, Pressable, View } from "react-native";
 import FlexPlayOutcomes from "~/components/parlays/FlexPlayOutcomes";
-import { Button } from "~/components/ui/button";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTrigger,
-} from "~/components/ui/dialog";
 import { ScrollContainer } from "~/components/ui/scroll-container";
 import { Separator } from "~/components/ui/separator";
 import { Text } from "~/components/ui/text";
 import { getParlay } from "~/endpoints";
 
+import PickCard from "~/components/parlays/PickCard";
 import { Badge } from "~/components/ui/badge";
 import ModalContainer from "~/components/ui/modal-container";
-import { ChevronDown } from "~/lib/icons/ChevronDown";
-import PickCard from "~/components/parlays/PickCard";
-import {
-  getFlexMultiplier,
-  getPerfectPlayMultiplier,
-} from "~/utils/multiplierUtils";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
-import { FlatList } from "react-native-gesture-handler";
+import { ChevronDown } from "~/lib/icons/ChevronDown";
+import {
+  getFlexMultiplier,
+  getPerfectPlayMultiplier,
+} from "~/utils/multiplierUtils";
 
 export default function Parlay() {
   const searchParams = useLocalSearchParams<{
@@ -48,7 +38,7 @@ export default function Parlay() {
     <ModalContainer>
       <ScrollContainer className="pt-6">
         {isParlayPending ? (
-          <ActivityIndicator className="text-foreground" />
+          <ActivityIndicator className="text-foreground p-4" />
         ) : (
           parlay && (
             <View className="flex flex-col gap-8">

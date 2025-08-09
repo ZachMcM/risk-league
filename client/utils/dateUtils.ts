@@ -15,5 +15,9 @@ export function timeAgo(date: Date | string): string {
  * Returns a date formatted as mm/dd/yyyy
  */
 export function formatDate(date: Date | string): string {
-  return format(date, "mm/dd/yyyy")
+  const parsedDate =
+    typeof date === "string"
+      ? new Date(date.replace(" ", "T").replace(/(\+\d{2})$/, "$1:00"))
+      : date;
+  return format(parsedDate, "MM/dd/yyyy")
 }

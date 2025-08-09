@@ -106,7 +106,7 @@ export function ParlayPickerFooter() {
 
   return (
     <View
-      className="flex flex-row items-center justify-between gap-4 border-t border-border p-4"
+      className="flex flex-row items-center bg-background justify-between gap-4 border-t border-border p-4"
       style={{ paddingBottom: insets.bottom }}
     >
       {/* TODO replace with images */}

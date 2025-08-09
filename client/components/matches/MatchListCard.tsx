@@ -37,12 +37,13 @@ export default function MatchListCard({ match }: { match: Match }) {
         pathname: "/match/[matchId]",
         params: { matchId: match.id },
       }}
+      prefetch
     >
       <Card className="w-full">
         <CardContent className="flex flex-col gap-3 p-4 items-start">
           <View className="flex flex-col gap-2">
             <View className="flex flex-row items-center justify-between w-full">
-              <View className="flex flex-row items-center gap-1">
+              <View className="flex flex-row items-center gap-1.5">
                 <View className="flex flex-row items-center gap-2">
                   <LeagueLogo league={match.league} size={26} />
                   <Text className="text-lg uppercase font-bold">
@@ -91,7 +92,9 @@ export default function MatchListCard({ match }: { match: Match }) {
                   ${you.balance.toFixed(2)}
                 </Text>
                 <Text className="font-bold text-2xl">-</Text>
-                <Text className="font-bold text-2xl">${opponent.balance.toFixed(2)}</Text>
+                <Text className="font-bold text-2xl">
+                  ${opponent.balance.toFixed(2)}
+                </Text>
               </View>
             </View>
             {match.resolved && match.type == "competitive" && (

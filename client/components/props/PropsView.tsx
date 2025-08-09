@@ -44,7 +44,7 @@ export default function PropsView({
   };
 
   return (
-    <View className="flex flex-col gap-4">
+    <View className="flex flex-col gap-4 flex-1">
       {searchActivated ? (
         <View className="flex flex-row items-center gap-3 w-full py-1 h-11">
           <SearchBar
@@ -55,7 +55,7 @@ export default function PropsView({
           />
           <Button
             size="sm"
-            variant="foreground"
+            variant="secondary"
             onPress={() => {
               setSearchActivated(false);
               setSearchContent("");
@@ -87,7 +87,7 @@ export default function PropsView({
               .map((stat) => (
                 <Button
                   key={stat.id}
-                  variant="outline"
+                  variant="secondary"
                   size="sm"
                   className={cn(
                     "border-2 border-border/80 shadow-sm min-w-0",
@@ -115,16 +115,17 @@ export default function PropsView({
           </View>
         </View>
       ) : (
-        <FlatList
-          contentContainerClassName="pb-80"
-          showsVerticalScrollIndicator={false}
-          data={filteredProps()}
-          renderItem={({ item }) => <PropCard prop={item} />}
-          keyExtractor={(item) => item.id.toString()}
-          numColumns={2}
-          columnWrapperStyle={{ gap: 12 }}
-          contentContainerStyle={{ gap: 12 }}
-        />
+        <View className="flex-1">
+          <FlatList
+            showsVerticalScrollIndicator={false}
+            data={filteredProps()}
+            renderItem={({ item }) => <PropCard prop={item} />}
+            keyExtractor={(item) => item.id.toString()}
+            numColumns={2}
+            columnWrapperStyle={{ gap: 12 }}
+            contentContainerStyle={{ gap: 12, paddingBottom: 36 }}
+          />
+        </View>
       )}
     </View>
   );

@@ -97,10 +97,6 @@ export default function FinalizeParlay() {
           position: "bottom-center",
         });
         router.dismissAll();
-        router.navigate({
-          pathname: "/match/[matchId]/parlays/[parlayId]",
-          params: { matchId, parlayId: id }
-        })
       },
     });
 

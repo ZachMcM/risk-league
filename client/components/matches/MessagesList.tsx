@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { ScrollView, View } from "react-native";
+import { View } from "react-native";
 import { Text } from "~/components/ui/text";
 import { authClient } from "~/lib/auth-client";
 import { Message } from "~/types/match";
@@ -9,24 +9,47 @@ import ProfileImage from "../ui/profile-image";
 import { FlatList } from "react-native-gesture-handler";
 
 export default function MessagesList({ messages }: { messages: Message[] }) {
-  const { data } = authClient.useSession();
-  const scrollViewRef = useRef<ScrollView>(null);
+  const flatListRef = useRef<FlatList>(null);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
-    scrollViewRef.current?.scrollToEnd({ animated: true });
+    if (messages.length > 0) {
+      // Use setTimeout to ensure the FlatList has finished rendering
+      setTimeout(() => {
+        flatListRef.current?.scrollToIndex({
+          index: messages.length - 1,
+          animated: true,
+          viewPosition: 0, // Position at bottom
+        });
+      }, 100);
+    }
   }, [messages]);
 
   return (
     <FlatList
-      contentContainerClassName="flex-1 px-6 w-full pb-20"
-              showsVerticalScrollIndicator={false}
-
+      ref={flatListRef}
+      contentContainerStyle={{
+        paddingHorizontal: 24,
+        paddingVertical: 8,
+        flexGrow: 1,
+      }}
+      showsVerticalScrollIndicator={false}
       data={messages}
       renderItem={({ item }) => <MessageCard message={item} />}
       keyExtractor={(item, index) =>
         `${item.userId}-${item.createdAt}-${index}`
       }
+      onLayout={() => {
+        if (messages.length > 0) {
+          setTimeout(() => {
+            flatListRef.current?.scrollToIndex({
+              index: messages.length - 1,
+              animated: true,
+              viewPosition: 0,
+            });
+          }, 50);
+        }
+      }}
     />
   );
 }

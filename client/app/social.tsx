@@ -68,15 +68,15 @@ export default function Friends() {
 
   useEffect(() => {
     if (searchParams.tab) {
-      setTabsValue(searchParams.tab)
+      setTabsValue(searchParams.tab);
     }
-  }, [searchParams.tab])
+  }, [searchParams.tab]);
 
   const [tabsValue, setTabsValue] = useState(searchParams.tab ?? "friends");
 
   return (
     <ModalContainer>
-      <View className="flex flex-col gap-4 px-4 pt-6 flex-1">
+      <Container className="flex-col gap-4 pt-6">
         <View className="flex flex-col gap-1">
           <Text className="font-bold text-4xl">Social</Text>
           <Text className="font-semibold text-lg text-muted-foreground w-4/5">
@@ -156,8 +156,7 @@ export default function Friends() {
             ) : (
               <FlatList
                 contentContainerClassName="flex flex-col gap-4 pb-16"
-                        showsVerticalScrollIndicator={false}
-
+                showsVerticalScrollIndicator={false}
                 className="flex-1"
                 data={searchResults}
                 renderItem={({ item }) => (
@@ -189,8 +188,7 @@ export default function Friends() {
             ) : (
               <FlatList
                 contentContainerClassName="flex flex-col gap-4 pb-16"
-                        showsVerticalScrollIndicator={false}
-
+                showsVerticalScrollIndicator={false}
                 className="flex-1"
                 data={friendRequests}
                 renderItem={({ item }) => (
@@ -226,8 +224,7 @@ export default function Friends() {
             ) : (
               <FlatList
                 contentContainerClassName="flex flex-col gap-4 pb-16"
-                        showsVerticalScrollIndicator={false}
-
+                showsVerticalScrollIndicator={false}
                 className="flex-1"
                 data={friends}
                 renderItem={({ item }) => (
@@ -238,7 +235,7 @@ export default function Friends() {
             )}
           </TabsContent>
         </Tabs>
-      </View>
+      </Container>
     </ModalContainer>
   );
 }

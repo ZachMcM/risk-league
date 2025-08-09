@@ -1,9 +1,9 @@
 import { Stack } from "expo-router";
+import MatchHeader from "~/components/matches/MatchHeader";
 import {
   ParlayPickerFooter,
   ParlayProvider,
 } from "~/components/providers/ParlayProvider";
-import PageTitle from "~/components/ui/page-title";
 
 export default function Layout() {
   return (
@@ -12,7 +12,7 @@ export default function Layout() {
         <Stack.Screen
           name="index"
           options={{
-            header: () => <PageTitle title="Match" back />,
+            header: () => <MatchHeader />,
           }}
         />
         <Stack.Screen
@@ -30,6 +30,13 @@ export default function Layout() {
           }}
         />
         <Stack.Screen
+          name="props"
+          options={{
+            headerShown: false,
+            presentation: "modal",
+          }}
+        />
+        <Stack.Screen
           name="parlays/[parlayId]"
           options={{
             headerShown: false,
@@ -37,7 +44,6 @@ export default function Layout() {
           }}
         />
       </Stack>
-      <ParlayPickerFooter />
     </ParlayProvider>
   );
 }

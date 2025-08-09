@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { Link, router } from "expo-router";
+import { Link, router, usePathname } from "expo-router";
 import { createContext, ReactNode, useEffect, useState } from "react";
 import { View } from "react-native";
 import { io } from "socket.io-client";
@@ -22,6 +22,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
   const { data } = authClient.useSession();
 
   const [isConnected, setIsConnected] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
     console.log("RealtimeProvider useEffect running, user data:", data);
@@ -76,10 +77,10 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
               <CardContent className="flex flex-row gap-3 items-center px-4 py-3">
                 <LeagueLogo league={league} size={28} />
                 <View className="flex flex-col w-full">
-                  <Text className="font-bold text-lg">
+                  <Text className="font-bold text-lg max-w-[70%]">
                     One of your {league.toUpperCase()} parlays finished!
                   </Text>
-                  <Text className="text-muted-foreground font-semibold max-w-[60%]">
+                  <Text className="text-muted-foreground font-semibold max-w-[70%]">
                     Click here to view the results!
                   </Text>
                 </View>
@@ -113,10 +114,10 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
               <CardContent className="flex flex-row gap-4 items-center px-4 py-3">
                 <LeagueLogo league={league} size={36} />
                 <View className="flex flex-col w-full">
-                  <Text className="font-bold text-lg">
+                  <Text className="font-bold text-lg max-w-[70%]">
                     One of your {league.toUpperCase()} {type} matches ended!
                   </Text>
-                  <Text className="text-muted-foreground font-semibold max-w-[60%]">
+                  <Text className="text-muted-foreground font-semibold max-w-[70%]">
                     Click here to view the results!
                   </Text>
                 </View>
@@ -146,8 +147,10 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
                   username={username}
                 />
                 <View className="flex flex-col w-full">
-                  <Text className="font-bold text-lg">{username}</Text>
-                  <Text className="font-semibold text-muted-foreground max-w-[60%]">
+                  <Text className="font-bold text-lg max-w-[70%]">
+                    {username}
+                  </Text>
+                  <Text className="font-semibold text-muted-foreground max-w-[70%]">
                     Requested to be friends!
                   </Text>
                 </View>
@@ -171,8 +174,10 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
                   username={username}
                 />
                 <View className="flex flex-col w-full">
-                  <Text className="font-bold text-lg">{username}</Text>
-                  <Text className="font-semibold text-muted-foreground max-w-[60%]">
+                  <Text className="font-bold text-lg max-w-[70%]">
+                    {username}
+                  </Text>
+                  <Text className="font-semibold text-muted-foreground max-w-[70%]">
                     Accepted your friend request!
                   </Text>
                 </View>
@@ -184,7 +189,10 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
     );
 
     socket.on("match-message-received", (message: Message) => {
-      if (message.userId !== data?.user.id) {
+      if (
+        message.userId !== data?.user.id &&
+        pathname.substring(pathname.lastIndexOf("/")) !== "/messages"
+      ) {
         toast.custom(
           <Link
             className="m-3"
@@ -201,10 +209,10 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
                   username={message.user.username}
                 />
                 <View className="flex flex-col w-full">
-                  <Text className="font-bold text-lg">
+                  <Text className="font-bold text-lg max-w-[70%]">
                     {message.user.username}
                   </Text>
-                  <Text className="max-w-[60%] text-muted-foreground font-semibold">
+                  <Text className="max-w-[70%] text-muted-foreground font-semibold">
                     {message.content}
                   </Text>
                 </View>
@@ -226,28 +234,32 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
         username: string;
         league: League;
       }) => {
-        toast.custom(
-          <Link href="/social" className="m-3">
-            <Card>
-              <CardContent className="flex flex-row gap-3 items-center px-4 py-3">
-                <ProfileImage
-                  className="h-12 w-12"
-                  image={image}
-                  username={username}
-                />
-                <View className="flex flex-col w-full">
-                  <Text className="font-bold text-lg">{username}</Text>
-                  <Text className="text-muted-foreground font-semibold max-w-[60%]">
-                    Challenged you to a {league.toUpperCase()} friendly match!
-                  </Text>
-                </View>
-              </CardContent>
-            </Card>
-          </Link>,
-          {
-            duration: Infinity,
-          }
-        );
+        if (pathname !== "/social") {
+          toast.custom(
+            <Link href="/social" className="m-3">
+              <Card>
+                <CardContent className="flex flex-row gap-3 items-center px-4 py-3">
+                  <ProfileImage
+                    className="h-12 w-12"
+                    image={image}
+                    username={username}
+                  />
+                  <View className="flex flex-col w-full">
+                    <Text className="font-bold text-lg max-w-[70%]">
+                      {username}
+                    </Text>
+                    <Text className="text-muted-foreground font-semibold max-w-[70%]">
+                      Challenged you to a {league.toUpperCase()} friendly match!
+                    </Text>
+                  </View>
+                </CardContent>
+              </Card>
+            </Link>,
+            {
+              duration: Infinity,
+            }
+          );
+        }
       }
     );
 
@@ -271,8 +283,10 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
                 username={username}
               />
               <View className="flex flex-col w-full">
-                <Text className="font-bold text-lg">{username}</Text>
-                <Text className="text-muted-foreground font-semibold max-w-[60%]">
+                <Text className="font-bold text-lg max-w-[70%]">
+                  {username}
+                </Text>
+                <Text className="text-muted-foreground font-semibold max-w-[70%]">
                   Declined your {league.toUpperCase()} friendly match request!
                 </Text>
               </View>

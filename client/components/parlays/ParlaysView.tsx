@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { ScrollView, View } from "react-native";
-import { FlatList } from "react-native-gesture-handler";
 import { Search } from "~/lib/icons/Search";
 import { Parlay } from "~/types/parlay";
 import { cn } from "~/utils/cn";
@@ -71,7 +70,7 @@ export default function ParlaysView({ parlays }: { parlays: Parlay[] }) {
           />
           <Button
             size="sm"
-            variant="foreground"
+            variant="secondary"
             onPress={() => {
               setSearchActivated(false);
               setSearchContent("");
@@ -101,7 +100,7 @@ export default function ParlaysView({ parlays }: { parlays: Parlay[] }) {
             {parlayFiltersList.map((filter) => (
               <Button
                 key={filter}
-                variant="outline"
+                variant="secondary"
                 size="sm"
                 className={cn(
                   "border-2 border-border/80 shadow-sm min-w-0",
@@ -131,13 +130,9 @@ export default function ParlaysView({ parlays }: { parlays: Parlay[] }) {
           </View>
         </View>
       ) : (
-        <FlatList
-          contentContainerClassName="flex flex-col gap-3 pb-80"
-          showsVerticalScrollIndicator={false}
-          data={filteredParlays()}
-          renderItem={({ item }) => <ParlayCard parlay={item} />}
-          keyExtractor={(item) => item.id.toString()}
-        />
+        filteredParlays().map((parlay) => (
+          <ParlayCard key={parlay.id} parlay={parlay} />
+        ))
       )}
     </View>
   );

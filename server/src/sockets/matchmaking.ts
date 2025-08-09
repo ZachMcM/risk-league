@@ -48,6 +48,7 @@ export async function createMatch({
   await db.insert(matchUser).values({
     pointsSnapshot: user1Points,
     startingBalance,
+    balance: startingBalance,
     userId: user1Id,
     matchId: matchResult.id,
   });
@@ -55,6 +56,7 @@ export async function createMatch({
   await db.insert(matchUser).values({
     pointsSnapshot: user2Points,
     startingBalance,
+    balance: startingBalance,
     userId: user2Id,
     matchId: matchResult.id,
   });

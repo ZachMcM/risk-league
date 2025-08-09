@@ -7,11 +7,14 @@ import ParlaysView from "~/components/parlays/ParlaysView";
 import PropsView from "~/components/props/PropsView";
 import { Button } from "~/components/ui/button";
 import { Container } from "~/components/ui/container";
+import { ScrollContainer } from "~/components/ui/scroll-container";
+import { Separator } from "~/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { Text } from "~/components/ui/text";
 import { getMatch, getParlays, getTodayProps } from "~/endpoints";
 import { authClient } from "~/lib/auth-client";
 import { MessageCircle } from "~/lib/icons/MessageCircle";
+import { Plus } from "~/lib/icons/Plus";
 
 export default function Match() {
   const searchParams = useLocalSearchParams<{
@@ -29,22 +32,10 @@ export default function Match() {
     queryFn: async () => await getMatch(matchId),
   });
 
-  const { data: props, isPending: arePropsPending } = useQuery({
-    queryKey: ["props", matchId, data?.user.id],
-    queryFn: async () => await getTodayProps(match?.league!),
-    enabled: !!match,
-  });
-
   const { data: parlays, isPending: areParlaysPending } = useQuery({
     queryKey: ["parlays", matchId, data?.user.id!],
     queryFn: async () => await getParlays(matchId),
   });
-
-  const [tabsValue, setTabsValue] = useState("parlays");
-
-  useEffect(() => {
-    setTabsValue("parlays");
-  }, [match?.resolved]);
 
   useEffect(() => {
     if (searchParams.openSubRoute === "messages") {
@@ -67,108 +58,44 @@ export default function Match() {
   }, [searchParams.openSubRoute, searchParams.matchId, router]);
 
   return (
-    <Fragment>
-      <Container className="pt-2">
-        <View className="flex-1">
-          {isMatchPending ? (
-            <ActivityIndicator className="text-foreground p-4" />
-          ) : (
-            match && (
-              <View className="flex flex-1 flex-col gap-4">
-                <MatchDetails match={match} />
-                <Tabs
-                  value={tabsValue}
-                  onValueChange={setTabsValue}
-                  className="flex flex-col gap-4"
-                >
+    <ScrollContainer className="pt-2">
+      <View className="flex-1">
+        {isMatchPending ? (
+          <ActivityIndicator className="text-foreground p-4" />
+        ) : (
+          match && (
+            <View className="flex flex-1 flex-col gap-6">
+              <MatchDetails match={match} />
+              <View className="flex flex-col gap-4">
+                <View className="flex flex-row items-center justify-between">
+                  <Text className="font-bold text-2xl">Parlays</Text>
                   {!match.resolved && (
-                    <TabsList className="flex-row w-full">
-                      <TabsTrigger value="parlays" className="flex-1">
-                        <Text>Parlays</Text>
-                      </TabsTrigger>
-                      <TabsTrigger value="props" className="flex-1">
-                        <Text>Props</Text>
-                      </TabsTrigger>
-                    </TabsList>
+                    <Button
+                      onPress={() =>
+                        router.navigate({
+                          pathname: "/match/[matchId]/props",
+                          params: { matchId },
+                        })
+                      }
+                      variant="foreground"
+                      size="sm"
+                      className="flex flex-row items-center gap-2 rounded-full h-10"
+                    >
+                      <Plus className="text-background" size={18} />
+                      <Text>New Parlay</Text>
+                    </Button>
                   )}
-                  <TabsContent value="props">
-                    {arePropsPending ? (
-                      <ActivityIndicator className="p-4 text-foreground" />
-                    ) : (
-                      props &&
-                      (props.length == 0 && !match.resolved ? (
-                        <View className="flex flex-col gap-4 p-4 items-center">
-                          <View className="flex flex-col gap-1 items-center">
-                            <Text className="font-bold text-2xl text-center">
-                              No props to bet on
-                            </Text>
-                            <Text className="font-semibold text-muted-foreground text-center">
-                              All games are in progress, there is nothing left
-                              to bet on. Good luck!
-                            </Text>
-                          </View>
-                        </View>
-                      ) : (
-                        <PropsView props={props} league={match.league} />
-                      ))
-                    )}
-                  </TabsContent>
-                  <TabsContent value="parlays">
-                    {areParlaysPending ? (
-                      <ActivityIndicator className="p-4 text-foreground" />
-                    ) : (
-                      parlays &&
-                      (parlays.length == 0 ? (
-                        <View className="flex flex-col gap-4 p-4 items-center">
-                          <View className="flex flex-col gap-4 items-center">
-                            <View className="flex flex-col gap-1 items-center">
-                              <Text className="font-bold text-2xl text-center">
-                                No parlays currently
-                              </Text>
-                              <Text className="font-semibold text-muted-foreground text-center max-w-sm">
-                                {match.resolved
-                                  ? "Next time place at least 2 parlays to avoid disqualification"
-                                  : "Go place some parlays"}
-                              </Text>
-                            </View>
-                            {!match.resolved && (
-                              <Button
-                                onPress={() => setTabsValue("props")}
-                                variant="foreground"
-                                size="sm"
-                              >
-                                <Text className="font-semibold">
-                                  Find Picks
-                                </Text>
-                              </Button>
-                            )}
-                          </View>
-                        </View>
-                      ) : (
-                        <ParlaysView parlays={parlays} />
-                      ))
-                    )}
-                  </TabsContent>
-                </Tabs>
+                </View>
+                {areParlaysPending ? (
+                  <ActivityIndicator className="text-foreground p-4" />
+                ) : (
+                  parlays && <ParlaysView parlays={parlays} />
+                )}
               </View>
-            )
-          )}
-        </View>
-      </Container>
-      {!match?.resolved && (
-        <Button
-          onPress={() =>
-            router.navigate({
-              pathname: "/match/[matchId]/messages",
-              params: { matchId },
-            })
-          }
-          size="icon"
-          className="rounded-full absolute bottom-4 right-4"
-        >
-          <MessageCircle className="text-primary-foreground" />
-        </Button>
-      )}
-    </Fragment>
+            </View>
+          )
+        )}
+      </View>
+    </ScrollContainer>
   );
 }

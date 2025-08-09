@@ -21,11 +21,10 @@ export function ScrollContainer({
         contentContainerClassName="flex-grow"
         contentContainerStyle={{
           marginTop: safeAreaInsets ? insets.top : 0,
-          marginBottom: insets.bottom,
         }}
         showsVerticalScrollIndicator={false}
       >
-        <View className={cn("flex flex-1 px-4 pt-2 pb-16", className)}>
+        <View className={cn("flex flex-1 px-4 pt-2 pb-14", className)}>
           {children}
         </View>
       </ScrollView>

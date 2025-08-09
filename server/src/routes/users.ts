@@ -31,6 +31,7 @@ usersRoute.get("/users", authMiddleware, async (req, res) => {
         image: true,
         points: true,
       },
+      limit: 10
     });
 
     res.json(
