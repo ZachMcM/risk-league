@@ -90,9 +90,9 @@ export async function getCareer(): Promise<Career> {
   return career;
 }
 
-export async function getMatches(): Promise<Match[]> {
+export async function getMatches(resolved: boolean): Promise<Match[]> {
   const matches = await httpRequest({
-    endpoint: "/matches",
+    endpoint: `/matches?resolved=${resolved}`,
     method: "GET",
   });
 

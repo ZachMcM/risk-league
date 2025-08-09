@@ -79,7 +79,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
                   <Text className="font-bold text-lg">
                     One of your {league.toUpperCase()} parlays finished!
                   </Text>
-                  <Text className="text-muted-foreground font-semibold max-w-[80%]">
+                  <Text className="text-muted-foreground font-semibold max-w-[60%]">
                     Click here to view the results!
                   </Text>
                 </View>
@@ -116,7 +116,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
                   <Text className="font-bold text-lg">
                     One of your {league.toUpperCase()} {type} matches ended!
                   </Text>
-                  <Text className="text-muted-foreground font-semibold max-w-[80%]">
+                  <Text className="text-muted-foreground font-semibold max-w-[60%]">
                     Click here to view the results!
                   </Text>
                 </View>
@@ -147,7 +147,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
                 />
                 <View className="flex flex-col w-full">
                   <Text className="font-bold text-lg">{username}</Text>
-                  <Text className="font-semibold text-muted-foreground max-w-[80%]">
+                  <Text className="font-semibold text-muted-foreground max-w-[60%]">
                     Requested to be friends!
                   </Text>
                 </View>
@@ -172,7 +172,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
                 />
                 <View className="flex flex-col w-full">
                   <Text className="font-bold text-lg">{username}</Text>
-                  <Text className="font-semibold text-muted-foreground max-w-[80%]">
+                  <Text className="font-semibold text-muted-foreground max-w-[60%]">
                     Accepted your friend request!
                   </Text>
                 </View>
@@ -204,7 +204,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
                   <Text className="font-bold text-lg">
                     {message.user.username}
                   </Text>
-                  <Text className="max-w-[80%] text-muted-foreground font-semibold">
+                  <Text className="max-w-[60%] text-muted-foreground font-semibold">
                     {message.content}
                   </Text>
                 </View>
@@ -237,7 +237,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
                 />
                 <View className="flex flex-col w-full">
                   <Text className="font-bold text-lg">{username}</Text>
-                  <Text className="text-muted-foreground font-semibold max-w-[80%]">
+                  <Text className="text-muted-foreground font-semibold max-w-[60%]">
                     Challenged you to a {league.toUpperCase()} friendly match!
                   </Text>
                 </View>
@@ -272,7 +272,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
               />
               <View className="flex flex-col w-full">
                 <Text className="font-bold text-lg">{username}</Text>
-                <Text className="text-muted-foreground font-semibold max-w-[80%]">
+                <Text className="text-muted-foreground font-semibold max-w-[60%]">
                   Declined your {league.toUpperCase()} friendly match request!
                 </Text>
               </View>

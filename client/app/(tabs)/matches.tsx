@@ -8,18 +8,32 @@ import { authClient } from "~/lib/auth-client";
 export default function Matches() {
   const { data } = authClient.useSession();
 
-  const { data: matches, isPending: isMatchesPending } = useQuery({
-    queryKey: ["matches", data?.user.id],
-    queryFn: async () => await getMatches(),
-  });
+  const { data: unresolvedMatches, isPending: unresolvedMatchesPending } =
+    useQuery({
+      queryKey: ["matches", data?.user.id, "unresolved"],
+      queryFn: async () => await getMatches(false),
+    });
+
+  const { data: resolvedMatches, isPending: resolvedMatchesPending } = useQuery(
+    {
+      queryKey: ["matches", data?.user.id, "resolved"],
+      queryFn: async () => await getMatches(true),
+    }
+  );
 
   return (
     <Container className="pt-2">
       <View className="flex flex-1 flex-col gap-6">
-        {isMatchesPending ? (
+        {resolvedMatchesPending || unresolvedMatchesPending ? (
           <ActivityIndicator className="text-foreground p-4" />
         ) : (
-          matches && <MatchTabs matches={matches} />
+          resolvedMatches &&
+          unresolvedMatches && (
+            <MatchTabs
+              unresolvedMatches={unresolvedMatches}
+              resolvedMatches={resolvedMatches}
+            />
+          )
         )}
       </View>
     </Container>

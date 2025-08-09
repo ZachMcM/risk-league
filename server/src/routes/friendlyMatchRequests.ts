@@ -166,8 +166,10 @@ friendlyMatchRequestsRoute.patch(
       });
 
       invalidateQueries(
-        ["matches", updatedRequest.outgoingId],
-        ["matches", updatedRequest.incomingId],
+        ["matches", updatedRequest.outgoingId, "unresolved"],
+        ["matches", updatedRequest.incomingId, "unresolved"],
+        ["matches", updatedRequest.outgoingId, "resolved"],
+        ["matches", updatedRequest.incomingId, "resolved"],
         ["friendly-match-requests", updatedRequest.outgoingId],
         ["friendly-match-requests", updatedRequest.incomingId]
       );

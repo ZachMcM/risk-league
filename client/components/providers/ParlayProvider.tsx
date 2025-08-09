@@ -100,26 +100,24 @@ export function ParlayPickerFooter() {
   const matchId = parseInt(searchParams.matchId);
   const insets = useSafeAreaInsets();
 
-  if (picks.length <= 0) {
-    return null;
-  }
-
   return (
     <View
       className="flex flex-row items-center justify-between gap-4 border-t border-border p-4"
       style={{ paddingBottom: insets.bottom }}
     >
       {/* TODO replace with images */}
-      <Text className="font-semibold text-muted-foreground">
-        {truncate(
-          picks
-            .map((pick) => pick.prop.player.name)
-            .filter((e, i, self) => i === self.indexOf(e))
-            .join(", "),
-          {
-            length: 25,
-          }
-        )}
+      <Text className="font-semibold text-muted-foreground max-w-[50%]">
+        {picks.length == 0
+          ? "Make at least 2 picks with unique players"
+          : truncate(
+              picks
+                .map((pick) => pick.prop.player.name)
+                .filter((e, i, self) => i === self.indexOf(e))
+                .join(", "),
+              {
+                length: 25,
+              }
+            )}
       </Text>
       <Button
         variant="foreground"

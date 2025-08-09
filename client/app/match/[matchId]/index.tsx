@@ -3,6 +3,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { Fragment, useEffect, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import MatchDetails from "~/components/matches/MatchDetails";
 import ParlaysView from "~/components/parlays/ParlaysView";
 import PropsView from "~/components/props/PropsView";
 import { Button } from "~/components/ui/button";
@@ -41,7 +42,6 @@ export default function Match() {
   });
 
   const [tabsValue, setTabsValue] = useState("parlays");
-  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     setTabsValue("parlays");
@@ -70,12 +70,13 @@ export default function Match() {
   return (
     <Fragment>
       <Container className="pt-2">
-        <View className="flex flex-1 flex-col gap-6">
+        <View className="flex-1">
           {isMatchPending ? (
             <ActivityIndicator className="text-foreground p-4" />
           ) : (
             match && (
-              <View className="flex flex-1">
+              <View className="flex flex-1 flex-col gap-4">
+                <MatchDetails match={match} />
                 <Tabs
                   value={tabsValue}
                   onValueChange={setTabsValue}
@@ -164,7 +165,7 @@ export default function Match() {
             })
           }
           size="icon"
-          className="rounded-full absolute bottom-6 right-6"
+          className="rounded-full absolute bottom-4 right-4"
         >
           <MessageCircle className="text-primary-foreground" />
         </Button>

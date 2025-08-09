@@ -73,7 +73,7 @@ export default function MatchmakingDialog({
       setLoadingMessage("Opponent found!");
       toast.success("Opponent found!");
       queryClient.invalidateQueries({
-        queryKey: ["matches"],
+        queryKey: ["matches", data?.user.id, "unresolved"],
       });
       socket.disconnect();
       setIsOpen(false);

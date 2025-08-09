@@ -208,8 +208,10 @@ parlaysRoute.post("/parlays/:matchId", authMiddleware, async (req, res) => {
     invalidateQueries(
       ["match", matchId],
       ["parlays", matchId, matchUserResult.userId],
-      ["matches", matchUserResult.match.matchUsers[0].userId],
-      ["matches", matchUserResult.match.matchUsers[1].userId]
+      ["matches", matchUserResult.match.matchUsers[0].userId, "unresolved"],
+      ["matches", matchUserResult.match.matchUsers[1].userId, "unresolved"],
+      ["matches", matchUserResult.match.matchUsers[0].userId, "resolved"],
+      ["matches", matchUserResult.match.matchUsers[1].userId, "resolved"]
     );
 
     res.json(parlayResult);

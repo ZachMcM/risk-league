@@ -8,20 +8,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { Text } from "../ui/text";
 import MatchListCard from "./MatchListCard";
 
-export default function MatchTabs({ matches }: { matches: Match[] }) {
-  function filterMatches(status: boolean) {
-    return matches.filter((match) => match.resolved == status);
-  }
-
-  const completed = filterMatches(true);
-  const inProgress = filterMatches(false);
-
-  console.log(matches);
-  console.log(completed);
-  console.log(inProgress);
-
+export default function MatchTabs({
+  unresolvedMatches,
+  resolvedMatches,
+}: {
+  unresolvedMatches: Match[];
+  resolvedMatches: Match[];
+}) {
   const [matchStatus, setMatchStatus] = useState(
-    inProgress.length == 0 ? "completed" : "in-progress"
+    unresolvedMatches.length == 0 ? "completed" : "in-progress"
   );
 
   return (
@@ -33,14 +28,14 @@ export default function MatchTabs({ matches }: { matches: Match[] }) {
       >
         <TabsList className="flex-row w-full">
           <TabsTrigger value="in-progress" className="flex-1">
-            <Text>In Progress ({inProgress.length})</Text>
+            <Text>In Progress ({unresolvedMatches.length})</Text>
           </TabsTrigger>
           <TabsTrigger value="completed" className="flex-1">
-            <Text>Completed ({completed.length})</Text>
+            <Text>Completed ({resolvedMatches.length})</Text>
           </TabsTrigger>
         </TabsList>
         <TabsContent value="in-progress">
-          {inProgress.length == 0 ? (
+          {unresolvedMatches.length == 0 ? (
             <View className="flex flex-col gap-4 p-4 items-center">
               <View className="flex flex-col gap-1 items-center">
                 <Text className="font-bold text-2xl text-center">
@@ -62,14 +57,14 @@ export default function MatchTabs({ matches }: { matches: Match[] }) {
             <FlatList
               contentContainerClassName="flex flex-col gap-3 pb-20"
               showsVerticalScrollIndicator={false}
-              data={inProgress}
+              data={unresolvedMatches}
               renderItem={({ item }) => <MatchListCard match={item} />}
               keyExtractor={(item) => item.id.toString()}
             />
           )}
         </TabsContent>
         <TabsContent value="completed">
-          {completed.length == 0 ? (
+          {resolvedMatches.length == 0 ? (
             <View className="flex flex-col gap-4 p-4 items-center">
               <View className="flex flex-col gap-1 items-center">
                 <Text className="font-bold text-2xl text-center">
@@ -91,7 +86,7 @@ export default function MatchTabs({ matches }: { matches: Match[] }) {
             <FlatList
               contentContainerClassName="flex flex-col gap-3 pb-20"
               showsVerticalScrollIndicator={false}
-              data={completed}
+              data={resolvedMatches}
               renderItem={({ item }) => <MatchListCard match={item} />}
               keyExtractor={(item) => item.id.toString()}
             />

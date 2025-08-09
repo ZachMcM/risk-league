@@ -10,7 +10,6 @@ import { useColorScheme } from "~/lib/useColorScheme";
 
 export default function TabsLayout() {
   const { isDarkColorScheme } = useColorScheme();
-  const insets = useSafeAreaInsets();
 
   return (
     <Tabs

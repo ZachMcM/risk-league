@@ -1,4 +1,4 @@
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq, ne } from "drizzle-orm";
 import { Router } from "express";
 import { io } from "..";
 import { db } from "../db";
@@ -15,34 +15,76 @@ import {
 
 export const matchesRoute = Router();
 
-matchesRoute.get("/matches", authMiddleware, async (_, res) => {
+matchesRoute.get("/matches", authMiddleware, async (req, res) => {
   try {
-    const matchUserResults = await db.query.matchUser.findMany({
-      where: eq(matchUser.userId, res.locals.userId!),
-      with: {
-        match: {
-          with: {
-            matchUsers: {
-              with: {
-                user: {
-                  columns: {
-                    id: true,
-                    username: true,
-                    image: true,
-                  },
+    const resolvedString = req.query.resolved as string | undefined;
+
+    if (!resolvedString) {
+      res
+        .status(400)
+        .json({ error: "Invalid query string, missing resolved query string" });
+      return;
+    }
+
+    const resolved = resolvedString === "true";
+
+    const withStatement = {
+      match: {
+        with: {
+          matchUsers: {
+            with: {
+              user: {
+                columns: {
+                  id: true,
+                  username: true,
+                  image: true,
                 },
               },
             },
           },
         },
       },
+    };
+
+    if (resolved) {
+      const matchUserResults = await db.query.matchUser.findMany({
+        where: and(
+          eq(matchUser.userId, res.locals.userId!),
+          ne(matchUser.status, "not_resolved")
+        ),
+        with: withStatement,
+        orderBy: desc(matchUser.createdAt),
+        limit: 50,
+      });
+
+      const formattedMatches = matchUserResults.map(({ match }) => ({
+        ...match,
+        matchUsers: match.matchUsers.map((mu) => ({
+          ...mu,
+          progressionDelta: calculateProgressionDelta(
+            mu.pointsSnapshot,
+            mu.pointsDelta
+          ),
+          rankSnapshot: findRank(mu.pointsSnapshot),
+        })),
+      }));
+
+      res.json(formattedMatches);
+      return;
+    }
+
+    const matchUserResults = await db.query.matchUser.findMany({
+      where: and(
+        eq(matchUser.userId, res.locals.userId!),
+        eq(matchUser.status, "not_resolved")
+      ),
+      with: withStatement,
       orderBy: desc(matchUser.createdAt),
-      limit: 50,
     });
 
-    const matchesWithParlayCounts = matchUserResults.map(({ match }) => ({
+    const formattedMatches = matchUserResults.map(({ match }) => ({
       ...match,
-      matchUsers: match?.matchUsers.map((mu) => ({
+      matchUsers: match.matchUsers.map((mu) => ({
         ...mu,
         progressionDelta: calculateProgressionDelta(
           mu.pointsSnapshot,
@@ -52,7 +94,7 @@ matchesRoute.get("/matches", authMiddleware, async (_, res) => {
       })),
     }));
 
-    res.json(matchesWithParlayCounts);
+    res.json(formattedMatches);
   } catch (error) {
     logger.error(error);
     res.status(500).json({ error });
@@ -390,8 +432,10 @@ matchesRoute.patch("/matches/end", apiKeyMiddleware, async (_, res) => {
 
       invalidateQueries(
         ["match", matchToEnd.id],
-        ["matches", matchUser1.userId],
-        ["matches", matchUser2.userId],
+        ["matches", matchUser1.userId, "unresolved"],
+        ["matches", matchUser2.userId, "unresolved"],
+        ["matches", matchUser1.userId, "resolved"],
+        ["matches", matchUser2.userId, "resolved"],
         ["user", matchUser1.userId],
         ["user", matchUser2.userId],
         ["career", matchUser1.userId],

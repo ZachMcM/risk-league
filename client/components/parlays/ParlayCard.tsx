@@ -19,7 +19,7 @@ export default function ParlayCard({ parlay }: { parlay: Parlay }) {
       }}
     >
       <Card className="w-full">
-        <CardContent className="p-6 flex flex-col gap-6 w-full flex-1">
+        <CardContent className="p-4 flex flex-col gap-6 w-full flex-1">
           <View className="flex flex-col">
             <View className="flex flex-row justify-between items-center">
               <View className="flex flex-row items-center gap-3">
