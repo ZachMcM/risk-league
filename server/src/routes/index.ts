@@ -6,6 +6,7 @@ import { parlaysRoute } from "./parlays";
 import { picksRoute } from "./picks";
 import { friendlyMatchRequestsRoute } from "./friendlyMatchRequests";
 import { friendshipsRoute } from "./friendships";
+import { gamesRoute } from "./games";
 
 export const routes = express.Router();
 routes.use(usersRoute);
@@ -15,3 +16,4 @@ routes.use(parlaysRoute);
 routes.use(picksRoute);
 routes.use(friendlyMatchRequestsRoute);
 routes.use(friendshipsRoute);
+routes.use(gamesRoute)

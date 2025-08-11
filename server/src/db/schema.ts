@@ -172,7 +172,7 @@ export const game = pgTable("game", {
   homeTeamId: integer("home_team_id")
     .notNull()
     .references(() => team.id, { onDelete: "cascade" }),
-  awayteamId: integer("away_team_id")
+  awayTeamId: integer("away_team_id")
     .notNull()
     .references(() => team.id, { onDelete: "cascade" }),
   league: text().notNull(),

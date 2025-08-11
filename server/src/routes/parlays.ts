@@ -137,17 +137,17 @@ parlaysRoute.post("/parlays/:matchId", authMiddleware, async (req, res) => {
         | undefined;
     };
 
-    if (!stake) {
+    if (stake == undefined) {
       res.status(400).json({ error: "Invalid parlay stake" });
       return;
     }
 
-    if (!type) {
+    if (type == undefined) {
       res.status(400).json({ error: "Invalid parlay type" });
       return;
     }
 
-    if (!picks || picks.length == 0) {
+    if (picks == undefined || picks.length == 0) {
       res.status(400).json({ error: "Invalid picks" });
       return;
     }

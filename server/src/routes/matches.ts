@@ -198,7 +198,7 @@ matchesRoute.post("/matches/:id/messages", authMiddleware, async (req, res) => {
       content: string | undefined;
     };
 
-    if (!content) {
+    if (content == undefined) {
       res
         .status(400)
         .json({ error: "Invalid request body, missing message content" });

@@ -130,12 +130,12 @@ propsRoute.post("/props", authMiddleware, async (req, res) => {
       };
 
     if (
-      !line ||
-      !gameId ||
-      !playerId ||
-      !statName ||
-      !statDisplayName ||
-      !choices
+      line == undefined ||
+      gameId == undefined ||
+      playerId == undefined ||
+      statName == undefined ||
+      statDisplayName == undefined ||
+      choices == undefined
     ) {
       res.status(400).json({ error: "Invalid request body" });
       return;

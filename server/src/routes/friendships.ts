@@ -70,7 +70,7 @@ friendshipsRoute.post("/friendships", authMiddleware, async (req, res) => {
       incomingId: string | undefined;
     };
 
-    if (!incomingId) {
+    if (incomingId == undefined) {
       res.status(400).json({
         error: "Invalid request body",
       });
@@ -197,7 +197,7 @@ friendshipsRoute.patch("/friendships", authMiddleware, async (req, res) => {
       outgoingId: string | undefined;
     };
 
-    if (!outgoingId) {
+    if (outgoingId == undefined) {
       res.status(400).json({ error: "Invalid request body" });
       return;
     }

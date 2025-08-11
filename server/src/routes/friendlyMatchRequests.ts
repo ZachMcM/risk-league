@@ -77,7 +77,7 @@ friendlyMatchRequestsRoute.patch(
         status: "accepted" | "declined" | undefined;
       };
 
-      if (!status) {
+      if (status == undefined) {
         res
           .status(400)
           .json({ error: "Invalid request body, missing newStatus" });
@@ -202,7 +202,7 @@ friendlyMatchRequestsRoute.post(
         league: string | undefined;
       };
 
-      if (!incomingId || !league) {
+      if (incomingId == undefined || league == undefined) {
         res.status(400).json({ error: "Invalid request body" });
         return;
       }

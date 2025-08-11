@@ -50,7 +50,7 @@ export const messageRelations = relations(message, ({ one }) => ({
 
 export const gameRelations = relations(game, ({ one, many }) => ({
   awayTeam: one(team, {
-    fields: [game.awayteamId],
+    fields: [game.awayTeamId],
     references: [team.id],
   }),
   homeTeam: one(team, {
