@@ -37,7 +37,6 @@ export default function MatchListCard({ match }: { match: Match }) {
         pathname: "/match/[matchId]",
         params: { matchId: match.id },
       }}
-      prefetch
     >
       <Card className="w-full">
         <CardContent className="flex flex-col gap-3 p-4 items-start">

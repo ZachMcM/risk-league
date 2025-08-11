@@ -55,12 +55,13 @@ export function FriendlyMatchRequestCard({
 
   return (
     <Card className="animate-pulse">
-      <CardContent className="px-6 py-4 flex flex-row items-center justify-between w-full">
-        <View className="flex flex-row items-center gap-4">
-          <LeagueLogo league={friendlyMatchRequest.league} size={42} />
-          <View className="flex flex-col">
+      <CardContent className="p-4 flex flex-row items-center justify-between w-full">
+        <View className="flex flex-row items-center gap-4 flex-1">
+          <LeagueLogo league={friendlyMatchRequest.league} size={36} />
+          <View className="flex flex-col flex-1">
             <Text className="font-bold">
-              {friendlyMatchRequest.league.toUpperCase()} Friendly Match
+              {friendlyMatchRequest.league.toUpperCase()} Friendly Match{" "}
+              {isIncomingUser && `from ${friendlyMatchRequest.friend.username}`}
             </Text>
             <Text className="font-semibold text-muted-foreground">
               Waiting for{" "}
@@ -95,7 +96,7 @@ export function FriendlyMatchRequestCard({
             ) : (
               <X className="text-destructive-foreground" size={18} />
             )}
-            <Text>{isIncomingUser ? "Decline" : "Cancel"}</Text>
+            <Text>{isIncomingUser ? isFriendlyMatchRequestDeclining ? "Declining" : "Decline" : isFriendlyMatchRequestDeclining ? "Canceling" : "Cancel"}</Text>
           </Button>
         </View>
       </CardContent>

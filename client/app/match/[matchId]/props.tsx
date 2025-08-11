@@ -37,7 +37,7 @@ export default function Props() {
 
   return (
     <ModalContainer>
-      <Container className="flex-col gap-4 pt-10 pb-0 flex-1 flex-grow">
+      <Container className="pt-10 pb-0">
         {arePropsPending ? (
           <ActivityIndicator className="text-foreground p-4" />
         ) : (

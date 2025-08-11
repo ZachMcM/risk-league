@@ -135,10 +135,6 @@ export function RootNavigatior() {
         name="career"
         options={{ headerShown: false, presentation: "modal" }}
       />
-      <Stack.Screen
-        name="social"
-        options={{ headerShown: false, presentation: "modal" }}
-      />
     </Stack>
   );
 }

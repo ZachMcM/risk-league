@@ -74,7 +74,7 @@ function DialogContent({
       <DialogOverlay>
         <DialogPrimitive.Content
           className={cn(
-            'max-w-lg gap-4 border border-border web:cursor-default bg-background p-6 web:duration-200 rounded-xl',
+            'max-w-lg gap-4 border border-border web:cursor-default bg-background p-6 web:duration-200 rounded-2xl',
             open
               ? 'web:animate-in web:fade-in-0 web:zoom-in-95'
               : 'web:animate-out web:fade-out-0 web:zoom-out-95',

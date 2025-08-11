@@ -189,7 +189,6 @@ export const prop = pgTable("prop", {
     .notNull(),
   statName: text("stat_name").notNull(),
   statDisplayName: text("stat_display_name").notNull(),
-  league: text().notNull(),
   resolved: boolean().default(false).notNull(),
   choices: text().array().default(["over", "under"]).notNull(),
   id: serial().primaryKey().notNull(),

@@ -11,7 +11,6 @@ import {
 import { authClient } from "~/lib/auth-client";
 import { League, leagues } from "~/lib/constants";
 import { Check } from "~/lib/icons/Check";
-import { Play } from "~/lib/icons/Play";
 import { UserMinus } from "~/lib/icons/UserMinus";
 import { UserPlus } from "~/lib/icons/UserPlus";
 import { X } from "~/lib/icons/X";
@@ -24,7 +23,7 @@ import { Dialog, DialogContent, DialogTrigger } from "../ui/dialog";
 import LeagueLogo from "../ui/league-logos/LeagueLogo";
 import ProfileImage from "../ui/profile-image";
 import { Text } from "../ui/text";
-import { Swords } from "~/lib/icons/Swords";
+import { Play } from "~/lib/icons/Play";
 
 export function UserCard({
   user,
@@ -225,14 +224,14 @@ export function UserCard({
 
   return (
     <View className="flex flex-row items-center justify-between">
-      <View className="flex flex-row items-center gap-4">
+      <View className="flex flex-row items-center gap-3">
         <ProfileImage
-          className="h-16 w-16"
+          className="h-14 w-14"
           username={user.username}
           image={user.image}
         />
         <View className="flex flex-col gap-2">
-          <Text className="font-bold text-xl">{user.username}</Text>
+          <Text className="font-bold text-lg">{user.username}</Text>
           <RankBadge
             iconClassName="h-4 w-4"
             textClassName="text-xs"
@@ -252,17 +251,16 @@ export function UserCard({
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
                 <Button
-                  variant="secondary"
+                  variant="default"
                   size="sm"
                   className="gap-2 px-4 flex flex-row items-center"
                 >
-                  <Swords className="text-foreground" size={18} />
+                  <Play className="text-primary-foreground" size={18} />
                   <Text>Play</Text>
                 </Button>
               </DialogTrigger>
               <DialogContent
                 className="w-[375px]"
-                portalHost="inside-modal-page"
               >
                 <View className="flex flex-col gap-6">
                   <View className="flex flex-row items-center gap-3">

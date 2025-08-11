@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FlatList, ScrollView, View } from "react-native";
+import { ScrollView, View } from "react-native";
 import { League, propStats } from "~/lib/constants";
 import { Search } from "~/lib/icons/Search";
 import { Prop } from "~/types/prop";
@@ -8,6 +8,8 @@ import { Button } from "../ui/button";
 import { SearchBar } from "../ui/search-bar";
 import { Text } from "../ui/text";
 import PropCard from "./PropCard";
+import { FlashList } from "@shopify/flash-list";
+import { GridItemWrapper } from "../ui/grid-item-wrapper";
 
 export default function PropsView({
   props,
@@ -115,17 +117,24 @@ export default function PropsView({
           </View>
         </View>
       ) : (
-        <View className="flex-1">
-          <FlatList
-            showsVerticalScrollIndicator={false}
-            data={filteredProps()}
-            renderItem={({ item }) => <PropCard prop={item} />}
-            keyExtractor={(item) => item.id.toString()}
-            numColumns={2}
-            columnWrapperStyle={{ gap: 12 }}
-            contentContainerStyle={{ gap: 12, paddingBottom: 36 }}
-          />
-        </View>
+        <FlashList
+          contentContainerStyle={{
+            paddingBottom: 42
+          }}
+          data={filteredProps()}
+          renderItem={({ item, index }) => (
+            <GridItemWrapper
+              index={index}
+              numCols={2}
+              gap={12}
+            >
+              <PropCard prop={item} />
+            </GridItemWrapper>
+          )}
+          keyExtractor={(item) => item.id.toString()}
+          numColumns={2}
+          estimatedItemSize={210}
+        />
       )}
     </View>
   );

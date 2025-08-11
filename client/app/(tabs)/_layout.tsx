@@ -5,7 +5,8 @@ import { NAV_THEME } from "~/lib/constants";
 import { Dices } from "~/lib/icons/Dices";
 import { Home } from "~/lib/icons/Home";
 import { Trophy } from "~/lib/icons/Trophy";
-import { Tv } from "~/lib/icons/Tv";
+import { Users } from "~/lib/icons/Users";
+import { Contact } from "~/lib/icons/Contact";
 import { useColorScheme } from "~/lib/useColorScheme";
 
 export default function TabsLayout() {
@@ -19,7 +20,7 @@ export default function TabsLayout() {
           borderTopColor: "hsl(var(--border))",
           borderTopWidth: 1,
           paddingBottom: 6,
-          paddingTop: 6
+          paddingTop: 6,
         },
         tabBarLabelStyle: {
           fontSize: 12,
@@ -48,19 +49,19 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
+        name="social"
+        options={{
+          title: "Social",
+          header: () => <PageTitle title="Social" />,
+          tabBarIcon: ({ color }) => <Contact color={color} />,
+        }}
+      />
+      <Tabs.Screen
         name="leaderboard"
         options={{
           title: "Leaderboard",
           header: () => <PageTitle title="Leaderboard" />,
           tabBarIcon: ({ color }) => <Trophy color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="scores"
-        options={{
-          title: "Scores",
-          header: () => <PageTitle title="Scores" />,
-          tabBarIcon: ({ color }) => <Tv color={color} />,
         }}
       />
     </Tabs>

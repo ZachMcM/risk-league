@@ -18,7 +18,7 @@ export default function PropCard({ prop }: { prop: Prop }) {
   }
 
   return (
-    <Card className={cn("flex-1 max-w-[48%]", isPropPicked(prop.id) && "border-primary")}>
+    <Card className={cn("flex-1", isPropPicked(prop.id) && "border-primary")}>
       <CardContent className="p-4 flex flex-col items-center gap-4">
         <View className="flex flex-col items-center gap-1">
           <View className="flex flex-row items-center gap-2">
@@ -32,9 +32,10 @@ export default function PropCard({ prop }: { prop: Prop }) {
           <Text className="font-bold text-lg text-center">
             {prop.player.name}
           </Text>
-          <Text className="font-semibold text-muted-foreground text-sm text-center max-w-[75%]">
-            {prop.game.awayTeam.abbreviation} at{" "}
-            {prop.game.homeTeam.abbreviation} •{" "}
+          <Text className="font-semibold text-muted-foreground text-sm text-center">
+            {
+              prop.game.homeTeamId == prop.player.teamId ? `@ ${prop.game.awayTeam.abbreviation}` : `vs ${prop.game.homeTeam.abbreviation}`
+            } •{" "}
             {moment(prop.game.startTime).format("ddd h:mm A")}
           </Text>
         </View>

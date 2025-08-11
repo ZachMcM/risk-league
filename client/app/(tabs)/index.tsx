@@ -66,13 +66,6 @@ export default function Home() {
             <Button
               size="icon"
               variant="outline"
-              onPress={() => router.navigate("/social")}
-            >
-              <Users className="text-foreground" size={18} />
-            </Button>
-            <Button
-              size="icon"
-              variant="outline"
               onPress={() => router.navigate("/career")}
             >
               <ChartBarDecreasing className="text-foreground" size={18} />

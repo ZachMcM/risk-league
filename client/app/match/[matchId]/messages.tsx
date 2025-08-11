@@ -8,12 +8,12 @@ import MessagesList from "~/components/matches/MessagesList";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import ModalContainer from "~/components/ui/modal-container";
+import ProfileImage from "~/components/ui/profile-image";
 import { Text } from "~/components/ui/text";
 import { getMatch, getMessages, postMessage } from "~/endpoints";
 import { authClient } from "~/lib/auth-client";
-import { ExtendedMatchUser, Message } from "~/types/match";
 import { SendHorizontal } from "~/lib/icons/SendHorizontal";
-import ProfileImage from "~/components/ui/profile-image";
+import { ExtendedMatchUser, Message } from "~/types/match";
 
 export default function Messages() {
   const searchParams = useLocalSearchParams<{ matchId: string }>();
@@ -88,7 +88,9 @@ export default function Messages() {
     }
   };
 
-  const otherMatchUser = match?.matchUsers.find((mu: ExtendedMatchUser) => mu.userId !== data?.user.id)!;
+  const otherMatchUser = match?.matchUsers.find(
+    (mu: ExtendedMatchUser) => mu.userId !== data?.user.id
+  )!;
 
   return (
     <ModalContainer>
@@ -101,7 +103,11 @@ export default function Messages() {
             <View className="flex flex-col gap-4 px-4 py-8 items-center">
               <View className="flex flex-col gap-4 items-center">
                 <View className="flex flex-col gap-1 items-center">
-                  <ProfileImage className="h-20 w-20" username={otherMatchUser.user.username} image={otherMatchUser.user.username} />
+                  <ProfileImage
+                    className="h-20 w-20"
+                    username={otherMatchUser.user.username}
+                    image={otherMatchUser.user.username}
+                  />
                   <Text className="font-bold text-xl text-center">
                     {otherMatchUser.user.username}
                   </Text>

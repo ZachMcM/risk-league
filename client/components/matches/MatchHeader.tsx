@@ -6,6 +6,7 @@ import LeagueLogo from "../ui/league-logos/LeagueLogo";
 import { Text } from "../ui/text";
 import { getMatch } from "~/endpoints";
 import { useQuery } from "@tanstack/react-query";
+import { Skeleton } from "../ui/skeleton";
 
 export default function MatchHeader() {
   const router = useRouter();
@@ -18,7 +19,7 @@ export default function MatchHeader() {
   }>();
   const matchId = parseInt(searchParams.matchId);
 
-  const { data: match } = useQuery({
+  const { data: match, isPending } = useQuery({
     queryKey: ["match", matchId],
     queryFn: async () => await getMatch(matchId),
   });
@@ -33,7 +34,7 @@ export default function MatchHeader() {
       <Pressable onPress={() => router.back()}>
         <ChevronLeft size={18} className="text-foreground" />
       </Pressable>
-      {match && (
+      {isPending ? <Skeleton className="h-2 my-3 w-1/2"/> : match && (
         <View className="flex flex-row items-center gap-1.5">
           <View className="flex flex-row items-center gap-2">
             <LeagueLogo league={match.league} size={28} />

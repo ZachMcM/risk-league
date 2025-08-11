@@ -5,7 +5,11 @@ import { Badge } from "../ui/badge";
 import { Card, CardContent } from "../ui/card";
 import { Separator } from "../ui/separator";
 import { Text } from "../ui/text";
-import { getFlexMultiplier, getPerfectPlayMultiplier } from "~/utils/multiplierUtils";
+import {
+  getFlexMultiplier,
+  getFlexMultiplierTable,
+  getPerfectPlayMultiplier,
+} from "~/utils/multiplierUtils";
 
 export default function ParlayCard({ parlay }: { parlay: Parlay }) {
   const searchParams = useLocalSearchParams<{ matchId: string }>();
@@ -28,14 +32,20 @@ export default function ParlayCard({ parlay }: { parlay: Parlay }) {
                 </Text>
                 <Text className="font-bold text-lg text-primary">
                   {parlay.type == "flex"
-                    ? `${getFlexMultiplier(
-                        parlay.picks.length,
+                    ? `${(() => {
+                        const table = getFlexMultiplierTable(
+                          parlay.picks.length
+                        );
+                        const minMultiplier =
+                          table[table.length - 1]?.multiplier || 0;
+                        const maxMultiplier = table[0]?.multiplier || 0;
+                        return `${minMultiplier.toFixed(
+                          2
+                        )}x-${maxMultiplier.toFixed(2)}x`;
+                      })()}`
+                    : `${getPerfectPlayMultiplier(parlay.picks.length).toFixed(
                         2
-                      )}x-${getFlexMultiplier(
-                        parlay.picks.length,
-                        parlay.picks.length
-                      )}x`
-                    : `${getPerfectPlayMultiplier(parlay.picks.length).toFixed(2)}x`}
+                      )}x`}
                 </Text>
               </View>
               <Badge
@@ -58,9 +68,7 @@ export default function ParlayCard({ parlay }: { parlay: Parlay }) {
               </Badge>
             </View>
             <Text className="font-semibold text-muted-foreground">
-              {parlay.picks
-                .map((pick) => pick.prop.player.name)
-                .join(", ")}
+              {parlay.picks.map((pick) => pick.prop.player.name).join(", ")}
             </Text>
           </View>
           <View className="flex flex-row items-center gap-6">

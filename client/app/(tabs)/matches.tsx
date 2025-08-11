@@ -22,20 +22,18 @@ export default function Matches() {
   );
 
   return (
-    <Container className="pt-2">
-      <View className="flex flex-1 flex-col gap-6">
-        {resolvedMatchesPending || unresolvedMatchesPending ? (
-          <ActivityIndicator className="text-foreground p-4" />
-        ) : (
-          resolvedMatches &&
-          unresolvedMatches && (
-            <MatchTabs
-              unresolvedMatches={unresolvedMatches}
-              resolvedMatches={resolvedMatches}
-            />
-          )
-        )}
-      </View>
+    <Container className="pt-2 pb-0">
+      {resolvedMatchesPending || unresolvedMatchesPending ? (
+        <ActivityIndicator className="text-foreground p-4" />
+      ) : (
+        resolvedMatches &&
+        unresolvedMatches && (
+          <MatchTabs
+            unresolvedMatches={unresolvedMatches}
+            resolvedMatches={resolvedMatches}
+          />
+        )
+      )}
     </Container>
   );
 }

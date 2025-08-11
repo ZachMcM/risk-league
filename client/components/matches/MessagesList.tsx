@@ -1,22 +1,22 @@
 import { useEffect, useRef } from "react";
-import { View } from "react-native";
+import { FlatList, View } from "react-native";
 import { Text } from "~/components/ui/text";
 import { authClient } from "~/lib/auth-client";
 import { Message } from "~/types/match";
 import { cn } from "~/utils/cn";
 import { timeAgo } from "~/utils/dateUtils";
 import ProfileImage from "../ui/profile-image";
-import { FlatList } from "react-native-gesture-handler";
+import { FlashList } from "@shopify/flash-list";
+import { GridItemWrapper } from "../ui/grid-item-wrapper";
 
 export default function MessagesList({ messages }: { messages: Message[] }) {
-  const flatListRef = useRef<FlatList>(null);
+  const flashListRef = useRef<FlashList<Message>>(null);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     if (messages.length > 0) {
-      // Use setTimeout to ensure the FlatList has finished rendering
       setTimeout(() => {
-        flatListRef.current?.scrollToIndex({
+        flashListRef.current?.scrollToIndex({
           index: messages.length - 1,
           animated: true,
           viewPosition: 0, // Position at bottom
@@ -26,23 +26,30 @@ export default function MessagesList({ messages }: { messages: Message[] }) {
   }, [messages]);
 
   return (
-    <FlatList
-      ref={flatListRef}
+    <FlashList
       contentContainerStyle={{
-        paddingHorizontal: 24,
-        paddingVertical: 8,
-        flexGrow: 1,
+        padding: 16,
       }}
+      ref={flashListRef}
+      estimatedItemSize={60}
       showsVerticalScrollIndicator={false}
       data={messages}
-      renderItem={({ item }) => <MessageCard message={item} />}
+      renderItem={({ item, index }) => (
+        <GridItemWrapper
+          index={index}
+          gap={6}
+          numCols={1}
+        >
+          <MessageCard message={item} />
+        </GridItemWrapper>
+      )}
       keyExtractor={(item, index) =>
         `${item.userId}-${item.createdAt}-${index}`
       }
       onLayout={() => {
         if (messages.length > 0) {
           setTimeout(() => {
-            flatListRef.current?.scrollToIndex({
+            flashListRef.current?.scrollToIndex({
               index: messages.length - 1,
               animated: true,
               viewPosition: 0,
@@ -61,7 +68,7 @@ export function MessageCard({ message }: { message: Message }) {
   return (
     <View
       className={cn(
-        "mb-4 flex flex-col gap-2",
+        "mb-2 flex flex-col gap-2",
         isCurrentUser ? "items-end" : "items-start"
       )}
     >

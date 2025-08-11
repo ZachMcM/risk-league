@@ -1,8 +1,9 @@
 import { router } from "expo-router";
-import { Pressable, View } from "react-native";
+import { useEffect } from "react";
+import { View } from "react-native";
+import { toast } from "sonner-native";
 import { authClient } from "~/lib/auth-client";
 import { AlertTriangle } from "~/lib/icons/AlertTriangle";
-import { ChartColumnIncreasing } from "~/lib/icons/CharColumnIncreasing";
 import { MessageCircle } from "~/lib/icons/MessageCircle";
 import { ExtendedMatch, ExtendedMatchUser } from "~/types/match";
 import { getBadgeText, getBadgeVariant } from "~/utils/badgeUtils";
@@ -11,12 +12,16 @@ import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import ProfileImage from "../ui/profile-image";
 import { Text } from "../ui/text";
-import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
+import MatchStatsDialog from "./MatchStatsDialog";
 
 export default function MatchDetails({ match }: { match: ExtendedMatch }) {
   const { data } = authClient.useSession();
-  const currentMatchUser = match.matchUsers.find((mu: ExtendedMatchUser) => mu.userId === data?.user.id)!;
-  const otherMatchUser = match.matchUsers.find((mu: ExtendedMatchUser) => mu.userId !== data?.user.id)!;
+  const currentMatchUser = match.matchUsers.find(
+    (mu: ExtendedMatchUser) => mu.userId === data?.user.id
+  )!;
+  const otherMatchUser = match.matchUsers.find(
+    (mu: ExtendedMatchUser) => mu.userId !== data?.user.id
+  )!;
 
   const minTotalStaked = Math.round(
     parseFloat(process.env.EXPO_PUBLIC_MIN_PCT_TOTAL_STAKED!) *
@@ -34,6 +39,53 @@ export default function MatchDetails({ match }: { match: ExtendedMatch }) {
     currentMatchUser.balance,
     otherMatchUser.balance
   );
+
+  useEffect(() => {
+    let stakeToast: string | number | undefined;
+    let parlaysToast: string | number | undefined;
+    if (!match.resolved) {
+      if (currentMatchUser.totalStaked < minTotalStaked) {
+        stakeToast = toast.custom(
+          <Alert variant="destructive">
+            <AlertTriangle className="text-destructive" size={20} />
+            <AlertTitle className="text-foreground">
+              You need to stake ${minTotalStaked - currentMatchUser.totalStaked}{" "}
+              more!
+            </AlertTitle>
+          </Alert>,
+          {
+            duration: Infinity,
+            position: "bottom-center",
+          }
+        );
+      }
+      if (currentMatchUser.totalParlays < minParlaysReq) {
+        parlaysToast = toast.custom(
+          <Alert variant="destructive">
+            <AlertTriangle className="text-destructive" size={20} />
+            <AlertTitle className="text-foreground">
+              You need to create {minParlaysReq - currentMatchUser.totalParlays}{" "}
+              more parlay
+              {minParlaysReq - currentMatchUser.totalParlays > 1 && "s"}!
+            </AlertTitle>
+          </Alert>,
+          {
+            duration: Infinity,
+            position: "bottom-center",
+          }
+        );
+      }
+    }
+
+    return () => {
+      if (stakeToast) {
+        toast.dismiss(stakeToast);
+      }
+      if (parlaysToast) {
+        toast.dismiss(parlaysToast);
+      }
+    };
+  }, [match]);
 
   return (
     <View className="flex flex-col gap-6">
@@ -72,23 +124,16 @@ export default function MatchDetails({ match }: { match: ExtendedMatch }) {
           />
         </View>
       </View>
-            <View className="flex flex-row items-center justify-between">
+      <View className="flex flex-row items-center justify-between">
         <Badge className="px-3.5" variant={badgeVariant}>
           <Text className="text-base capitalize">{badgeText}</Text>
         </Badge>
         <View className="flex flex-row items-center gap-2">
+          <MatchStatsDialog match={match} />
           <Button
-            size="sm"
+            className="h-10 w-10"
+            size="icon"
             variant="outline"
-            className="h-8 flex flex-row items-center gap-2 rounded-lg"
-          >
-            <ChartColumnIncreasing size={14} className="text-foreground" />
-            <Text className="!text-sm">Stats</Text>
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            className="h-8 flex flex-row items-center gap-2 rounded-lg"
             onPress={() =>
               router.navigate({
                 pathname: "/match/[matchId]/messages",
@@ -96,137 +141,10 @@ export default function MatchDetails({ match }: { match: ExtendedMatch }) {
               })
             }
           >
-            <MessageCircle size={14} className="text-foreground" />
-            <Text className="!text-sm">Messages</Text>
+            <MessageCircle size={16} className="text-foreground" />
           </Button>
         </View>
       </View>
-      {!match.resolved && (
-        <View className="flex flex-col gap-3">
-          {currentMatchUser.totalStaked < minTotalStaked && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Pressable>
-                  <Alert variant="destructive">
-                    <AlertTriangle className="text-destructive" size={20} />
-                    <AlertTitle>{`You need to stake $${
-                      minTotalStaked - currentMatchUser.totalStaked
-                    } more`}</AlertTitle>
-                  </Alert>
-                </Pressable>
-              </TooltipTrigger>
-              <TooltipContent>
-                <Text>
-                  Must have at least ${minTotalStaked} in total staked
-                </Text>
-              </TooltipContent>
-            </Tooltip>
-          )}
-          {currentMatchUser.totalParlays < minParlaysReq && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Pressable>
-                  <Alert variant="destructive">
-                    <AlertTriangle className="text-destructive" size={20} />
-                    <AlertTitle>
-                      You need to create{" "}
-                      {minParlaysReq - currentMatchUser.totalParlays} more
-                      parlay
-                      {minParlaysReq - currentMatchUser.totalParlays > 1 && "s"}
-                    </AlertTitle>
-                  </Alert>
-                </Pressable>
-              </TooltipTrigger>
-              <TooltipContent>
-                <Text>Must have at least {minParlaysReq} parlays</Text>
-              </TooltipContent>
-            </Tooltip>
-          )}
-        </View>
-      )}
     </View>
   );
 }
-
-// function MatchUserItem({
-//   matchUser,
-//   currentUser,
-//   otherUserBalance,
-// }: {
-//   matchUser: ExtendedMatchUser;
-//   currentUser: boolean;
-//   otherUserBalance: number;
-// }) {
-//   const badgeVariant = getBadgeVariant(
-//     matchUser.status,
-//     matchUser.balance,
-//     otherUserBalance
-//   );
-//   const badgeText = getBadgeText(
-//     matchUser.status,
-//     matchUser.balance,
-//     otherUserBalance
-//   );
-
-//   return (
-//     <View className="flex flex-col gap-6">
-//       <View className="flex flex-row items-start justify-between">
-//         <View className="flex flex-row items-center gap-4">
-//           <ProfileImage
-//             image={matchUser.user.image}
-//             username={matchUser.user.username}
-//           />
-//           <View className="flex flex-col gap-1">
-//             <Text className="font-semibold text-muted-foreground text-lg">
-//               {currentUser ? "You" : "Opponent"}
-//             </Text>
-//             <View className="flex flex-row items-center gap-2">
-//               <RankIcon
-//                 tier={matchUser.rankSnapshot.tier}
-//                 iconClassName="h-4 w-4"
-//                 gradientStyle={{
-//                   padding: 5,
-//                 }}
-//               />
-//               <Text className="font-bold text-xl">
-//                 {matchUser.user.username}
-//               </Text>
-//             </View>
-//           </View>
-//         </View>
-//         <Badge className="px-3.5" variant={badgeVariant}>
-//           <Text className="text-lg capitalize">{badgeText}</Text>
-//         </Badge>
-//       </View>
-//       <View className="flex flex-row items-center justify-between">
-//         <View className="flex flex-col items-center flex-1 w-full">
-//           <Text className="font-bold text-2xl">
-//             ${matchUser.balance.toFixed(2)}
-//           </Text>
-//           <Text className="font-medium text-muted-foreground text-sm">
-//             Balance
-//           </Text>
-//         </View>
-//         <View className="flex flex-col items-center flex-1 w-full">
-//           <Text className="font-bold text-2xl">
-//             ${matchUser.payoutPotential.toFixed(2)}
-//           </Text>
-//           <Text className="font-medium text-muted-foreground text-sm">
-//             Payout Potential
-//           </Text>
-//         </View>
-//         <View className="flex flex-col items-center flex-1 w-full">
-//           <Text className="font-bold text-2xl">
-//             {matchUser.totalParlays == 0
-//               ? 0
-//               : matchUser.parlaysWon / matchUser.totalParlays}
-//             %
-//           </Text>
-//           <Text className="font-medium text-muted-foreground text-sm">
-//             Parlay Win Rate
-//           </Text>
-//         </View>
-//       </View>
-//     </View>
-//   );
-// }

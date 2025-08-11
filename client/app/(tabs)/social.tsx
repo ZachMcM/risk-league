@@ -1,14 +1,14 @@
+import { FlashList } from "@shopify/flash-list";
 import { useQuery } from "@tanstack/react-query";
 import { useLocalSearchParams } from "expo-router";
 import { debounce } from "lodash";
 import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
-import { FlatList } from "react-native-gesture-handler";
 import { FriendlyMatchRequestCard } from "~/components/social/FriendlyMatchRequestCard";
 import { UserCard } from "~/components/social/UserCard";
 import { Button } from "~/components/ui/button";
 import { Container } from "~/components/ui/container";
-import ModalContainer from "~/components/ui/modal-container";
+import { GridItemWrapper } from "~/components/ui/grid-item-wrapper";
 import { SearchBar } from "~/components/ui/search-bar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { Text } from "~/components/ui/text";
@@ -68,12 +68,15 @@ export default function Friends() {
     }
   }, [searchParams.tab]);
 
+  useEffect(() => {
+    setSearchQuery("");
+  }, []);
+
   const [tabsValue, setTabsValue] = useState(searchParams.tab ?? "friends");
 
   return (
-    <ModalContainer>
-      <Container className="flex-col gap-4 pt-10 pb-0">
-        <Text className="font-bold text-4xl">Social</Text>
+    <Container className="pt-2 pb-0">
+      <View className="flex flex-col gap-4 flex-1">
         {areFriendlyMatchRequestsPending ? (
           <ActivityIndicator className="text-foreground" />
         ) : (
@@ -145,18 +148,22 @@ export default function Friends() {
                 </View>
               </View>
             ) : (
-              <FlatList
-                contentContainerClassName="flex flex-col gap-6 pb-8"
-                showsVerticalScrollIndicator={false}
-                className="flex-1"
+              <FlashList
                 data={searchResults}
-                renderItem={({ item }) => (
-                  <UserCard
-                    user={item}
-                    friendship={friendships?.find(
-                      (friendship) => friendship.friend.id == item.id
-                    )}
-                  />
+                contentContainerStyle={{
+                  paddingBottom: 12,
+                }}
+                estimatedItemSize={60}
+                showsVerticalScrollIndicator={false}
+                renderItem={({ item, index }) => (
+                  <GridItemWrapper index={index} numCols={1} gap={12}>
+                    <UserCard
+                      user={item}
+                      friendship={friendships?.find(
+                        (friendship) => friendship.friend.id == item.id
+                      )}
+                    />
+                  </GridItemWrapper>
                 )}
                 keyExtractor={(item) => item.id}
               />
@@ -177,13 +184,17 @@ export default function Friends() {
                 </View>
               </View>
             ) : (
-              <FlatList
-                contentContainerClassName="flex flex-col gap-6 pb-8"
+              <FlashList
+                contentContainerStyle={{
+                  paddingBottom: 12,
+                }}
+                estimatedItemSize={60}
                 showsVerticalScrollIndicator={false}
-                className="flex-1"
                 data={friendRequests}
-                renderItem={({ item }) => (
-                  <UserCard friendship={item} user={item.friend} />
+                renderItem={({ item, index }) => (
+                  <GridItemWrapper index={index} numCols={1} gap={12}>
+                    <UserCard friendship={item} user={item.friend} />
+                  </GridItemWrapper>
                 )}
                 keyExtractor={(item) => item.friend.id}
               />
@@ -213,20 +224,24 @@ export default function Friends() {
                 </View>
               </View>
             ) : (
-              <FlatList
-                contentContainerClassName="flex flex-col gap-6 pb-8"
-                showsVerticalScrollIndicator={false}
-                className="flex-1"
+              <FlashList
                 data={friends}
-                renderItem={({ item }) => (
-                  <UserCard friendship={item} user={item.friend} />
+                contentContainerStyle={{
+                  paddingBottom: 12,
+                }}
+                estimatedItemSize={60}
+                showsVerticalScrollIndicator={false}
+                renderItem={({ item, index }) => (
+                  <GridItemWrapper index={index} gap={12} numCols={1}>
+                    <UserCard friendship={item} user={item.friend} />
+                  </GridItemWrapper>
                 )}
                 keyExtractor={(item) => item.friend.id}
               />
             )}
           </TabsContent>
         </Tabs>
-      </Container>
-    </ModalContainer>
+      </View>
+    </Container>
   );
 }

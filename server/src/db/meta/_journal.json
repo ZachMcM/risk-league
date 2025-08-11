@@ -141,6 +141,13 @@
       "when": 1754544959957,
       "tag": "0019_common_sphinx",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1754874606394,
+      "tag": "0020_petite_lethal_legion",
+      "breakpoints": true
     }
   ]
 }

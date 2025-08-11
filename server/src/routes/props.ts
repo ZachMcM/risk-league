@@ -70,13 +70,13 @@ propsRoute.get("/props/today", authMiddleware, async (req, res) => {
       .innerJoin(awayTeam, eq(game.awayteamId, awayTeam.id))
       .where(
         and(
-          gt(game.startTime, new Date().toISOString()), // games that haven't started
-          eq(prop.league, league as string), // correct league
+          // gt(game.startTime, new Date().toISOString()), // games that haven't started
+          eq(game.league, league as string), // correct league
           notInArray(prop.id, propsPickedAlready)
         )
       );
 
-    logger.debug(availableProps.length);
+    logger.debug(`Available props length ${availableProps.length}`);
 
     // Get pick counts for each prop
     const propIds = availableProps.map((p) => p.prop.id);
@@ -123,7 +123,6 @@ propsRoute.post("/props", authMiddleware, async (req, res) => {
       playerId,
       statName,
       statDisplayName,
-      league,
       choices,
     } = req.body as {
       line: number | undefined;
@@ -131,7 +130,6 @@ propsRoute.post("/props", authMiddleware, async (req, res) => {
       playerId: number | undefined;
       statName: string | undefined;
       statDisplayName: string | undefined;
-      league: string | undefined;
       choices: string[] | undefined;
     };
 
@@ -141,7 +139,6 @@ propsRoute.post("/props", authMiddleware, async (req, res) => {
       !playerId ||
       !statName ||
       !statDisplayName ||
-      !league ||
       !choices
     ) {
       res.status(400).json({ error: "Invalid request body" });
@@ -154,7 +151,6 @@ propsRoute.post("/props", authMiddleware, async (req, res) => {
       playerId,
       statDisplayName,
       statName,
-      league,
       choices,
     });
 
