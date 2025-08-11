@@ -11,11 +11,11 @@ export default function LeagueLogo({
   league: League;
   size?: number;
 }) {
-  return league == "nba" ? (
+  return league == "NBA" ? (
     <NbaLogo size={size} />
-  ) : league == "nfl" ? (
+  ) : league == "NFL" ? (
     <NflLogo size={size} />
-  ) : league == "mlb" ? (
+  ) : league == "MLB" ? (
     <MlbLogo size={size} />
   ) : (
     <NcaaLogo size={size} />

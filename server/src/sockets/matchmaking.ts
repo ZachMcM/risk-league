@@ -3,7 +3,7 @@ import { io } from "..";
 import { logger } from "../logger";
 import { eq } from "drizzle-orm";
 import { db } from "../db";
-import { match, matchUser, user } from "../db/schema";
+import { leagueType, match, matchUser, user } from "../db/schema";
 import { redis } from "../redis";
 import { getRank } from "../utils/getRank";
 
@@ -15,7 +15,7 @@ export async function createMatch({
 }: {
   user1Id: string;
   user2Id: string;
-  league: string;
+  league: (typeof leagueType.enumValues)[number];
   type?: string;
 }) {
   const startingBalance = Math.round(
@@ -120,11 +120,17 @@ export async function getPair(league: string): Promise<{
 }
 
 export async function matchMakingHandler(socket: Socket) {
-  const userId = socket.handshake.auth.userId as string;
-  const league = socket.handshake.auth.league as string;
+  const userId = socket.handshake.auth.userId as string | undefined;
+  const league = socket.handshake.auth.league as string | undefined;
 
-  if (!league) {
+  if (league == undefined || !leagueType.enumValues.includes(league as any)) {
     socket.emit("error", { message: "Invalid or missing league" });
+    socket.disconnect();
+    return;
+  }
+
+  if (userId == undefined) {
+    socket.emit("error", { message: "Missing userId" });
     socket.disconnect();
     return;
   }
@@ -148,7 +154,7 @@ export async function matchMakingHandler(socket: Socket) {
       const matchId = await createMatch({
         user1Id: pair.user1,
         user2Id: pair.user2,
-        league,
+        league: league as (typeof leagueType.enumValues)[number],
       });
 
       const { user1, user2 } = pair;

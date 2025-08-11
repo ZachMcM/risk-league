@@ -1,7 +1,15 @@
 import { Router } from "express";
 import { and, eq, gt, gte, lt, notInArray, count, inArray } from "drizzle-orm";
 import moment from "moment";
-import { game, matchUser, prop, player, team, pick } from "../db/schema";
+import {
+  game,
+  matchUser,
+  prop,
+  player,
+  team,
+  pick,
+  leagueType,
+} from "../db/schema";
 import { db } from "../db";
 import { alias } from "drizzle-orm/pg-core";
 import { authMiddleware } from "../middleware";
@@ -13,7 +21,10 @@ propsRoute.get("/props/today", authMiddleware, async (req, res) => {
   try {
     const league = req.query.league;
 
-    if (!league) {
+    if (
+      league === undefined ||
+      !leagueType.enumValues.includes(league as any)
+    ) {
       res.status(400).json({
         error: "League parameter is invalid",
       });
@@ -67,13 +78,13 @@ propsRoute.get("/props/today", authMiddleware, async (req, res) => {
       .innerJoin(player, eq(prop.playerId, player.id))
       .innerJoin(team, eq(player.teamId, team.id))
       .innerJoin(homeTeam, eq(game.homeTeamId, homeTeam.id))
-      .innerJoin(awayTeam, eq(game.awayteamId, awayTeam.id))
+      .innerJoin(awayTeam, eq(game.awayTeamId, awayTeam.id))
       .where(
         and(
           gte(game.startTime, startOfDay),
           lt(game.startTime, endOfDay),
           gt(game.startTime, new Date().toISOString()), // games that haven't started
-          eq(game.league, league as string), // correct league
+          eq(game.league, league as (typeof leagueType.enumValues)[number]), // correct league
           notInArray(prop.id, propsPickedAlready)
         )
       );

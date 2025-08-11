@@ -19,6 +19,7 @@ Thumbs.db
 
 # python
 .venv/
+venv/
 __pycache__/
 tempCodeRunnerFile.py
 *.egg-info/

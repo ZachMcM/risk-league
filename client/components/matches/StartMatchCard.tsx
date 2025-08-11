@@ -18,8 +18,8 @@ export default function StartMatchCard({
   const mlbImage = require("~/assets/images/mlb.jpeg");
   const nbaImage = require("~/assets/images/nba.jpeg");
   const nflImage = require("~/assets/images/nfl.jpeg");
-  const mcbbImage = require("~/assets/images/mcbb.jpeg");
-  const cfbImage = require("~/assets/images/cfb.jpeg");
+  const ncaabbImage = require("~/assets/images/ncaabb.jpeg");
+  const ncaafbImage = require("~/assets/images/ncaafb.jpeg");
 
   return (
     <Card className="w-[48%] self-stretch">
@@ -28,15 +28,15 @@ export default function StartMatchCard({
           <Image
             contentFit="cover"
             source={
-              league == "mlb"
+              league == "MLB"
                 ? mlbImage
-                : league == "nba"
+                : league == "NBA"
                 ? nbaImage
-                : league == "nfl"
+                : league == "NFL"
                 ? nflImage
-                : league == "cfb"
-                ? cfbImage
-                : mcbbImage
+                : league == "NCAAFB"
+                ? ncaafbImage
+                : ncaabbImage
             }
             style={{ width: "100%", height: "100%" }}
           />

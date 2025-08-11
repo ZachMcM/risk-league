@@ -27,3 +27,23 @@ npm run dev
 cd client
 npm run start
 ```
+
+### Setting up virtual python environments
+```
+python -m venv .venv
+```
+
+Activate
+```
+source .venv/bin/activate
+```
+
+Deactivate
+```
+deactivate
+```
+
+Install packages
+```
+pip install -e .
+```

@@ -37,6 +37,8 @@ export const friendlyMatchRequestStatus = pgEnum(
   ["pending", "accepted", "declined"]
 );
 
+export const leagueType = pgEnum("league_type", ["MLB", "NBA", "NFL", "NCAAFB", "NCAABB"])
+
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
@@ -141,7 +143,7 @@ export const team = pgTable("team", {
   city: text().notNull(),
   state: text().notNull(),
   yearFounded: integer("year_founded").notNull(),
-  league: text().notNull(),
+  league: leagueType().notNull(),
 });
 
 export const player = pgTable("player", {
@@ -160,7 +162,7 @@ export const player = pgTable("player", {
   height: text().notNull(),
   weight: text().notNull(),
   number: text().notNull(),
-  league: text().notNull(),
+  league: leagueType().notNull(),
 });
 
 export const game = pgTable("game", {
@@ -175,7 +177,7 @@ export const game = pgTable("game", {
   awayTeamId: integer("away_team_id")
     .notNull()
     .references(() => team.id, { onDelete: "cascade" }),
-  league: text().notNull(),
+  league: leagueType().notNull(),
 });
 
 export const prop = pgTable("prop", {
@@ -247,7 +249,7 @@ export const match = pgTable("match", {
     .notNull(),
   resolved: boolean().default(false).notNull(),
   id: serial().primaryKey().notNull(),
-  league: text().notNull(),
+  league: leagueType().notNull(),
   type: text().default("competitive").notNull(),
 });
 
@@ -298,7 +300,7 @@ export const friendlyMatchRequest = pgTable("friendly_match_request", {
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
   status: friendlyMatchRequestStatus().default("pending").notNull(),
-  league: text().notNull(),
+  league: leagueType().notNull(),
 });
 
 export const baseballPlayerStats = pgTable("baseball_player_stats", {

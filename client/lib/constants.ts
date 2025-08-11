@@ -17,113 +17,113 @@ export const NAV_THEME = {
   },
 };
 
-export const leagues = ["mlb", "nba", "nfl", "cfb", "mcbb"] as const
+export const leagues = ["MLB", "NBA", "NFL", "NCAAFB", "NCAABB"] as const
 export type League = typeof leagues[number]
 
 export const propStats = [
   {
     id: "home_runs",
     name: "Home Runs",
-    league: "mlb",
+    league: "MLB",
   },
   {
     id: "doubles",
     name: "Doubles",
-    league: "mlb",
+    league: "MLB",
   },
   {
     id: "hits",
     name: "Hits",
-    league: "mlb",
+    league: "MLB",
   },
   {
     id: "triples",
     name: "Triples",
-    league: "mlb",
+    league: "MLB",
   },
   {
     id: "rbi",
     name: "RBIs",
-    league: "mlb",
+    league: "MLB",
   },
   {
     id: "strikeouts",
     name: "Strikeouts",
-    league: "mlb",
+    league: "MLB",
   },
   {
     id: "pitching_strikeouts",
     name: "Pitching Strikeouts",
-    league: "mlb",
+    league: "MLB",
   },
   {
     id: "pitches_thrown",
     name: "Pitches Thrown",
-    league: "mlb",
+    league: "MLB",
   },
   {
     id: "earned_runs",
     name: "Earned Runs",
-    league: "mlb",
+    league: "MLB",
   },
   {
     id: "pitching_hits",
     name: "Pitching Hits",
-    league: "mlb",
+    league: "MLB",
   },
   {
     id: "pitching_walks",
     name: "Pitching Walks",
-    league: "mlb",
+    league: "MLB",
   },
   {
     id: "points",
     name: "Points",
-    league: "nba",
+    league: "NBA",
   },
   {
     id: "rebounds",
     name: "Rebounds",
-    league: "nba",
+    league: "NBA",
   },
   {
     id: "assists",
     name: "Assists",
-    league: "nba",
+    league: "NBA",
   },
   {
     id: "three_pm",
     name: "Three Pointers Made",
-    league: "nba",
+    league: "NBA",
   },
   {
     id: "blocks",
     name: "Blocks",
-    league: "nba",
+    league: "NBA",
   },
   {
     id: "steals",
     name: "Steals",
-    league: "nba",
+    league: "NBA",
   },
   {
     id: "turnovers",
     name: "Turnovers",
-    league: "nba",
+    league: "NBA",
   },
   {
     id: "points_rebounds_assists",
     name: "Points + Rebounds + Assists",
-    league: "nba",
+    league: "NBA",
   },
   {
     id: "rebounds_assists",
     name: "Rebounds + Assists",
-    league: "nba",
+    league: "NBA",
   },
   {
     id: "points_assists",
     name: "Points + Assists",
-    league: "nba",
+    league: "NBA",
   },
 ];

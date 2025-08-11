@@ -1,0 +1,31 @@
+[project]
+name = "engine"
+version = "0.1.0"
+description = "Engine-level orchestration for Risk League: league logic, daemons, shared infrastructure"
+authors = [{ name = "Zach McMullen", email = "zachmcmullen04@gmail.com" }]
+readme = "readme.md"
+requires-python = ">=3.9"
+
+dependencies = [
+  "pandas",
+  "python-dotenv",
+  "numpy",
+  "requests",
+  "scikit-learn",
+  "apscheduler",
+  "asyncio",
+  "mypy",
+  "redis",
+  "python-socketio[asyncio_client]",
+  "schedule",
+  "pytz",
+  "python-json-logger",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["*"]
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"

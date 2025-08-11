@@ -2,7 +2,7 @@ import { Router } from "express";
 import { authMiddleware } from "../middleware";
 import { db } from "../db";
 import { and, eq, or } from "drizzle-orm";
-import { friendlyMatchRequest, friendship, user } from "../db/schema";
+import { friendlyMatchRequest, friendship, leagueType, user } from "../db/schema";
 import { logger } from "../logger";
 import { io } from "..";
 import { invalidateQueries } from "../utils/invalidateQueries";
@@ -199,7 +199,7 @@ friendlyMatchRequestsRoute.post(
     try {
       const { incomingId, league } = req.body as {
         incomingId: string | undefined;
-        league: string | undefined;
+        league: (typeof leagueType.enumValues)[number] | undefined;
       };
 
       if (incomingId == undefined || league == undefined) {

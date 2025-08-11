@@ -2,7 +2,7 @@ import { Router } from "express";
 import { apiKeyMiddleware } from "../middleware";
 import { logger } from "../logger";
 import { db } from "../db";
-import { game } from "../db/schema";
+import { game, leagueType } from "../db/schema";
 
 export const gamesRoute = Router();
 
@@ -11,16 +11,18 @@ interface GameData {
   startTime: string;
   homeTeamId: number;
   awayTeamId: number;
-  league: string;
+  league: (typeof leagueType.enumValues)[number];
 }
 
 function validateGameData(gameData: any): gameData is GameData {
+  const validLeagues = leagueType.enumValues;
   return (
     typeof gameData.id === 'string' &&
     typeof gameData.startTime === 'string' &&
     typeof gameData.homeTeamId === 'number' &&
     typeof gameData.awayTeamId === 'number' &&
-    typeof gameData.league === 'string'
+    typeof gameData.league === 'string' &&
+    validLeagues.includes(gameData.league as any)
   );
 }
 
