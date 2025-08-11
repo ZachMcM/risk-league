@@ -19,7 +19,7 @@ propsRoute.get("/props/today", authMiddleware, async (req, res) => {
       });
       return;
     }
-    
+
     const startOfDay = moment().startOf("day").toISOString();
     const endOfDay = moment().endOf("day").toISOString();
 
@@ -70,7 +70,9 @@ propsRoute.get("/props/today", authMiddleware, async (req, res) => {
       .innerJoin(awayTeam, eq(game.awayteamId, awayTeam.id))
       .where(
         and(
-          // gt(game.startTime, new Date().toISOString()), // games that haven't started
+          gte(game.startTime, startOfDay),
+          lt(game.startTime, endOfDay),
+          gt(game.startTime, new Date().toISOString()), // games that haven't started
           eq(game.league, league as string), // correct league
           notInArray(prop.id, propsPickedAlready)
         )
@@ -117,21 +119,15 @@ propsRoute.get("/props/today", authMiddleware, async (req, res) => {
 
 propsRoute.post("/props", authMiddleware, async (req, res) => {
   try {
-    const {
-      line,
-      gameId,
-      playerId,
-      statName,
-      statDisplayName,
-      choices,
-    } = req.body as {
-      line: number | undefined;
-      gameId: number | undefined;
-      playerId: number | undefined;
-      statName: string | undefined;
-      statDisplayName: string | undefined;
-      choices: string[] | undefined;
-    };
+    const { line, gameId, playerId, statName, statDisplayName, choices } =
+      req.body as {
+        line: number | undefined;
+        gameId: number | undefined;
+        playerId: number | undefined;
+        statName: string | undefined;
+        statDisplayName: string | undefined;
+        choices: string[] | undefined;
+      };
 
     if (
       !line ||
