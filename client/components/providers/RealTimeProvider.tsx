@@ -66,13 +66,14 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
         matchId: number;
         parlayId: number;
       }) => {
-        toast.custom(
+        const toastId = toast.custom(
           <Link
             href={{
               pathname: "/match/[matchId]",
               params: { matchId, openSubRoute: "parlay", subRouteId: parlayId },
             }}
             className="m-3"
+            onPress={() => toast.dismiss(toastId)}
           >
             <Card>
               <CardContent className="w-full flex flex-row gap-3 items-center px-4 py-3">
@@ -103,13 +104,14 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
         league: League;
         id: number;
       }) => {
-        toast.custom(
+        const toastId = toast.custom(
           <Link
             href={{
               pathname: "/match/[matchId]",
               params: { matchId: id },
             }}
             className="m-3"
+            onPress={() => toast.dismiss(toastId)}
           >
             <Card>
               <CardContent className="w-full flex flex-row gap-4 items-center px-4 py-3">
@@ -132,13 +134,14 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
     socket.on(
       "friend-request-received",
       ({ username, image }: { username: string; image: string }) => {
-        toast.custom(
+        const toastId = toast.custom(
           <Link
             href={{
               pathname: "/(tabs)/social",
               params: { tab: "requests" },
             }}
             className="m-3"
+            onPress={() => toast.dismiss(toastId)}
           >
             <Card>
               <CardContent className="w-full flex flex-row gap-3 items-center px-4 py-3">
@@ -163,13 +166,14 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
     socket.on(
       "friend-request-accepted",
       ({ username, image }: { username: string; image: string }) => {
-        toast.custom(
+        const toastId = toast.custom(
           <Link
             href={{
               pathname: "/(tabs)/social",
               params: { tab: "friends" },
             }}
             className="m-3"
+            onPress={() => toast.dismiss(toastId)}
           >
             <Card>
               <CardContent className="w-full flex flex-row gap-3 items-center px-4 py-3">
@@ -196,13 +200,14 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
         message.userId !== data?.user.id &&
         pathname !== `/match/${message.matchId}/messages`
       ) {
-        toast.custom(
+        const toastId = toast.custom(
           <Link
             className="m-3"
             href={{
               pathname: "/match/[matchId]",
               params: { matchId: message.matchId, openSubRoute: "messages" },
             }}
+            onPress={() => toast.dismiss(toastId)}
           >
             <Card>
               <CardContent className="w-full flex flex-row gap-3 items-center px-4 py-3">
@@ -241,8 +246,8 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
         league: League;
       }) => {
         if (pathname !== "/(tabs)/social") {
-          toast.custom(
-            <Link href="/(tabs)/social" className="m-3">
+          const toastId = toast.custom(
+            <Link href="/(tabs)/social" className="m-3" onPress={() => toast.dismiss(toastId)}>
               <Card>
                 <CardContent className="w-full flex flex-row gap-3 items-center px-4 py-3">
                   <ProfileImage
