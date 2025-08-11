@@ -148,6 +148,13 @@
       "when": 1754874606394,
       "tag": "0020_petite_lethal_legion",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1754893495569,
+      "tag": "0021_fine_kronos",
+      "breakpoints": true
     }
   ]
 }

@@ -164,7 +164,7 @@ export const player = pgTable("player", {
 });
 
 export const game = pgTable("game", {
-  id: integer().primaryKey().notNull(),
+  id: text().primaryKey().notNull(),
   startTime: timestamp("start_time", {
     withTimezone: true,
     mode: "string",
@@ -195,7 +195,7 @@ export const prop = pgTable("prop", {
   playerId: integer("player_id")
     .notNull()
     .references(() => player.id, { onDelete: "cascade" }),
-  gameId: integer("game_id")
+  gameId: text("game_id")
     .notNull()
     .references(() => game.id, { onDelete: "cascade" }),
 });
@@ -300,3 +300,67 @@ export const friendlyMatchRequest = pgTable("friendly_match_request", {
   status: friendlyMatchRequestStatus().default("pending").notNull(),
   league: text().notNull(),
 });
+
+export const baseballPlayerStats = pgTable("baseball_player_stats", {
+  id: serial().primaryKey().notNull(),
+  errors: integer().default(0).notNull(),
+  hits: integer().default(0).notNull(),
+  runs: integer().default(0).notNull(),
+  singles: integer().default(0).notNull(),
+  doubles: integer().default(0).notNull(),
+  triples: integer().default(0).notNull(),
+  atBats: integer("at_bats").default(0).notNull(),
+  walks: integer().default(0).notNull(),
+  caughtStealing: integer("caught_stealing").default(0).notNull(),
+  homeRuns: integer("home_runs").default(0).notNull(),
+  putouts: integer().default(0).notNull(),
+  stolenBases: integer("stolen_bases").default(0).notNull(),
+  strikeouts: integer().default(0).notNull(),
+  hitByPitch: integer("hit_by_pitch").default(0).notNull(),
+  intentionalWalks: integer("intentional_walks").default(0).notNull(),
+  rbis: integer().default(0).notNull(),
+  outs: integer().default(0).notNull(),
+  pitchingHits: integer("pitching_hits").default(0).notNull(),
+  pitchingStrikeouts: integer("pitching_strikeouts").default(0).notNull(),
+  losses: integer().default(0).notNull(),
+  earnedRuns: integer("earned_runs").default(0).notNull(),
+  saves: integer().default(0).notNull(),
+  runsAllowed: integer("runs_allowed").default(0).notNull(),
+  wins: integer().default(0).notNull(),
+  pitchingSingles: integer("pitching_singles").default(0).notNull(),
+  pitchingDoubles: integer("pitching_doubles").default(0).notNull(),
+  pitchingTriples: integer("pitching_triples").default(0).notNull(),
+  pitchingWalks: integer("pitching_walks").default(0).notNull(),
+  balks: integer().default(0).notNull(),
+  blownSaves: integer("blown_saves").default(0).notNull(),
+  pitchingCaughtStealing: integer("pitching_caught_stealing").default(0).notNull(),
+  homeRunsAllowed: integer("home_runs_allowed").default(0).notNull(),
+  inningsPitched: integer("innings_pitched").default(0).notNull(),
+  pitchingPutouts: integer("pitching_putouts").default(0).notNull(),
+  stolenBasesAllowed: integer("stolen_bases_allowed").default(0).notNull(),
+  wildPitches: integer("wild_pitches").default(0).notNull(),
+  pitchingHitByPitch: integer("pitching_hit_by_pitch").default(0).notNull(),
+  holds: integer().default(0).notNull(),
+  pitchingIntentionalWalks: integer().default(0).notNull(),
+  pitchesThrown: integer().default(0).notNull(),
+  strikes: integer().default(0).notNull(),
+  gameId: text("game_id").references(() => game.id, { onDelete: "cascade" }),
+  playerId: integer("player_id").references(() => player.id, { onDelete: "cascade" })
+});
+
+export const baseballTeamStats = pgTable("baseball_team_stats", {
+  errors: integer().default(0).notNull(),
+  hits: integer().default(0).notNull(),
+  runs: integer().default(0).notNull(),
+  doubles: integer().default(0).notNull(),
+  triples: integer().default(0).notNull(),
+  atBats: integer("at_bats").default(0).notNull(),
+  walks: integer().default(0).notNull(),
+  caughtStealing: integer("caught_stealing").default(0).notNull(),
+  homeRuns: integer().default(0).notNull(),
+  stolenBases: integer("stolen_bases").default(0).notNull(),
+  strikeouts: integer().default(0).notNull(),
+  rbis: integer().default(0).notNull(),
+  teamId: integer("team_id").references(() => team.id, { onDelete: "cascade" }),
+  gameId: text("game_id").references(() => game.id, { onDelete: "cascade" })
+})

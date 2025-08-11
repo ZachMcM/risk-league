@@ -1,5 +1,7 @@
 import { relations } from "drizzle-orm";
 import {
+  baseballPlayerStats,
+  baseballTeamStats,
   friendlyMatchRequest,
   friendship,
   game,
@@ -56,6 +58,8 @@ export const gameRelations = relations(game, ({ one, many }) => ({
     references: [team.id],
   }),
   props: many(prop),
+  baseballPlayerStats: many(baseballPlayerStats),
+  baseballTeamStats: many(baseballTeamStats),
 }));
 
 export const pickRelations = relations(pick, ({ one }) => ({
@@ -75,6 +79,7 @@ export const playerRelations = relations(player, ({ one, many }) => ({
     references: [team.id],
   }),
   props: many(prop),
+  baseballPlayerStats: many(baseballPlayerStats),
 }));
 
 export const propRelations = relations(prop, ({ one, many }) => ({
@@ -134,6 +139,34 @@ export const friendlyMatchRequestRelations = relations(
       fields: [friendlyMatchRequest.outgoingId],
       references: [user.id],
       relationName: "outgoingFriendlyMatchRequests",
+    }),
+  })
+);
+
+export const baseballPlayerStatsRelations = relations(
+  baseballPlayerStats,
+  ({ one }) => ({
+    game: one(game, {
+      fields: [baseballPlayerStats.gameId],
+      references: [game.id],
+    }),
+    player: one(player, {
+      fields: [baseballPlayerStats.playerId],
+      references: [player.id],
+    }),
+  })
+);
+
+export const baseballTeamStatsRelations = relations(
+  baseballTeamStats,
+  ({ one }) => ({
+    game: one(game, {
+      fields: [baseballTeamStats.gameId],
+      references: [game.id],
+    }),
+    team: one(team, {
+      fields: [baseballTeamStats.teamId],
+      references: [team.id],
     }),
   })
 );

@@ -122,7 +122,7 @@ propsRoute.post("/props", authMiddleware, async (req, res) => {
     const { line, gameId, playerId, statName, statDisplayName, choices } =
       req.body as {
         line: number | undefined;
-        gameId: number | undefined;
+        gameId: string | undefined;
         playerId: number | undefined;
         statName: string | undefined;
         statDisplayName: string | undefined;
