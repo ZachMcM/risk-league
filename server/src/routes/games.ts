@@ -3,21 +3,14 @@ import { apiKeyMiddleware } from "../middleware";
 import { logger } from "../logger";
 import { db } from "../db";
 import { game, leagueType } from "../db/schema";
+import { InferInsertModel } from "drizzle-orm";
 
 export const gamesRoute = Router();
 
-interface GameData {
-  id: string;
-  startTime: string;
-  homeTeamId: number;
-  awayTeamId: number;
-  league: (typeof leagueType.enumValues)[number];
-}
-
-function validateGameData(gameData: any): gameData is GameData {
+function validateGameData(gameData: any): gameData is InferInsertModel<typeof game> {
   const validLeagues = leagueType.enumValues;
   return (
-    typeof gameData.id === 'string' &&
+    typeof gameData.gameId === 'string' &&
     typeof gameData.startTime === 'string' &&
     typeof gameData.homeTeamId === 'number' &&
     typeof gameData.awayTeamId === 'number' &&
@@ -29,7 +22,7 @@ function validateGameData(gameData: any): gameData is GameData {
 gamesRoute.post("/games", apiKeyMiddleware, async (req, res) => {
   try {    
     const isBatch = Array.isArray(req.body.games);
-    const gamesToInsert: GameData[] = isBatch ? req.body.games : [req.body];
+    const gamesToInsert: InferInsertModel<typeof game>[] = isBatch ? req.body.games : [req.body];
     
     if (gamesToInsert.length === 0) {
       res.status(400).json({ error: "No games provided" });
@@ -47,14 +40,14 @@ gamesRoute.post("/games", apiKeyMiddleware, async (req, res) => {
     if (invalidGames.length > 0) {
       res.status(400).json({ 
         error: "Invalid game data provided",
-        details: `${invalidGames.length} game(s) have invalid data. Required fields: id (string), startTime (string), homeTeamId (number), awayTeamId (number), league (string)`
+        details: `${invalidGames.length} game(s) have invalid data.`
       });
       return;
     }
 
-    const result = await db.insert(game).values(gamesToInsert).returning({ id: game.id })
+    const result = await db.insert(game).values(gamesToInsert).returning({ id: game.gameId })
 
-    logger.info(`Successfully inserted ${result.length} game(s)`, { gameIds: result.map(g => g.id) });
+    logger.info(`Successfully inserted ${result.length} game(s)`);
     
     res.json(isBatch ? result : result[0]);
   } catch (error) {

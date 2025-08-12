@@ -1,14 +1,20 @@
 import express from "express";
-import { usersRoute } from "./users";
-import { matchesRoute } from "./matches";
-import { propsRoute } from "./props";
-import { parlaysRoute } from "./parlays";
-import { picksRoute } from "./picks";
+import { baseballStatsRoute } from "./baseballStats";
+import { basketballStatsRoute } from "./basketballStats";
 import { friendlyMatchRequestsRoute } from "./friendlyMatchRequests";
 import { friendshipsRoute } from "./friendships";
 import { gamesRoute } from "./games";
+import { matchesRoute } from "./matches";
+import { parlaysRoute } from "./parlays";
+import { picksRoute } from "./picks";
+import { playersRoute } from "./players";
+import { propsRoute } from "./props";
+import { teamsRoute } from "./teams";
+import { usersRoute } from "./users";
+import { footballStatsRoute } from "./footballStats";
 
 export const routes = express.Router();
+
 routes.use(usersRoute);
 routes.use(matchesRoute);
 routes.use(propsRoute);
@@ -16,4 +22,9 @@ routes.use(parlaysRoute);
 routes.use(picksRoute);
 routes.use(friendlyMatchRequestsRoute);
 routes.use(friendshipsRoute);
-routes.use(gamesRoute)
+routes.use(gamesRoute);
+routes.use(teamsRoute);
+routes.use(playersRoute);
+routes.use(baseballStatsRoute);
+routes.use(basketballStatsRoute);
+routes.use(footballStatsRoute)

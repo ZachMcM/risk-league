@@ -1,0 +1,1 @@
+ALTER TABLE "baseball_player_stats" RENAME COLUMN "pitchingIntentionalWalks" TO "pitching_intentional_walks";

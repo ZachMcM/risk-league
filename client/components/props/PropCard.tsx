@@ -2,15 +2,15 @@ import moment from "moment";
 import { View } from "react-native";
 import { Prop } from "~/types/prop";
 import { cn } from "~/utils/cn";
-import { useParlay } from "../providers/ParlayProvider";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { Card, CardContent } from "../ui/card";
 import { Text } from "../ui/text";
+import { useCreateParlay } from "../providers/CreateParlayProvider";
 
 export default function PropCard({ prop }: { prop: Prop }) {
   const { isPropPicked, addPick, removePick, updatePick, getPickChoice } =
-    useParlay();
+    useCreateParlay();
 
   // Safety check for essential prop data
   if (!prop.player?.name || !prop.line || !prop.choices) {
@@ -22,9 +22,6 @@ export default function PropCard({ prop }: { prop: Prop }) {
       <CardContent className="p-4 flex flex-col items-center gap-4">
         <View className="flex flex-col items-center gap-1">
           <View className="flex flex-row items-center gap-2">
-            <Badge variant="secondary">
-              <Text>{prop.player.team.abbreviation}</Text>
-            </Badge>
             <Text className="font-semibold text-muted-foreground text-xs">
               {prop.player.position}
             </Text>
@@ -34,7 +31,7 @@ export default function PropCard({ prop }: { prop: Prop }) {
           </Text>
           <Text className="font-semibold text-muted-foreground text-sm text-center">
             {
-              prop.game.homeTeamId == prop.player.teamId ? `@ ${prop.game.awayTeam.abbreviation}` : `vs ${prop.game.homeTeam.abbreviation}`
+              prop.game.homeTeamId == prop.player.teamId ? `@ ${prop.game.awayTeam.abbreviation ?? prop.game.awayTeam.fullName}` : `vs ${prop.game.homeTeam.abbreviation ?? prop.game.homeTeam.fullName}`
             } •{" "}
             {moment(prop.game.startTime).format("ddd h:mm A")}
           </Text>
@@ -44,7 +41,7 @@ export default function PropCard({ prop }: { prop: Prop }) {
           <Text className="text-muted-foreground">{prop.statDisplayName}</Text>
         </View>
         <View className="flex flex-row items-center justify-center gap-1">
-          {prop.choices?.map((choice, i) => (
+          {prop.choices.map((choice, i) => (
             <Button
               onPress={() => {
                 if (isPropPicked(prop.id)) {

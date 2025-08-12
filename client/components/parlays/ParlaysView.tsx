@@ -37,7 +37,7 @@ export default function ParlaysView({ parlays }: { parlays: Parlay[] }) {
               pick.prop.player.team.fullName
                 ?.toLocaleLowerCase()
                 .includes(searchLower) ||
-              pick.prop.player.team.nickname
+              pick.prop.player.team.mascot
                 ?.toLocaleLowerCase()
                 .includes(searchLower)
             );

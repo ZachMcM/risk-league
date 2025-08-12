@@ -1,0 +1,1 @@
+ALTER TABLE "baseball_player_stats" ALTER COLUMN "innings_pitched" SET DATA TYPE double precision;

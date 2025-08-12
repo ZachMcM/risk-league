@@ -1,0 +1,1 @@
+ALTER TABLE "basketball_team_stats" ADD COLUMN "assists" integer DEFAULT 0 NOT NULL;

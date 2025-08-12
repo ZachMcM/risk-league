@@ -140,7 +140,7 @@ picksRoute.patch("/picks", apiKeyMiddleware, async (req, res) => {
 
     res.send(`${picksToInvalidateList.length} picks updated`);
   } catch (error) {
-    logger.error(error);
-    res.status(500).json({ error });
+    logger.error("Picks route error:", error instanceof Error ? error.message : String(error), error instanceof Error ? error.stack : "");
+    res.status(500).json({ error: error instanceof Error ? error.message : String(error) });
   }
 });

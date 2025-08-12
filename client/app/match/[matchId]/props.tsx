@@ -2,18 +2,13 @@ import { useQuery } from "@tanstack/react-query";
 import { useLocalSearchParams } from "expo-router";
 import { ActivityIndicator, View } from "react-native";
 import PropsView from "~/components/props/PropsView";
-import {
-  ParlayPickerFooter,
-  ParlayProvider,
-} from "~/components/providers/ParlayProvider";
+import { CreateParlayFooter } from "~/components/providers/CreateParlayProvider";
 import { Container } from "~/components/ui/container";
 import LeagueLogo from "~/components/ui/league-logos/LeagueLogo";
 import ModalContainer from "~/components/ui/modal-container";
-import { ScrollContainer } from "~/components/ui/scroll-container";
 import { Text } from "~/components/ui/text";
 import { getMatch, getTodayProps } from "~/endpoints";
 import { authClient } from "~/lib/auth-client";
-import { formatDate } from "~/utils/dateUtils";
 
 export default function Props() {
   const searchParams = useLocalSearchParams<{
@@ -55,7 +50,7 @@ export default function Props() {
           )
         )}
       </Container>
-      <ParlayPickerFooter />
+      <CreateParlayFooter />
     </ModalContainer>
   );
 }

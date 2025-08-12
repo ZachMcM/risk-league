@@ -96,8 +96,8 @@ matchesRoute.get("/matches", authMiddleware, async (req, res) => {
 
     res.json(formattedMatches);
   } catch (error) {
-    logger.error(error);
-    res.status(500).json({ error });
+    logger.error("Matches route error:", error instanceof Error ? error.message : String(error), error instanceof Error ? error.stack : "");
+    res.status(500).json({ error: error instanceof Error ? error.message : String(error) });
   }
 });
 
@@ -161,9 +161,9 @@ matchesRoute.get("/matches/:id", authMiddleware, async (req, res) => {
     };
 
     res.json(matchWithParlayCounts);
-  } catch (err: any) {
-    logger.error(err);
-    res.status(500).json({ error: err });
+  } catch (error: any) {
+    logger.error("Matches route error:", error instanceof Error ? error.message : String(error), error instanceof Error ? error.stack : "");
+    res.status(500).json({ error: error instanceof Error ? error.message : String(error) });
   }
 });
 
@@ -187,8 +187,8 @@ matchesRoute.get("/matches/:id/messages", authMiddleware, async (req, res) => {
 
     res.json(messages);
   } catch (error) {
-    logger.error(error);
-    res.status(500).json({ error });
+    logger.error("Matches route error:", error instanceof Error ? error.message : String(error), error instanceof Error ? error.stack : "");
+    res.status(500).json({ error: error instanceof Error ? error.message : String(error) });
   }
 });
 
@@ -244,8 +244,8 @@ matchesRoute.post("/matches/:id/messages", authMiddleware, async (req, res) => {
 
     res.json(newMessage.id);
   } catch (error) {
-    logger.error(error);
-    res.status(500).json({ error });
+    logger.error("Matches route error:", error instanceof Error ? error.message : String(error), error instanceof Error ? error.stack : "");
+    res.status(500).json({ error: error instanceof Error ? error.message : String(error) });
   }
 });
 
@@ -453,7 +453,7 @@ matchesRoute.patch("/matches/end", apiKeyMiddleware, async (_, res) => {
 
     res.send(`${matchesToEndList.length} matches ended`);
   } catch (error) {
-    logger.error(error);
-    res.status(500).json({ error });
+    logger.error("Matches route error:", error instanceof Error ? error.message : String(error), error instanceof Error ? error.stack : "");
+    res.status(500).json({ error: error instanceof Error ? error.message : String(error) });
   }
 });

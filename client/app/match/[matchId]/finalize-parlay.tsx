@@ -7,7 +7,7 @@ import { FakeCurrencyInput } from "react-native-currency-input";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
 import FlexPlayOutcomes from "~/components/parlays/FlexPlayOutcomes";
-import { useParlay } from "~/components/providers/ParlayProvider";
+import { useCreateParlay } from "~/components/providers/CreateParlayProvider";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import { Label } from "~/components/ui/label";
@@ -25,7 +25,7 @@ import {
 } from "~/utils/multiplierUtils";
 
 export default function FinalizeParlay() {
-  const { picks, clearParlay } = useParlay();
+  const { picks, clearParlay } = useCreateParlay();
   const searchParams = useLocalSearchParams<{ matchId: string }>();
   const matchId = parseInt(searchParams.matchId);
 
@@ -361,7 +361,7 @@ export function PickEntryCard({
   isLast?: boolean;
 }) {
   const { isPropPicked, getPickChoice, updatePick, addPick, removePick } =
-    useParlay();
+    useCreateParlay();
   const { prop } = pick;
 
   return (
@@ -388,10 +388,14 @@ export function PickEntryCard({
           </View>
 
           <Text className="font-semibold text-muted-foreground text-sm">
-            {/* TODO real time info */}
-            {prop.game.awayTeam.abbreviation} at{" "}
-            {prop.game.homeTeam.abbreviation} •{" "}
-            {moment(prop.game.startTime).format("ddd h:mm A")}
+            {prop.game.homeTeamId == prop.player.teamId
+              ? `@ ${
+                  prop.game.awayTeam.abbreviation ?? prop.game.awayTeam.fullName
+                }`
+              : `vs ${
+                  prop.game.homeTeam.abbreviation ?? prop.game.homeTeam.fullName
+                }`}{" "}
+            • {moment(prop.game.startTime).format("ddd h:mm A")}
           </Text>
           <Text className="font-semibold text-lg">
             {prop.line} {prop.statDisplayName}
@@ -399,7 +403,7 @@ export function PickEntryCard({
         </View>
       </View>
       <View className="flex flex-col gap-2">
-        {prop.choices?.map((choice, i) => (
+        {prop.choices.map((choice, i) => (
           <Button
             onPress={() => {
               if (isPropPicked(prop.id)) {

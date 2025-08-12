@@ -60,8 +60,8 @@ friendlyMatchRequestsRoute.get(
         }))
       );
     } catch (error) {
-      logger.error(error);
-      res.status(500).json({ error });
+      logger.error("Friendly match requests route error:", error instanceof Error ? error.message : String(error), error instanceof Error ? error.stack : "");
+      res.status(500).json({ error: error instanceof Error ? error.message : String(error) });
     }
   }
 );
@@ -187,7 +187,7 @@ friendlyMatchRequestsRoute.patch(
 
       res.json(newMatchId);
     } catch (error) {
-      logger.error(error);
+      logger.error("Friendly match requests route error:", error instanceof Error ? error.message : String(error), error instanceof Error ? error.stack : "");
     }
   }
 );
@@ -256,8 +256,8 @@ friendlyMatchRequestsRoute.post(
 
       res.json(newFriendlyMatchRequest);
     } catch (error) {
-      logger.error(error);
-      res.status(500).json({ error });
+      logger.error("Friendly match requests route error:", error instanceof Error ? error.message : String(error), error instanceof Error ? error.stack : "");
+      res.status(500).json({ error: error instanceof Error ? error.message : String(error) });
     }
   }
 );

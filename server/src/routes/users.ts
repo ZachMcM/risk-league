@@ -1,7 +1,7 @@
 import { and, eq, ilike, ne } from "drizzle-orm";
 import { Router } from "express";
 import { db } from "../db";
-import { user } from "../db/schema";
+import { leagueType, user } from "../db/schema";
 import { logger } from "../logger";
 import { authMiddleware } from "../middleware";
 import { calculateProgression } from "../utils/calculateProgression";
@@ -31,7 +31,7 @@ usersRoute.get("/users", authMiddleware, async (req, res) => {
         image: true,
         points: true,
       },
-      limit: 10
+      limit: 10,
     });
 
     res.json(
@@ -41,8 +41,8 @@ usersRoute.get("/users", authMiddleware, async (req, res) => {
       }))
     );
   } catch (error) {
-    logger.error(error);
-    res.status(500).json({ error });
+    logger.error("Users route error:", error instanceof Error ? error.message : String(error), error instanceof Error ? error.stack : "");
+    res.status(500).json({ error: error instanceof Error ? error.message : String(error) });
   }
 });
 
@@ -76,9 +76,9 @@ usersRoute.get("/users/rank", authMiddleware, async (_, res) => {
       points: userResult.points,
     });
   } catch (error) {
-    logger.error(error);
+    logger.error("Users route error:", error instanceof Error ? error.message : String(error), error instanceof Error ? error.stack : "");
     res.status(500).json({
-      error,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 });
@@ -121,13 +121,15 @@ usersRoute.get("/users/career", authMiddleware, async (_, res) => {
                         player: {
                           columns: {
                             name: true,
-                            id: true,
+                            playerId: true,
+                            league: true,
                           },
                           with: {
                             team: {
                               columns: {
                                 fullName: true,
-                                id: true,
+                                teamId: true,
+                                league: true,
                               },
                             },
                           },
@@ -171,11 +173,19 @@ usersRoute.get("/users/career", authMiddleware, async (_, res) => {
       });
     }
 
-    const pickedPlayers: Map<number, { name: string }> = new Map();
-    const pickedPlayersCount: Map<number, number> = new Map();
+    const pickedPlayerCounts: Map<string, number> = new Map();
+    const pickedPlayerInfo: Map<string, {
+      playerId: number;
+      league: (typeof leagueType.enumValues)[number];
+      name: string;
+    }> = new Map();
 
-    const pickedTeams: Map<number, { fullName: string }> = new Map();
-    const pickedTeamsCount: Map<number, number> = new Map();
+    const pickedTeamCounts: Map<string, number> = new Map();
+    const pickedTeamInfo: Map<string, {
+      teamId: number;
+      league: (typeof leagueType.enumValues)[number];
+      fullName: string;
+    }> = new Map();
 
     let peakPoints = userResult.points;
 
@@ -189,28 +199,31 @@ usersRoute.get("/users/career", authMiddleware, async (_, res) => {
 
       for (const parlay of matchUser.parlays) {
         for (const pick of parlay.picks) {
-          pickedPlayersCount.set(
-            pick.prop.player.id,
-            (pickedPlayersCount.get(pick.prop.player.id) || 0) + 1
-          );
-          if (!pickedPlayers.get(pick.prop.player.id)) {
-            pickedPlayers.set(pick.prop.player.id, pick.prop.player);
-          }
+          const playerKey = `${pick.prop.player.playerId}-${pick.prop.player.league}`;
+          const playerInfo = {
+            name: pick.prop.player.name,
+            playerId: pick.prop.player.playerId,
+            league: pick.prop.player.league,
+          };
 
-          pickedTeamsCount.set(
-            pick.prop.player.team.id,
-            (pickedTeamsCount.get(pick.prop.player.team.id) || 0) + 1
-          );
+          pickedPlayerCounts.set(playerKey, (pickedPlayerCounts.get(playerKey) || 0) + 1);
+          pickedPlayerInfo.set(playerKey, playerInfo);
 
-          if (!pickedTeams.get(pick.prop.player.team.id)) {
-            pickedTeams.set(pick.prop.player.team.id, pick.prop.player.team);
-          }
+          const teamKey = `${pick.prop.player.team.teamId}-${pick.prop.player.team.league}`;
+          const teamInfo = {
+            fullName: pick.prop.player.team.fullName,
+            teamId: pick.prop.player.team.teamId,
+            league: pick.prop.player.team.league,
+          };
+
+          pickedTeamCounts.set(teamKey, (pickedTeamCounts.get(teamKey) || 0) + 1);
+          pickedTeamInfo.set(teamKey, teamInfo);
         }
       }
     }
 
-    const mostBetPlayerId = getMaxKey(pickedPlayersCount);
-    const mostBetTeamId = getMaxKey(pickedTeamsCount);
+    const mostBetPlayerKey = getMaxKey(pickedPlayerCounts);
+    const mostBetTeamKey = getMaxKey(pickedTeamCounts);
 
     res.json({
       currentRank: findRank(userResult.points),
@@ -261,24 +274,24 @@ usersRoute.get("/users/career", authMiddleware, async (_, res) => {
           ),
       },
       mostBetPlayer:
-        mostBetPlayerId == null
+        mostBetPlayerKey == null
           ? null
           : {
-              player: pickedPlayers.get(mostBetPlayerId),
-              count: pickedPlayersCount.get(mostBetPlayerId),
+              player: pickedPlayerInfo.get(mostBetPlayerKey)!,
+              count: pickedPlayerCounts.get(mostBetPlayerKey)!,
             },
       mostBetTeam:
-        mostBetTeamId == null
+        mostBetTeamKey == null
           ? null
           : {
-              team: pickedTeams.get(mostBetTeamId),
-              count: pickedTeamsCount.get(mostBetTeamId),
+              team: pickedTeamInfo.get(mostBetTeamKey)!,
+              count: pickedTeamCounts.get(mostBetTeamKey)!,
             },
     });
   } catch (error) {
-    logger.error(error);
+    logger.error("Users route error:", error instanceof Error ? error.message : String(error), error instanceof Error ? error.stack : "");
     res.status(500).json({
-      error,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 });

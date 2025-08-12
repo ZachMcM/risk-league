@@ -47,3 +47,22 @@ Install packages
 ```
 pip install -e .
 ```
+
+### Adding starter data to local database
+Seeding teams
+```
+cd orchestration
+python -m seed.insert_teams MLB NFL NBA NCAABB NCAAFB
+```
+
+Seeding players
+```
+cd orchestration
+python -m cron.update_rosters MLB NFL NBA NCAABB NCAAFB
+```
+
+Seeding games and stats
+```
+cd orchestration
+python -m seed.process_games <LEAGUE> <START_DATE> <END_DATE>
+```

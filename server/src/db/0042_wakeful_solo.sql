@@ -1,0 +1,1 @@
+ALTER TABLE "football_team_stats" ALTER COLUMN "sacks" SET DATA TYPE double precision;

@@ -36,9 +36,9 @@ parlaysRoute.get("/parlays/:id", authMiddleware, async (req, res) => {
 
     res.json(parlayResult);
   } catch (error) {
-    logger.error(error);
+    logger.error("Parlays route error:", error instanceof Error ? error.message : String(error), error instanceof Error ? error.stack : "");
     res.status(500).json({
-      error,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 });
@@ -89,9 +89,9 @@ parlaysRoute.get("/parlays", authMiddleware, async (req, res) => {
 
     res.json(matchUserResult.parlays);
   } catch (error) {
-    logger.error(error);
+    logger.error("Parlays route error:", error instanceof Error ? error.message : String(error), error instanceof Error ? error.stack : "");
     res.status(500).json({
-      error,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 });
@@ -215,9 +215,10 @@ parlaysRoute.post("/parlays/:matchId", authMiddleware, async (req, res) => {
     );
 
     res.json(parlayResult);
-  } catch (err: any) {
+  } catch (error: any) {
+    logger.error("Parlays route error:", error instanceof Error ? error.message : String(error), error instanceof Error ? error.stack : "");
     res.status(500).json({
-      error: err,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 });
@@ -340,7 +341,7 @@ parlaysRoute.patch("/parlays", apiKeyMiddleware, async (req, res) => {
 
     res.send("Resolved parlay");
   } catch (error) {
-    logger.error(error);
-    res.status(500).json({ error });
+    logger.error("Parlays route error:", error instanceof Error ? error.message : String(error), error instanceof Error ? error.stack : "");
+    res.status(500).json({ error: error instanceof Error ? error.message : String(error) });
   }
 });

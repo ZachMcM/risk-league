@@ -1,47 +1,44 @@
 import { League } from "~/lib/constants";
 
 export type Team = {
-  id: number;
-  fullName: string | null;
+  teamId: number;
+  fullName: string;
   abbreviation: string | null;
-  nickname: string | null;
-  city: string | null;
-  state: string | null;
-  yearFounded: number | null;
+  location: string | null
+  mascot: string | null
   league: League;
 };
 
 export type Player = {
-  number: string | null;
-  name: string | null;
-  id: number;
-  teamId: number | null;
+  number: string;
+  name: string;
+  playerId: number;
+  teamId: number;
   league: League;
-  updatedAt: string | null;
+  updatedAt: string;
   position: string | null;
   height: string | null;
-  weight: string | null;
+  weight: number | null;
   team: Team;
 };
 
 export type Prop = {
-  picksCount: number;
   id: number;
   league: League;
-  playerId: number | null;
-  createdAt: string | null;
+  playerId: number;
+  createdAt: string;
   resolved: boolean;
   line: number;
   currentValue: number;
   statName: string;
-  choices: string[] | null;
+  choices: string[];
   player: Player;
   game: Game;
   statDisplayName: string;
 };
 
 export type Game = {
-  id: number;
+  gameId: string;
   startTime: string;
   homeTeamId: number;
   awayTeamId: number;

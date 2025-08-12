@@ -2,6 +2,10 @@ import { relations } from "drizzle-orm";
 import {
   baseballPlayerStats,
   baseballTeamStats,
+  basketballPlayerStats,
+  basketballTeamStats,
+  footballPlayerStats,
+  footballTeamStats,
   friendlyMatchRequest,
   friendship,
   game,
@@ -50,16 +54,20 @@ export const messageRelations = relations(message, ({ one }) => ({
 
 export const gameRelations = relations(game, ({ one, many }) => ({
   awayTeam: one(team, {
-    fields: [game.awayTeamId],
-    references: [team.id],
+    fields: [game.awayTeamId, game.league],
+    references: [team.teamId, team.league],
   }),
   homeTeam: one(team, {
-    fields: [game.homeTeamId],
-    references: [team.id],
+    fields: [game.homeTeamId, game.league],
+    references: [team.teamId, team.league],
   }),
   props: many(prop),
   baseballPlayerStats: many(baseballPlayerStats),
   baseballTeamStats: many(baseballTeamStats),
+  basketballPlayerStats: many(basketballPlayerStats),
+  basketballTeamStats: many(basketballTeamStats),
+  footballPlayerStats: many(footballPlayerStats),
+  footballTeamStats: many(footballTeamStats),
 }));
 
 export const pickRelations = relations(pick, ({ one }) => ({
@@ -75,21 +83,29 @@ export const pickRelations = relations(pick, ({ one }) => ({
 
 export const playerRelations = relations(player, ({ one, many }) => ({
   team: one(team, {
-    fields: [player.teamId],
-    references: [team.id],
+    fields: [player.teamId, player.league],
+    references: [team.teamId, team.league],
   }),
   props: many(prop),
   baseballPlayerStats: many(baseballPlayerStats),
+  basketballPlayerStats: many(basketballPlayerStats),
+  footballPlayerStats: many(footballPlayerStats),
+}));
+
+export const teamRelations = relations(team, ({ many }) => ({
+  baseballTeamStats: many(baseballTeamStats),
+  basketballTeamStats: many(basketballTeamStats),
+  footballTeamStats: many(footballTeamStats),
 }));
 
 export const propRelations = relations(prop, ({ one, many }) => ({
   player: one(player, {
-    fields: [prop.playerId],
-    references: [player.id],
+    fields: [prop.playerId, prop.league],
+    references: [player.playerId, player.league],
   }),
   game: one(game, {
-    fields: [prop.gameId],
-    references: [game.id],
+    fields: [prop.gameId, prop.league],
+    references: [game.gameId, game.league],
   }),
   picks: many(pick),
 }));
@@ -147,12 +163,12 @@ export const baseballPlayerStatsRelations = relations(
   baseballPlayerStats,
   ({ one }) => ({
     game: one(game, {
-      fields: [baseballPlayerStats.gameId],
-      references: [game.id],
+      fields: [baseballPlayerStats.gameId, baseballPlayerStats.league],
+      references: [game.gameId, game.league],
     }),
     player: one(player, {
-      fields: [baseballPlayerStats.playerId],
-      references: [player.id],
+      fields: [baseballPlayerStats.playerId, baseballPlayerStats.league],
+      references: [player.playerId, player.league],
     }),
   })
 );
@@ -161,12 +177,68 @@ export const baseballTeamStatsRelations = relations(
   baseballTeamStats,
   ({ one }) => ({
     game: one(game, {
-      fields: [baseballTeamStats.gameId],
-      references: [game.id],
+      fields: [baseballTeamStats.gameId, baseballTeamStats.league],
+      references: [game.gameId, game.league],
     }),
     team: one(team, {
-      fields: [baseballTeamStats.teamId],
-      references: [team.id],
+      fields: [baseballTeamStats.teamId, baseballTeamStats.league],
+      references: [team.teamId, team.league],
+    }),
+  })
+);
+
+export const basketballPlayerStatsRelations = relations(
+  basketballPlayerStats,
+  ({ one }) => ({
+    game: one(game, {
+      fields: [basketballPlayerStats.gameId, basketballPlayerStats.league],
+      references: [game.gameId, game.league],
+    }),
+    player: one(player, {
+      fields: [basketballPlayerStats.playerId, basketballPlayerStats.league],
+      references: [player.playerId, player.league],
+    }),
+  })
+);
+
+export const basketballTeamStatsRelations = relations(
+  basketballTeamStats,
+  ({ one }) => ({
+    game: one(game, {
+      fields: [basketballTeamStats.gameId, basketballTeamStats.league],
+      references: [game.gameId, game.league],
+    }),
+    team: one(team, {
+      fields: [basketballTeamStats.teamId, basketballTeamStats.league],
+      references: [team.teamId, team.league],
+    }),
+  })
+);
+
+export const footballPlayerStatsRelations = relations(
+  footballPlayerStats,
+  ({ one }) => ({
+    game: one(game, {
+      fields: [footballPlayerStats.gameId, footballPlayerStats.league],
+      references: [game.gameId, game.league],
+    }),
+    player: one(player, {
+      fields: [footballPlayerStats.playerId, footballPlayerStats.league],
+      references: [player.playerId, player.league],
+    }),
+  })
+);
+
+export const footballTeamStatsRelations = relations(
+  footballTeamStats,
+  ({ one }) => ({
+    game: one(game, {
+      fields: [footballTeamStats.gameId, footballTeamStats.league],
+      references: [game.gameId, game.league],
+    }),
+    team: one(team, {
+      fields: [footballTeamStats.teamId, footballTeamStats.league],
+      references: [team.teamId, team.league],
     }),
   })
 );

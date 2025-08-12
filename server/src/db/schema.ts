@@ -1,6 +1,7 @@
 import {
   boolean,
   doublePrecision,
+  foreignKey,
   integer,
   pgEnum,
   pgTable,
@@ -37,7 +38,13 @@ export const friendlyMatchRequestStatus = pgEnum(
   ["pending", "accepted", "declined"]
 );
 
-export const leagueType = pgEnum("league_type", ["MLB", "NBA", "NFL", "NCAAFB", "NCAABB"])
+export const leagueType = pgEnum("league_type", [
+  "MLB",
+  "NBA",
+  "NFL",
+  "NCAAFB",
+  "NCAABB",
+]);
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -135,72 +142,108 @@ export const pick = pgTable("pick", {
     .references(() => prop.id, { onDelete: "cascade" }),
 });
 
-export const team = pgTable("team", {
-  id: integer().primaryKey().notNull(),
-  fullName: text("full_name").notNull(),
-  abbreviation: text().notNull(),
-  nickname: text().notNull(),
-  city: text().notNull(),
-  state: text().notNull(),
-  yearFounded: integer("year_founded").notNull(),
-  league: leagueType().notNull(),
-});
+export const team = pgTable(
+  "team",
+  {
+    teamId: integer("team_id").notNull(),
+    league: leagueType().notNull(),
+    fullName: text("full_name").notNull(),
+    abbreviation: text(),
+    location: text(),
+    mascot: text(),
+    arena: text(),
+  },
+  (table) => [primaryKey({ columns: [table.teamId, table.league] })]
+);
 
-export const player = pgTable("player", {
-  id: integer().primaryKey().notNull(),
-  name: text().notNull(),
-  teamId: integer("team_id")
-    .notNull()
-    .references(() => team.id, { onDelete: "cascade" }),
-  position: text().notNull(),
-  updatedAt: timestamp("updated_at", {
-    withTimezone: true,
-    mode: "string",
-  })
-    .defaultNow()
-    .notNull(),
-  height: text().notNull(),
-  weight: text().notNull(),
-  number: text().notNull(),
-  league: leagueType().notNull(),
-});
+export const player = pgTable(
+  "player",
+  {
+    playerId: integer("player_id").notNull(),
+    name: text().notNull(),
+    teamId: integer("team_id").notNull(),
+    league: leagueType().notNull(),
+    position: text().notNull(),
+    updatedAt: timestamp("updated_at", {
+      withTimezone: true,
+      mode: "string",
+    })
+      .defaultNow()
+      .notNull(),
+    height: text(),
+    weight: integer(),
+    number: integer(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.playerId, table.league] }),
+    foreignKey({
+      columns: [table.teamId, table.league],
+      foreignColumns: [team.teamId, team.league],
+      name: "fk_team_player",
+    }).onDelete("cascade"),
+  ]
+);
 
-export const game = pgTable("game", {
-  id: text().primaryKey().notNull(),
-  startTime: timestamp("start_time", {
-    withTimezone: true,
-    mode: "string",
-  }),
-  homeTeamId: integer("home_team_id")
-    .notNull()
-    .references(() => team.id, { onDelete: "cascade" }),
-  awayTeamId: integer("away_team_id")
-    .notNull()
-    .references(() => team.id, { onDelete: "cascade" }),
-  league: leagueType().notNull(),
-});
+export const game = pgTable(
+  "game",
+  {
+    gameId: text("game_id").notNull(),
+    startTime: timestamp("start_time", {
+      withTimezone: true,
+      mode: "string",
+    }),
+    homeTeamId: integer("home_team_id").notNull(),
+    awayTeamId: integer("away_team_id").notNull(),
+    league: leagueType().notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.gameId, table.league] }),
+    foreignKey({
+      columns: [table.homeTeamId, table.league],
+      foreignColumns: [team.teamId, team.league],
+      name: "fk_home_team_game",
+    }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.awayTeamId, table.league],
+      foreignColumns: [team.teamId, team.league],
+      name: "fk_away_team_game",
+    }).onDelete("cascade"),
+  ]
+);
 
-export const prop = pgTable("prop", {
-  line: doublePrecision().notNull(),
-  currentValue: doublePrecision("current_value").default(0).notNull(),
-  createdAt: timestamp("created_at", {
-    withTimezone: true,
-    mode: "string",
-  })
-    .defaultNow()
-    .notNull(),
-  statName: text("stat_name").notNull(),
-  statDisplayName: text("stat_display_name").notNull(),
-  resolved: boolean().default(false).notNull(),
-  choices: text().array().default(["over", "under"]).notNull(),
-  id: serial().primaryKey().notNull(),
-  playerId: integer("player_id")
-    .notNull()
-    .references(() => player.id, { onDelete: "cascade" }),
-  gameId: text("game_id")
-    .notNull()
-    .references(() => game.id, { onDelete: "cascade" }),
-});
+export const prop = pgTable(
+  "prop",
+  {
+    id: serial().primaryKey().notNull(),
+    line: doublePrecision().notNull(),
+    currentValue: doublePrecision("current_value").default(0).notNull(),
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+      mode: "string",
+    })
+      .defaultNow()
+      .notNull(),
+    statName: text("stat_name").notNull(),
+    statDisplayName: text("stat_display_name").notNull(),
+    resolved: boolean().default(false).notNull(),
+    choices: text().array().default(["over", "under"]).notNull(),
+    playerId: integer("player_id").notNull(),
+    league: leagueType().notNull(),
+    gameId: text("game_id").notNull(),
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.gameId, table.league],
+      foreignColumns: [game.gameId, game.league],
+      name: "fk_game_prop"
+    }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.playerId, table.league],
+      foreignColumns: [player.playerId, player.league],
+      name: "fk_player_prop"
+    }).onDelete("cascade"),
+  ]
+);
 
 export const parlay = pgTable("parlay", {
   stake: doublePrecision().notNull(),
@@ -303,66 +346,309 @@ export const friendlyMatchRequest = pgTable("friendly_match_request", {
   league: leagueType().notNull(),
 });
 
-export const baseballPlayerStats = pgTable("baseball_player_stats", {
-  id: serial().primaryKey().notNull(),
-  errors: integer().default(0).notNull(),
-  hits: integer().default(0).notNull(),
-  runs: integer().default(0).notNull(),
-  singles: integer().default(0).notNull(),
-  doubles: integer().default(0).notNull(),
-  triples: integer().default(0).notNull(),
-  atBats: integer("at_bats").default(0).notNull(),
-  walks: integer().default(0).notNull(),
-  caughtStealing: integer("caught_stealing").default(0).notNull(),
-  homeRuns: integer("home_runs").default(0).notNull(),
-  putouts: integer().default(0).notNull(),
-  stolenBases: integer("stolen_bases").default(0).notNull(),
-  strikeouts: integer().default(0).notNull(),
-  hitByPitch: integer("hit_by_pitch").default(0).notNull(),
-  intentionalWalks: integer("intentional_walks").default(0).notNull(),
-  rbis: integer().default(0).notNull(),
-  outs: integer().default(0).notNull(),
-  pitchingHits: integer("pitching_hits").default(0).notNull(),
-  pitchingStrikeouts: integer("pitching_strikeouts").default(0).notNull(),
-  losses: integer().default(0).notNull(),
-  earnedRuns: integer("earned_runs").default(0).notNull(),
-  saves: integer().default(0).notNull(),
-  runsAllowed: integer("runs_allowed").default(0).notNull(),
-  wins: integer().default(0).notNull(),
-  pitchingSingles: integer("pitching_singles").default(0).notNull(),
-  pitchingDoubles: integer("pitching_doubles").default(0).notNull(),
-  pitchingTriples: integer("pitching_triples").default(0).notNull(),
-  pitchingWalks: integer("pitching_walks").default(0).notNull(),
-  balks: integer().default(0).notNull(),
-  blownSaves: integer("blown_saves").default(0).notNull(),
-  pitchingCaughtStealing: integer("pitching_caught_stealing").default(0).notNull(),
-  homeRunsAllowed: integer("home_runs_allowed").default(0).notNull(),
-  inningsPitched: integer("innings_pitched").default(0).notNull(),
-  pitchingPutouts: integer("pitching_putouts").default(0).notNull(),
-  stolenBasesAllowed: integer("stolen_bases_allowed").default(0).notNull(),
-  wildPitches: integer("wild_pitches").default(0).notNull(),
-  pitchingHitByPitch: integer("pitching_hit_by_pitch").default(0).notNull(),
-  holds: integer().default(0).notNull(),
-  pitchingIntentionalWalks: integer().default(0).notNull(),
-  pitchesThrown: integer().default(0).notNull(),
-  strikes: integer().default(0).notNull(),
-  gameId: text("game_id").references(() => game.id, { onDelete: "cascade" }),
-  playerId: integer("player_id").references(() => player.id, { onDelete: "cascade" })
-});
+export const baseballPlayerStats = pgTable(
+  "baseball_player_stats",
+  {
+    id: serial().primaryKey().notNull(),
+    errors: integer().default(0).notNull(),
+    hits: integer().default(0).notNull(),
+    runs: integer().default(0).notNull(),
+    singles: integer().default(0).notNull(),
+    doubles: integer().default(0).notNull(),
+    triples: integer().default(0).notNull(),
+    atBats: integer("at_bats").default(0).notNull(),
+    walks: integer().default(0).notNull(),
+    caughtStealing: integer("caught_stealing").default(0).notNull(),
+    homeRuns: integer("home_runs").default(0).notNull(),
+    putouts: integer().default(0).notNull(),
+    stolenBases: integer("stolen_bases").default(0).notNull(),
+    strikeouts: integer().default(0).notNull(),
+    hitByPitch: integer("hit_by_pitch").default(0).notNull(),
+    intentionalWalks: integer("intentional_walks").default(0).notNull(),
+    rbis: integer().default(0).notNull(),
+    outs: integer().default(0).notNull(),
+    hitsAllowed: integer("hits_allowed").default(0).notNull(),
+    pitchingStrikeouts: integer("pitching_strikeouts").default(0).notNull(),
+    losses: integer().default(0).notNull(),
+    earnedRuns: integer("earned_runs").default(0).notNull(),
+    saves: integer().default(0).notNull(),
+    runsAllowed: integer("runs_allowed").default(0).notNull(),
+    wins: integer().default(0).notNull(),
+    singlesAllowed: integer("singles_allowed").default(0).notNull(),
+    doublesAllowed: integer("doubles_allowed").default(0).notNull(),
+    triplesAllowed: integer("triples_allowed").default(0).notNull(),
+    pitchingWalks: integer("pitching_walks").default(0).notNull(),
+    balks: integer().default(0).notNull(),
+    blownSaves: integer("blown_saves").default(0).notNull(),
+    pitchingCaughtStealing: integer("pitching_caught_stealing")
+      .default(0)
+      .notNull(),
+    homeRunsAllowed: integer("home_runs_allowed").default(0).notNull(),
+    inningsPitched: doublePrecision("innings_pitched").default(0).notNull(),
+    pitchingPutouts: integer("pitching_putouts").default(0).notNull(),
+    stolenBasesAllowed: integer("stolen_bases_allowed").default(0).notNull(),
+    wildPitches: integer("wild_pitches").default(0).notNull(),
+    pitchingHitByPitch: integer("pitching_hit_by_pitch").default(0).notNull(),
+    holds: integer().default(0).notNull(),
+    pitchingIntentionalWalks: integer("pitching_intentional_walks")
+      .default(0)
+      .notNull(),
+    pitchesThrown: integer("pitches_thrown").default(0).notNull(),
+    strikes: integer().default(0).notNull(),
+    gameId: text("game_id").notNull(),
+    playerId: integer("player_id").notNull(),
+    league: leagueType().notNull(),
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.playerId, table.league],
+      foreignColumns: [player.playerId, player.league],
+      name: "fk_player_baseball_player_stats",
+    }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.gameId, table.league],
+      foreignColumns: [game.gameId, game.league],
+      name: "fk_game_baseball_player_stats",
+    }).onDelete("cascade"),
+  ]
+);
 
-export const baseballTeamStats = pgTable("baseball_team_stats", {
-  errors: integer().default(0).notNull(),
-  hits: integer().default(0).notNull(),
-  runs: integer().default(0).notNull(),
-  doubles: integer().default(0).notNull(),
-  triples: integer().default(0).notNull(),
-  atBats: integer("at_bats").default(0).notNull(),
-  walks: integer().default(0).notNull(),
-  caughtStealing: integer("caught_stealing").default(0).notNull(),
-  homeRuns: integer().default(0).notNull(),
-  stolenBases: integer("stolen_bases").default(0).notNull(),
-  strikeouts: integer().default(0).notNull(),
-  rbis: integer().default(0).notNull(),
-  teamId: integer("team_id").references(() => team.id, { onDelete: "cascade" }),
-  gameId: text("game_id").references(() => game.id, { onDelete: "cascade" })
-})
+export const baseballTeamStats = pgTable(
+  "baseball_team_stats",
+  {
+    id: serial().primaryKey().notNull(),
+    errors: integer().default(0).notNull(),
+    hits: integer().default(0).notNull(),
+    runs: integer().default(0).notNull(),
+    doubles: integer().default(0).notNull(),
+    triples: integer().default(0).notNull(),
+    atBats: integer("at_bats").default(0).notNull(),
+    walks: integer().default(0).notNull(),
+    caughtStealing: integer("caught_stealing").default(0).notNull(),
+    homeRuns: integer().default(0).notNull(),
+    stolenBases: integer("stolen_bases").default(0).notNull(),
+    strikeouts: integer().default(0).notNull(),
+    rbis: integer().default(0).notNull(),
+    teamId: integer("team_id").notNull(),
+    league: leagueType().notNull(),
+    gameId: text("game_id").notNull(),
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.teamId, table.league],
+      foreignColumns: [team.teamId, team.league],
+      name: "fk_team_baseball_team_stats",
+    }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.gameId, table.league],
+      foreignColumns: [game.gameId, game.league],
+      name: "fk_game_baseball_team_stats",
+    }).onDelete("cascade"),
+  ]
+);
+
+export const basketballPlayerStats = pgTable(
+  "basketball_player_stats",
+  {
+    id: serial().primaryKey().notNull(),
+    playerId: integer("player_id").notNull(),
+    gameId: text("game_id").notNull(),
+    league: leagueType().notNull(),
+    fouls: integer().default(0).notNull(),
+    blocks: integer().default(0).notNull(),
+    points: integer().default(0).notNull(),
+    steals: integer().default(0).notNull(),
+    assists: integer().default(0).notNull(),
+    minutes: doublePrecision().default(0.0).notNull(),
+    turnovers: integer().default(0).notNull(),
+    rebounds: integer().default(0).notNull(),
+    twoPointsMade: integer("two_points_made").default(0).notNull(),
+    fieldGoalsMade: integer("field_goals_made").default(0).notNull(),
+    freeThrowsMade: integer("free_throws_made").default(0).notNull(),
+    threePointsMade: integer("three_points_made").default(0).notNull(),
+    defensiveRebounds: integer("defensive_rebounds").default(0).notNull(),
+    offensiveRebounds: integer("offensive_rebounds").default(0).notNull(),
+    twoPointPercentage: doublePrecision("two_point_percentage")
+      .default(0.0)
+      .notNull(),
+    twoPointsAttempted: integer("two_points_attempted").default(0).notNull(),
+    fieldGoalsAttempted: integer("field_goals_attempted").default(0).notNull(),
+    freeThrowsAttempted: integer("free_throws_attempted").default(0).notNull(),
+    threePointsAttempted: integer("three_points_attempted")
+      .default(0)
+      .notNull(),
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.playerId, table.league],
+      foreignColumns: [player.playerId, player.league],
+      name: "fk_player_basketball_player_stats",
+    }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.gameId, table.league],
+      foreignColumns: [game.gameId, game.league],
+      name: "fk_game_basketball_player_stats",
+    }).onDelete("cascade"),
+  ]
+);
+
+export const basketballTeamStats = pgTable(
+  "basketball_team_stats",
+  {
+    id: serial().primaryKey().notNull(),
+    teamId: integer("team_id").notNull(),
+    gameId: text("game_id").notNull(),
+    league: leagueType().notNull(),
+    score: integer().default(0).notNull(),
+    fouls: integer().default(0).notNull(),
+    blocks: integer().default(0).notNull(),
+    steals: integer().default(0).notNull(),
+    assists: integer().default(0).notNull(),
+    turnovers: integer().default(0).notNull(),
+    rebounds: integer().default(0).notNull(),
+    twoPointsMade: integer("two_points_made").default(0).notNull(),
+    fieldGoalsMade: integer("field_goals_made").default(0).notNull(),
+    freeThrowsMade: integer("free_throws_made").default(0).notNull(),
+    threePointsMade: integer("three_points_made").default(0).notNull(),
+    defensiveRebounds: integer("defensive_rebounds").default(0).notNull(),
+    offensiveRebounds: integer("offensive_rebounds").default(0).notNull(),
+    twoPointPercentage: doublePrecision("two_point_percentage")
+      .default(0.0)
+      .notNull(),
+    twoPointsAttempted: integer("two_points_attempted").default(0).notNull(),
+    fieldGoalsAttempted: integer("field_goals_attempted").default(0).notNull(),
+    freeThrowsAttempted: integer("free_throws_attempted").default(0).notNull(),
+    threePointsAttempted: integer("three_points_attempted")
+      .default(0)
+      .notNull(),
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.teamId, table.league],
+      foreignColumns: [team.teamId, team.league],
+      name: "fk_team_basketball_team_stats",
+    }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.gameId, table.league],
+      foreignColumns: [game.gameId, game.league],
+      name: "fk_game_basketball_team_stats",
+    }).onDelete("cascade"),
+  ]
+);
+
+export const footballPlayerStats = pgTable(
+  "football_player_stats",
+  {
+    id: serial().primaryKey().notNull(),
+    playerId: integer("player_id").notNull(),
+    gameId: text("game_id").notNull(),
+    league: leagueType().notNull(),
+    completions: integer().default(0).notNull(),
+    fumblesLost: integer("fumbles_lost").default(0).notNull(),
+    rushingLong: integer("rushing_long").default(0).notNull(),
+    passerRating: doublePrecision("passer_rating").default(0.0).notNull(),
+    passingYards: doublePrecision("passing_yards").default(0.0).notNull(),
+    rushingYards: doublePrecision("rushing_yards").default(0.0).notNull(),
+    passingAttempts: integer("passing_attempts").default(0).notNull(),
+    rushingAttempts: integer().default(0).notNull(),
+    fumbleRecoveries: integer("fumble_recoveries").default(0).notNull(),
+    passingTouchdowns: integer("passing_touchdowns").default(0).notNull(),
+    rushingTouchdowns: integer("rushing_touchdowns").default(0).notNull(),
+    passingInterceptions: integer("passing_interceptions").default(0).notNull(),
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.playerId, table.league],
+      foreignColumns: [player.playerId, player.league],
+      name: "fk_player_football_player_stats",
+    }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.gameId, table.league],
+      foreignColumns: [game.gameId, game.league],
+      name: "fk_game_football_player_stats",
+    }).onDelete("cascade"),
+  ]
+);
+
+export const footballTeamStats = pgTable(
+  "football_team_stats",
+  {
+    id: serial().primaryKey().notNull(),
+    teamId: integer("team_id").notNull(),
+    gameId: text("game_id").notNull(),
+    league: leagueType().notNull(),
+    score: integer().default(0).notNull(),
+    sacks: doublePrecision().default(0).notNull(),
+    safeties: integer().default(0).notNull(),
+    penaltiesTotal: integer("penalties_total").default(0).notNull(),
+    penaltiesYards: integer("penalties_yards").default(0).notNull(),
+    turnovers: integer().default(0).notNull(),
+    firstDowns: integer("first_downs").default(0).notNull(),
+    totalYards: integer("total_yards").default(0).notNull(),
+    blockedKicks: integer("blocked_kicks").default(0).notNull(),
+    blockedPunts: integer("blocked_punts").default(0).notNull(),
+    kicksBlocked: integer("kicks_blocked").default(0).notNull(),
+    passingYards: integer("passing_yards").default(0).notNull(),
+    puntsBlocked: integer("punts_blocked").default(0).notNull(),
+    rushingYards: integer("rushing_yards").default(0).notNull(),
+    defenseTouchdowns: integer("defense_touchdowns").default(0).notNull(),
+    defenseInterceptions: integer("defense_interceptions").default(0).notNull(),
+    kickReturnTouchdowns: integer("kick_return_touchdowns")
+      .default(0)
+      .notNull(),
+    puntReturnTouchdowns: integer("punt_return_touchdowns")
+      .default(0)
+      .notNull(),
+    blockedKickTouchdowns: integer("blocked_kick_touchdowns")
+      .default(0)
+      .notNull(),
+    blockedPuntTouchdowns: integer("blocked_punt_touchdowns")
+      .default(0)
+      .notNull(),
+    interceptionTouchdowns: integer("interception_touchdowns")
+      .default(0)
+      .notNull(),
+    fumbleReturnTouchdowns: integer("fumble_return_touchdowns")
+      .default(0)
+      .notNull(),
+    defenseFumbleRecoveries: integer("defense_fumble_recoveries")
+      .default(0)
+      .notNull(),
+    fieldGoalReturnTouchdowns: integer("field_goal_return_touchdowns")
+      .default(0)
+      .notNull(),
+    twoPointConversionReturns: integer("two_point_conversion_returns")
+      .default(0)
+      .notNull(),
+    twoPointConversionAttempts: integer("two_point_conversion_attempts")
+      .default(0)
+      .notNull(),
+    twoPointConversionSucceeded: integer("two_point_conversion_succeeded")
+      .default(0)
+      .notNull(),
+    pointsAgainstDefenseSpecialTeams: integer(
+      "points_against_defense_special_teams"
+    )
+      .default(0)
+      .notNull(),
+    // constrained by external API
+    passingTouchdowns: integer("passing_touchdowns"),
+    rushingTouchdowns: integer("rushing_touchdowns"),
+    specialTeamsTouchdowns: integer("special_teams_touchdowns"),
+    totalPassingYardsAllowed: integer("total_passing_yards_allowed"),
+    totalRushingYardsAllowed: integer("total_rushing_yards_allowed"),
+    offenseTouchdowns: integer("offense_touchdowns"),
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.teamId, table.league],
+      foreignColumns: [team.teamId, team.league],
+      name: "fk_team_football_team_stats",
+    }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.gameId, table.league],
+      foreignColumns: [game.gameId, game.league],
+      name: "fk_game_football_team_stats",
+    }).onDelete("cascade"),
+  ]
+);

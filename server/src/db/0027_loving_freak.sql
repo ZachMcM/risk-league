@@ -1,0 +1,1 @@
+ALTER TABLE "player" ALTER COLUMN "weight" SET DATA TYPE integer USING weight::integer;

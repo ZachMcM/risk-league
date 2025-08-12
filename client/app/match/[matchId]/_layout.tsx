@@ -1,13 +1,10 @@
 import { Stack } from "expo-router";
 import MatchHeader from "~/components/matches/MatchHeader";
-import {
-  ParlayPickerFooter,
-  ParlayProvider,
-} from "~/components/providers/ParlayProvider";
+import { CreateParlayProvider } from "~/components/providers/CreateParlayProvider";
 
 export default function Layout() {
   return (
-    <ParlayProvider>
+    <CreateParlayProvider>
       <Stack>
         <Stack.Screen
           name="index"
@@ -44,6 +41,6 @@ export default function Layout() {
           }}
         />
       </Stack>
-    </ParlayProvider>
+    </CreateParlayProvider>
   );
 }

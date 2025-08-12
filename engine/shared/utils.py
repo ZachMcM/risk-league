@@ -53,7 +53,7 @@ def round_prop(line) -> float:
     return round(round(line / 0.5) * 0.5, 1)
 
 
-def setup_logger(name: str = None, level: int = logging.INFO):
+def setup_logger(name: str | None = None, level: int = logging.INFO):
     """Creates a new logger with proper JSON configuration.
     
     Args:

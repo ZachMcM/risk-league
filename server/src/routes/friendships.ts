@@ -57,9 +57,9 @@ friendshipsRoute.get("/friendships", authMiddleware, async (_, res) => {
 
     res.json(friends);
   } catch (error) {
-    logger.error(error);
+    logger.error("Friendships route error:", error instanceof Error ? error.message : String(error), error instanceof Error ? error.stack : "");
     res.status(500).json({
-      error,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 });
@@ -118,7 +118,7 @@ friendshipsRoute.post("/friendships", authMiddleware, async (req, res) => {
   } catch (error) {
     logger.debug(error);
     res.status(500).json({
-      error,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 });
@@ -186,8 +186,8 @@ friendshipsRoute.delete("/friendships", authMiddleware, async (req, res) => {
 
     res.status(200);
   } catch (error) {
-    logger.error(error);
-    res.status(500).json({ error });
+    logger.error("Friendships route error:", error instanceof Error ? error.message : String(error), error instanceof Error ? error.stack : "");
+    res.status(500).json({ error: error instanceof Error ? error.message : String(error) });
   }
 });
 
@@ -234,7 +234,7 @@ friendshipsRoute.patch("/friendships", authMiddleware, async (req, res) => {
 
     res.json(updatedFriendship);
   } catch (error) {
-    logger.error(error);
-    res.status(500).json({ error });
+    logger.error("Friendships route error:", error instanceof Error ? error.message : String(error), error instanceof Error ? error.stack : "");
+    res.status(500).json({ error: error instanceof Error ? error.message : String(error) });
   }
 });

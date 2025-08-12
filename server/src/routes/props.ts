@@ -74,11 +74,11 @@ propsRoute.get("/props/today", authMiddleware, async (req, res) => {
         awayTeam: awayTeam,
       })
       .from(prop)
-      .innerJoin(game, eq(prop.gameId, game.id))
-      .innerJoin(player, eq(prop.playerId, player.id))
-      .innerJoin(team, eq(player.teamId, team.id))
-      .innerJoin(homeTeam, eq(game.homeTeamId, homeTeam.id))
-      .innerJoin(awayTeam, eq(game.awayTeamId, awayTeam.id))
+      .innerJoin(game, and(eq(prop.gameId, game.gameId), eq(prop.league, game.league)))
+      .innerJoin(player, and(eq(prop.playerId, player.playerId), eq(prop.league, player.league)))
+      .innerJoin(team, and(eq(player.teamId, team.teamId), eq(player.league, team.league)))
+      .innerJoin(homeTeam, and(eq(game.homeTeamId, homeTeam.teamId), eq(game.league, homeTeam.league)))
+      .innerJoin(awayTeam, and(eq(game.awayTeamId, awayTeam.teamId), eq(game.league, awayTeam.league)))
       .where(
         and(
           gte(game.startTime, startOfDay),
@@ -91,21 +91,6 @@ propsRoute.get("/props/today", authMiddleware, async (req, res) => {
 
     logger.debug(`Available props length ${availableProps.length}`);
 
-    // Get pick counts for each prop
-    const propIds = availableProps.map((p) => p.prop.id);
-
-    const pickCountsList =
-      propIds.length > 0
-        ? await db
-            .select({
-              propId: pick.propId,
-              count: count(pick.id),
-            })
-            .from(pick)
-            .where(inArray(pick.propId, propIds))
-            .groupBy(pick.propId)
-        : [];
-
     const availablePropsWithPickCount = availableProps.map((row) => ({
       ...row.prop,
       game: {
@@ -116,21 +101,19 @@ propsRoute.get("/props/today", authMiddleware, async (req, res) => {
       player: {
         ...row.player,
         team: row.team,
-      },
-      picksCount:
-        pickCountsList.find((pc) => pc.propId === row.prop.id)?.count || 0,
+      }
     }));
 
     res.json(availablePropsWithPickCount);
   } catch (error) {
-    logger.error(error);
-    res.status(500).json({ error });
+    logger.error("Props route error:", error instanceof Error ? error.message : String(error), error instanceof Error ? error.stack : "");
+    res.status(500).json({ error: error instanceof Error ? error.message : String(error) });
   }
 });
 
 propsRoute.post("/props", authMiddleware, async (req, res) => {
   try {
-    const { line, gameId, playerId, statName, statDisplayName, choices } =
+    const { line, gameId, playerId, statName, statDisplayName, choices, league } =
       req.body as {
         line: number | undefined;
         gameId: string | undefined;
@@ -138,12 +121,15 @@ propsRoute.post("/props", authMiddleware, async (req, res) => {
         statName: string | undefined;
         statDisplayName: string | undefined;
         choices: string[] | undefined;
+        league: string | undefined
       };
 
     if (
       line == undefined ||
       gameId == undefined ||
       playerId == undefined ||
+      league == undefined || 
+      !leagueType.enumValues.includes(league as any) ||
       statName == undefined ||
       statDisplayName == undefined ||
       choices == undefined
@@ -159,11 +145,12 @@ propsRoute.post("/props", authMiddleware, async (req, res) => {
       statDisplayName,
       statName,
       choices,
+      league: league as (typeof leagueType.enumValues)[number]
     });
 
     res.json(newProp);
   } catch (error) {
-    logger.error(error);
-    res.status(500).json({ error });
+    logger.error("Props route error:", error instanceof Error ? error.message : String(error), error instanceof Error ? error.stack : "");
+    res.status(500).json({ error: error instanceof Error ? error.message : String(error) });
   }
 });

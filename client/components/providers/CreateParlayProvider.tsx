@@ -13,7 +13,7 @@ type Pick = {
   choice: string;
 };
 
-export type ParlayProviderTypes = {
+export type CreateParlayProviderTypes = {
   picks: Pick[];
   addPick: (pick: Pick) => void;
   removePick: (propId: number) => void;
@@ -24,9 +24,9 @@ export type ParlayProviderTypes = {
   isPropPicked: (propId: number) => boolean;
 };
 
-const ParlayContext = createContext<ParlayProviderTypes | null>(null);
+const ParlayContext = createContext<CreateParlayProviderTypes | null>(null);
 
-export function ParlayProvider({ children }: { children: ReactNode }) {
+export function CreateParlayProvider({ children }: { children: ReactNode }) {
   const [picks, setPicks] = useState<Pick[]>([]);
 
   function removePick(propId: number) {
@@ -55,7 +55,7 @@ export function ParlayProvider({ children }: { children: ReactNode }) {
       return;
     }
     const playerExists = picks.find(
-      (pick) => pick.prop.player.id == newPick.prop.playerId
+      (pick) => pick.prop.player.playerId == newPick.prop.playerId
     );
     if (playerExists) {
       toast.error("Sorry, you can't make multiple picks for the same player");
@@ -90,12 +90,12 @@ export function ParlayProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export function useParlay() {
-  return useContext(ParlayContext) as ParlayProviderTypes;
+export function useCreateParlay() {
+  return useContext(ParlayContext) as CreateParlayProviderTypes;
 }
 
-export function ParlayPickerFooter() {
-  const { picks } = useParlay();
+export function CreateParlayFooter() {
+  const { picks } = useCreateParlay();
   const searchParams = useLocalSearchParams<{ matchId: string }>();
   const matchId = parseInt(searchParams.matchId);
   const insets = useSafeAreaInsets();
