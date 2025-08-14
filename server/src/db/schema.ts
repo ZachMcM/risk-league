@@ -235,12 +235,12 @@ export const prop = pgTable(
     foreignKey({
       columns: [table.gameId, table.league],
       foreignColumns: [game.gameId, game.league],
-      name: "fk_game_prop"
+      name: "fk_game_prop",
     }).onDelete("cascade"),
     foreignKey({
       columns: [table.playerId, table.league],
       foreignColumns: [player.playerId, player.league],
-      name: "fk_player_prop"
+      name: "fk_player_prop",
     }).onDelete("cascade"),
   ]
 );
@@ -544,17 +544,21 @@ export const footballPlayerStats = pgTable(
     gameId: text("game_id").notNull(),
     league: leagueType().notNull(),
     completions: integer().default(0).notNull(),
-    fumblesLost: integer("fumbles_lost").default(0).notNull(),
-    rushingLong: integer("rushing_long").default(0).notNull(),
+    fumblesLost: doublePrecision("fumbles_lost").default(0).notNull(),
+    rushingLong: doublePrecision("rushing_long").default(0).notNull(),
+    receivingLong: doublePrecision("receiving_long").default(0.0).notNull(),
     passerRating: doublePrecision("passer_rating").default(0.0).notNull(),
     passingYards: doublePrecision("passing_yards").default(0.0).notNull(),
     rushingYards: doublePrecision("rushing_yards").default(0.0).notNull(),
+    receivingYards: doublePrecision("receiving_yards").default(0.0).notNull(),
     passingAttempts: integer("passing_attempts").default(0).notNull(),
     rushingAttempts: integer().default(0).notNull(),
     fumbleRecoveries: integer("fumble_recoveries").default(0).notNull(),
     passingTouchdowns: integer("passing_touchdowns").default(0).notNull(),
     rushingTouchdowns: integer("rushing_touchdowns").default(0).notNull(),
+    receivingTouchdowns: integer("receiving_touchdowns").default(0).notNull(),
     passingInterceptions: integer("passing_interceptions").default(0).notNull(),
+    receptions: integer().default(0).notNull(),
   },
   (table) => [
     foreignKey({
@@ -635,8 +639,8 @@ export const footballTeamStats = pgTable(
     passingTouchdowns: integer("passing_touchdowns"),
     rushingTouchdowns: integer("rushing_touchdowns"),
     specialTeamsTouchdowns: integer("special_teams_touchdowns"),
-    totalPassingYardsAllowed: integer("total_passing_yards_allowed"),
-    totalRushingYardsAllowed: integer("total_rushing_yards_allowed"),
+    passingYardsAllowed: integer("passing_yards_allowed"),
+    rushingYardsAllowed: integer("rushing_yards_allowed"),
     offenseTouchdowns: integer("offense_touchdowns"),
   },
   (table) => [

@@ -4,7 +4,8 @@ from datetime import datetime, timedelta, timezone
 
 from utils import data_feeds_req, server_req, setup_logger
 from extract_stats import extract_player_stats, extract_team_stats
-from constants import LEAGUE_CONFIG, leagues
+from extract_stats import LEAGUE_CONFIG
+from constants import leagues
 
 logger = setup_logger(__name__)
 
@@ -58,6 +59,7 @@ def main():
         for league in leagues:
             feed_req = data_feeds_req(f"/live/{yesterday_str}/{league}")
             if feed_req.status_code == 304:
+                logger.info(f"Skipping {league}, no games yesterday")
                 continue
 
             feed_data = feed_req.json()

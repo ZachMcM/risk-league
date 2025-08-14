@@ -135,7 +135,11 @@ footballStatsRoute.post(
 
       res.json(isBatch ? result : result[0]);
     } catch (error) {
-      logger.error("Football stats route error:", error instanceof Error ? error.message : String(error), error instanceof Error ? error.stack : "");
+      logger.error(
+        "Football stats route error:",
+        error instanceof Error ? error.message : String(error),
+        error instanceof Error ? error.stack : ""
+      );
       res.status(500).json({ error });
     }
   }
@@ -171,7 +175,15 @@ function validatePlayerStats(
     (typeof playerStats.rushingTouchdowns === "number" ||
       playerStats.rushingTouchdowns === undefined) &&
     (typeof playerStats.passingInterceptions === "number" ||
-      playerStats.passingInterceptions === undefined)
+      playerStats.passingInterceptions === undefined) &&
+    (typeof playerStats.receivingYards === "number" ||
+      playerStats.receivingYards === undefined) &&
+    (typeof playerStats.receivingTouchdowns === "number" ||
+      playerStats.receivingTouchdowns === undefined) &&
+    (typeof playerStats.receivingLong === "number" ||
+      playerStats.receivingLong === undefined) &&
+    (typeof playerStats.receptions === "number" ||
+      playerStats.receptions === undefined)
   );
 }
 
@@ -219,7 +231,11 @@ footballStatsRoute.post(
 
       res.json(isBatch ? result : result[0]);
     } catch (error) {
-      logger.error("Football stats route error:", error instanceof Error ? error.message : String(error), error instanceof Error ? error.stack : "");
+      logger.error(
+        "Football stats route error:",
+        error instanceof Error ? error.message : String(error),
+        error instanceof Error ? error.stack : ""
+      );
       res.status(500).json({ error });
     }
   }

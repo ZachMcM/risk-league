@@ -1,0 +1,1 @@
+ALTER TABLE "football_player_stats" ADD COLUMN "receptions" integer DEFAULT 0 NOT NULL;

@@ -5,7 +5,6 @@ from pythonjsonlogger.json import JsonFormatter
 from dotenv import load_dotenv
 from typing import Literal, Optional
 from datetime import datetime, timezone
-from constants import LEAGUE_CONFIG
 
 load_dotenv()
 

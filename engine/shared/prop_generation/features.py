@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 from typing import Any, Generic, TypeVar
-from shared.prop_generation.base import DataScope, FeatureDefinition, GameData
+from base import DataScope, FeatureDefinition, GameData
 from shared.utils import calculate_weighted_arithmetic_mean
 
 PlayerStatsType = TypeVar('PlayerStatsType')
