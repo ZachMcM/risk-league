@@ -31,12 +31,12 @@ export default function StartMatchCard({
               league == "MLB"
                 ? mlbImage
                 : league == "NBA"
-                ? nbaImage
-                : league == "NFL"
-                ? nflImage
-                : league == "NCAAFB"
-                ? ncaafbImage
-                : ncaabbImage
+                  ? nbaImage
+                  : league == "NFL"
+                    ? nflImage
+                    : league == "NCAAFB"
+                      ? ncaafbImage
+                      : ncaabbImage
             }
             style={{ width: "100%", height: "100%" }}
           />

@@ -13,7 +13,7 @@ export default function RankBadge({
   iconClassName,
   showIcon = false,
 }: {
-  rank: Rank
+  rank: Rank;
   gradientStyle?: StyleProp<ViewStyle>;
   textClassName?: string;
   iconClassName?: string;
@@ -40,20 +40,20 @@ export default function RankBadge({
             rank.tier == "Bronze"
               ? "!text-amber-600"
               : rank.tier == "Silver"
-              ? "!text-gray-400"
-              : rank.tier == "Gold"
-              ? "!text-yellow-500"
-              : rank.tier == "Platinum"
-              ? "!text-blue-400"
-              : rank.tier == "Diamond"
-              ? "!text-sky-500"
-              : rank.tier == "Master"
-              ? "!text-purple-500"
-              : rank.tier == "Elite"
-              ? "!text-fuchsia-500"
-              : "!text-rose-500",
+                ? "!text-gray-400"
+                : rank.tier == "Gold"
+                  ? "!text-yellow-500"
+                  : rank.tier == "Platinum"
+                    ? "!text-blue-400"
+                    : rank.tier == "Diamond"
+                      ? "!text-sky-500"
+                      : rank.tier == "Master"
+                        ? "!text-purple-500"
+                        : rank.tier == "Elite"
+                          ? "!text-fuchsia-500"
+                          : "!text-rose-500",
             "h-5 w-5",
-            iconClassName
+            iconClassName,
           )}
         />
       )}

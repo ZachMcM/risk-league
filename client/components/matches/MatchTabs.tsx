@@ -17,7 +17,7 @@ export default function MatchTabs({
   resolvedMatches: Match[];
 }) {
   const [matchStatus, setMatchStatus] = useState(
-    unresolvedMatches.length == 0 ? "completed" : "in-progress"
+    unresolvedMatches.length == 0 ? "completed" : "in-progress",
   );
 
   return (

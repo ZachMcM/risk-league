@@ -63,7 +63,7 @@ export default function Messages() {
               username: data?.user.username,
             },
           },
-        ]
+        ],
       );
 
       return { previousMessages };
@@ -73,7 +73,7 @@ export default function Messages() {
       toast.error("There was an error sending your message");
       queryClient.setQueryData(
         ["match", matchId, "messages"],
-        context?.previousMessages
+        context?.previousMessages,
       );
     },
   });
@@ -89,7 +89,7 @@ export default function Messages() {
   };
 
   const otherMatchUser = match?.matchUsers.find(
-    (mu: ExtendedMatchUser) => mu.userId !== data?.user.id
+    (mu: ExtendedMatchUser) => mu.userId !== data?.user.id,
   )!;
 
   return (

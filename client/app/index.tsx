@@ -15,7 +15,7 @@ export default function Index() {
     <Container>
       <View className="flex-col gap-8 flex-1 justify-end p-2">
         <View className="flex flex-col gap-6">
-          <LogoIcon className="text-primary h-16 w-16"/>
+          <LogoIcon className="text-primary h-16 w-16" />
           <View className="flex flex-col gap-2">
             <View className="flex-col gap-1">
               <Text>
@@ -27,8 +27,8 @@ export default function Index() {
                 <Text className="font-extrabold text-5xl"> Win.</Text>
               </Text>
               <Text className="text-muted-foreground font-medium text-xl">
-                The ultimate competitive fantasy sports betting game. Battle 1v1,
-                climb the ELO ladder, and prove you're the best.
+                The ultimate competitive fantasy sports betting game. Battle
+                1v1, climb the ELO ladder, and prove you're the best.
               </Text>
             </View>
           </View>

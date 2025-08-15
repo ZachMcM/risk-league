@@ -29,7 +29,7 @@ const badgeVariants = cva(
     defaultVariants: {
       variant: "default",
     },
-  }
+  },
 );
 
 const badgeTextVariants = cva("text-xs font-semibold ", {
@@ -42,7 +42,7 @@ const badgeTextVariants = cva("text-xs font-semibold ", {
       outline: "text-foreground",
       foreground: "text-background",
       active: "text-blue-600",
-      background: "text-foreground"
+      background: "text-foreground",
     },
   },
   defaultVariants: {

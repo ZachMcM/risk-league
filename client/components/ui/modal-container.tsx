@@ -10,9 +10,7 @@ export default function ModalContainer({ children }: { children: ReactNode }) {
         <View className="flex flex-row justify-center items-center">
           <View className="rounded-2xl bg-secondary self-center mt-4 h-2 w-24" />
         </View>
-        <View className="flex-1 flex flex-col">
-          {children}
-        </View>
+        <View className="flex-1 flex flex-col">{children}</View>
       </Container>
       <PortalHost name="inside-modal-page" />
     </Fragment>

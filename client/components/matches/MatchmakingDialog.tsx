@@ -63,7 +63,7 @@ export default function MatchmakingDialog({
     socketRef.current = socket;
 
     socket.on("connect", () =>
-      console.log("Connected to matchmaking namespace")
+      console.log("Connected to matchmaking namespace"),
     );
 
     socket.on("match-found", ({ matchId }: { matchId: string }) => {

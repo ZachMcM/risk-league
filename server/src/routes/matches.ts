@@ -51,7 +51,7 @@ matchesRoute.get("/matches", authMiddleware, async (req, res) => {
       const matchUserResults = await db.query.matchUser.findMany({
         where: and(
           eq(matchUser.userId, res.locals.userId!),
-          ne(matchUser.status, "not_resolved")
+          ne(matchUser.status, "not_resolved"),
         ),
         with: withStatement,
         orderBy: desc(matchUser.createdAt),
@@ -64,7 +64,7 @@ matchesRoute.get("/matches", authMiddleware, async (req, res) => {
           ...mu,
           progressionDelta: calculateProgressionDelta(
             mu.pointsSnapshot,
-            mu.pointsDelta
+            mu.pointsDelta,
           ),
           rankSnapshot: findRank(mu.pointsSnapshot),
         })),
@@ -77,7 +77,7 @@ matchesRoute.get("/matches", authMiddleware, async (req, res) => {
     const matchUserResults = await db.query.matchUser.findMany({
       where: and(
         eq(matchUser.userId, res.locals.userId!),
-        eq(matchUser.status, "not_resolved")
+        eq(matchUser.status, "not_resolved"),
       ),
       with: withStatement,
       orderBy: desc(matchUser.createdAt),
@@ -89,7 +89,7 @@ matchesRoute.get("/matches", authMiddleware, async (req, res) => {
         ...mu,
         progressionDelta: calculateProgressionDelta(
           mu.pointsSnapshot,
-          mu.pointsDelta
+          mu.pointsDelta,
         ),
         rankSnapshot: findRank(mu.pointsSnapshot),
       })),
@@ -133,16 +133,16 @@ matchesRoute.get("/matches/:id", authMiddleware, async (req, res) => {
         ...mu,
         progressionDelta: calculateProgressionDelta(
           mu.pointsSnapshot,
-          mu.pointsDelta
+          mu.pointsDelta,
         ),
         rankSnapshot: findRank(mu.pointsSnapshot),
         totalStaked: mu.parlays.reduce((accum, curr) => accum + curr.stake, 0),
         totalParlays: mu.parlays.length,
         parlaysWon: mu.parlays.filter(
-          (parlay) => parlay.profit && parlay.profit > 0
+          (parlay) => parlay.profit && parlay.profit > 0,
         ).length,
         parlaysLost: mu.parlays.filter(
-          (parlay) => parlay.profit && parlay.profit < 0
+          (parlay) => parlay.profit && parlay.profit < 0,
         ).length,
         parlaysInProgress: mu.parlays.filter((parlay) => !parlay.resolved)
           .length,
@@ -155,15 +155,21 @@ matchesRoute.get("/matches/:id", authMiddleware, async (req, res) => {
                 (curr.type == "flex"
                   ? getFlexMultiplier(curr.picks.length, curr.picks.length)
                   : getPerfectPlayMultiplier(curr.picks.length)),
-            0
+            0,
           ),
       })),
     };
 
     res.json(matchWithParlayCounts);
   } catch (error: any) {
-    logger.error("Matches route error:", error instanceof Error ? error.message : String(error), error instanceof Error ? error.stack : "");
-    res.status(500).json({ error: error instanceof Error ? error.message : String(error) });
+    logger.error(
+      "Matches route error:",
+      error instanceof Error ? error.message : String(error),
+      error instanceof Error ? error.stack : "",
+    );
+    res
+      .status(500)
+      .json({ error: error instanceof Error ? error.message : String(error) });
   }
 });
 
@@ -316,19 +322,19 @@ matchesRoute.patch("/matches/end", apiKeyMiddleware, async (_, res) => {
 
       const matchUser1TotalStaked = matchUser1.parlays.reduce(
         (accum, curr) => accum + curr.stake,
-        0
+        0,
       );
 
       const matchUser2TotalStaked = matchUser2.parlays.reduce(
         (accum, curr) => accum + curr.stake,
-        0
+        0,
       );
 
       const matchUser1MinTotalStaked = Math.round(
-        matchUser1.startingBalance * minPctTotalStaked
+        matchUser1.startingBalance * minPctTotalStaked,
       );
       const matchUser2MinTotalStaked = Math.round(
-        matchUser2.startingBalance * minPctTotalStaked
+        matchUser2.startingBalance * minPctTotalStaked,
       );
 
       if (
@@ -395,7 +401,7 @@ matchesRoute.patch("/matches/end", apiKeyMiddleware, async (_, res) => {
         ) {
           const newPoints = recalculatePoints(
             [matchUser1.user.points, matchUser2.user.points],
-            winner
+            winner,
           );
 
           await db
@@ -437,7 +443,7 @@ matchesRoute.patch("/matches/end", apiKeyMiddleware, async (_, res) => {
         ["user", matchUser1.userId],
         ["user", matchUser2.userId],
         ["career", matchUser1.userId],
-        ["career", matchUser2.userId]
+        ["career", matchUser2.userId],
       );
 
       for (const userId of [matchUser1.userId, matchUser2.userId]) {

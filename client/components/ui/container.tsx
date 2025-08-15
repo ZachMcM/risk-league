@@ -6,11 +6,11 @@ import { cn } from "~/utils/cn";
 function Container({
   children,
   className,
-  style
+  style,
 }: {
   children?: ReactNode;
   className?: string;
-  style?: StyleProp<ViewStyle>
+  style?: StyleProp<ViewStyle>;
 }) {
   return (
     <KeyboardAvoidingView className="flex-1 flex" behavior="padding">

@@ -106,7 +106,7 @@ def three_pointers_made_config() -> PropConfig:
         display_name="Three Pointers Made",
         features=[
             FeatureDefinition("minutes", "minutes", DataScope.PLAYER),
-            FeatureDefinition("offensiveRating", "offensiveRating", DataScope.TEAM),
+            FeatureDefinition("team_offensive_rating", "offensiveRating", DataScope.TEAM),
             FeatureDefinition("pace", "pace", DataScope.TEAM),
             FeatureDefinition(
                 "opp_defensive_rating", "defensiveRating", DataScope.OPPONENT

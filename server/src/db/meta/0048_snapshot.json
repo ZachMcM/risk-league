@@ -1,6 +1,6 @@
 {
-  "id": "fd8f26c9-eaeb-4760-8ce9-b21b81e46084",
-  "prevId": "6ea168de-753f-4836-831f-49b9b95d36c0",
+  "id": "83bdf712-f665-4f0e-83f6-6b141d218189",
+  "prevId": "92accec9-4b76-42c5-a233-042655674e53",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -1092,6 +1092,48 @@
         },
         "passing_interceptions": {
           "name": "passing_interceptions",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "receptions": {
+          "name": "receptions",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "field_goals_attempted": {
+          "name": "field_goals_attempted",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "field_goals_made": {
+          "name": "field_goals_made",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "field_goals_long": {
+          "name": "field_goals_long",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "extra_points_attempted": {
+          "name": "extra_points_attempted",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "extra_points_made": {
+          "name": "extra_points_made",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,

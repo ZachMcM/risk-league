@@ -22,7 +22,7 @@ export async function createMatch({
     parseInt(process.env.MIN_STARTING_BALANCE!) +
       Math.random() *
         (parseInt(process.env.MAX_STARTING_BALANCE!) -
-          parseInt(process.env.MIN_STARTING_BALANCE!))
+          parseInt(process.env.MIN_STARTING_BALANCE!)),
   );
 
   const [matchResult] = await db
@@ -136,7 +136,7 @@ export async function matchMakingHandler(socket: Socket) {
   }
 
   logger.info(
-    `User ${userId} connected to matchmaking namespace for ${league}`
+    `User ${userId} connected to matchmaking namespace for ${league}`,
   );
 
   socket.join(userId);

@@ -65,7 +65,7 @@ export function UserCard({
 
       queryClient.setQueryData<Friendship[]>(
         ["friendships", data?.user.id],
-        (old) => [...(old || []), newFriendship]
+        (old) => [...(old || []), newFriendship],
       );
 
       // Return a context object with the snapshotted value
@@ -75,7 +75,7 @@ export function UserCard({
       // If the mutation fails, use the context returned from onMutate to roll back
       queryClient.setQueryData(
         ["friendships", data?.user.id],
-        context?.previousFriendships
+        context?.previousFriendships,
       );
       toast.error(err.message, {
         position: "bottom-center",
@@ -105,7 +105,7 @@ export function UserCard({
       // Optimistically update to the new value by removing the friendship
       queryClient.setQueryData<Friendship[]>(
         ["friendships", data?.user.id],
-        (old) => (old || []).filter((f) => f.friend.id !== user.id)
+        (old) => (old || []).filter((f) => f.friend.id !== user.id),
       );
 
       // Return a context object with the snapshotted value
@@ -115,7 +115,7 @@ export function UserCard({
       // If the mutation fails, use the context returned from onMutate to roll back
       queryClient.setQueryData(
         ["friendships", data?.user.id],
-        context?.previousFriendships
+        context?.previousFriendships,
       );
       toast.error(err.message, {
         position: "bottom-center",
@@ -147,8 +147,8 @@ export function UserCard({
         ["friendships", data?.user.id],
         (old) =>
           (old || []).map((f) =>
-            f.friend.id === user.id ? { ...f, status: "accepted" as const } : f
-          )
+            f.friend.id === user.id ? { ...f, status: "accepted" as const } : f,
+          ),
       );
 
       // Return a context object with the snapshotted value
@@ -158,7 +158,7 @@ export function UserCard({
       // If the mutation fails, use the context returned from onMutate to roll back
       queryClient.setQueryData(
         ["friendships", data?.user.id],
-        context?.previousFriendships
+        context?.previousFriendships,
       );
       toast.error(err.message, {
         position: "bottom-center",
@@ -205,7 +205,7 @@ export function UserCard({
             friend: user,
             status: "pending",
           },
-        ]
+        ],
       );
 
       setDialogOpen(false);
@@ -217,7 +217,7 @@ export function UserCard({
       toast.error("There was an error sending your friendly match request");
       queryClient.setQueryData(
         ["friendly-match-requests", data?.user.id!],
-        context?.previousRequests
+        context?.previousRequests,
       );
     },
   });
@@ -259,9 +259,7 @@ export function UserCard({
                   <Text>Play</Text>
                 </Button>
               </DialogTrigger>
-              <DialogContent
-                className="w-[375px]"
-              >
+              <DialogContent className="w-[375px]">
                 <View className="flex flex-col gap-6">
                   <View className="flex flex-row items-center gap-3">
                     <ProfileImage

@@ -16,7 +16,7 @@ const alertVariants = cva(
     defaultVariants: {
       variant: "default",
     },
-  }
+  },
 );
 
 const alertTextVariants = cva("font-normal", {
@@ -71,7 +71,7 @@ function AlertDescription({
     <Text
       className={cn(
         "flex-1 text-muted-foreground text-sm leading-relaxed",
-        className
+        className,
       )}
       {...props}
     />

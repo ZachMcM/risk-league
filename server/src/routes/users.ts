@@ -24,7 +24,7 @@ usersRoute.get("/users", authMiddleware, async (req, res) => {
     const usersResults = await db.query.user.findMany({
       where: and(
         ilike(user.username, `%${searchQuery}%`),
-        ne(user.id, res.locals.userId!)
+        ne(user.id, res.locals.userId!),
       ),
       columns: {
         id: true,
@@ -39,7 +39,7 @@ usersRoute.get("/users", authMiddleware, async (req, res) => {
       usersResults.map((user) => ({
         ...user,
         rank: findRank(user.points),
-      }))
+      })),
     );
   } catch (error) {
     handleError(error, res, "Users route");
@@ -158,7 +158,7 @@ usersRoute.get("/users/career", authMiddleware, async (_, res) => {
     const filteredMatchUsers = userResult.matchUsers.filter(
       (matchUser) =>
         matchUser.match.type == "competitive" &&
-        matchUser.status != "not_resolved"
+        matchUser.status != "not_resolved",
     );
 
     const pointsTimeline: { x: string; y: number }[] = [];
@@ -211,7 +211,7 @@ usersRoute.get("/users/career", authMiddleware, async (_, res) => {
 
           pickedPlayerCounts.set(
             playerKey,
-            (pickedPlayerCounts.get(playerKey) || 0) + 1
+            (pickedPlayerCounts.get(playerKey) || 0) + 1,
           );
           pickedPlayerInfo.set(playerKey, playerInfo);
 
@@ -224,7 +224,7 @@ usersRoute.get("/users/career", authMiddleware, async (_, res) => {
 
           pickedTeamCounts.set(
             teamKey,
-            (pickedTeamCounts.get(teamKey) || 0) + 1
+            (pickedTeamCounts.get(teamKey) || 0) + 1,
           );
           pickedTeamInfo.set(teamKey, teamInfo);
         }
@@ -240,17 +240,17 @@ usersRoute.get("/users/career", authMiddleware, async (_, res) => {
       pointsTimeline,
       matchStats: {
         total: filteredMatchUsers.filter(
-          (matchUser) => matchUser.status != "not_resolved"
+          (matchUser) => matchUser.status != "not_resolved",
         ).length,
         wins: filteredMatchUsers.filter(
-          (matchUser) => matchUser.status == "win"
+          (matchUser) => matchUser.status == "win",
         ).length,
         draws: filteredMatchUsers.filter(
-          (matchUser) => matchUser.status == "draw"
+          (matchUser) => matchUser.status == "draw",
         ).length,
         losses: filteredMatchUsers.filter(
           (matchUser) =>
-            matchUser.status == "disqualified" || matchUser.status == "loss"
+            matchUser.status == "disqualified" || matchUser.status == "loss",
         ).length,
       },
       parlayStats: {
@@ -259,7 +259,7 @@ usersRoute.get("/users/career", authMiddleware, async (_, res) => {
           .reduce(
             (accum, curr) =>
               accum + curr.parlays.filter((parlay) => parlay.resolved).length,
-            0
+            0,
           ),
         wins: filteredMatchUsers
           .filter((matchUser) => matchUser.status != "not_resolved")
@@ -267,9 +267,9 @@ usersRoute.get("/users/career", authMiddleware, async (_, res) => {
             (accum, curr) =>
               accum +
               curr.parlays.filter(
-                (parlay) => parlay.resolved && parlay.profit > 0
+                (parlay) => parlay.resolved && parlay.profit > 0,
               ).length,
-            0
+            0,
           ),
         losses: filteredMatchUsers
           .filter((matchUser) => matchUser.status != "not_resolved")
@@ -277,9 +277,9 @@ usersRoute.get("/users/career", authMiddleware, async (_, res) => {
             (accum, curr) =>
               accum +
               curr.parlays.filter(
-                (parlay) => parlay.resolved && parlay.profit <= 0
+                (parlay) => parlay.resolved && parlay.profit <= 0,
               ).length,
-            0
+            0,
           ),
       },
       mostBetPlayer:

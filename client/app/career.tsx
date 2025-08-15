@@ -96,7 +96,7 @@ export default function Career() {
                             : `${Math.round(
                                 (career.matchStats.wins /
                                   career.matchStats.total) *
-                                  100
+                                  100,
                               )}%`}
                         </Text>
                       </View>
@@ -142,7 +142,7 @@ export default function Career() {
                             : `${Math.round(
                                 (career.parlayStats.wins /
                                   career.parlayStats.total) *
-                                  100
+                                  100,
                               )}%`}
                         </Text>
                       </View>

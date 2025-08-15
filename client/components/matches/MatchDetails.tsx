@@ -17,27 +17,27 @@ import MatchStatsDialog from "./MatchStatsDialog";
 export default function MatchDetails({ match }: { match: ExtendedMatch }) {
   const { data } = authClient.useSession();
   const currentMatchUser = match.matchUsers.find(
-    (mu: ExtendedMatchUser) => mu.userId === data?.user.id
+    (mu: ExtendedMatchUser) => mu.userId === data?.user.id,
   )!;
   const otherMatchUser = match.matchUsers.find(
-    (mu: ExtendedMatchUser) => mu.userId !== data?.user.id
+    (mu: ExtendedMatchUser) => mu.userId !== data?.user.id,
   )!;
 
   const minTotalStaked = Math.round(
     parseFloat(process.env.EXPO_PUBLIC_MIN_PCT_TOTAL_STAKED!) *
-      currentMatchUser.startingBalance
+      currentMatchUser.startingBalance,
   );
   const minParlaysReq = parseInt(process.env.EXPO_PUBLIC_MIN_PARLAYS_REQUIRED!);
 
   const badgeVariant = getBadgeVariant(
     currentMatchUser.status,
     currentMatchUser.balance,
-    otherMatchUser.balance
+    otherMatchUser.balance,
   );
   const badgeText = getBadgeText(
     currentMatchUser.status,
     currentMatchUser.balance,
-    otherMatchUser.balance
+    otherMatchUser.balance,
   );
 
   useEffect(() => {
@@ -56,7 +56,7 @@ export default function MatchDetails({ match }: { match: ExtendedMatch }) {
           {
             duration: Infinity,
             position: "bottom-center",
-          }
+          },
         );
       }
       if (currentMatchUser.totalParlays < minParlaysReq) {
@@ -72,7 +72,7 @@ export default function MatchDetails({ match }: { match: ExtendedMatch }) {
           {
             duration: Infinity,
             position: "bottom-center",
-          }
+          },
         );
       }
     }

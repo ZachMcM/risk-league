@@ -4,8 +4,8 @@ export type Team = {
   teamId: number;
   fullName: string;
   abbreviation: string | null;
-  location: string | null
-  mascot: string | null
+  location: string | null;
+  mascot: string | null;
   league: League;
 };
 

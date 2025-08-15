@@ -57,7 +57,7 @@ SplashScreen.preventAutoHideAsync();
 
 export {
   // Catch any errors thrown by the Layout component.
-  ErrorBoundary
+  ErrorBoundary,
 } from "expo-router";
 
 const queryClient = new QueryClient();
@@ -168,7 +168,7 @@ export function useRefreshOnFocus<T>(refetch: () => Promise<T>) {
       }
 
       refetch();
-    }, [refetch])
+    }, [refetch]),
   );
 }
 

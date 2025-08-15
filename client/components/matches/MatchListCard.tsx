@@ -16,16 +16,16 @@ import LeagueLogo from "../ui/league-logos/LeagueLogo";
 export default function MatchListCard({ match }: { match: Match }) {
   const { data } = authClient.useSession();
   const you = match.matchUsers.find(
-    (matchUser) => matchUser.user.id == data?.user.id
+    (matchUser) => matchUser.user.id == data?.user.id,
   )!;
   const opponent = match.matchUsers.find(
-    (matchUser) => matchUser.user.id != data?.user.id
+    (matchUser) => matchUser.user.id != data?.user.id,
   )!;
 
   const badgeVariant = getBadgeVariant(
     you.status,
     you.balance,
-    opponent.balance
+    opponent.balance,
   );
 
   const badgeText = getBadgeText(you.status, you.balance, opponent.balance);

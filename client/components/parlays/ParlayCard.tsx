@@ -34,17 +34,17 @@ export default function ParlayCard({ parlay }: { parlay: Parlay }) {
                   {parlay.type == "flex"
                     ? `${(() => {
                         const table = getFlexMultiplierTable(
-                          parlay.picks.length
+                          parlay.picks.length,
                         );
                         const minMultiplier =
                           table[table.length - 1]?.multiplier || 0;
                         const maxMultiplier = table[0]?.multiplier || 0;
                         return `${minMultiplier.toFixed(
-                          2
+                          2,
                         )}x-${maxMultiplier.toFixed(2)}x`;
                       })()}`
                     : `${getPerfectPlayMultiplier(parlay.picks.length).toFixed(
-                        2
+                        2,
                       )}x`}
                 </Text>
               </View>
@@ -62,8 +62,8 @@ export default function ParlayCard({ parlay }: { parlay: Parlay }) {
                   {!parlay.resolved
                     ? "Active"
                     : parlay.profit > 0
-                    ? "Won"
-                    : "Lost"}
+                      ? "Won"
+                      : "Lost"}
                 </Text>
               </Badge>
             </View>
@@ -82,8 +82,8 @@ export default function ParlayCard({ parlay }: { parlay: Parlay }) {
                 {!parlay.resolved
                   ? "Potential Payout"
                   : parlay.profit > 0
-                  ? "Amount Won"
-                  : "Amount Lost"}
+                    ? "Amount Won"
+                    : "Amount Lost"}
               </Text>
               <Text className="font-bold text-2xl">
                 $
@@ -92,7 +92,7 @@ export default function ParlayCard({ parlay }: { parlay: Parlay }) {
                       (parlay.type == "flex"
                         ? getFlexMultiplier(
                             parlay.picks.length,
-                            parlay.picks.length
+                            parlay.picks.length,
                           )
                         : getPerfectPlayMultiplier(parlay.picks.length)) *
                       parlay.stake

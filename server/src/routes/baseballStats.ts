@@ -15,7 +15,7 @@ import { handleError } from "../utils/handleError";
 export const baseballStatsRoute = Router();
 
 function validateTeamStats(
-  teamStats: any
+  teamStats: any,
 ): teamStats is InferInsertModel<typeof baseballTeamStats> {
   const validLeagues = leagueType.enumValues;
   return (
@@ -67,7 +67,7 @@ baseballStatsRoute.post(
             return true;
           }
           return false;
-        }
+        },
       );
 
       if (invalidTeamStats.length > 0) {
@@ -92,11 +92,11 @@ baseballStatsRoute.post(
     } catch (error) {
       handleError(error, res, "Baseball stats route");
     }
-  }
+  },
 );
 
 function validatePlayerStats(
-  playerStats: any
+  playerStats: any,
 ): playerStats is InferInsertModel<typeof baseballPlayerStats> {
   const validLeagues = leagueType.enumValues;
   return (
@@ -208,7 +208,7 @@ baseballStatsRoute.post(
             return true;
           }
           return false;
-        }
+        },
       );
 
       if (invalidPlayerStats.length > 0) {
@@ -230,11 +230,11 @@ baseballStatsRoute.post(
     } catch (error) {
       handleError(error, res, "Baseball stats route");
     }
-  }
+  },
 );
 
 baseballStatsRoute.get(
-  "/baseball-stats/players/:playerId",
+  "/baseball-stats/:league/players/:playerId",
   apiKeyMiddleware,
   async (req, res) => {
     try {
@@ -247,7 +247,7 @@ baseballStatsRoute.get(
 
       const playerId = parseInt(req.params.playerId);
       const limit = parseInt(limitStr);
-      const league = req.query.league as
+      const league = req.params.league as
         | (typeof leagueType.enumValues)[number]
         | undefined;
 
@@ -270,8 +270,8 @@ baseballStatsRoute.get(
           .where(
             and(
               eq(baseballPlayerStats.playerId, playerId),
-              eq(baseballPlayerStats.league, league)
-            )
+              eq(baseballPlayerStats.league, league),
+            ),
           )
           .orderBy(desc(game.startTime))
           .limit(limit)
@@ -283,13 +283,13 @@ baseballStatsRoute.get(
           stats.doubles,
           stats.triples,
           stats.homeRuns,
-          stats.atBats
+          stats.atBats,
         );
         const obp = calculateObp(
           stats.hits,
           stats.hitByPitch,
           stats.atBats,
-          stats.walks
+          stats.walks,
         );
 
         return {
@@ -306,11 +306,11 @@ baseballStatsRoute.get(
     } catch (error) {
       handleError(error, res, "Baseball stats route");
     }
-  }
+  },
 );
 
 baseballStatsRoute.get(
-  "/baseball-stats/teams/:teamId",
+  "/baseball-stats/:league/teams/:teamId",
   apiKeyMiddleware,
   async (req, res) => {
     try {
@@ -322,7 +322,7 @@ baseballStatsRoute.get(
       }
 
       const teamId = parseInt(req.params.teamId);
-      const league = req.query.league as
+      const league = req.params.league as
         | (typeof leagueType.enumValues)[number]
         | undefined;
       const limit = parseInt(limitStr);
@@ -348,142 +348,147 @@ baseballStatsRoute.get(
           .where(
             and(
               eq(baseballTeamStats.teamId, teamId),
-              eq(baseballTeamStats.league, league)
-            )
+              eq(baseballTeamStats.league, league),
+            ),
           )
           .orderBy(desc(game.startTime))
           .limit(limit)
       ).map((row) => row.baseball_team_stats);
 
-      const extendedStats = teamStats.map(async (stats) => {
-        const allPlayerStats = (
-          await db
-            .select()
-            .from(baseballPlayerStats)
-            .innerJoin(
-              player,
-              eq(baseballPlayerStats.playerId, player.playerId)
-            )
-            .where(
-              and(
-                eq(baseballPlayerStats.gameId, stats.gameId),
-                eq(player.teamId, teamId),
-                eq(baseballPlayerStats.league, league)
+      const extendedStats = await Promise.all(
+        teamStats.map(async (stats) => {
+          const allPlayerStats = (
+            await db
+              .select()
+              .from(baseballPlayerStats)
+              .innerJoin(
+                player,
+                and(
+                  eq(baseballPlayerStats.playerId, player.playerId),
+                  eq(baseballPlayerStats.league, league),
+                ),
               )
-            )
-        ).map((row) => row.baseball_player_stats);
+              .where(
+                and(
+                  eq(baseballPlayerStats.gameId, stats.gameId),
+                  eq(player.teamId, teamId),
+                  eq(baseballPlayerStats.league, league),
+                ),
+              )
+          ).map((row) => row.baseball_player_stats);
 
-        const homeRunsAllowed = allPlayerStats.reduce(
-          (accum, curr) => accum + curr.homeRunsAllowed,
-          0
-        );
+          const homeRunsAllowed = allPlayerStats.reduce(
+            (accum, curr) => accum + curr.homeRunsAllowed,
+            0,
+          );
 
-        const pitchingStrikeouts = allPlayerStats.reduce(
-          (accum, curr) => accum + curr.pitchingStrikeouts,
-          0
-        );
+          const pitchingStrikeouts = allPlayerStats.reduce(
+            (accum, curr) => accum + curr.pitchingStrikeouts,
+            0,
+          );
 
-        const pitchingWalks = allPlayerStats.reduce(
-          (accum, curr) => accum + curr.pitchingWalks,
-          0
-        );
+          const pitchingWalks = allPlayerStats.reduce(
+            (accum, curr) => accum + curr.pitchingWalks,
+            0,
+          );
 
-        const doublesAllowed = allPlayerStats.reduce(
-          (accum, curr) => accum + curr.doublesAllowed,
-          0
-        );
+          const doublesAllowed = allPlayerStats.reduce(
+            (accum, curr) => accum + curr.doublesAllowed,
+            0,
+          );
 
-        const hitsAllowed = allPlayerStats.reduce(
-          (accum, curr) => accum + curr.hitsAllowed,
-          0
-        );
+          const hitsAllowed = allPlayerStats.reduce(
+            (accum, curr) => accum + curr.hitsAllowed,
+            0,
+          );
 
-        const triplesAllowed = allPlayerStats.reduce(
-          (accum, curr) => accum + curr.triplesAllowed,
-          0
-        );
+          const triplesAllowed = allPlayerStats.reduce(
+            (accum, curr) => accum + curr.triplesAllowed,
+            0,
+          );
 
-        const runsAllowed = allPlayerStats.reduce(
-          (accum, curr) => accum + curr.runsAllowed,
-          0
-        );
+          const runsAllowed = allPlayerStats.reduce(
+            (accum, curr) => accum + curr.runsAllowed,
+            0,
+          );
 
-        const strikes = allPlayerStats.reduce(
-          (accum, curr) => accum + curr.strikes,
-          0
-        );
+          const strikes = allPlayerStats.reduce(
+            (accum, curr) => accum + curr.strikes,
+            0,
+          );
 
-        const pitchesThrown = allPlayerStats.reduce(
-          (accum, curr) => accum + curr.pitchesThrown,
-          0
-        );
+          const pitchesThrown = allPlayerStats.reduce(
+            (accum, curr) => accum + curr.pitchesThrown,
+            0,
+          );
 
-        const battingAvg = stats.hits / stats.atBats;
+          const battingAvg = stats.hits / stats.atBats;
 
-        const singles = allPlayerStats.reduce(
-          (accum, curr) => accum + curr.singles,
-          0
-        );
-        const sluggingPct = calculateSluggingPct(
-          singles,
-          stats.doubles,
-          stats.triples,
-          stats.homeRuns,
-          stats.atBats
-        );
+          const singles = allPlayerStats.reduce(
+            (accum, curr) => accum + curr.singles,
+            0,
+          );
+          const sluggingPct = calculateSluggingPct(
+            singles,
+            stats.doubles,
+            stats.triples,
+            stats.homeRuns,
+            stats.atBats,
+          );
 
-        const hitByPitch = allPlayerStats.reduce(
-          (accum, curr) => accum + curr.hitByPitch,
-          0
-        );
-        const obp = calculateObp(
-          stats.hits,
-          hitByPitch,
-          stats.atBats,
-          stats.walks
-        );
+          const hitByPitch = allPlayerStats.reduce(
+            (accum, curr) => accum + curr.hitByPitch,
+            0,
+          );
+          const obp = calculateObp(
+            stats.hits,
+            hitByPitch,
+            stats.atBats,
+            stats.walks,
+          );
 
-        const ops = sluggingPct + obp;
+          const ops = sluggingPct + obp;
 
-        const pitchingCaughtStealing = allPlayerStats.reduce(
-          (accum, curr) => accum + curr.pitchingCaughtStealing,
-          0
-        );
+          const pitchingCaughtStealing = allPlayerStats.reduce(
+            (accum, curr) => accum + curr.pitchingCaughtStealing,
+            0,
+          );
 
-        const stolenBasesAllowed = allPlayerStats.reduce(
-          (accum, curr) => accum + curr.stolenBasesAllowed,
-          0
-        );
+          const stolenBasesAllowed = allPlayerStats.reduce(
+            (accum, curr) => accum + curr.stolenBasesAllowed,
+            0,
+          );
 
-        const earnedRuns = allPlayerStats.reduce(
-          (accum, curr) => accum + curr.earnedRuns,
-          0
-        );
+          const earnedRuns = allPlayerStats.reduce(
+            (accum, curr) => accum + curr.earnedRuns,
+            0,
+          );
 
-        return {
-          ...stats,
-          homeRunsAllowed,
-          pitchingStrikeouts,
-          pitchingWalks,
-          doublesAllowed,
-          hitsAllowed,
-          triplesAllowed,
-          runsAllowed,
-          strikes,
-          pitchesThrown,
-          battingAvg,
-          ops,
-          pitchingCaughtStealing,
-          stolenBasesAllowed,
-          earnedRuns,
-        };
-      });
+          return {
+            ...stats,
+            homeRunsAllowed,
+            pitchingStrikeouts,
+            pitchingWalks,
+            doublesAllowed,
+            hitsAllowed,
+            triplesAllowed,
+            runsAllowed,
+            strikes,
+            pitchesThrown,
+            battingAvg,
+            ops,
+            pitchingCaughtStealing,
+            stolenBasesAllowed,
+            earnedRuns,
+          };
+        }),
+      );
 
       res.json(extendedStats);
     } catch (error) {
       handleError(error, res, "Baseball stats route");
     }
-  }
+  },
 );
 
 function calculateSluggingPct(
@@ -491,7 +496,7 @@ function calculateSluggingPct(
   doubles: number,
   triples: number,
   home_runs: number,
-  atBats: number
+  atBats: number,
 ) {
   return (singles + 2 * doubles + 3 * triples + 4 * home_runs) / atBats;
 }
@@ -500,7 +505,7 @@ function calculateObp(
   hits: number,
   hitByPitch: number,
   atBats: number,
-  walks: number
+  walks: number,
 ) {
   return (hits + walks + hitByPitch) / (atBats + walks + hitByPitch);
 }

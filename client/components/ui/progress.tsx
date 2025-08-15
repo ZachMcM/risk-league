@@ -20,13 +20,13 @@ const progressVariants = cva(
         default: "bg-foreground/20",
         destructive: "bg-destructive/20",
         success: "bg-success/20",
-        primary: "bg-primary/20"
+        primary: "bg-primary/20",
       },
     },
     defaultVariants: {
       variant: "default",
     },
-  }
+  },
 );
 
 const progressIndicatorVariants = cva("h-full", {
@@ -35,7 +35,7 @@ const progressIndicatorVariants = cva("h-full", {
       default: "bg-foreground",
       destructive: "bg-destructive",
       success: "bg-success",
-      primary: "bg-primary"
+      primary: "bg-primary",
     },
   },
   defaultVariants: {
@@ -49,7 +49,7 @@ const progressTextVariants = cva("font-semibold text-sm text-start", {
       default: "text-foreground",
       destructive: "text-destructive",
       success: "text-success",
-      primary: "text-primary"
+      primary: "text-primary",
     },
   },
   defaultVariants: {
@@ -83,7 +83,7 @@ function Progress({
           value={percentage}
           className={cn(
             progressIndicatorVariants({ variant }),
-            indicatorClassName
+            indicatorClassName,
           )}
         />
       </ProgressPrimitive.Root>
@@ -121,9 +121,9 @@ function Indicator({
           progress.value,
           [0, 100],
           [0, 100],
-          Extrapolation.CLAMP
+          Extrapolation.CLAMP,
         )}%`,
-        { overshootClamping: true }
+        { overshootClamping: true },
       ),
     };
   });
@@ -131,10 +131,7 @@ function Indicator({
   if (Platform.OS === "web") {
     return (
       <View
-        className={cn(
-          "h-full w-full flex-1 web:transition-all",
-          className
-        )}
+        className={cn("h-full w-full flex-1 web:transition-all", className)}
         style={{ transform: `translateX(-${100 - (value ?? 0)}%)` }}
       >
         <ProgressPrimitive.Indicator

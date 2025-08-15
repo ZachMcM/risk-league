@@ -10,10 +10,10 @@ export default function SignOutButton() {
     await authClient.signOut({
       fetchOptions: {
         onSuccess: () => {
-          router.navigate("/")
-        }
-      }
-    })
+          router.navigate("/");
+        },
+      },
+    });
   }
 
   return (

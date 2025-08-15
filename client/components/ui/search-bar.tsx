@@ -14,7 +14,7 @@ export function SearchBar({
     <View
       className={cn(
         "flex flex-row items-center border border-border rounded-lg px-4 min-h-11",
-        className
+        className,
       )}
     >
       <Search className="text-muted-foreground" size={16} />

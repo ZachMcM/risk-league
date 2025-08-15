@@ -9,7 +9,7 @@ import { handleError } from "../utils/handleError";
 export const playersRoute = Router();
 
 function validatePlayerData(
-  playerData: any
+  playerData: any,
 ): playerData is InferInsertModel<typeof player> {
   const validLeagues = leagueType.enumValues;
   return (
@@ -59,25 +59,32 @@ playersRoute.post("/players", apiKeyMiddleware, async (req, res) => {
         const teamExists = await db
           .select({ teamId: team.teamId })
           .from(team)
-          .where(sql`${team.teamId} = ${playerData.teamId} AND ${team.league} = ${playerData.league}`)
+          .where(
+            sql`${team.teamId} = ${playerData.teamId} AND ${team.league} = ${playerData.league}`,
+          )
           .limit(1);
 
         if (teamExists.length > 0) {
           playersWithValidTeams.push(playerData);
         } else {
-          logger.warn(`Skipping player ${playerData.name} - team ${playerData.teamId} not found in league ${playerData.league}`);
+          logger.warn(
+            `Skipping player ${playerData.name} - team ${playerData.teamId} not found in league ${playerData.league}`,
+          );
           skippedCount++;
         }
       } catch (error) {
-        logger.warn(`Error checking team for player ${playerData.name}:`, error);
+        logger.warn(
+          `Error checking team for player ${playerData.name}:`,
+          error,
+        );
         skippedCount++;
       }
     }
 
     if (playersWithValidTeams.length === 0) {
-      res.status(304).json({ 
-        error: "No players with valid team references", 
-        skipped: skippedCount 
+      res.status(304).json({
+        error: "No players with valid team references",
+        skipped: skippedCount,
       });
       return;
     }
@@ -94,7 +101,9 @@ playersRoute.post("/players", apiKeyMiddleware, async (req, res) => {
       })
       .returning({ id: player.playerId });
 
-    logger.info(`Successfully inserted ${result.length} player(s), skipped ${skippedCount} player(s) with missing team references`);
+    logger.info(
+      `Successfully inserted ${result.length} player(s), skipped ${skippedCount} player(s) with missing team references`,
+    );
 
     res.json(isBatch ? result : result[0]);
   } catch (error) {

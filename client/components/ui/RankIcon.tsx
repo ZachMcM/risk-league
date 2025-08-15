@@ -29,20 +29,20 @@ export default function RankIcon({
           tier == "Bronze"
             ? "!text-amber-600"
             : tier == "Silver"
-            ? "!text-gray-400"
-            : tier == "Gold"
-            ? "!text-yellow-500"
-            : tier == "Platinum"
-            ? "!text-blue-400"
-            : tier == "Diamond"
-            ? "!text-sky-500"
-            : tier == "Master"
-            ? "!text-purple-500"
-            : tier == "Elite"
-            ? "!text-fuchsia-500"
-            : "!text-rose-500",
+              ? "!text-gray-400"
+              : tier == "Gold"
+                ? "!text-yellow-500"
+                : tier == "Platinum"
+                  ? "!text-blue-400"
+                  : tier == "Diamond"
+                    ? "!text-sky-500"
+                    : tier == "Master"
+                      ? "!text-purple-500"
+                      : tier == "Elite"
+                        ? "!text-fuchsia-500"
+                        : "!text-rose-500",
           "h-8 w-8",
-          iconClassName
+          iconClassName,
         )}
       />
     </RankGradient>

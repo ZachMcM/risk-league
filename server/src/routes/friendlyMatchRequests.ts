@@ -2,7 +2,12 @@ import { Router } from "express";
 import { authMiddleware } from "../middleware";
 import { db } from "../db";
 import { and, eq, or } from "drizzle-orm";
-import { friendlyMatchRequest, friendship, leagueType, user } from "../db/schema";
+import {
+  friendlyMatchRequest,
+  friendship,
+  leagueType,
+  user,
+} from "../db/schema";
 import { logger } from "../logger";
 import { io } from "..";
 import { invalidateQueries } from "../utils/invalidateQueries";
@@ -21,9 +26,9 @@ friendlyMatchRequestsRoute.get(
           where: and(
             or(
               eq(friendlyMatchRequest.incomingId, res.locals.userId!),
-              eq(friendlyMatchRequest.outgoingId, res.locals.userId!)
+              eq(friendlyMatchRequest.outgoingId, res.locals.userId!),
             ),
-            eq(friendlyMatchRequest.status, "pending")
+            eq(friendlyMatchRequest.status, "pending"),
           ),
           with: {
             outgoingUser: {
@@ -58,12 +63,12 @@ friendlyMatchRequestsRoute.get(
             request.incomingId == res.locals.userId!
               ? request.outgoingUser
               : request.incomingUser,
-        }))
+        })),
       );
     } catch (error) {
       handleError(error, res, "Friendly match requests route");
     }
-  }
+  },
 );
 
 friendlyMatchRequestsRoute.patch(
@@ -88,7 +93,7 @@ friendlyMatchRequestsRoute.patch(
         const existingRequest = await db.query.friendlyMatchRequest.findFirst({
           where: and(
             eq(friendlyMatchRequest.id, requestId),
-            eq(friendlyMatchRequest.incomingId, res.locals.userId!)
+            eq(friendlyMatchRequest.incomingId, res.locals.userId!),
           ),
         });
 
@@ -110,9 +115,9 @@ friendlyMatchRequestsRoute.patch(
             eq(friendlyMatchRequest.id, requestId),
             or(
               eq(friendlyMatchRequest.incomingId, res.locals.userId!),
-              eq(friendlyMatchRequest.outgoingId, res.locals.userId!)
-            )
-          )
+              eq(friendlyMatchRequest.outgoingId, res.locals.userId!),
+            ),
+          ),
         )
         .returning({
           id: friendlyMatchRequest.id,
@@ -138,7 +143,7 @@ friendlyMatchRequestsRoute.patch(
       if (status == "declined") {
         invalidateQueries(
           ["friendly-match-requests", updatedRequest.outgoingId],
-          ["friendly-match-requests", updatedRequest.incomingId]
+          ["friendly-match-requests", updatedRequest.incomingId],
         );
 
         io.of("/realtime")
@@ -147,7 +152,7 @@ friendlyMatchRequestsRoute.patch(
               updatedRequest.incomingId == res.locals.userId
                 ? updatedRequest.outgoingId
                 : updatedRequest.incomingId
-            }`
+            }`,
           )
           .emit("friendly-match-request-declined", {
             ...userResult,
@@ -171,7 +176,7 @@ friendlyMatchRequestsRoute.patch(
         ["matches", updatedRequest.outgoingId, "resolved"],
         ["matches", updatedRequest.incomingId, "resolved"],
         ["friendly-match-requests", updatedRequest.outgoingId],
-        ["friendly-match-requests", updatedRequest.incomingId]
+        ["friendly-match-requests", updatedRequest.incomingId],
       );
 
       for (const userId of [
@@ -187,9 +192,9 @@ friendlyMatchRequestsRoute.patch(
 
       res.json(newMatchId);
     } catch (error) {
-      handleError(error, res, "Friendly match requests route")
+      handleError(error, res, "Friendly match requests route");
     }
-  }
+  },
 );
 
 friendlyMatchRequestsRoute.post(
@@ -211,12 +216,12 @@ friendlyMatchRequestsRoute.post(
         where: or(
           and(
             eq(friendship.incomingId, incomingId),
-            eq(friendship.outgoingId, res.locals.userId!)
+            eq(friendship.outgoingId, res.locals.userId!),
           ),
           and(
             eq(friendship.incomingId, res.locals.userId!),
-            eq(friendship.outgoingId, incomingId)
-          )
+            eq(friendship.outgoingId, incomingId),
+          ),
         ),
       });
 
@@ -238,7 +243,7 @@ friendlyMatchRequestsRoute.post(
 
       invalidateQueries(
         ["friendly-match-requests", incomingId],
-        ["friendly-match-requests", res.locals.userId!]
+        ["friendly-match-requests", res.locals.userId!],
       );
 
       const userResult = await db.query.user.findFirst({
@@ -258,5 +263,5 @@ friendlyMatchRequestsRoute.post(
     } catch (error) {
       handleError(error, res, "Friendly match requests route");
     }
-  }
+  },
 );

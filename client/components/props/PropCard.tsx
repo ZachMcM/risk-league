@@ -30,10 +30,10 @@ export default function PropCard({ prop }: { prop: Prop }) {
             {prop.player.name}
           </Text>
           <Text className="font-semibold text-muted-foreground text-sm text-center">
-            {
-              prop.game.homeTeamId == prop.player.teamId ? `@ ${prop.game.awayTeam.abbreviation ?? prop.game.awayTeam.fullName}` : `vs ${prop.game.homeTeam.abbreviation ?? prop.game.homeTeam.fullName}`
-            } •{" "}
-            {moment(prop.game.startTime).format("ddd h:mm A")}
+            {prop.game.homeTeamId == prop.player.teamId
+              ? `@ ${prop.game.awayTeam.abbreviation ?? prop.game.awayTeam.fullName}`
+              : `vs ${prop.game.homeTeam.abbreviation ?? prop.game.homeTeam.fullName}`}{" "}
+            • {moment(prop.game.startTime).format("ddd h:mm A")}
           </Text>
         </View>
         <View className="flex flex-col items-center">
@@ -58,7 +58,7 @@ export default function PropCard({ prop }: { prop: Prop }) {
               className={cn(
                 "h-10 flex-grow flex-1 flex-row justify-center items-center bg-secondary border border-secondary",
                 getPickChoice(prop.id) == choice &&
-                  "border-primary bg-primary/20"
+                  "border-primary bg-primary/20",
               )}
               size="sm"
               key={`${prop.id}_option_${i}`}

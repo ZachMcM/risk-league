@@ -43,7 +43,7 @@ export default function PickCard({ pick }: { pick: Pick }) {
                   pick.status != "not_resolved" &&
                     (pick.status == "hit" && "bg-success border-success",
                     pick.status == "missed" &&
-                      "bg-destructive border-destructive")
+                      "bg-destructive border-destructive"),
                 )}
               >
                 {pick.status != "not_resolved" &&
@@ -73,8 +73,8 @@ export default function PickCard({ pick }: { pick: Pick }) {
                 pick.status == "hit"
                   ? "success"
                   : pick.status == "missed"
-                  ? "destructive"
-                  : "default"
+                    ? "destructive"
+                    : "default"
               }
             />
           </View>

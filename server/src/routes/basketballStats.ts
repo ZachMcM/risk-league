@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { apiKeyMiddleware } from "../middleware";
 import { logger } from "../logger";
-import { and, desc, eq, InferInsertModel } from "drizzle-orm";
+import { and, desc, eq, InferInsertModel, ne } from "drizzle-orm";
 import {
   basketballPlayerStats,
   basketballTeamStats,
@@ -16,7 +16,7 @@ import { point } from "drizzle-orm/pg-core";
 export const basketballStatsRoute = Router();
 
 function validateTeamStats(
-  teamStats: any
+  teamStats: any,
 ): teamStats is InferInsertModel<typeof basketballTeamStats> {
   const validLeagues = leagueType.enumValues;
   return (
@@ -82,7 +82,7 @@ basketballStatsRoute.post(
             return true;
           }
           return false;
-        }
+        },
       );
 
       if (invalidTeamStats.length > 0) {
@@ -107,11 +107,11 @@ basketballStatsRoute.post(
     } catch (error) {
       handleError(error, res, "Basketball stats route");
     }
-  }
+  },
 );
 
 function validatePlayerStats(
-  playerStats: any
+  playerStats: any,
 ): playerStats is InferInsertModel<typeof basketballPlayerStats> {
   const validLeagues = leagueType.enumValues;
   return (
@@ -184,7 +184,7 @@ basketballStatsRoute.post(
             return true;
           }
           return false;
-        }
+        },
       );
 
       if (invalidPlayerStats.length > 0) {
@@ -206,11 +206,11 @@ basketballStatsRoute.post(
     } catch (error) {
       handleError(error, res, "Basketball stats route");
     }
-  }
+  },
 );
 
 basketballStatsRoute.get(
-  "/basketball-stats/players/:playerId",
+  "/basketball-stats/:league/players/:playerId",
   apiKeyMiddleware,
   async (req, res) => {
     try {
@@ -223,7 +223,7 @@ basketballStatsRoute.get(
 
       const playerId = parseInt(req.params.playerId);
       const limit = parseInt(limitStr);
-      const league = req.query.league as
+      const league = req.params.league as
         | undefined
         | (typeof leagueType.enumValues)[0];
 
@@ -246,8 +246,8 @@ basketballStatsRoute.get(
           .where(
             and(
               eq(basketballPlayerStats.playerId, playerId),
-              eq(basketballPlayerStats.league, league)
-            )
+              eq(basketballPlayerStats.league, league),
+            ),
           )
           .orderBy(desc(game.startTime))
           .limit(limit)
@@ -258,20 +258,244 @@ basketballStatsRoute.get(
         .from(player)
         .where(and(eq(player.playerId, playerId), eq(player.league, league)));
 
-      const extendedStats = playerStats.map(async (stats) => {
-        const teamStats = await db.query.basketballTeamStats.findFirst({
-          where: and(
-            eq(basketballTeamStats.gameId, stats.gameId),
-            eq(basketballTeamStats.teamId, team.teamId)
-          ),
-        });
-      });
+      const extendedStats = await Promise.all(
+        playerStats.map(async (stats) => {
+          const teamStats = (await db.query.basketballTeamStats.findFirst({
+            where: and(
+              eq(basketballTeamStats.gameId, stats.gameId),
+              eq(basketballTeamStats.teamId, team.teamId),
+              eq(basketballTeamStats.league, league),
+            ),
+          }))!;
 
-      res.json(extendedStats)
+          const allPlayerStats = (
+            await db
+              .select()
+              .from(basketballPlayerStats)
+              .innerJoin(
+                player,
+                and(
+                  eq(basketballPlayerStats.playerId, player.playerId),
+                  eq(basketballPlayerStats.league, league),
+                ),
+              )
+              .where(
+                and(
+                  eq(basketballPlayerStats.gameId, stats.gameId),
+                  eq(player.teamId, team.teamId),
+                  eq(basketballPlayerStats.league, league),
+                ),
+              )
+          ).map((row) => row.basketball_player_stats);
+
+          const oppStats = (await db.query.basketballTeamStats.findFirst({
+            where: and(
+              eq(basketballTeamStats.gameId, stats.gameId),
+              ne(basketballTeamStats.teamId, team.teamId),
+              eq(basketballTeamStats.league, league),
+            ),
+          }))!;
+
+          const teamMinutes = allPlayerStats.reduce(
+            (accum, curr) => accum + curr.minutes,
+            0,
+          );
+
+          const trueShootingPct = calculateTrueShootingPct(
+            stats.points,
+            stats.fieldGoalsAttempted,
+            stats.freeThrowsAttempted,
+          );
+
+          const usageRate = calculateUsageRate(
+            stats.fieldGoalsAttempted,
+            stats.freeThrowsAttempted,
+            stats.turnovers,
+            teamMinutes,
+            stats.minutes,
+            teamStats.fieldGoalsAttempted,
+            teamStats.freeThrowsAttempted,
+            teamStats.turnovers,
+          );
+
+          const reboundsPct = calculateReboundsPct(
+            stats.rebounds,
+            teamMinutes,
+            stats.minutes,
+            teamStats.rebounds,
+            oppStats.rebounds,
+          );
+
+          const assistsPct = calculateAssistsPct(
+            stats.assists,
+            stats.minutes,
+            teamMinutes,
+            teamStats.fieldGoalsMade,
+            stats.fieldGoalsMade,
+          );
+          const blocksPct = calculateBlocksPct(
+            stats.blocks,
+            teamMinutes,
+            stats.minutes,
+            oppStats.fieldGoalsAttempted,
+            oppStats.threePointsAttempted,
+          );
+
+          const oppPossessions = estimatePossessions(
+            oppStats.fieldGoalsAttempted,
+            oppStats.freeThrowsAttempted,
+            oppStats.turnovers,
+            oppStats.offensiveRebounds,
+          );
+
+          const stealsPct = calculateStealsPct(
+            stats.steals,
+            teamMinutes,
+            stats.minutes,
+            oppPossessions,
+          );
+
+          return {
+            ...stats,
+            trueShootingPct,
+            usageRate,
+            reboundsPct,
+            assistsPct,
+            blocksPct,
+            stealsPct,
+            threePct: stats.threePointsMade / stats.threePointsAttempted,
+            pointsReboundsAssists:
+              stats.points + stats.rebounds + stats.assists,
+            pointsRebounds: stats.points + stats.rebounds,
+            pointsAssists: stats.points + stats.assists,
+            reboundsAssists: stats.rebounds + stats.assists,
+          };
+        }),
+      );
+
+      if (extendedStats == undefined) res.json(extendedStats);
     } catch (error) {
       handleError(error, res, "Baseball stats route");
     }
-  }
+  },
+);
+
+basketballStatsRoute.get(
+  "/basketball-stats/:league/teams/:teamId",
+  apiKeyMiddleware,
+  async (req, res) => {
+    try {
+      const limitStr = req.query.limit as string | undefined;
+
+      if (!limitStr) {
+        res.status(400).json({ error: "Invalid query string, missing limit" });
+        return;
+      }
+
+      const teamId = parseInt(req.params.teamId);
+      const limit = parseInt(limitStr);
+      const league = req.params.league as
+        | undefined
+        | (typeof leagueType.enumValues)[0];
+
+      if (
+        league === undefined ||
+        !["NCAABB", "NBA"].includes(league) ||
+        isNaN(teamId) ||
+        isNaN(limit) ||
+        limit <= 0
+      ) {
+        res.status(400).json({ error: "Invalid playerId or limit parameter" });
+        return;
+      }
+
+      const teamStats = (
+        await db
+          .select()
+          .from(basketballTeamStats)
+          .innerJoin(game, eq(basketballTeamStats.gameId, game.gameId))
+          .where(
+            and(
+              eq(basketballTeamStats.teamId, teamId),
+              eq(basketballTeamStats.league, league),
+            ),
+          )
+          .orderBy(desc(game.startTime))
+      ).map((row) => row.basketball_team_stats);
+
+      const extendedStats = await Promise.all(
+        teamStats.map(async (stats) => {
+          const oppStats = (await db.query.basketballTeamStats.findFirst({
+            where: and(
+              eq(basketballTeamStats.gameId, stats.gameId),
+              ne(basketballTeamStats.teamId, stats.teamId),
+              eq(basketballTeamStats.league, league),
+            ),
+          }))!;
+
+          const allPlayerStats = (
+            await db
+              .select()
+              .from(basketballPlayerStats)
+              .innerJoin(
+                player,
+                and(
+                  eq(basketballPlayerStats.playerId, player.playerId),
+                  eq(basketballPlayerStats.league, league),
+                ),
+              )
+              .where(
+                and(
+                  eq(basketballPlayerStats.gameId, stats.gameId),
+                  eq(basketballPlayerStats.league, league),
+                  eq(player.teamId, stats.teamId),
+                ),
+              )
+          ).map((row) => row.basketball_player_stats);
+
+          const oppPossessions = estimatePossessions(
+            oppStats.fieldGoalsAttempted,
+            oppStats.freeThrowsAttempted,
+            oppStats.turnovers,
+            oppStats.offensiveRebounds,
+          );
+
+          const teamMinutes = allPlayerStats.reduce(
+            (accum, curr) => accum + curr.minutes,
+            0,
+          );
+
+          const possessions = estimatePossessions(
+            stats.fieldGoalsAttempted,
+            stats.freeThrowsAttempted,
+            stats.turnovers,
+            stats.offensiveRebounds,
+          );
+
+          const pace = calculatePace(possessions, oppPossessions, teamMinutes);
+          const offensiveRating = calculateOffensiveRating(
+            stats.score,
+            possessions,
+          );
+          const defensiveRating = calculateDefensiveRating(
+            oppStats.score,
+            oppPossessions,
+          );
+
+          return {
+            ...stats,
+            pace,
+            offensiveRating,
+            defensiveRating,
+          };
+        }),
+      );
+
+      res.json(extendedStats);
+    } catch (error) {
+      handleError(error, res, "Basketball stats");
+    }
+  },
 );
 
 // All stat calculations based on https://www.basketball-reference.com/about/glossary.html
@@ -279,7 +503,7 @@ basketballStatsRoute.get(
 function calculateTrueShootingPct(
   points: number,
   fieldGoalsAttempted: number,
-  freeThrowsAttempted: number
+  freeThrowsAttempted: number,
 ) {
   return points / (2 * (fieldGoalsAttempted + 0.44 * freeThrowsAttempted));
 }
@@ -292,7 +516,7 @@ function calculateUsageRate(
   minutes: number,
   teamFieldGoalsAttempted: number,
   teamFreeThrowsAttempted: number,
-  teamTurnovers: number
+  teamTurnovers: number,
 ) {
   return (
     (100 *
@@ -310,11 +534,24 @@ function calculateReboundsPct(
   teamMinutes: number,
   minutes: number,
   teamRebounds: number,
-  oppRebounds: number
+  oppRebounds: number,
 ) {
   return (
     (100 * (rebounds * (teamMinutes / 5))) /
     (minutes * (teamRebounds + oppRebounds))
+  );
+}
+
+function calculateAssistsPct(
+  assists: number,
+  minutes: number,
+  teamMinutes: number,
+  teamFieldGoalsMade: number,
+  fieldGoalsMade: number,
+) {
+  return (
+    (100 * assists) /
+    ((minutes / (teamMinutes / 5)) * teamFieldGoalsMade - fieldGoalsMade)
   );
 }
 
@@ -323,7 +560,7 @@ function calculateBlocksPct(
   teamMinutes: number,
   minutes: number,
   oppFieldGoalsAttempted: number,
-  oppThreePointsAttempted: number
+  oppThreePointsAttempted: number,
 ) {
   return (
     (100 * (blocks * (teamMinutes / 5))) /
@@ -331,22 +568,41 @@ function calculateBlocksPct(
   );
 }
 
-function estimatePossessions(teamFieldGoalsAttempted: number, teamFreeThrowsAttempted: number, teamTurnovers: number, teamOffensiveRebounds: number) {
-  return teamFieldGoalsAttempted - teamOffensiveRebounds + teamTurnovers + 0.44 * teamFreeThrowsAttempted
+function estimatePossessions(
+  teamFieldGoalsAttempted: number,
+  teamFreeThrowsAttempted: number,
+  teamTurnovers: number,
+  teamOffensiveRebounds: number,
+) {
+  return (
+    teamFieldGoalsAttempted -
+    teamOffensiveRebounds +
+    teamTurnovers +
+    0.44 * teamFreeThrowsAttempted
+  );
 }
 
-function calculateStealsPct(steals: number, teamMinutes: number, minutes: number, oppPossessions: number) {
+function calculateStealsPct(
+  steals: number,
+  teamMinutes: number,
+  minutes: number,
+  oppPossessions: number,
+) {
   return (100 * (steals * (teamMinutes / 5))) / (minutes * oppPossessions);
 }
 
-function calculatePace(possessions: number, oppPossessions: number, teamMinutes: number) {
+function calculatePace(
+  possessions: number,
+  oppPossessions: number,
+  teamMinutes: number,
+) {
   return 48 * ((possessions + oppPossessions) / (2 * (teamMinutes / 5)));
 }
 
 function calculateOffensiveRating(teamPoints: number, possessions: number) {
-  return (100 * teamPoints) / possessions
+  return (100 * teamPoints) / possessions;
 }
 
 function calculateDefensiveRating(oppPoints: number, oppPossessions: number) {
-  return (100 * oppPoints) / oppPossessions
+  return (100 * oppPoints) / oppPossessions;
 }

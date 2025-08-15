@@ -13,5 +13,5 @@ export async function getRank(userId: string) {
       .where(eq(user.id, userId))
   )[0];
 
-  return findRank(points)
+  return findRank(points);
 }

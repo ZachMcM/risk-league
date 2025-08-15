@@ -27,4 +27,4 @@ routes.use(teamsRoute);
 routes.use(playersRoute);
 routes.use(baseballStatsRoute);
 routes.use(basketballStatsRoute);
-routes.use(footballStatsRoute)
+routes.use(footballStatsRoute);

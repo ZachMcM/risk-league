@@ -1,11 +1,13 @@
 import { Router } from "express";
 import { apiKeyMiddleware } from "../middleware";
 import { logger } from "../logger";
-import { InferInsertModel } from "drizzle-orm";
+import { and, desc, eq, InferInsertModel, ne } from "drizzle-orm";
 import {
   footballPlayerStats,
   footballTeamStats,
+  game,
   leagueType,
+  player,
 } from "../db/schema";
 import { db } from "../db";
 import { handleError } from "../utils/handleError";
@@ -13,7 +15,7 @@ import { handleError } from "../utils/handleError";
 export const footballStatsRoute = Router();
 
 function validateTeamStats(
-  teamStats: any
+  teamStats: any,
 ): teamStats is InferInsertModel<typeof footballTeamStats> {
   const validLeagues = leagueType.enumValues;
   return (
@@ -113,7 +115,7 @@ footballStatsRoute.post(
             return true;
           }
           return false;
-        }
+        },
       );
 
       if (invalidTeamStats.length > 0) {
@@ -138,11 +140,11 @@ footballStatsRoute.post(
     } catch (error) {
       handleError(error, res, "Football stats route");
     }
-  }
+  },
 );
 
 function validatePlayerStats(
-  playerStats: any
+  playerStats: any,
 ): playerStats is InferInsertModel<typeof footballPlayerStats> {
   const validLeagues = leagueType.enumValues;
   return (
@@ -179,7 +181,17 @@ function validatePlayerStats(
     (typeof playerStats.receivingLong === "number" ||
       playerStats.receivingLong === undefined) &&
     (typeof playerStats.receptions === "number" ||
-      playerStats.receptions === undefined)
+      playerStats.receptions === undefined) &&
+    (typeof playerStats.fieldGoalsAttempted === "number" ||
+      playerStats.fieldGoalsAttempted === undefined) &&
+    (typeof playerStats.fieldGoalsMade === "number" ||
+      playerStats.fieldGoalsMade === undefined) &&
+    (typeof playerStats.fieldGoalsLong === "number" ||
+      playerStats.fieldGoalsLong === undefined) &&
+    (typeof playerStats.extraPointsAttempted === "number" ||
+      playerStats.extraPointsAttempted === undefined) &&
+    (typeof playerStats.extraPointsMade === "number" ||
+      playerStats.extraPointsMade === undefined)
   );
 }
 
@@ -207,7 +219,7 @@ footballStatsRoute.post(
             return true;
           }
           return false;
-        }
+        },
       );
 
       if (invalidPlayerStats.length > 0) {
@@ -229,5 +241,171 @@ footballStatsRoute.post(
     } catch (error) {
       handleError(error, res, "Football stats route");
     }
-  }
+  },
+);
+
+footballStatsRoute.get(
+  "/football-stats/:league/players/:playerId",
+  apiKeyMiddleware,
+  async (req, res) => {
+    try {
+      const limitStr = req.query.limit as string | undefined;
+
+      if (!limitStr) {
+        res.status(400).json({ error: "Invalid query string, missing limit" });
+        return;
+      }
+
+      const playerId = parseInt(req.params.playerId);
+      const limit = parseInt(limitStr);
+      const league = req.params.league as
+        | (typeof leagueType.enumValues)[number]
+        | undefined;
+
+      if (
+        league === undefined ||
+        !["NFL", "NCAAFB"].includes(league) ||
+        isNaN(playerId) ||
+        isNaN(limit) ||
+        limit <= 0
+      ) {
+        res.status(400).json({ error: "Invalid playerId or limit parameter" });
+        return;
+      }
+
+      const playerStats = (
+        await db
+          .select()
+          .from(footballPlayerStats)
+          .innerJoin(game, eq(footballPlayerStats.gameId, game.gameId))
+          .where(
+            and(
+              eq(footballPlayerStats.playerId, playerId),
+              eq(footballPlayerStats.league, league),
+            ),
+          )
+          .orderBy(desc(game.startTime))
+          .limit(limit)
+      ).map((row) => row.football_player_stats);
+
+      const extendedStats = playerStats.map((stats) => ({
+        ...stats,
+        receivingRushingTouchdowns:
+          stats.rushingTouchdowns + stats.receivingTouchdowns,
+        passingRushingTouchdowns:
+          stats.passingTouchdowns + stats.receivingTouchdowns,
+      }));
+
+      res.json(extendedStats);
+    } catch (error) {
+      handleError(error, res, "Football stats");
+    }
+  },
+);
+
+footballStatsRoute.get(
+  "/football-stats/:league/teams/:teamId",
+  apiKeyMiddleware,
+  async (req, res) => {
+    try {
+      const limitStr = req.query.limit as string | undefined;
+
+      if (!limitStr) {
+        res.status(400).json({ error: "Invalid query string, missing limit" });
+        return;
+      }
+
+      const teamId = parseInt(req.params.teamId);
+      const limit = parseInt(limitStr);
+      const league = req.params.league as
+        | (typeof leagueType.enumValues)[number]
+        | undefined;
+
+      if (
+        league === undefined ||
+        !["NFL", "NCAAFB"].includes(league) ||
+        isNaN(teamId) ||
+        isNaN(limit) ||
+        limit <= 0
+      ) {
+        res.status(400).json({ error: "Invalid teamId or limit parameter" });
+        return;
+      }
+
+      const teamStats = (
+        await db
+          .select()
+          .from(footballTeamStats)
+          .innerJoin(game, eq(footballTeamStats.gameId, game.gameId))
+          .where(
+            and(
+              eq(footballTeamStats.teamId, teamId),
+              eq(footballTeamStats.league, league),
+            ),
+          )
+          .orderBy(desc(game.startTime))
+          .limit(limit)
+      ).map((row) => row.football_team_stats);
+
+      const extendedStats = Promise.all(
+        teamStats.map(async (stats) => {
+          const oppStats = (await db.query.footballTeamStats.findFirst({
+            where: and(
+              eq(footballTeamStats.gameId, stats.gameId),
+              ne(footballTeamStats.teamId, stats.teamId),
+              eq(footballTeamStats.league, league),
+            ),
+          }))!;
+
+          const allOpponentStats = (
+            await db
+              .select()
+              .from(footballPlayerStats)
+              .innerJoin(
+                player,
+                and(
+                  eq(footballPlayerStats.playerId, player.playerId),
+                  eq(footballPlayerStats.league, player.league),
+                ),
+              )
+              .where(
+                and(
+                  eq(footballPlayerStats.gameId, stats.gameId),
+                  eq(footballPlayerStats.league, league),
+                  ne(player.teamId, stats.teamId),
+                ),
+              )
+          ).map((row) => row.football_player_stats);
+
+          const passingYardsAllowed =
+            stats.passingYardsAllowed ?? oppStats.passingYards;
+
+          const completionsAllowed = allOpponentStats.reduce(
+            (accum, curr) => accum + curr.completions,
+            0,
+          );
+
+          const rushingYardsAllowed =
+            stats.rushingYardsAllowed ?? oppStats.rushingYards;
+
+          const passingTouchdownsAllowed = oppStats.passingTouchdowns;
+
+          const rushingTouchdownsAllowed = oppStats.rushingTouchdowns;
+
+          return {
+            ...stats,
+            passingYardsAllowed,
+            completionsAllowed,
+            rushingYardsAllowed,
+            passingTouchdownsAllowed,
+            rushingTouchdownsAllowed,
+          };
+        }),
+      );
+
+      res.json(extendedStats);
+    } catch (error) {
+      handleError(error, res, "Football stats");
+    }
+  },
 );

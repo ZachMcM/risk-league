@@ -96,7 +96,15 @@ export function FriendlyMatchRequestCard({
             ) : (
               <X className="text-destructive-foreground" size={18} />
             )}
-            <Text>{isIncomingUser ? isFriendlyMatchRequestDeclining ? "Declining" : "Decline" : isFriendlyMatchRequestDeclining ? "Canceling" : "Cancel"}</Text>
+            <Text>
+              {isIncomingUser
+                ? isFriendlyMatchRequestDeclining
+                  ? "Declining"
+                  : "Decline"
+                : isFriendlyMatchRequestDeclining
+                  ? "Canceling"
+                  : "Cancel"}
+            </Text>
           </Button>
         </View>
       </CardContent>

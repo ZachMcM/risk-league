@@ -9,7 +9,7 @@ import { handleError } from "../utils/handleError";
 export const teamsRoute = Router();
 
 function validateTeamData(
-  teamData: any
+  teamData: any,
 ): teamData is InferInsertModel<typeof team> {
   const validLeagues = leagueType.enumValues;
   return (
@@ -18,7 +18,8 @@ function validateTeamData(
       validLeagues.includes(teamData.league as any) &&
       typeof teamData.fullName === "string" &&
       typeof teamData.abbreviation === "string") ||
-    ((teamData.abbreviation === null || typeof teamData.abbreviation === "string") &&
+    ((teamData.abbreviation === null ||
+      typeof teamData.abbreviation === "string") &&
       (teamData.location === null || typeof teamData.location === "string") &&
       (teamData.mascot === null || typeof teamData.arena === "string") &&
       teamData.arena === null)

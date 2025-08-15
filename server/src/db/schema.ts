@@ -35,7 +35,7 @@ export const friendshipStatus = pgEnum("friendship_status", [
 
 export const friendlyMatchRequestStatus = pgEnum(
   "friendly_match_request_status",
-  ["pending", "accepted", "declined"]
+  ["pending", "accepted", "declined"],
 );
 
 export const leagueType = pgEnum("league_type", [
@@ -103,10 +103,10 @@ export const verification = pgTable("verification", {
   value: text("value").notNull(),
   expiresAt: timestamp("expires_at").notNull(),
   createdAt: timestamp("created_at").$defaultFn(
-    () => /* @__PURE__ */ new Date()
+    () => /* @__PURE__ */ new Date(),
   ),
   updatedAt: timestamp("updated_at").$defaultFn(
-    () => /* @__PURE__ */ new Date()
+    () => /* @__PURE__ */ new Date(),
   ),
 });
 
@@ -153,7 +153,7 @@ export const team = pgTable(
     mascot: text(),
     arena: text(),
   },
-  (table) => [primaryKey({ columns: [table.teamId, table.league] })]
+  (table) => [primaryKey({ columns: [table.teamId, table.league] })],
 );
 
 export const player = pgTable(
@@ -181,7 +181,7 @@ export const player = pgTable(
       foreignColumns: [team.teamId, team.league],
       name: "fk_team_player",
     }).onDelete("cascade"),
-  ]
+  ],
 );
 
 export const game = pgTable(
@@ -208,7 +208,7 @@ export const game = pgTable(
       foreignColumns: [team.teamId, team.league],
       name: "fk_away_team_game",
     }).onDelete("cascade"),
-  ]
+  ],
 );
 
 export const prop = pgTable(
@@ -242,7 +242,7 @@ export const prop = pgTable(
       foreignColumns: [player.playerId, player.league],
       name: "fk_player_prop",
     }).onDelete("cascade"),
-  ]
+  ],
 );
 
 export const parlay = pgTable("parlay", {
@@ -319,7 +319,7 @@ export const friendship = pgTable(
       .references(() => user.id, { onDelete: "cascade" }),
     status: friendshipStatus().default("pending").notNull(),
   },
-  (table) => [primaryKey({ columns: [table.outgoingId, table.incomingId] })]
+  (table) => [primaryKey({ columns: [table.outgoingId, table.incomingId] })],
 );
 
 export const friendlyMatchRequest = pgTable("friendly_match_request", {
@@ -410,7 +410,7 @@ export const baseballPlayerStats = pgTable(
       foreignColumns: [game.gameId, game.league],
       name: "fk_game_baseball_player_stats",
     }).onDelete("cascade"),
-  ]
+  ],
 );
 
 export const baseballTeamStats = pgTable(
@@ -444,7 +444,7 @@ export const baseballTeamStats = pgTable(
       foreignColumns: [game.gameId, game.league],
       name: "fk_game_baseball_team_stats",
     }).onDelete("cascade"),
-  ]
+  ],
 );
 
 export const basketballPlayerStats = pgTable(
@@ -489,7 +489,7 @@ export const basketballPlayerStats = pgTable(
       foreignColumns: [game.gameId, game.league],
       name: "fk_game_basketball_player_stats",
     }).onDelete("cascade"),
-  ]
+  ],
 );
 
 export const basketballTeamStats = pgTable(
@@ -533,7 +533,7 @@ export const basketballTeamStats = pgTable(
       foreignColumns: [game.gameId, game.league],
       name: "fk_game_basketball_team_stats",
     }).onDelete("cascade"),
-  ]
+  ],
 );
 
 export const footballPlayerStats = pgTable(
@@ -559,6 +559,13 @@ export const footballPlayerStats = pgTable(
     receivingTouchdowns: integer("receiving_touchdowns").default(0).notNull(),
     passingInterceptions: integer("passing_interceptions").default(0).notNull(),
     receptions: integer().default(0).notNull(),
+    fieldGoalsAttempted: integer("field_goals_attempted").default(0).notNull(),
+    fieldGoalsMade: integer("field_goals_made").default(0).notNull(),
+    fieldGoalsLong: doublePrecision("field_goals_long").default(0.0).notNull(),
+    extraPointsAttempted: integer("extra_points_attempted")
+      .default(0)
+      .notNull(),
+    extraPointsMade: integer("extra_points_made").default(0).notNull(),
   },
   (table) => [
     foreignKey({
@@ -571,7 +578,7 @@ export const footballPlayerStats = pgTable(
       foreignColumns: [game.gameId, game.league],
       name: "fk_game_football_player_stats",
     }).onDelete("cascade"),
-  ]
+  ],
 );
 
 export const footballTeamStats = pgTable(
@@ -631,7 +638,7 @@ export const footballTeamStats = pgTable(
       .default(0)
       .notNull(),
     pointsAgainstDefenseSpecialTeams: integer(
-      "points_against_defense_special_teams"
+      "points_against_defense_special_teams",
     )
       .default(0)
       .notNull(),
@@ -654,5 +661,5 @@ export const footballTeamStats = pgTable(
       foreignColumns: [game.gameId, game.league],
       name: "fk_game_football_team_stats",
     }).onDelete("cascade"),
-  ]
+  ],
 );

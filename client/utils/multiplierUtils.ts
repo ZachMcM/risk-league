@@ -46,7 +46,7 @@ export function getFlexMultiplier(pickCount: number, hitCount: number): number {
  * Useful for displaying all possible outcomes to users
  */
 export function getFlexMultiplierTable(
-  pickCount: number
+  pickCount: number,
 ): { hits: number; multiplier: number }[] {
   const results: Array<{ hits: number; multiplier: number }> = [];
 

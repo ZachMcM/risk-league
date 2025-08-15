@@ -88,9 +88,9 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
                 </View>
               </CardContent>
             </Card>
-          </Link>
+          </Link>,
         );
-      }
+      },
     );
 
     socket.on(
@@ -126,9 +126,9 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
                 </View>
               </CardContent>
             </Card>
-          </Link>
+          </Link>,
         );
-      }
+      },
     );
 
     socket.on(
@@ -158,9 +158,9 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
                 </View>
               </CardContent>
             </Card>
-          </Link>
+          </Link>,
         );
-      }
+      },
     );
 
     socket.on(
@@ -190,9 +190,9 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
                 </View>
               </CardContent>
             </Card>
-          </Link>
+          </Link>,
         );
-      }
+      },
     );
 
     socket.on("match-message-received", (message: Message) => {
@@ -229,7 +229,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
                 </View>
               </CardContent>
             </Card>
-          </Link>
+          </Link>,
         );
       }
     });
@@ -247,7 +247,11 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
       }) => {
         if (pathname !== "/(tabs)/social") {
           const toastId = toast.custom(
-            <Link href="/(tabs)/social" className="m-3" onPress={() => toast.dismiss(toastId)}>
+            <Link
+              href="/(tabs)/social"
+              className="m-3"
+              onPress={() => toast.dismiss(toastId)}
+            >
               <Card>
                 <CardContent className="w-full flex flex-row gap-3 items-center px-4 py-3">
                   <ProfileImage
@@ -266,10 +270,10 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
             </Link>,
             {
               duration: Infinity,
-            }
+            },
           );
         }
-      }
+      },
     );
 
     socket.on(
@@ -298,9 +302,9 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
                 </Text>
               </View>
             </CardContent>
-          </Card>
+          </Card>,
         );
-      }
+      },
     );
 
     socket.on(
@@ -310,7 +314,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
           pathname: "/match/[matchId]",
           params: { matchId },
         });
-      }
+      },
     );
 
     return () => {

@@ -9,7 +9,11 @@ interface MlbLogoProps extends ViewProps {
 
 const mlbLogo = require("~/assets/images/logos/mlb.png") as ImageSource;
 
-export default function MlbLogo({ size = 24, className, ...props }: MlbLogoProps) {
+export default function MlbLogo({
+  size = 24,
+  className,
+  ...props
+}: MlbLogoProps) {
   return (
     <View className={cn("", className)} {...props}>
       <Image

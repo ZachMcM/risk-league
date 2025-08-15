@@ -55,7 +55,7 @@ parlaysRoute.get("/parlays", authMiddleware, async (req, res) => {
     const matchUserResult = await db.query.matchUser.findFirst({
       where: and(
         eq(matchUser.userId, res.locals.userId!),
-        eq(matchUser.matchId, matchId)
+        eq(matchUser.matchId, matchId),
       ),
       with: {
         parlays: {
@@ -98,7 +98,7 @@ parlaysRoute.post("/parlays/:matchId", authMiddleware, async (req, res) => {
     const matchUserResult = await db.query.matchUser.findFirst({
       where: and(
         eq(matchUser.matchId, matchId),
-        eq(matchUser.userId, res.locals.userId!)
+        eq(matchUser.userId, res.locals.userId!),
       ),
       with: {
         match: {
@@ -206,12 +206,16 @@ parlaysRoute.post("/parlays/:matchId", authMiddleware, async (req, res) => {
       ["matches", matchUserResult.match.matchUsers[0].userId, "unresolved"],
       ["matches", matchUserResult.match.matchUsers[1].userId, "unresolved"],
       ["matches", matchUserResult.match.matchUsers[0].userId, "resolved"],
-      ["matches", matchUserResult.match.matchUsers[1].userId, "resolved"]
+      ["matches", matchUserResult.match.matchUsers[1].userId, "resolved"],
     );
 
     res.json(parlayResult);
   } catch (error: any) {
-    logger.error("Parlays route error:", error instanceof Error ? error.message : String(error), error instanceof Error ? error.stack : "");
+    logger.error(
+      "Parlays route error:",
+      error instanceof Error ? error.message : String(error),
+      error instanceof Error ? error.stack : "",
+    );
     res.status(500).json({
       error: error instanceof Error ? error.message : String(error),
     });
@@ -323,7 +327,7 @@ parlaysRoute.patch("/parlays", apiKeyMiddleware, async (req, res) => {
       ["match", parlayResult.matchUser.matchId],
       ["matches", parlayResult.matchUser.match.matchUsers[0].userId],
       ["matches", parlayResult.matchUser.match.matchUsers[1].userId],
-      ["career", parlayResult.matchUser.userId]
+      ["career", parlayResult.matchUser.userId],
     );
 
     io.of("/realtime")
@@ -336,6 +340,6 @@ parlaysRoute.patch("/parlays", apiKeyMiddleware, async (req, res) => {
 
     res.send("Resolved parlay");
   } catch (error) {
-    handleError(error, res, "Parlays route")
+    handleError(error, res, "Parlays route");
   }
 });

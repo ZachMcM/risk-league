@@ -18,7 +18,7 @@ const buttonVariants = cva(
         ghost:
           "web:hover:bg-accent web:hover:text-accent-foreground active:bg-accent",
         link: "web:underline-offset-4 web:hover:underline web:focus:underline",
-        foreground: "bg-foreground"
+        foreground: "bg-foreground",
       },
       size: {
         default: "h-10 px-4 py-2 native:h-12 native:px-5 native:py-3",
@@ -31,7 +31,7 @@ const buttonVariants = cva(
       variant: "default",
       size: "default",
     },
-  }
+  },
 );
 
 const buttonTextVariants = cva(
@@ -47,7 +47,7 @@ const buttonTextVariants = cva(
           "text-secondary-foreground group-active:text-secondary-foreground",
         ghost: "group-active:text-accent-foreground",
         link: "text-primary group-active:underline",
-        foreground: "text-background"
+        foreground: "text-background",
       },
       size: {
         default: "",
@@ -60,7 +60,7 @@ const buttonTextVariants = cva(
       variant: "default",
       size: "default",
     },
-  }
+  },
 );
 
 type ButtonProps = React.ComponentProps<typeof Pressable> &
@@ -78,7 +78,7 @@ function Button({ ref, className, variant, size, ...props }: ButtonProps) {
       <Pressable
         className={cn(
           props.disabled && "opacity-50 web:pointer-events-none",
-          buttonVariants({ variant, size, className })
+          buttonVariants({ variant, size, className }),
         )}
         ref={ref}
         role="button"

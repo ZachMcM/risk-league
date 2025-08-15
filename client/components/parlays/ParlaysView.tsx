@@ -41,7 +41,7 @@ export default function ParlaysView({ parlays }: { parlays: Parlay[] }) {
                 ?.toLocaleLowerCase()
                 .includes(searchLower)
             );
-          })
+          }),
       );
     }
     const selectedFilter = filter ?? parlayFilter;
@@ -49,12 +49,12 @@ export default function ParlaysView({ parlays }: { parlays: Parlay[] }) {
       selectedFilter == "all"
         ? true
         : selectedFilter == "active"
-        ? !parlay.resolved
-        : selectedFilter == "completed"
-        ? parlay.resolved
-        : selectedFilter == "lost"
-        ? parlay.profit < 0
-        : parlay.profit > 0
+          ? !parlay.resolved
+          : selectedFilter == "completed"
+            ? parlay.resolved
+            : selectedFilter == "lost"
+              ? parlay.profit < 0
+              : parlay.profit > 0,
     );
   };
 
@@ -104,7 +104,7 @@ export default function ParlaysView({ parlays }: { parlays: Parlay[] }) {
                 size="sm"
                 className={cn(
                   "border-2 border-border/80 shadow-sm min-w-0",
-                  parlayFilter == filter && "border-primary bg-primary/20"
+                  parlayFilter == filter && "border-primary bg-primary/20",
                 )}
                 onPress={() => setParlayFilter(filter)}
               >

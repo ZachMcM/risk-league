@@ -9,7 +9,11 @@ interface NbaLogoProps extends ViewProps {
 
 const nbaLogo = require("~/assets/images/logos/nba.png") as ImageSource;
 
-export default function NbaLogo({ size = 24, className, ...props }: NbaLogoProps) {
+export default function NbaLogo({
+  size = 24,
+  className,
+  ...props
+}: NbaLogoProps) {
   return (
     <View className={cn("", className)} {...props}>
       <Image

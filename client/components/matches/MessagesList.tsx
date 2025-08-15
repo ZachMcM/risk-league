@@ -35,11 +35,7 @@ export default function MessagesList({ messages }: { messages: Message[] }) {
       showsVerticalScrollIndicator={false}
       data={messages}
       renderItem={({ item, index }) => (
-        <GridItemWrapper
-          index={index}
-          gap={6}
-          numCols={1}
-        >
+        <GridItemWrapper index={index} gap={6} numCols={1}>
           <MessageCard message={item} />
         </GridItemWrapper>
       )}
@@ -69,7 +65,7 @@ export function MessageCard({ message }: { message: Message }) {
     <View
       className={cn(
         "mb-2 flex flex-col gap-2",
-        isCurrentUser ? "items-end" : "items-start"
+        isCurrentUser ? "items-end" : "items-start",
       )}
     >
       <View className="flex flex-row gap-4">
@@ -85,7 +81,7 @@ export function MessageCard({ message }: { message: Message }) {
             className={cn(
               "rounded-2xl px-4 py-2",
               isCurrentUser ? "bg-primary" : "bg-secondary",
-              isCurrentUser ? "rounded-br-md" : "rounded-bl-md"
+              isCurrentUser ? "rounded-br-md" : "rounded-bl-md",
             )}
           >
             <Text className="leading-5" style={{ flexWrap: "wrap" }}>

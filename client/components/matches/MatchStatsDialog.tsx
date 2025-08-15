@@ -19,20 +19,16 @@ export default function MatchStatsDialog({ match }: { match: ExtendedMatch }) {
   const { data } = authClient.useSession();
 
   const currentMatchUser = match.matchUsers.find(
-    (mu: ExtendedMatchUser) => mu.userId === data?.user.id
+    (mu: ExtendedMatchUser) => mu.userId === data?.user.id,
   )!;
   const otherMatchUser = match.matchUsers.find(
-    (mu: ExtendedMatchUser) => mu.userId !== data?.user.id
+    (mu: ExtendedMatchUser) => mu.userId !== data?.user.id,
   )!;
 
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button
-          className="h-10 w-10"
-          size="icon"
-          variant="outline"
-        >
+        <Button className="h-10 w-10" size="icon" variant="outline">
           <ChartColumnIncreasing size={16} className="text-foreground" />
         </Button>
       </DialogTrigger>
@@ -59,9 +55,7 @@ export default function MatchStatsDialog({ match }: { match: ExtendedMatch }) {
                     image={otherMatchUser.user.image}
                     username={otherMatchUser.user.username}
                   />
-                  <Text className="text-center">
-                    Opponent
-                  </Text>
+                  <Text className="text-center">Opponent</Text>
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -77,7 +71,7 @@ export default function MatchStatsDialog({ match }: { match: ExtendedMatch }) {
                       : `${Math.round(
                           (currentMatchUser.parlaysWon /
                             currentMatchUser.totalParlays) *
-                            100
+                            100,
                         )}%`}
                   </Text>
                 </TableCell>
@@ -88,7 +82,7 @@ export default function MatchStatsDialog({ match }: { match: ExtendedMatch }) {
                       : `${Math.round(
                           (otherMatchUser.parlaysWon /
                             otherMatchUser.totalParlays) *
-                            100
+                            100,
                         )}%`}
                   </Text>
                 </TableCell>

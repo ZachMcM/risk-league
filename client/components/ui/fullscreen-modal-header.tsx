@@ -3,7 +3,11 @@ import { Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { X } from "~/lib/icons/X";
 
-export default function FullScreenModalHeader({ close = false }: { close?: boolean }) {
+export default function FullScreenModalHeader({
+  close = false,
+}: {
+  close?: boolean;
+}) {
   const insets = useSafeAreaInsets();
   const router = useRouter();
 

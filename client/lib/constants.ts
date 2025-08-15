@@ -17,8 +17,8 @@ export const NAV_THEME = {
   },
 };
 
-export const leagues = ["MLB", "NBA", "NFL", "NCAAFB", "NCAABB"] as const
-export type League = typeof leagues[number]
+export const leagues = ["MLB", "NBA", "NFL", "NCAAFB", "NCAABB"] as const;
+export type League = (typeof leagues)[number];
 
 export const propStats = [
   {

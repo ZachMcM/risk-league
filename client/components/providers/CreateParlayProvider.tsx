@@ -36,7 +36,7 @@ export function CreateParlayProvider({ children }: { children: ReactNode }) {
 
   function updatePick(propId: number, newPick: string) {
     const updatedPicks = picks.map((pick) =>
-      pick.prop.id === propId ? { ...pick, choice: newPick } : pick
+      pick.prop.id === propId ? { ...pick, choice: newPick } : pick,
     );
     setPicks(updatedPicks);
   }
@@ -55,7 +55,7 @@ export function CreateParlayProvider({ children }: { children: ReactNode }) {
       return;
     }
     const playerExists = picks.find(
-      (pick) => pick.prop.player.playerId == newPick.prop.playerId
+      (pick) => pick.prop.player.playerId == newPick.prop.playerId,
     );
     if (playerExists) {
       toast.error("Sorry, you can't make multiple picks for the same player");
@@ -101,7 +101,7 @@ export function CreateParlayFooter() {
   const insets = useSafeAreaInsets();
 
   if (picks.length == 0) {
-    return null
+    return null;
   }
 
   return (
@@ -120,7 +120,7 @@ export function CreateParlayFooter() {
                 .join(", "),
               {
                 length: 25,
-              }
+              },
             )}
       </Text>
       <Button

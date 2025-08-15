@@ -9,7 +9,11 @@ interface NflLogoProps extends ViewProps {
 
 const nflLogo = require("~/assets/images/logos/nfl.png") as ImageSource;
 
-export default function NflLogo({ size = 24, className, ...props }: NflLogoProps) {
+export default function NflLogo({
+  size = 24,
+  className,
+  ...props
+}: NflLogoProps) {
   return (
     <View className={cn("", className)} {...props}>
       <Image

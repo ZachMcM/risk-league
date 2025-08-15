@@ -9,7 +9,11 @@ interface NcaaLogoProps extends ViewProps {
 
 const ncaaLogo = require("~/assets/images/logos/ncaa.png") as ImageSource;
 
-export default function NcaaLogo({ size = 24, className, ...props }: NcaaLogoProps) {
+export default function NcaaLogo({
+  size = 24,
+  className,
+  ...props
+}: NcaaLogoProps) {
   return (
     <View className={cn("", className)} {...props}>
       <Image

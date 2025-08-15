@@ -18,7 +18,7 @@ export default function Matches() {
     {
       queryKey: ["matches", data?.user.id, "resolved"],
       queryFn: async () => await getMatches(true),
-    }
+    },
   );
 
   return (

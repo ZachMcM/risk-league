@@ -237,7 +237,12 @@ def extract_football_player_stats(game, player_id, player_stats, league):
         "receivingLong": player_stats.get("receiving_long", 0),
         "receivingYards": player_stats.get("receiving_yards", 0),
         "receivingTouchdowns": player_stats.get("receiving_touchdowns", 0),
-        "receptions": player_stats.get("receptions", 0)
+        "receptions": player_stats.get("receptions", 0),
+        "fieldGoalsAttempted": player_stats.get("field_goals_attempted", 0),
+        "fieldGoalsMade": player_stats.get("field_goals_made", 0),
+        "fieldGoalsLong": player_stats.get("field_goals_long", 0.0),
+        "extraPointsAttempted": player_stats.get("extra_points_attempted", 0),
+        "extraPointsMade": player_stats.get("extra_points_made", 0)
     }
 
 

@@ -19,7 +19,7 @@ export default function PropsView({
   league: League;
 }) {
   const [propFilter, setPropFilter] = useState<string>(
-    propStats.filter((stat) => stat.league == league)[0].id
+    propStats.filter((stat) => stat.league == league)[0].id,
   );
   const [searchActivated, setSearchActivated] = useState(false);
   const [searchContent, setSearchContent] = useState<string>("");
@@ -38,7 +38,7 @@ export default function PropsView({
             ?.toLocaleLowerCase()
             .includes(searchLower) ||
           prop.player.position?.toLocaleLowerCase().includes(searchLower) ||
-          prop.statDisplayName?.toLocaleLowerCase().includes(searchLower)
+          prop.statDisplayName?.toLocaleLowerCase().includes(searchLower),
       );
     }
     const selectedFilter = filter ?? propFilter;
@@ -93,7 +93,7 @@ export default function PropsView({
                   size="sm"
                   className={cn(
                     "border-2 border-border/80 shadow-sm min-w-0",
-                    propFilter == stat.id && "border-primary bg-primary/20"
+                    propFilter == stat.id && "border-primary bg-primary/20",
                   )}
                   onPress={() => setPropFilter(stat.id)}
                 >
@@ -119,15 +119,11 @@ export default function PropsView({
       ) : (
         <FlashList
           contentContainerStyle={{
-            paddingBottom: 42
+            paddingBottom: 42,
           }}
           data={filteredProps()}
           renderItem={({ item, index }) => (
-            <GridItemWrapper
-              index={index}
-              numCols={2}
-              gap={12}
-            >
+            <GridItemWrapper index={index} numCols={2} gap={12}>
               <PropCard prop={item} />
             </GridItemWrapper>
           )}

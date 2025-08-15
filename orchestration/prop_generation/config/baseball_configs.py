@@ -140,7 +140,6 @@ def rbis_config() -> PropConfig:
         target_field="rbis",
         display_name="RBIs",
         features=[
-            FeatureDefinition("at_bats", "atBats", DataScope.PLAYER),
             FeatureDefinition("hits", "hits", DataScope.PLAYER),
             FeatureDefinition("home_runs", "homeRuns", DataScope.PLAYER),
             FeatureDefinition("at_bats", "atBats", DataScope.PLAYER),
@@ -254,7 +253,7 @@ def hits_allowed_config() -> PropConfig:
     """Pitching hits configuration"""
     return PropConfig(
         stat_name="hits_allowed",
-        target_field="hits_allowed",
+        target_field="hitsAllowed",
         display_name="Hits Allowed",
         features=[
             FeatureDefinition("innings_pitched", "inningsPitched", DataScope.PLAYER),
@@ -344,7 +343,7 @@ def hits_runs__rbis_config() -> PropConfig:
         model_params={"alpha": 1},
     )
 
-
+@register_baseball_stat
 def stolen_bases_config() -> PropConfig:
     """Stolen bases configuration"""
     return PropConfig(

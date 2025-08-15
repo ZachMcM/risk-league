@@ -37,7 +37,7 @@ export type Career = {
 };
 
 export type Friendship = {
-  friend: User
+  friend: User;
   status: "pending" | "accepted";
   outgoingId: string;
   incomingId: string;
