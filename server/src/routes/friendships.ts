@@ -7,6 +7,7 @@ import { logger } from "../logger";
 import { authMiddleware } from "../middleware";
 import { findRank } from "../utils/findRank";
 import { invalidateQueries } from "../utils/invalidateQueries";
+import { handleError } from "../utils/handleError";
 
 export const friendshipsRoute = Router();
 
@@ -57,10 +58,7 @@ friendshipsRoute.get("/friendships", authMiddleware, async (_, res) => {
 
     res.json(friends);
   } catch (error) {
-    logger.error("Friendships route error:", error instanceof Error ? error.message : String(error), error instanceof Error ? error.stack : "");
-    res.status(500).json({
-      error: error instanceof Error ? error.message : String(error),
-    });
+    handleError(error, res, "Friendships route");
   }
 });
 
@@ -116,10 +114,7 @@ friendshipsRoute.post("/friendships", authMiddleware, async (req, res) => {
 
     res.json(newFriendRequest);
   } catch (error) {
-    logger.debug(error);
-    res.status(500).json({
-      error: error instanceof Error ? error.message : String(error),
-    });
+    handleError(error, res, "Friendships route");
   }
 });
 
@@ -186,8 +181,7 @@ friendshipsRoute.delete("/friendships", authMiddleware, async (req, res) => {
 
     res.status(200);
   } catch (error) {
-    logger.error("Friendships route error:", error instanceof Error ? error.message : String(error), error instanceof Error ? error.stack : "");
-    res.status(500).json({ error: error instanceof Error ? error.message : String(error) });
+    handleError(error, res, "Friendships route");
   }
 });
 
@@ -234,7 +228,6 @@ friendshipsRoute.patch("/friendships", authMiddleware, async (req, res) => {
 
     res.json(updatedFriendship);
   } catch (error) {
-    logger.error("Friendships route error:", error instanceof Error ? error.message : String(error), error instanceof Error ? error.stack : "");
-    res.status(500).json({ error: error instanceof Error ? error.message : String(error) });
+    handleError(error, res, "Friendships route");
   }
 });

@@ -4,6 +4,7 @@ import { InferInsertModel } from "drizzle-orm";
 import { apiKeyMiddleware } from "../middleware";
 import { logger } from "../logger";
 import { db } from "../db";
+import { handleError } from "../utils/handleError";
 
 export const teamsRoute = Router();
 
@@ -74,6 +75,6 @@ teamsRoute.post("/teams", apiKeyMiddleware, async (req, res) => {
       }
     }
 
-    res.status(500).json({ error: "Internal server error" });
+    handleError(error, res, "Teams route");
   }
 });

@@ -1,13 +1,17 @@
 import { Router } from "express";
 import { apiKeyMiddleware } from "../middleware";
 import { logger } from "../logger";
-import { InferInsertModel } from "drizzle-orm";
+import { and, desc, eq, InferInsertModel } from "drizzle-orm";
 import {
   basketballPlayerStats,
   basketballTeamStats,
+  game,
   leagueType,
+  player,
 } from "../db/schema";
 import { db } from "../db";
+import { handleError } from "../utils/handleError";
+import { point } from "drizzle-orm/pg-core";
 
 export const basketballStatsRoute = Router();
 
@@ -101,8 +105,7 @@ basketballStatsRoute.post(
 
       res.json(isBatch ? result : result[0]);
     } catch (error) {
-      logger.error("Basketball stats route error:", error instanceof Error ? error.message : String(error), error instanceof Error ? error.stack : "");
-      res.status(500).json({ error: error instanceof Error ? error.message : String(error) });
+      handleError(error, res, "Basketball stats route");
     }
   }
 );
@@ -201,8 +204,149 @@ basketballStatsRoute.post(
 
       res.json(isBatch ? result : result[0]);
     } catch (error) {
-      logger.error("Basketball stats route error:", error instanceof Error ? error.message : String(error), error instanceof Error ? error.stack : "");
-      res.status(500).json({ error: error instanceof Error ? error.message : String(error) });
+      handleError(error, res, "Basketball stats route");
     }
   }
 );
+
+basketballStatsRoute.get(
+  "/basketball-stats/players/:playerId",
+  apiKeyMiddleware,
+  async (req, res) => {
+    try {
+      const limitStr = req.query.limit as string | undefined;
+
+      if (!limitStr) {
+        res.status(400).json({ error: "Invalid query string, missing limit" });
+        return;
+      }
+
+      const playerId = parseInt(req.params.playerId);
+      const limit = parseInt(limitStr);
+      const league = req.query.league as
+        | undefined
+        | (typeof leagueType.enumValues)[0];
+
+      if (
+        league === undefined ||
+        !["NCAABB", "NBA"].includes(league) ||
+        isNaN(playerId) ||
+        isNaN(limit) ||
+        limit <= 0
+      ) {
+        res.status(400).json({ error: "Invalid playerId or limit parameter" });
+        return;
+      }
+
+      const playerStats = (
+        await db
+          .select()
+          .from(basketballPlayerStats)
+          .innerJoin(game, eq(basketballPlayerStats.gameId, game.gameId))
+          .where(
+            and(
+              eq(basketballPlayerStats.playerId, playerId),
+              eq(basketballPlayerStats.league, league)
+            )
+          )
+          .orderBy(desc(game.startTime))
+          .limit(limit)
+      ).map((row) => row.basketball_player_stats);
+
+      const [team] = await db
+        .select({ teamId: player.teamId })
+        .from(player)
+        .where(and(eq(player.playerId, playerId), eq(player.league, league)));
+
+      const extendedStats = playerStats.map(async (stats) => {
+        const teamStats = await db.query.basketballTeamStats.findFirst({
+          where: and(
+            eq(basketballTeamStats.gameId, stats.gameId),
+            eq(basketballTeamStats.teamId, team.teamId)
+          ),
+        });
+      });
+
+      res.json(extendedStats)
+    } catch (error) {
+      handleError(error, res, "Baseball stats route");
+    }
+  }
+);
+
+// All stat calculations based on https://www.basketball-reference.com/about/glossary.html
+
+function calculateTrueShootingPct(
+  points: number,
+  fieldGoalsAttempted: number,
+  freeThrowsAttempted: number
+) {
+  return points / (2 * (fieldGoalsAttempted + 0.44 * freeThrowsAttempted));
+}
+
+function calculateUsageRate(
+  fieldGoalsAttempted: number,
+  freeThrowsAttempted: number,
+  turnovers: number,
+  teamMinutes: number,
+  minutes: number,
+  teamFieldGoalsAttempted: number,
+  teamFreeThrowsAttempted: number,
+  teamTurnovers: number
+) {
+  return (
+    (100 *
+      ((fieldGoalsAttempted + 0.44 * freeThrowsAttempted + turnovers) *
+        (teamMinutes / 5))) /
+    (minutes *
+      (teamFieldGoalsAttempted +
+        0.44 * teamFreeThrowsAttempted +
+        teamTurnovers))
+  );
+}
+
+function calculateReboundsPct(
+  rebounds: number,
+  teamMinutes: number,
+  minutes: number,
+  teamRebounds: number,
+  oppRebounds: number
+) {
+  return (
+    (100 * (rebounds * (teamMinutes / 5))) /
+    (minutes * (teamRebounds + oppRebounds))
+  );
+}
+
+function calculateBlocksPct(
+  blocks: number,
+  teamMinutes: number,
+  minutes: number,
+  oppFieldGoalsAttempted: number,
+  oppThreePointsAttempted: number
+) {
+  return (
+    (100 * (blocks * (teamMinutes / 5))) /
+    (minutes * (oppFieldGoalsAttempted - oppThreePointsAttempted))
+  );
+}
+
+function estimatePossessions(teamFieldGoalsAttempted: number, teamFreeThrowsAttempted: number, teamTurnovers: number, teamOffensiveRebounds: number) {
+  return teamFieldGoalsAttempted - teamOffensiveRebounds + teamTurnovers + 0.44 * teamFreeThrowsAttempted
+}
+
+function calculateStealsPct(steals: number, teamMinutes: number, minutes: number, oppPossessions: number) {
+  return (100 * (steals * (teamMinutes / 5))) / (minutes * oppPossessions);
+}
+
+function calculatePace(possessions: number, oppPossessions: number, teamMinutes: number) {
+  return 48 * ((possessions + oppPossessions) / (2 * (teamMinutes / 5)));
+}
+
+function calculateOffensiveRating(teamPoints: number, possessions: number) {
+  return (100 * teamPoints) / possessions
+}
+
+function calculateDefensiveRating(oppPoints: number, oppPossessions: number) {
+  return (100 * oppPoints) / oppPossessions
+}

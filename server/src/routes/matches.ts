@@ -12,6 +12,7 @@ import {
   getFlexMultiplier,
   getPerfectPlayMultiplier,
 } from "../utils/parlayMultipliers";
+import { handleError } from "../utils/handleError";
 
 export const matchesRoute = Router();
 
@@ -96,8 +97,7 @@ matchesRoute.get("/matches", authMiddleware, async (req, res) => {
 
     res.json(formattedMatches);
   } catch (error) {
-    logger.error("Matches route error:", error instanceof Error ? error.message : String(error), error instanceof Error ? error.stack : "");
-    res.status(500).json({ error: error instanceof Error ? error.message : String(error) });
+    handleError(error, res, "Matches route");
   }
 });
 
@@ -182,13 +182,12 @@ matchesRoute.get("/matches/:id/messages", authMiddleware, async (req, res) => {
           },
         },
       },
-      orderBy: [message.createdAt],
+      orderBy: message.createdAt,
     });
 
     res.json(messages);
   } catch (error) {
-    logger.error("Matches route error:", error instanceof Error ? error.message : String(error), error instanceof Error ? error.stack : "");
-    res.status(500).json({ error: error instanceof Error ? error.message : String(error) });
+    handleError(error, res, "Matches route");
   }
 });
 
@@ -244,8 +243,7 @@ matchesRoute.post("/matches/:id/messages", authMiddleware, async (req, res) => {
 
     res.json(newMessage.id);
   } catch (error) {
-    logger.error("Matches route error:", error instanceof Error ? error.message : String(error), error instanceof Error ? error.stack : "");
-    res.status(500).json({ error: error instanceof Error ? error.message : String(error) });
+    handleError(error, res, "Matches route");
   }
 });
 
@@ -453,7 +451,6 @@ matchesRoute.patch("/matches/end", apiKeyMiddleware, async (_, res) => {
 
     res.send(`${matchesToEndList.length} matches ended`);
   } catch (error) {
-    logger.error("Matches route error:", error instanceof Error ? error.message : String(error), error instanceof Error ? error.stack : "");
-    res.status(500).json({ error: error instanceof Error ? error.message : String(error) });
+    handleError(error, res, "Matches route");
   }
 });

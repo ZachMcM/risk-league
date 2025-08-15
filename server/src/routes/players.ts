@@ -4,6 +4,7 @@ import { leagueType, player, team } from "../db/schema";
 import { apiKeyMiddleware } from "../middleware";
 import { logger } from "../logger";
 import { db } from "../db";
+import { handleError } from "../utils/handleError";
 
 export const playersRoute = Router();
 
@@ -97,7 +98,6 @@ playersRoute.post("/players", apiKeyMiddleware, async (req, res) => {
 
     res.json(isBatch ? result : result[0]);
   } catch (error) {
-    logger.error("Player route error:", error instanceof Error ? error.message : String(error), error instanceof Error ? error.stack : "");
-    res.status(500).json({ error: error instanceof Error ? error.message : String(error) });
+    handleError(error, res, "Player route");
   }
 });

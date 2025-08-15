@@ -5,7 +5,7 @@ import { and, eq } from "drizzle-orm";
 import { pick, prop } from "../db/schema";
 import { redis } from "../redis";
 import { invalidateQueries } from "../utils/invalidateQueries";
-import { logger } from "../logger";
+import { handleError } from "../utils/handleError";
 
 export const picksRoute = Router();
 
@@ -140,7 +140,6 @@ picksRoute.patch("/picks", apiKeyMiddleware, async (req, res) => {
 
     res.send(`${picksToInvalidateList.length} picks updated`);
   } catch (error) {
-    logger.error("Picks route error:", error instanceof Error ? error.message : String(error), error instanceof Error ? error.stack : "");
-    res.status(500).json({ error: error instanceof Error ? error.message : String(error) });
+    handleError(error, res, "Picks route");
   }
 });

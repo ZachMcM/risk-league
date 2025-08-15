@@ -8,6 +8,7 @@ import { calculateProgression } from "../utils/calculateProgression";
 import { findNextRank } from "../utils/findNextRank";
 import { findRank } from "../utils/findRank";
 import { getMaxKey } from "../utils/getMaxKey";
+import { handleError } from "../utils/handleError";
 
 export const usersRoute = Router();
 
@@ -41,8 +42,7 @@ usersRoute.get("/users", authMiddleware, async (req, res) => {
       }))
     );
   } catch (error) {
-    logger.error("Users route error:", error instanceof Error ? error.message : String(error), error instanceof Error ? error.stack : "");
-    res.status(500).json({ error: error instanceof Error ? error.message : String(error) });
+    handleError(error, res, "Users route");
   }
 });
 
@@ -76,10 +76,7 @@ usersRoute.get("/users/rank", authMiddleware, async (_, res) => {
       points: userResult.points,
     });
   } catch (error) {
-    logger.error("Users route error:", error instanceof Error ? error.message : String(error), error instanceof Error ? error.stack : "");
-    res.status(500).json({
-      error: error instanceof Error ? error.message : String(error),
-    });
+    handleError(error, res, "Users route");
   }
 });
 
@@ -174,18 +171,24 @@ usersRoute.get("/users/career", authMiddleware, async (_, res) => {
     }
 
     const pickedPlayerCounts: Map<string, number> = new Map();
-    const pickedPlayerInfo: Map<string, {
-      playerId: number;
-      league: (typeof leagueType.enumValues)[number];
-      name: string;
-    }> = new Map();
+    const pickedPlayerInfo: Map<
+      string,
+      {
+        playerId: number;
+        league: (typeof leagueType.enumValues)[number];
+        name: string;
+      }
+    > = new Map();
 
     const pickedTeamCounts: Map<string, number> = new Map();
-    const pickedTeamInfo: Map<string, {
-      teamId: number;
-      league: (typeof leagueType.enumValues)[number];
-      fullName: string;
-    }> = new Map();
+    const pickedTeamInfo: Map<
+      string,
+      {
+        teamId: number;
+        league: (typeof leagueType.enumValues)[number];
+        fullName: string;
+      }
+    > = new Map();
 
     let peakPoints = userResult.points;
 
@@ -206,7 +209,10 @@ usersRoute.get("/users/career", authMiddleware, async (_, res) => {
             league: pick.prop.player.league,
           };
 
-          pickedPlayerCounts.set(playerKey, (pickedPlayerCounts.get(playerKey) || 0) + 1);
+          pickedPlayerCounts.set(
+            playerKey,
+            (pickedPlayerCounts.get(playerKey) || 0) + 1
+          );
           pickedPlayerInfo.set(playerKey, playerInfo);
 
           const teamKey = `${pick.prop.player.team.teamId}-${pick.prop.player.team.league}`;
@@ -216,7 +222,10 @@ usersRoute.get("/users/career", authMiddleware, async (_, res) => {
             league: pick.prop.player.team.league,
           };
 
-          pickedTeamCounts.set(teamKey, (pickedTeamCounts.get(teamKey) || 0) + 1);
+          pickedTeamCounts.set(
+            teamKey,
+            (pickedTeamCounts.get(teamKey) || 0) + 1
+          );
           pickedTeamInfo.set(teamKey, teamInfo);
         }
       }
@@ -289,9 +298,6 @@ usersRoute.get("/users/career", authMiddleware, async (_, res) => {
             },
     });
   } catch (error) {
-    logger.error("Users route error:", error instanceof Error ? error.message : String(error), error instanceof Error ? error.stack : "");
-    res.status(500).json({
-      error: error instanceof Error ? error.message : String(error),
-    });
+    handleError(error, res, "Users route");
   }
 });

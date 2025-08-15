@@ -8,6 +8,7 @@ import {
   leagueType,
 } from "../db/schema";
 import { db } from "../db";
+import { handleError } from "../utils/handleError";
 
 export const footballStatsRoute = Router();
 
@@ -135,12 +136,7 @@ footballStatsRoute.post(
 
       res.json(isBatch ? result : result[0]);
     } catch (error) {
-      logger.error(
-        "Football stats route error:",
-        error instanceof Error ? error.message : String(error),
-        error instanceof Error ? error.stack : ""
-      );
-      res.status(500).json({ error });
+      handleError(error, res, "Football stats route");
     }
   }
 );
@@ -231,12 +227,7 @@ footballStatsRoute.post(
 
       res.json(isBatch ? result : result[0]);
     } catch (error) {
-      logger.error(
-        "Football stats route error:",
-        error instanceof Error ? error.message : String(error),
-        error instanceof Error ? error.stack : ""
-      );
-      res.status(500).json({ error });
+      handleError(error, res, "Football stats route");
     }
   }
 );

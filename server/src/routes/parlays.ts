@@ -10,6 +10,7 @@ import {
   getPerfectPlayMultiplier,
 } from "../utils/parlayMultipliers";
 import { io } from "..";
+import { handleError } from "../utils/handleError";
 
 export const parlaysRoute = Router();
 
@@ -36,10 +37,7 @@ parlaysRoute.get("/parlays/:id", authMiddleware, async (req, res) => {
 
     res.json(parlayResult);
   } catch (error) {
-    logger.error("Parlays route error:", error instanceof Error ? error.message : String(error), error instanceof Error ? error.stack : "");
-    res.status(500).json({
-      error: error instanceof Error ? error.message : String(error),
-    });
+    handleError(error, res, "Parlays route");
   }
 });
 
@@ -89,10 +87,7 @@ parlaysRoute.get("/parlays", authMiddleware, async (req, res) => {
 
     res.json(matchUserResult.parlays);
   } catch (error) {
-    logger.error("Parlays route error:", error instanceof Error ? error.message : String(error), error instanceof Error ? error.stack : "");
-    res.status(500).json({
-      error: error instanceof Error ? error.message : String(error),
-    });
+    handleError(error, res, "Parlays route");
   }
 });
 
@@ -341,7 +336,6 @@ parlaysRoute.patch("/parlays", apiKeyMiddleware, async (req, res) => {
 
     res.send("Resolved parlay");
   } catch (error) {
-    logger.error("Parlays route error:", error instanceof Error ? error.message : String(error), error instanceof Error ? error.stack : "");
-    res.status(500).json({ error: error instanceof Error ? error.message : String(error) });
+    handleError(error, res, "Parlays route")
   }
 });

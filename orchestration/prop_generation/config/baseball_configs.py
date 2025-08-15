@@ -365,7 +365,6 @@ def stolen_bases_config() -> PropConfig:
             FeatureDefinition(
                 "opp_stolen_bases_allowed", "stolenBasesAllowed", DataScope.OPPONENT
             ),
-            FeatureDefinition("opp_pickoffs", "pickoffs", DataScope.OPPONENT),
             FeatureDefinition("opp_earned_runs", "earnedRuns", DataScope.OPPONENT),
         ],
         model_type=ModelType.POISSON,

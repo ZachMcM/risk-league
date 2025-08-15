@@ -7,6 +7,7 @@ import { logger } from "../logger";
 import { io } from "..";
 import { invalidateQueries } from "../utils/invalidateQueries";
 import { createMatch } from "../sockets/matchmaking";
+import { handleError } from "../utils/handleError";
 
 export const friendlyMatchRequestsRoute = Router();
 
@@ -60,8 +61,7 @@ friendlyMatchRequestsRoute.get(
         }))
       );
     } catch (error) {
-      logger.error("Friendly match requests route error:", error instanceof Error ? error.message : String(error), error instanceof Error ? error.stack : "");
-      res.status(500).json({ error: error instanceof Error ? error.message : String(error) });
+      handleError(error, res, "Friendly match requests route");
     }
   }
 );
@@ -187,7 +187,7 @@ friendlyMatchRequestsRoute.patch(
 
       res.json(newMatchId);
     } catch (error) {
-      logger.error("Friendly match requests route error:", error instanceof Error ? error.message : String(error), error instanceof Error ? error.stack : "");
+      handleError(error, res, "Friendly match requests route")
     }
   }
 );
@@ -256,8 +256,7 @@ friendlyMatchRequestsRoute.post(
 
       res.json(newFriendlyMatchRequest);
     } catch (error) {
-      logger.error("Friendly match requests route error:", error instanceof Error ? error.message : String(error), error instanceof Error ? error.stack : "");
-      res.status(500).json({ error: error instanceof Error ? error.message : String(error) });
+      handleError(error, res, "Friendly match requests route");
     }
   }
 );

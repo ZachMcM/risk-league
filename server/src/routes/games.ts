@@ -4,6 +4,7 @@ import { logger } from "../logger";
 import { db } from "../db";
 import { game, leagueType } from "../db/schema";
 import { InferInsertModel } from "drizzle-orm";
+import { handleError } from "../utils/handleError";
 
 export const gamesRoute = Router();
 
@@ -64,6 +65,6 @@ gamesRoute.post("/games", apiKeyMiddleware, async (req, res) => {
       }
     }
     
-    res.status(500).json({ error: 'Internal server error' });
+    handleError(error, res, "Games route");
   }
 });

@@ -13,6 +13,7 @@ import {
 import { db } from "../db";
 import { alias } from "drizzle-orm/pg-core";
 import { authMiddleware } from "../middleware";
+import { handleError } from "../utils/handleError";
 import { logger } from "../logger";
 
 export const propsRoute = Router();
@@ -106,8 +107,7 @@ propsRoute.get("/props/today", authMiddleware, async (req, res) => {
 
     res.json(availablePropsWithPickCount);
   } catch (error) {
-    logger.error("Props route error:", error instanceof Error ? error.message : String(error), error instanceof Error ? error.stack : "");
-    res.status(500).json({ error: error instanceof Error ? error.message : String(error) });
+    handleError(error, res, "Props route");
   }
 });
 
@@ -150,7 +150,6 @@ propsRoute.post("/props", authMiddleware, async (req, res) => {
 
     res.json(newProp);
   } catch (error) {
-    logger.error("Props route error:", error instanceof Error ? error.message : String(error), error instanceof Error ? error.stack : "");
-    res.status(500).json({ error: error instanceof Error ? error.message : String(error) });
+    handleError(error, res, "Props route");
   }
 });
