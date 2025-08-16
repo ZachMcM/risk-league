@@ -1,23 +1,15 @@
 """
 Football Prop Configurations using Auto-Registration System
 
-To add a new stat:
-1. Just add a function with @register_football_stat decorator
-2. That's it! No need to update stats_arr or types manually
-
 Example:
 @register_football_stat
 def walks_config() -> PropConfig:
     return PropConfig(...)
 """
 
-from generator.base import (
-    DataScope,
-    FeatureDefinition,
-    ModelType,
-    PropConfig,
-)
-from generator.registry import register_football_stat, football_registry
+from prop_generation.generator.base import DataScope, FeatureDefinition, ModelType, PropConfig
+from prop_generation.generator.registry import (football_registry,
+                                                register_football_stat)
 
 
 @register_football_stat
@@ -96,7 +88,7 @@ def receiving_yards() -> PropConfig:
             FeatureDefinition(
                 "opp_completions_allowed", "completionsAllowed", DataScope.OPPONENT
             ),
-            FeatureDefinition("receptions", "receptions", DataScope.PLAYER)
+            FeatureDefinition("receptions", "receptions", DataScope.PLAYER),
         ],
         model_type=ModelType.RIDGE,
         model_params={"alpha": 1},
@@ -144,7 +136,9 @@ def receiving_touchdowns_config() -> PropConfig:
                 "team_passing_touchdowns", "passingTouchdowns", DataScope.TEAM
             ),
             FeatureDefinition(
-                "opp_passing_touchdowns_allowed", "passingTouchdownsAllowed", DataScope.OPPONENT
+                "opp_passing_touchdowns_allowed",
+                "passingTouchdownsAllowed",
+                DataScope.OPPONENT,
             ),
             FeatureDefinition(
                 "opp_passing_yards_allowed", "passingYardsAllowed", DataScope.OPPONENT
@@ -168,7 +162,9 @@ def passing_touchdowns_config() -> PropConfig:
             FeatureDefinition("passing_attempts", "passingAttempts", DataScope.PLAYER),
             FeatureDefinition("passer_rating", "passerRating", DataScope.PLAYER),
             FeatureDefinition(
-                "opp_passing_touchdowns_allowed", "passingTouchdownsAllowed", DataScope.OPPONENT
+                "opp_passing_touchdowns_allowed",
+                "passingTouchdownsAllowed",
+                DataScope.OPPONENT,
             ),
             FeatureDefinition(
                 "opp_passing_yards_allowed", "passingYardsAllowed", DataScope.OPPONENT
@@ -194,7 +190,9 @@ def passing_interceptions_config() -> PropConfig:
             FeatureDefinition("completions", "completions", DataScope.PLAYER),
             FeatureDefinition("passer_rating", "passerRating", DataScope.PLAYER),
             FeatureDefinition(
-                "opp_defensive_interceptions", "defensiveInterceptions", DataScope.OPPONENT
+                "opp_defensive_interceptions",
+                "defensiveInterceptions",
+                DataScope.OPPONENT,
             ),
             FeatureDefinition("team_turnovers", "turnovers", DataScope.TEAM),
         ],
@@ -215,13 +213,17 @@ def rushing_touchdowns_config() -> PropConfig:
             FeatureDefinition("rushing_yards", "rushingYards", DataScope.PLAYER),
             FeatureDefinition("rushing_long", "rushingLong", DataScope.PLAYER),
             FeatureDefinition(
-                "opp_rushing_touchdowns_allowed", "rushingTouchdownsAllowed", DataScope.OPPONENT
+                "opp_rushing_touchdowns_allowed",
+                "rushingTouchdownsAllowed",
+                DataScope.OPPONENT,
             ),
             FeatureDefinition(
                 "opp_rushing_yards_allowed", "rushingYardsAllowed", DataScope.OPPONENT
             ),
             FeatureDefinition("team_rushing_yards", "rushingYards", DataScope.TEAM),
-            FeatureDefinition("team_rushing_touchdowns", "rushingTouchdowns", DataScope.TEAM),
+            FeatureDefinition(
+                "team_rushing_touchdowns", "rushingTouchdowns", DataScope.TEAM
+            ),
         ],
         model_type=ModelType.POISSON,
         model_params={"alpha": 1},
@@ -247,10 +249,14 @@ def receiving_rushing_touchdowns_config() -> PropConfig:
                 "receiving_touchdowns", "receivingTouchdowns", DataScope.PLAYER
             ),
             FeatureDefinition(
-                "opp_rushing_touchdowns_allowed", "rushingTouchdownsAllowed", DataScope.OPPONENT
+                "opp_rushing_touchdowns_allowed",
+                "rushingTouchdownsAllowed",
+                DataScope.OPPONENT,
             ),
             FeatureDefinition(
-                "opp_passing_touchdowns_allowed", "passingTouchdownsAllowed", DataScope.OPPONENT
+                "opp_passing_touchdowns_allowed",
+                "passingTouchdownsAllowed",
+                DataScope.OPPONENT,
             ),
             FeatureDefinition(
                 "opp_rushing_yards_allowed", "rushingYardsAllowed", DataScope.OPPONENT
@@ -285,10 +291,14 @@ def passing_rushing_touchdowns_config() -> PropConfig:
             ),
             FeatureDefinition("passer_rating", "passerRating", DataScope.PLAYER),
             FeatureDefinition(
-                "opp_passing_touchdowns_allowed", "passingTouchdownsAllowed", DataScope.OPPONENT
+                "opp_passing_touchdowns_allowed",
+                "passingTouchdownsAllowed",
+                DataScope.OPPONENT,
             ),
             FeatureDefinition(
-                "opp_rushing_touchdowns_allowed", "rushingTouchdownsAllowed", DataScope.OPPONENT
+                "opp_rushing_touchdowns_allowed",
+                "rushingTouchdownsAllowed",
+                DataScope.OPPONENT,
             ),
             FeatureDefinition(
                 "opp_passing_yards_allowed", "passingYardsAllowed", DataScope.OPPONENT

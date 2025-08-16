@@ -96,6 +96,10 @@ export const teamRelations = relations(team, ({ many }) => ({
   baseballTeamStats: many(baseballTeamStats),
   basketballTeamStats: many(basketballTeamStats),
   footballTeamStats: many(footballTeamStats),
+  players: many(player),
+  basketballPlayerStats: many(basketballPlayerStats),
+  baseballPlayerStats: many(baseballPlayerStats),
+  footballPlayerStats: many(footballPlayerStats),
 }));
 
 export const propRelations = relations(prop, ({ one, many }) => ({
@@ -156,7 +160,7 @@ export const friendlyMatchRequestRelations = relations(
       references: [user.id],
       relationName: "outgoingFriendlyMatchRequests",
     }),
-  }),
+  })
 );
 
 export const baseballPlayerStatsRelations = relations(
@@ -170,7 +174,11 @@ export const baseballPlayerStatsRelations = relations(
       fields: [baseballPlayerStats.playerId, baseballPlayerStats.league],
       references: [player.playerId, player.league],
     }),
-  }),
+    team: one(team, {
+      fields: [baseballPlayerStats.teamId, baseballPlayerStats.league],
+      references: [team.teamId, team.league],
+    }),
+  })
 );
 
 export const baseballTeamStatsRelations = relations(
@@ -184,7 +192,7 @@ export const baseballTeamStatsRelations = relations(
       fields: [baseballTeamStats.teamId, baseballTeamStats.league],
       references: [team.teamId, team.league],
     }),
-  }),
+  })
 );
 
 export const basketballPlayerStatsRelations = relations(
@@ -198,7 +206,11 @@ export const basketballPlayerStatsRelations = relations(
       fields: [basketballPlayerStats.playerId, basketballPlayerStats.league],
       references: [player.playerId, player.league],
     }),
-  }),
+    team: one(team, {
+      fields: [basketballPlayerStats.teamId, basketballPlayerStats.league],
+      references: [team.teamId, team.league],
+    }),
+  })
 );
 
 export const basketballTeamStatsRelations = relations(
@@ -212,7 +224,7 @@ export const basketballTeamStatsRelations = relations(
       fields: [basketballTeamStats.teamId, basketballTeamStats.league],
       references: [team.teamId, team.league],
     }),
-  }),
+  })
 );
 
 export const footballPlayerStatsRelations = relations(
@@ -226,7 +238,11 @@ export const footballPlayerStatsRelations = relations(
       fields: [footballPlayerStats.playerId, footballPlayerStats.league],
       references: [player.playerId, player.league],
     }),
-  }),
+    team: one(team, {
+      fields: [footballPlayerStats.teamId, footballPlayerStats.league],
+      references: [team.teamId, team.league],
+    }),
+  })
 );
 
 export const footballTeamStatsRelations = relations(
@@ -240,5 +256,5 @@ export const footballTeamStatsRelations = relations(
       fields: [footballTeamStats.teamId, footballTeamStats.league],
       references: [team.teamId, team.league],
     }),
-  }),
+  })
 );

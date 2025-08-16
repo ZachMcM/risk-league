@@ -6,7 +6,7 @@ This eliminates the need to manually update multiple places when adding new stat
 from utils import setup_logger
 from typing import Any, Callable, Dict, Generic, List, TypeVar
 
-from generator.base import PropConfig
+from prop_generation.generator.base import PropConfig
 
 logger = setup_logger(__name__)
 

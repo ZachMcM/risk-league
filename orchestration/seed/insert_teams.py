@@ -36,17 +36,17 @@ def main():
                         "league": league,
                         "abbreviation": team["abbrv"],
                         "location": team.get(
-                            "location", f"{team.get('city', '')}, {team.get('state', '')}"
+                            "location",
+                            f"{team.get('city', '')}, {team.get('state', '')}",
                         ),
                         "mascot": team["mascot"],
                         "arena": team["arena"],
                     }
                 )
 
-            post_req = server_req(
+            post_req_data = server_req(
                 route="/teams", method="POST", body=json.dumps({"teams": teamsList})
-            )
-            post_req_data = post_req.json()
+            ).json()
             print(f"{len(post_req_data)} teams inserted for {league}")
     except Exception as e:
         logger.error(f"Error inserting teams {e}")

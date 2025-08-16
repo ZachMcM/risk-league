@@ -1,15 +1,28 @@
-import { InferInsertModel, sql } from "drizzle-orm";
+import {
+  and,
+  eq,
+  inArray,
+  InferInsertModel,
+  notInArray,
+  sql,
+} from "drizzle-orm";
 import { Router } from "express";
-import { leagueType, player, team } from "../db/schema";
-import { apiKeyMiddleware } from "../middleware";
-import { logger } from "../logger";
 import { db } from "../db";
+import { leagueType, player, team } from "../db/schema";
+import { logger } from "../logger";
+import { apiKeyMiddleware } from "../middleware";
+import {
+  LeagueDepthCharts,
+  LeagueInjuries,
+  PositionDepthChart,
+} from "../types/dataFeeds";
+import { dataFeedsReq } from "../utils/dataFeedsUtils";
 import { handleError } from "../utils/handleError";
 
 export const playersRoute = Router();
 
 function validatePlayerData(
-  playerData: any,
+  playerData: any
 ): playerData is InferInsertModel<typeof player> {
   const validLeagues = leagueType.enumValues;
   return (
@@ -20,6 +33,7 @@ function validatePlayerData(
     (typeof playerData.number === "number" || playerData.number === null) &&
     (typeof playerData.height === "string" || playerData.height === null) &&
     (typeof playerData.weight === "number" || playerData.weight === null) &&
+    (typeof playerData.status === "string" || playerData.status === null) &&
     typeof playerData.league === "string" &&
     validLeagues.includes(playerData.league as any)
   );
@@ -60,7 +74,7 @@ playersRoute.post("/players", apiKeyMiddleware, async (req, res) => {
           .select({ teamId: team.teamId })
           .from(team)
           .where(
-            sql`${team.teamId} = ${playerData.teamId} AND ${team.league} = ${playerData.league}`,
+            sql`${team.teamId} = ${playerData.teamId} AND ${team.league} = ${playerData.league}`
           )
           .limit(1);
 
@@ -68,14 +82,14 @@ playersRoute.post("/players", apiKeyMiddleware, async (req, res) => {
           playersWithValidTeams.push(playerData);
         } else {
           logger.warn(
-            `Skipping player ${playerData.name} - team ${playerData.teamId} not found in league ${playerData.league}`,
+            `Skipping player ${playerData.name} - team ${playerData.teamId} not found in league ${playerData.league}`
           );
           skippedCount++;
         }
       } catch (error) {
         logger.warn(
           `Error checking team for player ${playerData.name}:`,
-          error,
+          error
         );
         skippedCount++;
       }
@@ -97,12 +111,13 @@ playersRoute.post("/players", apiKeyMiddleware, async (req, res) => {
         set: {
           teamId: sql`EXCLUDED.team_id`,
           updatedAt: sql`EXCLUDED.updated_at`,
+          status: sql`EXCLUDED.status`,
         },
       })
       .returning({ id: player.playerId });
 
     logger.info(
-      `Successfully inserted ${result.length} player(s), skipped ${skippedCount} player(s) with missing team references`,
+      `Successfully inserted ${result.length} player(s), skipped ${skippedCount} player(s) with missing team references`
     );
 
     res.json(isBatch ? result : result[0]);
@@ -110,3 +125,101 @@ playersRoute.post("/players", apiKeyMiddleware, async (req, res) => {
     handleError(error, res, "Player route");
   }
 });
+
+playersRoute.get(
+  "/players/league/:league/team/:teamId/active",
+  apiKeyMiddleware,
+  async (req, res) => {
+    try {
+      const league = req.params.league as
+        | undefined
+        | (typeof leagueType.enumValues)[number];
+      const teamId = parseInt(req.params.teamId);
+
+      if (
+        league === undefined ||
+        !leagueType.enumValues.includes(league) ||
+        isNaN(teamId)
+      ) {
+        res.status(400).json({ error: "Invalid league or teamId parameter" });
+        return;
+      }
+
+      const teamResult = await db.query.team.findFirst({
+        where: and(eq(team.teamId, teamId), eq(team.league, league)),
+      });
+
+      if (!teamResult) {
+        res.status(400).json({ error: "Invalid teamId, no team found" });
+        return;
+      }
+
+      let activePlayersList;
+
+      // For college leagues, just return all players (no injury/depth chart data available)
+      if (league === "NCAAFB" || league === "NCAABB") {
+        activePlayersList = await db.query.player.findMany({
+          where: and(
+            eq(player.teamId, teamId),
+            eq(player.league, league),
+            eq(player.status, "ACT")
+          ),
+        });
+      } else {
+        // For professional leagues, use injury and depth chart filtering
+        const leagueInjuries: LeagueInjuries = await dataFeedsReq(
+          `/injuries/${league}`,
+          {
+            team_id: teamId,
+          }
+        );
+        const teamInjuries = leagueInjuries["data"][league].find(
+          (team) => team.team_id == teamId
+        )!;
+        const injuriesIdsList = teamInjuries.injuries.map((injuryEntry) =>
+          parseInt(injuryEntry.player_id)
+        );
+
+        const leagueDepthCharts: LeagueDepthCharts = (await dataFeedsReq(
+          `/depth-charts/${league}`,
+          { team_id: teamId }
+        )).data;
+
+        const teamDepthChart =
+          leagueDepthCharts[league][Object.keys(leagueDepthCharts[league])[0]];
+
+        // Extract all player IDs from the depth chart
+        const depthChartPlayerIds: number[] = [];
+        Object.keys(teamDepthChart).forEach((position) => {
+          const positionData = teamDepthChart[position];
+          if (
+            typeof positionData === "object" &&
+            positionData !== null &&
+            "team_id" in positionData === false
+          ) {
+            Object.values(positionData as PositionDepthChart).forEach(
+              (player) => {
+                if (player && typeof player === "object" && "id" in player) {
+                  depthChartPlayerIds.push(player.id);
+                }
+              }
+            );
+          }
+        });
+
+        activePlayersList = await db.query.player.findMany({
+          where: and(
+            eq(player.teamId, teamId),
+            eq(player.league, league),
+            notInArray(player.playerId, injuriesIdsList),
+            inArray(player.playerId, depthChartPlayerIds)
+          ),
+        });
+      }
+
+      res.json(activePlayersList);
+    } catch (error) {
+      handleError(error, res, "Players");
+    }
+  }
+);

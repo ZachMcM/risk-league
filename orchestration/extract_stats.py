@@ -30,11 +30,12 @@ def extract_basketball_team_stats(game, team, league):
     }
 
 
-def extract_basketball_player_stats(game, player_id, player_stats, league):
+def extract_basketball_player_stats(game, team_id, player_id, player_stats, league):
     """Extract basketball player stats from game data."""
     return {
         "gameId": game["game_ID"],
         "playerId": int(player_id),
+        "teamId": int(team_id),
         "league": league,
         "fouls": player_stats["fouls"],
         "blocks": player_stats["blocks"],
@@ -55,6 +56,7 @@ def extract_basketball_player_stats(game, player_id, player_stats, league):
         "fieldGoalsAttempted": player_stats["field_goals_attempted"],
         "freeThrowsAttempted": player_stats["free_throws_attempted"],
         "threePointsAttempted": player_stats["three_points_attempted"],
+        "status": player_stats["status"],
     }
 
 
@@ -81,11 +83,14 @@ def extract_baseball_team_stats(game, team, league="MLB"):
     }
 
 
-def extract_baseball_batting_stats(game, player_id, player_stats, league="MLB"):
+def extract_baseball_batting_stats(
+    game, team_id, player_id, player_stats, league="MLB"
+):
     """Extract baseball batting stats from game data."""
     return {
         "gameId": game["game_ID"],
         "playerId": int(player_id),
+        "teamId": int(team_id),
         "league": league,
         "errors": player_stats["E"],
         "hits": player_stats["H"],
@@ -104,14 +109,18 @@ def extract_baseball_batting_stats(game, player_id, player_stats, league="MLB"):
         "intentionalWalks": player_stats["IBB"],
         "rbis": player_stats["RBI"],
         "outs": player_stats["Outs"],
+        "status": player_stats["status"],
     }
 
 
-def extract_baseball_pitching_stats(game, player_id, player_stats, league="MLB"):
+def extract_baseball_pitching_stats(
+    game, team_id, player_id, player_stats, league="MLB"
+):
     """Extract baseball pitching stats from game data."""
     return {
         "gameId": game["game_ID"],
         "playerId": int(player_id),
+        "teamId": int(team_id),
         "league": league,
         "hitsAllowed": player_stats["H"],
         "pitchingStrikeouts": player_stats["K"],
@@ -137,6 +146,7 @@ def extract_baseball_pitching_stats(game, player_id, player_stats, league="MLB")
         "pitchingIntentionalWalks": player_stats["IBB"],
         "pitchesThrown": player_stats["pitches"],
         "strikes": player_stats["strikes"],
+        "status": player_stats["status"],
     }
 
 
@@ -216,12 +226,13 @@ def extract_football_team_stats(game, team, league):
     }
 
 
-def extract_football_player_stats(game, player_id, player_stats, league):
+def extract_football_player_stats(game, team_id, player_id, player_stats, league):
     """Extract football player stats from game data."""
     return {
         "gameId": game["game_ID"],
         "playerId": int(player_id),
         "league": league,
+        "teamId": int(team_id),
         "completions": player_stats.get("completions", 0),
         "fumblesLost": player_stats.get("fumbles_lost", 0),
         "rushingLong": player_stats.get("rushing_long", 0),
@@ -242,13 +253,14 @@ def extract_football_player_stats(game, player_id, player_stats, league):
         "fieldGoalsMade": player_stats.get("field_goals_made", 0),
         "fieldGoalsLong": player_stats.get("field_goals_long", 0.0),
         "extraPointsAttempted": player_stats.get("extra_points_attempted", 0),
-        "extraPointsMade": player_stats.get("extra_points_made", 0)
+        "extraPointsMade": player_stats.get("extra_points_made", 0),
+        "status": player_stats["status"],
     }
 
 
 LEAGUE_CONFIG = {
     "MLB": {
-        "stats_route_prefix": "baseball-stats",
+        "sport": "baseball",
         "team_extractor": extract_baseball_team_stats,
         "player_extractors": {
             "batting": extract_baseball_batting_stats,
@@ -256,28 +268,28 @@ LEAGUE_CONFIG = {
         },
     },
     "NBA": {
-        "stats_route_prefix": "basketball-stats",
+        "sport": "basketball",
         "team_extractor": extract_basketball_team_stats,
         "player_extractors": {
             "default": extract_basketball_player_stats,
         },
     },
     "NCAABB": {
-        "stats_route_prefix": "basketball-stats",
+        "sport": "basketball",
         "team_extractor": extract_basketball_team_stats,
         "player_extractors": {
             "default": extract_basketball_player_stats,
         },
     },
     "NFL": {
-        "stats_route_prefix": "football-stats",
+        "sport": "football",
         "team_extractor": extract_football_team_stats,
         "player_extractors": {
             "default": extract_football_player_stats,
         },
     },
     "NCAAFB": {
-        "stats_route_prefix": "football-stats",
+        "sport": "football",
         "team_extractor": extract_football_team_stats,
         "player_extractors": {
             "default": extract_football_player_stats,
@@ -306,7 +318,11 @@ def extract_player_stats(game, league):
                         total_player_stats += 1
                         player_stats_list.append(
                             config["player_extractors"]["batting"](
-                                game, player_id, player_stats, league
+                                game,
+                                game["full_box"][team]["team_id"],
+                                player_id,
+                                player_stats,
+                                league,
                             )
                         )
 
@@ -320,7 +336,11 @@ def extract_player_stats(game, league):
                         total_player_stats += 1
                         player_stats_list.append(
                             config["player_extractors"]["pitching"](
-                                game, player_id, player_stats, league
+                                game,
+                                game["full_box"][team]["team_id"],
+                                player_id,
+                                player_stats,
+                                league,
                             )
                         )
     else:
@@ -335,7 +355,7 @@ def extract_player_stats(game, league):
                     total_player_stats += 1
                     player_stats_list.append(
                         config["player_extractors"]["default"](
-                            game, player_id, player_stats, league
+                            game, game["full_box"][team]["team_id"], player_id, player_stats, league
                         )
                     )
 

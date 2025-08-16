@@ -1,6 +1,7 @@
 import json
 import sys
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 
 from utils import data_feeds_req, server_req, setup_logger
 from extract_stats import extract_player_stats, extract_team_stats
@@ -23,22 +24,20 @@ def process_game(game, league):
     team_stats_post_data = []
     if team_stats_list:
         config = LEAGUE_CONFIG[league]
-        team_stats_post_req = server_req(
-            route=f"/{config['stats_route_prefix']}/teams",
+        team_stats_post_data = server_req(
+            route=f"/stats/{config['sport']}/teams",
             method="POST",
             body=json.dumps({"teamStats": team_stats_list}),
-        )
-        team_stats_post_data = team_stats_post_req.json()
+        ).json()
 
     player_stats_post_data = []
     if player_stats_list:
         config = LEAGUE_CONFIG[league]
-        player_stats_post_req = server_req(
-            route=f"/{config['stats_route_prefix']}/players",
+        player_stats_post_data = server_req(
+            route=f"/stats/{config['sport']}/players",
             method="POST",
             body=json.dumps({"playerStats": player_stats_list}),
-        )
-        player_stats_post_data = player_stats_post_req.json()
+        ).json()
 
     logger.info(
         f"Successfully inserted {len(team_stats_post_data)} team stats and {len(player_stats_post_data)}/{total_player_stats} player stats for game {game['game_ID']} for league {league}"
@@ -52,9 +51,9 @@ def main():
         total_team_stats_inserted = 0
         total_player_stats_inserted = 0
 
-        yesterday_str = (datetime.now(timezone.utc) - timedelta(days=1)).strftime(
-            "%Y-%m-%d"
-        )
+        yesterday_str = (
+            datetime.now(ZoneInfo("America/New_York")) - timedelta(days=1)
+        ).strftime("%Y-%m-%d")
 
         for league in leagues:
             feed_req = data_feeds_req(f"/live/{yesterday_str}/{league}")

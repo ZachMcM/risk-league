@@ -1,20 +1,19 @@
+import { and, eq, gt, gte, lt, notInArray } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 import { Router } from "express";
-import { and, eq, gt, gte, lt, notInArray, count, inArray } from "drizzle-orm";
 import moment from "moment";
+import { db } from "../db";
 import {
   game,
-  matchUser,
-  prop,
-  player,
-  team,
-  pick,
   leagueType,
+  matchUser,
+  player,
+  prop,
+  team
 } from "../db/schema";
-import { db } from "../db";
-import { alias } from "drizzle-orm/pg-core";
-import { authMiddleware } from "../middleware";
-import { handleError } from "../utils/handleError";
 import { logger } from "../logger";
+import { apiKeyMiddleware, authMiddleware } from "../middleware";
+import { handleError } from "../utils/handleError";
 
 export const propsRoute = Router();
 
@@ -132,7 +131,16 @@ propsRoute.get("/props/today", authMiddleware, async (req, res) => {
   }
 });
 
-propsRoute.post("/props", authMiddleware, async (req, res) => {
+function validateChoices(choices: string[]) {
+  for (const choice of choices) {
+    if (!["over", "under"].includes(choice)) {
+      return false
+    }
+  }
+  return true
+}
+
+propsRoute.post("/props", apiKeyMiddleware, async (req, res) => {
   try {
     const {
       line,
@@ -160,7 +168,7 @@ propsRoute.post("/props", authMiddleware, async (req, res) => {
       !leagueType.enumValues.includes(league as any) ||
       statName == undefined ||
       statDisplayName == undefined ||
-      choices == undefined
+      (!Array.isArray(choices) || (choices !== undefined && !validateChoices(choices)))
     ) {
       res.status(400).json({ error: "Invalid request body" });
       return;

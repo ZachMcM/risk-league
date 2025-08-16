@@ -160,6 +160,7 @@ export const player = pgTable(
   "player",
   {
     playerId: integer("player_id").notNull(),
+    status: text().notNull(),
     name: text().notNull(),
     teamId: integer("team_id").notNull(),
     league: leagueType().notNull(),
@@ -397,7 +398,9 @@ export const baseballPlayerStats = pgTable(
     strikes: integer().default(0).notNull(),
     gameId: text("game_id").notNull(),
     playerId: integer("player_id").notNull(),
+    teamId: integer("team_id").notNull(),
     league: leagueType().notNull(),
+    status: text().notNull()
   },
   (table) => [
     foreignKey({
@@ -410,6 +413,11 @@ export const baseballPlayerStats = pgTable(
       foreignColumns: [game.gameId, game.league],
       name: "fk_game_baseball_player_stats",
     }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.teamId, team.league],
+      foreignColumns: [team.teamId, team.league],
+      name: "fk_team_baseball_player_stats"
+    })
   ],
 );
 
@@ -453,6 +461,7 @@ export const basketballPlayerStats = pgTable(
     id: serial().primaryKey().notNull(),
     playerId: integer("player_id").notNull(),
     gameId: text("game_id").notNull(),
+    teamId: integer("team_id").notNull(),
     league: leagueType().notNull(),
     fouls: integer().default(0).notNull(),
     blocks: integer().default(0).notNull(),
@@ -477,6 +486,7 @@ export const basketballPlayerStats = pgTable(
     threePointsAttempted: integer("three_points_attempted")
       .default(0)
       .notNull(),
+    status: text().notNull()
   },
   (table) => [
     foreignKey({
@@ -489,6 +499,11 @@ export const basketballPlayerStats = pgTable(
       foreignColumns: [game.gameId, game.league],
       name: "fk_game_basketball_player_stats",
     }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.teamId, table.league],
+      foreignColumns: [team.teamId, team.league],
+      name: "fk_team_basketball_player_stats"
+    })
   ],
 );
 
@@ -541,10 +556,11 @@ export const footballPlayerStats = pgTable(
   {
     id: serial().primaryKey().notNull(),
     playerId: integer("player_id").notNull(),
+    teamId: integer("team_id").notNull(),
     gameId: text("game_id").notNull(),
     league: leagueType().notNull(),
     completions: integer().default(0).notNull(),
-    fumblesLost: doublePrecision("fumbles_lost").default(0).notNull(),
+    fumblesLost: integer("fumbles_lost").default(0).notNull(),
     rushingLong: doublePrecision("rushing_long").default(0).notNull(),
     receivingLong: doublePrecision("receiving_long").default(0.0).notNull(),
     passerRating: doublePrecision("passer_rating").default(0.0).notNull(),
@@ -552,7 +568,7 @@ export const footballPlayerStats = pgTable(
     rushingYards: doublePrecision("rushing_yards").default(0.0).notNull(),
     receivingYards: doublePrecision("receiving_yards").default(0.0).notNull(),
     passingAttempts: integer("passing_attempts").default(0).notNull(),
-    rushingAttempts: integer().default(0).notNull(),
+    rushingAttempts: integer("rushing_attempts").default(0).notNull(),
     fumbleRecoveries: integer("fumble_recoveries").default(0).notNull(),
     passingTouchdowns: integer("passing_touchdowns").default(0).notNull(),
     rushingTouchdowns: integer("rushing_touchdowns").default(0).notNull(),
@@ -566,6 +582,7 @@ export const footballPlayerStats = pgTable(
       .default(0)
       .notNull(),
     extraPointsMade: integer("extra_points_made").default(0).notNull(),
+    status: text().notNull()
   },
   (table) => [
     foreignKey({
@@ -578,6 +595,11 @@ export const footballPlayerStats = pgTable(
       foreignColumns: [game.gameId, game.league],
       name: "fk_game_football_player_stats",
     }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.teamId, table.league],
+      foreignColumns: [team.teamId, team.league],
+      name: "fk_team_football_player_stats"
+    })
   ],
 );
 

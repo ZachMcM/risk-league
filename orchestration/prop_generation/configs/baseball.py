@@ -1,23 +1,38 @@
 """
 Baseball Prop Configurations using Auto-Registration System
 
-To add a new stat:
-1. Just add a function with @register_baseball_stat decorator
-2. That's it! No need to update stats_arr or types manually
-
 Example:
 @register_baseball_stat
 def walks_config() -> PropConfig:
     return PropConfig(...)
 """
 
-from generator.base import (
+from prop_generation.generator.base import (
     DataScope,
     FeatureDefinition,
     ModelType,
     PropConfig,
 )
-from generator.registry import register_baseball_stat, baseball_registry
+from prop_generation.generator.registry import register_baseball_stat, baseball_registry
+
+pitching_stats = [
+    "pitching_strikeouts",
+    "pitches_thrown",
+    "earned_runs",
+    "hits_allowed",
+    "pitching_walks",
+]
+batting_stats = [
+    "home_runs",
+    "doubles",
+    "triples",
+    "hits",
+    "rbis",
+    "strikeouts",
+    "runs",
+    "hits_runs_rbis",
+    "stolen_bases",
+]
 
 
 @register_baseball_stat
@@ -162,11 +177,11 @@ def rbis_config() -> PropConfig:
 
 @register_baseball_stat
 def strikeouts_config() -> PropConfig:
-    """Strikeouts (batter) configuration"""
+    """Batting Strikeouts configuration"""
     return PropConfig(
         stat_name="strikeouts",
         target_field="strikeouts",
-        display_name="Strikeouts",
+        display_name="Batting Strikeouts",
         features=[
             FeatureDefinition("at_bats", "atBats", DataScope.PLAYER),
             FeatureDefinition("slugging_pct", "sluggingPct", DataScope.PLAYER),
@@ -188,7 +203,7 @@ def strikeouts_config() -> PropConfig:
 
 @register_baseball_stat
 def pitching_strikeouts_config() -> PropConfig:
-    """Pitching strikeouts configuration"""
+    """Pitching Strikeouts configuration"""
     return PropConfig(
         stat_name="pitching_strikeouts",
         target_field="pitchingStrikeouts",
@@ -250,7 +265,7 @@ def earned_runs_config() -> PropConfig:
 
 @register_baseball_stat
 def hits_allowed_config() -> PropConfig:
-    """Pitching hits configuration"""
+    """Hits Allowed configuration"""
     return PropConfig(
         stat_name="hits_allowed",
         target_field="hitsAllowed",
@@ -279,7 +294,6 @@ def pitching_walks_config() -> PropConfig:
         features=[
             FeatureDefinition("innings_pitched", "inningsPitched", DataScope.PLAYER),
             FeatureDefinition("pitches_thrown", "pitchesThrown", DataScope.PLAYER),
-            FeatureDefinition("balls", "balls", DataScope.PLAYER),
             FeatureDefinition("opp_walks", "walks", DataScope.OPPONENT),
         ],
         model_type=ModelType.POISSON,
@@ -317,7 +331,7 @@ def runs_config() -> PropConfig:
 
 
 @register_baseball_stat
-def hits_runs__rbis_config() -> PropConfig:
+def hits_runs_rbis_config() -> PropConfig:
     """Hits+Runs+ RBIs configuration"""
     return PropConfig(
         stat_name="hits_runs_rbis",
@@ -342,6 +356,7 @@ def hits_runs__rbis_config() -> PropConfig:
         model_type=ModelType.POISSON,
         model_params={"alpha": 1},
     )
+
 
 @register_baseball_stat
 def stolen_bases_config() -> PropConfig:

@@ -18,11 +18,11 @@ class FeatureExtractor(Generic[PlayerStatsType, TeamStatsType]):
         """Extract raw feature values based on scope and field"""
         
         if definition.scope == DataScope.PLAYER:
-            source_data = game_data.player_games
+            source_data = game_data.player_game_stats_list
         elif definition.scope == DataScope.TEAM:
-            source_data = game_data.team_games
+            source_data = game_data.team_game_stats_list
         elif definition.scope == DataScope.OPPONENT_TEAM:
-            source_data = game_data.opponent_team_games
+            source_data = game_data.opponent_team_game_stats_list
         elif definition.scope == DataScope.MATCHUP_TEAM:
             source_data = game_data.matchup_team_games
         else:

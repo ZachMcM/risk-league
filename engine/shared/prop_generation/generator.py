@@ -80,7 +80,7 @@ class BasePropGenerator(PropGenerator[PlayerStatsType, TeamStatsType]):
 
         # Add target variable
         target_values = [
-            getattr(game, config.target_field) for game in game_data.player_games
+            getattr(game, config.target_field) for game in game_data.player_game_stats_list
         ]
         feature_df[config.target_field] = target_values
 

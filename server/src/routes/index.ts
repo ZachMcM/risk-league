@@ -1,6 +1,4 @@
 import express from "express";
-import { baseballStatsRoute } from "./baseballStats";
-import { basketballStatsRoute } from "./basketballStats";
 import { friendlyMatchRequestsRoute } from "./friendlyMatchRequests";
 import { friendshipsRoute } from "./friendships";
 import { gamesRoute } from "./games";
@@ -11,7 +9,7 @@ import { playersRoute } from "./players";
 import { propsRoute } from "./props";
 import { teamsRoute } from "./teams";
 import { usersRoute } from "./users";
-import { footballStatsRoute } from "./footballStats";
+import { statsRoute } from "./stats";
 
 export const routes = express.Router();
 
@@ -25,6 +23,4 @@ routes.use(friendshipsRoute);
 routes.use(gamesRoute);
 routes.use(teamsRoute);
 routes.use(playersRoute);
-routes.use(baseballStatsRoute);
-routes.use(basketballStatsRoute);
-routes.use(footballStatsRoute);
+routes.use(statsRoute);

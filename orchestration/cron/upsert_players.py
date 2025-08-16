@@ -37,6 +37,7 @@ def main():
                     "number": player["number"],
                     "height": player["height"],
                     "weight": float(player["weight"]) if player["weight"] else 0,
+                    "status": player.get("status", "INACT") or "INACT",
                     "league": league,
                 }
                 post_req = server_req(

@@ -1,18 +1,14 @@
 """
 Basketball Prop Configurations using Auto-Registration System
 
-To add a new stat:
-1. Just add a function with @register_basketball_stat decorator
-2. That's it! No need to update stats_arr or types manually
-
 Example:
 @register_basketball_stat
 def fgm_config() -> PropConfig:
     return PropConfig(...)
 """
 
-from generator.base import PropConfig, FeatureDefinition, DataScope, ModelType
-from generator.registry import register_basketball_stat, basketball_registry
+from prop_generation.generator.base import DataScope, FeatureDefinition, ModelType, PropConfig
+from prop_generation.generator.registry import basketball_registry, register_basketball_stat
 
 
 @register_basketball_stat
@@ -106,7 +102,9 @@ def three_pointers_made_config() -> PropConfig:
         display_name="Three Pointers Made",
         features=[
             FeatureDefinition("minutes", "minutes", DataScope.PLAYER),
-            FeatureDefinition("team_offensive_rating", "offensiveRating", DataScope.TEAM),
+            FeatureDefinition(
+                "team_offensive_rating", "offensiveRating", DataScope.TEAM
+            ),
             FeatureDefinition("pace", "pace", DataScope.TEAM),
             FeatureDefinition(
                 "opp_defensive_rating", "defensiveRating", DataScope.OPPONENT
@@ -271,7 +269,8 @@ def points_rebounds_config() -> PropConfig:
         model_type=ModelType.RIDGE,
         model_params={"alpha": 1},
     )
-    
+
+
 @register_basketball_stat
 def points_assists_config() -> PropConfig:
     """Pts+Asts configuration"""
@@ -308,6 +307,7 @@ def points_assists_config() -> PropConfig:
         model_type=ModelType.RIDGE,
         model_params={"alpha": 1},
     )
+
 
 @register_basketball_stat
 def rebounds_assists_config() -> PropConfig:

@@ -36,7 +36,7 @@ def process_game(game, league):
     if team_stats_list:
         config = LEAGUE_CONFIG[league]
         team_stats_post_req = server_req(
-            route=f"/{config['stats_route_prefix']}/teams",
+            route=f"/stats/{config['sport']}/teams",
             method="POST",
             body=json.dumps({"teamStats": team_stats_list}),
         )
@@ -46,7 +46,7 @@ def process_game(game, league):
     if player_stats_list:
         config = LEAGUE_CONFIG[league]
         player_stats_post_req = server_req(
-            route=f"/{config['stats_route_prefix']}/players",
+            route=f"/stats/{config['sport']}/players",
             method="POST",
             body=json.dumps({"playerStats": player_stats_list}),
         )

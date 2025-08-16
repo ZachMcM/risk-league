@@ -65,10 +65,10 @@ class GameData(Generic[PlayerStatsType, TeamStatsType]):
         opponent_team_games: list[TeamStatsType],
         matchup_team_games: list[TeamStatsType],
     ):
-        self.player_games = player_games
-        self.team_games = team_games
-        self.opponent_team_games = opponent_team_games
-        self.matchup_team_games = matchup_team_games
+        self.player_game_stats_list = player_games
+        self.team_game_stats_list = team_games
+        self.opponent_team_game_stats_list = opponent_team_games
+        self.matchup_team_game_stats_list = matchup_team_games
 
 
 class PropGenerator(ABC, Generic[PlayerStatsType, TeamStatsType]):

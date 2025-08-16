@@ -1,6 +1,6 @@
 import pandas as pd
-from typing import Any, Generic, TypeVar
-from base import DataScope, FeatureDefinition, GameData
+from typing import Generic, TypeVar
+from prop_generation.generator.base import DataScope, FeatureDefinition, GameStats
 
 PlayerStatsType = TypeVar("PlayerStatsType")
 TeamStatsType = TypeVar("TeamStatsType")
@@ -28,23 +28,23 @@ class FeatureExtractor(Generic[PlayerStatsType, TeamStatsType]):
     def extract_feature_value(
         self,
         definition: FeatureDefinition,
-        game_data: GameData[PlayerStatsType, TeamStatsType],
+        game_data: GameStats[PlayerStatsType, TeamStatsType],
     ) -> list[float]:
         """Extract raw feature values based on scope and field"""
 
         if definition.scope == DataScope.PLAYER:
-            source_data = game_data.player_games
+            source_data = game_data.player_stats_list
         elif definition.scope == DataScope.TEAM:
-            source_data = game_data.team_games
+            source_data = game_data.team_stats_list
         elif definition.scope == DataScope.OPPONENT:
-            source_data = game_data.prev_opponents_games
+            source_data = game_data.prev_opponents_stats_list
         else:
             raise ValueError(f"Unknown scope: {definition.scope}")
 
         values = []
         for game in source_data:
             try:
-                value = getattr(game, definition.field)
+                value = game[definition.field]
                 values.append(float(value) if value is not None else 0.0)
             except AttributeError:
                 values.append(0.0)
@@ -53,15 +53,15 @@ class FeatureExtractor(Generic[PlayerStatsType, TeamStatsType]):
     def extract_prediction_feature_value(
         self,
         definition: FeatureDefinition,
-        game_data: GameData[PlayerStatsType, TeamStatsType],
+        game_data: GameStats[PlayerStatsType, TeamStatsType],
         training_data: pd.DataFrame | None = None,
     ) -> float:
         """Extract feature value for prediction (uses weighted arithmetic mean)"""
 
         if definition.scope == DataScope.OPPONENT:
-            source_data = game_data.curr_opponent_games
+            source_data = game_data.curr_opponent_stats_list
 
-            values = [getattr(game, definition.field) for game in source_data]
+            values = [game[definition.field] for game in source_data]
             return calculate_weighted_arithmetic_mean(values)
         else:
             if training_data is not None and definition.name in training_data.columns:
@@ -75,7 +75,7 @@ class FeatureExtractor(Generic[PlayerStatsType, TeamStatsType]):
     def build_feature_dataframe(
         self,
         feature_definitions: list[FeatureDefinition],
-        game_data: GameData[PlayerStatsType, TeamStatsType],
+        game_data: GameStats[PlayerStatsType, TeamStatsType],
     ) -> pd.DataFrame:
         """Build a complete feature DataFrame for training"""
 
@@ -88,7 +88,7 @@ class FeatureExtractor(Generic[PlayerStatsType, TeamStatsType]):
     def build_prediction_features(
         self,
         feature_definitions: list[FeatureDefinition],
-        game_data: GameData[PlayerStatsType, TeamStatsType],
+        game_data: GameStats[PlayerStatsType, TeamStatsType],
         training_data: pd.DataFrame,
     ) -> pd.DataFrame:
         """Build feature DataFrame for prediction"""

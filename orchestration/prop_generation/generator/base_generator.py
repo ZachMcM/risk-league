@@ -1,12 +1,13 @@
 from typing import TypeVar, Any
+import warnings
 import numpy as np
 import pandas as pd
 from sklearn.linear_model import PoissonRegressor, Ridge
 from sklearn.pipeline import Pipeline, make_pipeline
 from sklearn.preprocessing import StandardScaler
 
-from base import GameData, ModelType, PropConfig, PropGenerator
-from features import FeatureExtractor
+from prop_generation.generator.base import GameStats, ModelType, PropConfig, PropGenerator
+from prop_generation.generator.features import FeatureExtractor
 
 PlayerStatsType = TypeVar("PlayerStatsType")
 TeamStatsType = TypeVar("TeamStatsType")
@@ -29,7 +30,7 @@ class BasePropGenerator(PropGenerator[PlayerStatsType, TeamStatsType]):
         self.feature_extractor = FeatureExtractor[PlayerStatsType, TeamStatsType]()
 
     def generate_prop(
-        self, config: PropConfig, game_data: GameData[PlayerStatsType, TeamStatsType]
+        self, config: PropConfig, game_data: GameStats[PlayerStatsType, TeamStatsType]
     ) -> float:
         """Generate a prop line using ML model"""
 
@@ -39,13 +40,18 @@ class BasePropGenerator(PropGenerator[PlayerStatsType, TeamStatsType]):
         y_values = feature_df[config.target_field]
 
         model = self.create_model(config.model_type, config.model_params)
-        model.fit(x_values, y_values)
+        
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", category=RuntimeWarning, module="sklearn")
+            model.fit(x_values, y_values)
 
         prediction_features = self.extract_prediction_features(
             config, game_data, feature_df
         )
 
-        predicted_value = float(model.predict(prediction_features)[0])
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", category=RuntimeWarning, module="sklearn")
+            predicted_value = float(model.predict(prediction_features)[0])
 
         sd = float(np.std(y_values, ddof=1))
         final_prop = predicted_value + BIAS * sd
@@ -68,7 +74,7 @@ class BasePropGenerator(PropGenerator[PlayerStatsType, TeamStatsType]):
         return make_pipeline(StandardScaler(), estimator)
 
     def extract_features(
-        self, config: PropConfig, game_data: GameData[PlayerStatsType, TeamStatsType]
+        self, config: PropConfig, game_data: GameStats[PlayerStatsType, TeamStatsType]
     ) -> pd.DataFrame:
         """Extract all features including target variable"""
 
@@ -77,7 +83,7 @@ class BasePropGenerator(PropGenerator[PlayerStatsType, TeamStatsType]):
         )
 
         target_values = [
-            getattr(game, config.target_field) for game in game_data.player_games
+            game[config.target_field] for game in game_data.player_stats_list
         ]
         feature_df[config.target_field] = target_values
 
@@ -86,7 +92,7 @@ class BasePropGenerator(PropGenerator[PlayerStatsType, TeamStatsType]):
     def extract_prediction_features(
         self,
         config: PropConfig,
-        game_data: GameData[PlayerStatsType, TeamStatsType],
+        game_data: GameStats[PlayerStatsType, TeamStatsType],
         training_data: pd.DataFrame,
     ) -> pd.DataFrame:
         """Extract features for next game prediction"""

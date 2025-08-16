@@ -58,13 +58,12 @@ python -m seed.insert_teams MLB NFL NBA NCAABB NCAAFB
 Seeding players
 ```
 cd orchestration
-python -m cron.update_rosters MLB NFL NBA NCAABB NCAAFB
+python -m cron.upsert_players MLB NFL NBA NCAABB NCAAFB
 ```
+It is also recommended to not do all leagues at the same time 
 
 Seeding games and stats
 ```
 cd orchestration
 python -m seed.process_games <LEAGUE> <START_DATE> <END_DATE>
 ```
-
-References

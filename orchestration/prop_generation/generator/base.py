@@ -10,7 +10,6 @@ TeamStatsType = TypeVar("TeamStatsType")
 
 class DataScope(Enum):
     """Defines the scope of where a feature comes from"""
-
     PLAYER = "player"
     TEAM = "team"
     OPPONENT = "opponent"
@@ -43,31 +42,31 @@ class PropConfig:
         target_field: str,
         features: list[FeatureDefinition],
         model_type: ModelType,
+        display_name: str,
         model_params: dict[str, Any] | None = None,
-        display_name: str | None = None,
     ):
         self.stat_name = stat_name
         self.target_field = target_field
         self.features = features
         self.model_type = model_type
         self.model_params = model_params or {}
-        self.display_name = display_name or stat_name
+        self.display_name = display_name
 
 
-class GameData(Generic[PlayerStatsType, TeamStatsType]):
+class GameStats(Generic[PlayerStatsType, TeamStatsType]):
     """Container for all game data needed for prop generation"""
 
     def __init__(
         self,
-        player_games: list[PlayerStatsType],
-        team_games: list[TeamStatsType],
-        prev_opponents_games: list[TeamStatsType],
-        curr_opponent_games: list[TeamStatsType],
+        player_stats_list: list[PlayerStatsType],
+        team_stats_list: list[TeamStatsType],
+        prev_opponents_stats_list: list[TeamStatsType],
+        curr_opponent_stats_list: list[TeamStatsType],
     ):
-        self.player_games = player_games
-        self.team_games = team_games
-        self.prev_opponents_games = prev_opponents_games
-        self.curr_opponent_games = curr_opponent_games
+        self.player_stats_list = player_stats_list
+        self.team_stats_list = team_stats_list
+        self.prev_opponents_stats_list = prev_opponents_stats_list
+        self.curr_opponent_stats_list = curr_opponent_stats_list
 
 
 class PropGenerator(ABC, Generic[PlayerStatsType, TeamStatsType]):
@@ -75,7 +74,7 @@ class PropGenerator(ABC, Generic[PlayerStatsType, TeamStatsType]):
 
     @abstractmethod
     def generate_prop(
-        self, config: PropConfig, game_data: GameData[PlayerStatsType, TeamStatsType]
+        self, config: PropConfig, game_data: GameStats[PlayerStatsType, TeamStatsType]
     ) -> float:
         """Generate a prop line using the given configuration and data"""
         pass
@@ -89,7 +88,7 @@ class PropGenerator(ABC, Generic[PlayerStatsType, TeamStatsType]):
 
     @abstractmethod
     def extract_features(
-        self, config: PropConfig, game_data: GameData[PlayerStatsType, TeamStatsType]
+        self, config: PropConfig, game_data: GameStats[PlayerStatsType, TeamStatsType]
     ) -> pd.DataFrame:
         """Extract features for model training"""
         pass
@@ -98,7 +97,7 @@ class PropGenerator(ABC, Generic[PlayerStatsType, TeamStatsType]):
     def extract_prediction_features(
         self,
         config: PropConfig,
-        game_data: GameData[PlayerStatsType, TeamStatsType],
+        game_data: GameStats[PlayerStatsType, TeamStatsType],
         training_data: pd.DataFrame,
     ) -> pd.DataFrame:
         """Extract features for the next game prediction"""
