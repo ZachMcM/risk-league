@@ -2,13 +2,13 @@ import {
   and,
   desc,
   eq,
-  InferInsertModel,
   InferSelectModel,
   ne,
   or,
-  sql,
+  sql
 } from "drizzle-orm";
 import { Router } from "express";
+import { z } from "zod";
 import { db } from "../../db";
 import {
   basketballPlayerStats,
@@ -19,8 +19,12 @@ import {
 } from "../../db/schema";
 import { logger } from "../../logger";
 import { apiKeyMiddleware } from "../../middleware";
-import { handleError } from "../../utils/handleError";
 import { redis } from "../../redis";
+import { handleError } from "../../utils/handleError";
+import {
+  basketballPlayerStatsBatchSchema,
+  basketballTeamStatsBatchSchema
+} from "../../validation/schemas";
 
 type BasketballPlayerStatsRow = InferSelectModel<typeof basketballPlayerStats>;
 type ValidBasketballStat =
@@ -76,49 +80,6 @@ const VALID_BASKETBALL_STATS: ValidBasketballStat[] = [
 
 export const basketballRoute = Router();
 
-function validateTeamStats(
-  teamStats: any
-): teamStats is InferInsertModel<typeof basketballTeamStats> {
-  const validLeagues = leagueType.enumValues;
-  return (
-    typeof teamStats.gameId === "string" &&
-    typeof teamStats.teamId === "number" &&
-    typeof teamStats.league === "string" &&
-    validLeagues.includes(teamStats.league as any) &&
-    (typeof teamStats.score === "number" || teamStats.score === undefined) &&
-    (typeof teamStats.fouls === "number" || teamStats.fouls === undefined) &&
-    (typeof teamStats.blocks === "number" || teamStats.blocks === undefined) &&
-    (typeof teamStats.steals === "number" || teamStats.steals === undefined) &&
-    (typeof teamStats.assists === "number" ||
-      teamStats.assists === undefined) &&
-    (typeof teamStats.turnovers === "number" ||
-      teamStats.turnovers === undefined) &&
-    (typeof teamStats.rebounds === "number" ||
-      teamStats.rebounds === undefined) &&
-    (typeof teamStats.twoPointsMade === "number" ||
-      teamStats.twoPointsMade === undefined) &&
-    (typeof teamStats.fieldGoalsMade === "number" ||
-      teamStats.fieldGoalsMade === undefined) &&
-    (typeof teamStats.freeThrowsMade === "number" ||
-      teamStats.freeThrowsMade === undefined) &&
-    (typeof teamStats.threePointsMade === "number" ||
-      teamStats.threePointsMade === undefined) &&
-    (typeof teamStats.defensiveRebounds === "number" ||
-      teamStats.defensiveRebounds === undefined) &&
-    (typeof teamStats.offensiveRebounds === "number" ||
-      teamStats.offensiveRebounds === undefined) &&
-    (typeof teamStats.twoPointPercentage === "number" ||
-      teamStats.twoPointPercentage === undefined) &&
-    (typeof teamStats.twoPointsAttempted === "number" ||
-      teamStats.twoPointsAttempted === undefined) &&
-    (typeof teamStats.fieldGoalsAttempted === "number" ||
-      teamStats.fieldGoalsAttempted === undefined) &&
-    (typeof teamStats.freeThrowsAttempted === "number" ||
-      teamStats.freeThrowsAttempted === undefined) &&
-    (typeof teamStats.threePointsAttempted === "number" ||
-      teamStats.threePointsAttempted === undefined)
-  );
-}
 
 basketballRoute.post(
   "/stats/basketball/teams",
@@ -126,33 +87,16 @@ basketballRoute.post(
   async (req, res) => {
     try {
       const isBatch = Array.isArray(req.body.teamStats);
-      const teamStatsToInsert: InferInsertModel<typeof basketballTeamStats>[] =
-        isBatch ? req.body.teamStats : [req.body];
+      const rawData = isBatch ? req.body.teamStats : [req.body];
 
-      if (teamStatsToInsert.length === 0) {
+      if (rawData.length === 0) {
         res.status(400).json({ error: "No team stat entries provided" });
         return;
       }
 
-      const invalidTeamStats = teamStatsToInsert.filter(
-        (teamStatsData, index) => {
-          if (!validateTeamStats(teamStatsData)) {
-            logger.warn(`Invalid team stats data at index ${index}`, {
-              teamStatsData,
-            });
-            return true;
-          }
-          return false;
-        }
-      );
-
-      if (invalidTeamStats.length > 0) {
-        res.status(400).json({
-          error: "Invalid team stats data provided",
-          details: `${invalidTeamStats.length} team stats have invalid data.`,
-        });
-        return;
-      }
+      const teamStatsToInsert = isBatch
+        ? basketballTeamStatsBatchSchema.parse(rawData)
+        : basketballTeamStatsBatchSchema.parse(rawData);
 
       const result = await db
         .insert(basketballTeamStats)
@@ -166,62 +110,18 @@ basketballRoute.post(
 
       res.json(isBatch ? result : result[0]);
     } catch (error) {
+      if (error instanceof z.ZodError) {
+        res.status(400).json({
+          error: "Validation failed",
+          details: error.issues,
+        });
+        return;
+      }
       handleError(error, res, "Basketball stats route");
     }
   }
 );
 
-function validatePlayerStats(
-  playerStats: any
-): playerStats is InferInsertModel<typeof basketballPlayerStats> {
-  const validLeagues = leagueType.enumValues;
-  return (
-    typeof playerStats.gameId === "string" &&
-    typeof playerStats.playerId === "number" &&
-    typeof playerStats.teamId === "number" &&
-    typeof playerStats.league === "string" &&
-    validLeagues.includes(playerStats.league as any) &&
-    (typeof playerStats.fouls === "number" ||
-      playerStats.fouls === undefined) &&
-    (typeof playerStats.blocks === "number" ||
-      playerStats.blocks === undefined) &&
-    (typeof playerStats.points === "number" ||
-      playerStats.points === undefined) &&
-    (typeof playerStats.steals === "number" ||
-      playerStats.steals === undefined) &&
-    (typeof playerStats.assists === "number" ||
-      playerStats.assists === undefined) &&
-    (typeof playerStats.minutes === "number" ||
-      playerStats.minutes === undefined) &&
-    (typeof playerStats.turnovers === "number" ||
-      playerStats.turnovers === undefined) &&
-    (typeof playerStats.rebounds === "number" ||
-      playerStats.rebounds === undefined) &&
-    (typeof playerStats.twoPointsMade === "number" ||
-      playerStats.twoPointsMade === undefined) &&
-    (typeof playerStats.fieldGoalsMade === "number" ||
-      playerStats.fieldGoalsMade === undefined) &&
-    (typeof playerStats.freeThrowsMade === "number" ||
-      playerStats.freeThrowsMade === undefined) &&
-    (typeof playerStats.threePointsMade === "number" ||
-      playerStats.threePointsMade === undefined) &&
-    (typeof playerStats.defensiveRebounds === "number" ||
-      playerStats.defensiveRebounds === undefined) &&
-    (typeof playerStats.offensiveRebounds === "number" ||
-      playerStats.offensiveRebounds === undefined) &&
-    (typeof playerStats.twoPointPercentage === "number" ||
-      playerStats.twoPointPercentage === undefined) &&
-    (typeof playerStats.twoPointsAttempted === "number" ||
-      playerStats.twoPointsAttempted === undefined) &&
-    (typeof playerStats.fieldGoalsAttempted === "number" ||
-      playerStats.fieldGoalsAttempted === undefined) &&
-    (typeof playerStats.freeThrowsAttempted === "number" ||
-      playerStats.freeThrowsAttempted === undefined) &&
-    (typeof playerStats.threePointsAttempted === "number" ||
-      playerStats.threePointsAttempted === undefined) &&
-    typeof playerStats.status === "string"
-  );
-}
 
 basketballRoute.post(
   "/stats/basketball/players",
@@ -229,34 +129,17 @@ basketballRoute.post(
   async (req, res) => {
     try {
       const isBatch = Array.isArray(req.body.playerStats);
-      const playerStatsToInsert: InferInsertModel<
-        typeof basketballPlayerStats
-      >[] = isBatch ? req.body.playerStats : [req.body];
+      const rawData = isBatch ? req.body.playerStats : [req.body];
 
-      if (playerStatsToInsert.length === 0) {
+      if (rawData.length === 0) {
         res.status(400).json({ error: "No player stat entries provided" });
         return;
       }
 
-      const invalidPlayerStats = playerStatsToInsert.filter(
-        (playerStatsData, index) => {
-          if (!validatePlayerStats(playerStatsData)) {
-            logger.warn(`Invalid player stats data at index ${index}`, {
-              playerStatsData,
-            });
-            return true;
-          }
-          return false;
-        }
-      );
-
-      if (invalidPlayerStats.length > 0) {
-        res.status(400).json({
-          error: "Invalid player stats data provided",
-          details: `${invalidPlayerStats.length} player stats have invalid data.`,
-        });
-        return;
-      }
+      // Zod validation
+      const playerStatsToInsert = isBatch
+        ? basketballPlayerStatsBatchSchema.parse(rawData)
+        : basketballPlayerStatsBatchSchema.parse(rawData);
 
       const result = await db
         .insert(basketballPlayerStats)
@@ -267,6 +150,13 @@ basketballRoute.post(
 
       res.json(isBatch ? result : result[0]);
     } catch (error) {
+      if (error instanceof z.ZodError) {
+        res.status(400).json({
+          error: "Validation failed",
+          details: error.issues,
+        });
+        return;
+      }
       handleError(error, res, "Basketball stats route");
     }
   }
