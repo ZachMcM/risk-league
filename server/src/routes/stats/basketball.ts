@@ -748,22 +748,15 @@ async function calculateExtendedTeamStats(
     await db
       .select()
       .from(basketballPlayerStats)
-      .innerJoin(
-        player,
-        and(
-          eq(basketballPlayerStats.playerId, player.playerId),
-          eq(basketballPlayerStats.league, league)
-        )
-      )
       .where(
         and(
           eq(basketballPlayerStats.gameId, teamStat.gameId),
           eq(basketballPlayerStats.league, league),
           eq(basketballPlayerStats.status, "ACT"),
-          eq(player.teamId, teamId)
+          eq(basketballPlayerStats.teamId, teamId)
         )
       )
-  ).map((row) => row.basketball_player_stats);
+  );
 
   const oppPossessions = estimatePossessions(
     oppStats.fieldGoalsAttempted,
@@ -919,15 +912,10 @@ async function calculateExtendedPlayerStats(
   stats: InferSelectModel<typeof basketballPlayerStats>,
   league: (typeof leagueType.enumValues)[number]
 ) {
-  const [team] = await db
-    .select({ teamId: player.teamId })
-    .from(player)
-    .where(and(eq(player.playerId, stats.playerId), eq(player.league, league)));
-
   const teamStats = (await db.query.basketballTeamStats.findFirst({
     where: and(
       eq(basketballTeamStats.gameId, stats.gameId),
-      eq(basketballTeamStats.teamId, team.teamId),
+      eq(basketballTeamStats.teamId, stats.teamId),
       eq(basketballTeamStats.league, league)
     ),
   }))!;
@@ -936,27 +924,20 @@ async function calculateExtendedPlayerStats(
     await db
       .select()
       .from(basketballPlayerStats)
-      .innerJoin(
-        player,
-        and(
-          eq(basketballPlayerStats.playerId, player.playerId),
-          eq(basketballPlayerStats.league, league)
-        )
-      )
       .where(
         and(
           eq(basketballPlayerStats.gameId, stats.gameId),
-          eq(player.teamId, team.teamId),
+          eq(basketballPlayerStats.teamId, stats.teamId),
           eq(basketballPlayerStats.league, league),
           eq(basketballPlayerStats.status, "ACT")
         )
       )
-  ).map((row) => row.basketball_player_stats);
+  );
 
   const oppStats = (await db.query.basketballTeamStats.findFirst({
     where: and(
       eq(basketballTeamStats.gameId, stats.gameId),
-      ne(basketballTeamStats.teamId, team.teamId),
+      ne(basketballTeamStats.teamId, stats.teamId),
       eq(basketballTeamStats.league, league)
     ),
   }))!;

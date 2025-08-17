@@ -697,22 +697,15 @@ async function calculateExtendedTeamStats(
     await db
       .select()
       .from(baseballPlayerStats)
-      .innerJoin(
-        player,
-        and(
-          eq(baseballPlayerStats.playerId, player.playerId),
-          eq(baseballPlayerStats.league, league)
-        )
-      )
       .where(
         and(
           eq(baseballPlayerStats.gameId, teamStat.gameId),
-          eq(player.teamId, teamId),
+          eq(baseballPlayerStats.teamId, teamId),
           eq(baseballPlayerStats.league, league),
           eq(baseballPlayerStats.status, "ACT")
         )
       )
-  ).map((row) => row.baseball_player_stats);
+  );
 
   const homeRunsAllowed = allPlayerStats.reduce(
     (accum, curr) => accum + curr.homeRunsAllowed,

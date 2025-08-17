@@ -188,7 +188,7 @@ playersRoute.get(
         const teamDepthChart =
           leagueDepthCharts[league][Object.keys(leagueDepthCharts[league])[0]];
 
-        // Extract all player IDs from the depth chart
+        // Extract player IDs from the depth chart based on league-specific rules
         const depthChartPlayerIds: number[] = [];
         Object.keys(teamDepthChart).forEach((position) => {
           const positionData = teamDepthChart[position];
@@ -197,13 +197,32 @@ playersRoute.get(
             positionData !== null &&
             "team_id" in positionData === false
           ) {
-            Object.values(positionData as PositionDepthChart).forEach(
-              (player) => {
+            if (league === "NFL") {
+              // NFL-specific position and depth filtering
+              const positionDepthChart = positionData as PositionDepthChart;
+              Object.entries(positionDepthChart).forEach(([depth, player]) => {
                 if (player && typeof player === "object" && "id" in player) {
-                  depthChartPlayerIds.push(player.id);
+                  const shouldInclude = 
+                    (position === "QB" && depth === "1") ||
+                    (["WR1", "WR2", "WR3"].includes(position) && depth === "1") ||
+                    (position === "TE" && ["1", "2"].includes(depth)) ||
+                    (position === "RB" && ["1", "2", "3"].includes(depth));
+                  
+                  if (shouldInclude) {
+                    depthChartPlayerIds.push(player.id);
+                  }
                 }
-              }
-            );
+              });
+            } else {
+              // For other leagues, include all players (existing behavior)
+              Object.values(positionData as PositionDepthChart).forEach(
+                (player) => {
+                  if (player && typeof player === "object" && "id" in player) {
+                    depthChartPlayerIds.push(player.id);
+                  }
+                }
+              );
+            }
           }
         });
 

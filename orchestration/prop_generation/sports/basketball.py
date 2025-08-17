@@ -26,7 +26,7 @@ BASKETBALL_ELIGIBILITY_THRESHOLDS = {
     "points": 0.25,
     "rebounds": 0.5,
     "assists": 0.25,
-    "three_pointers_made": 0.25,
+    "three_pointers_made": 0.35,
     "blocks": 0.5,
     "steals": 0.5,
     "turnovers": 0.8,
@@ -101,16 +101,16 @@ def main():
                 logger.info(f"Processing {league} game {game['game_ID']}")
                 team_ids: list[int] = [game["home_team_ID"], game["away_team_ID"]]
 
-                game_insert_body = {
-                    "gameId": game["game_ID"],
-                    "startTime": game["game_time"],
-                    "homeTeamId": team_ids[0],
-                    "awayTeamId": team_ids[1],
-                    "league": league,
-                }
-                server_req(
-                    route="/games", method="POST", body=json.dumps(game_insert_body)
-                )
+                # game_insert_body = {
+                #     "gameId": game["game_ID"],
+                #     "startTime": game["game_time"],
+                #     "homeTeamId": team_ids[0],
+                #     "awayTeamId": team_ids[1],
+                #     "league": league,
+                # }
+                # server_req(
+                #     route="/games", method="POST", body=json.dumps(game_insert_body)
+                # )
 
                 for index, team_id in enumerate(team_ids):
                     team_active_players_data: list[Player] = server_req(

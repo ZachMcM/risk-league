@@ -53,7 +53,7 @@ FOOTBALL_ELIGIBILITY_THRESHOLDS = {
 
 
 def is_stat_eligible_for_player(
-    stat: str, position: str, player_avg: float, league_avg: float
+    stat: str, position: str, player_avg: float, league_avg: float, league: str
 ) -> bool:
     """Check if a player is eligible for a specific stat prop based on position and performance."""
     if position not in FOOTBALL_ELIGIBILITY_THRESHOLDS:
@@ -62,6 +62,9 @@ def is_stat_eligible_for_player(
     position_thresholds = FOOTBALL_ELIGIBILITY_THRESHOLDS[position]
     if stat not in position_thresholds:
         return False
+    
+    if league == "NFL":
+        return True
 
     threshold = position_thresholds[stat]
     return player_avg >= league_avg * threshold
@@ -148,6 +151,7 @@ def main():
                                 player["position"],
                                 player_stat_avg,
                                 league_stat_avg_data["average"],
+                                league
                             ):
                                 eligible_stats.append(stat)
 
