@@ -25,9 +25,11 @@ def main() -> None:
         start = time()
         total_props_generated = 0
 
-        today_str = datetime.now(ZoneInfo("America/New_York")).strftime("%Y-%m-%d")
-        logger.info(today_str)
-
+        today_str = (
+            sys.argv[1]
+            if len(sys.argv) > 1
+            else datetime.now(ZoneInfo("America/New_York")).strftime("%Y-%m-%d")
+        )
         today_schedule_req = data_feeds_req(f"/schedule/{today_str}/MLB")
         if today_schedule_req.status_code == 304:
             logger.info("No games today, process exiting")

@@ -6,10 +6,16 @@ from time import time
 from zoneinfo import ZoneInfo
 
 import numpy
-from my_types.server import (FootballPlayerStats, FootballTeamStats,
-                             LeagueAverages, Player)
-from prop_generation.configs.football import (get_football_prop_configs,
-                                              get_football_stats_list)
+from my_types.server import (
+    FootballPlayerStats,
+    FootballTeamStats,
+    LeagueAverages,
+    Player,
+)
+from prop_generation.configs.football import (
+    get_football_prop_configs,
+    get_football_stats_list,
+)
 from prop_generation.generator.base import GameStats
 from prop_generation.generator.base_generator import BasePropGenerator
 from utils import data_feeds_req, getenv_required, server_req, setup_logger
@@ -23,28 +29,25 @@ FOOTBALL_ELIGIBILITY_THRESHOLDS = {
         "passing_yards": 0.5,  # Starting QBs should generate props
         "passing_touchdowns": 0.5,
         "passing_rushing_touchdowns": 0.5,
-        "passing_interceptions": 0.4,  # Lower threshold for interceptions
+        "passing_interceptions": 0.5,  # Lower threshold for interceptions
     },
     "RB": {
         "rushing_yards": 0.4,  # Primary and backup RBs
         "rushing_touchdowns": 0.3,  # TDs are less frequent
         "receiving_yards": 0.2,  # Pass-catching RBs
-        "receptions": 0.2,
     },
     "WR": {
         "receiving_yards": 0.3,  # WR1, WR2, some WR3s
         "receiving_touchdowns": 0.2,  # TDs are less frequent
-        "receptions": 0.4,  # Possession receivers
         "receiving_rushing_touchdowns": 0.2,
     },
     "TE": {
         "receiving_yards": 0.25,  # Pass-catching TEs
         "receiving_touchdowns": 0.2,
-        "receptions": 0.3,
         "receiving_rushing_touchdowns": 0.2,
     },
     "K": {
-        "field_goals_made": 0.2,  # Most active kickers
+        "field_goals_made": 0.5,  # Most active kickers
     },
 }
 
@@ -69,8 +72,12 @@ def main():
         start = time()
         total_props_generated = 0
 
-        today_str = datetime.now(ZoneInfo("America/New_York")).strftime("%Y-%m-%d")
-
+        today_str = (
+            sys.argv[1]
+            if len(sys.argv) > 1
+            else datetime.now(ZoneInfo("America/New_York")).strftime("%Y-%m-%d")
+        )
+        
         stats_list = get_football_stats_list()
         configs = get_football_prop_configs()
 
@@ -184,9 +191,7 @@ def main():
                                     "league": league,
                                     "gameId": game["game_ID"],
                                     "choices": (
-                                        ["over", "under"]
-                                        if prop_line > 5
-                                        else ["over"]
+                                        ["over", "under"] if prop_line > 5 else ["over"]
                                     ),
                                 }
 

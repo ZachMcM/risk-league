@@ -22,30 +22,18 @@ from utils import data_feeds_req, getenv_required, server_req, setup_logger
 
 logger = setup_logger(__name__)
 
-
 BASKETBALL_ELIGIBILITY_THRESHOLDS = {
-    # Offensive stats - all players who play significant minutes
-    "points": 0.15,
-    "assists": 0.15,
-    "fieldGoalsMade": 0.15,
-    "fieldGoalsAttempted": 0.15,
-    "freeThrowsMade": 0.1,
-    "freeThrowsAttempted": 0.1,
-    "threePointsMade": 0.1,
-    "threePointsAttempted": 0.1,
-    "twoPointsMade": 0.15,
-    "twoPointsAttempted": 0.15,
-    # Rebounds - all players
-    "rebounds": 0.1,
-    "offensiveRebounds": 0.05,
-    "defensiveRebounds": 0.1,
-    # Defensive stats - only for good defenders (higher thresholds)
-    "steals": 0.6,  # Only good defenders
-    "blocks": 0.5,  # Only good shot blockers
-    # Turnovers - only for players who handle the ball frequently
-    "turnovers": 0.7,  # Only high-usage players
-    # Fouls - moderate threshold
-    "fouls": 0.3,
+    "points": 0.25,
+    "rebounds": 0.5,
+    "assists": 0.25,
+    "three_pointers_made": 0.25,
+    "blocks": 0.5,
+    "steals": 0.5,
+    "turnovers": 0.8,
+    "points_rebounds_assists": 0.5,
+    "points_rebounds": 0.5,
+    "points_assists": 0.5,
+    "rebounds_assists": 0.5,
 }
 
 # Position-specific defensive stat requirements
@@ -67,7 +55,7 @@ def is_stat_eligible_for_player(
     if stat not in BASKETBALL_ELIGIBILITY_THRESHOLDS:
         return False
 
-    if minutes_avg <= 0.5 * league_minutes_avg:  
+    if minutes_avg <= 0.5 * league_minutes_avg:
         return False
 
     base_threshold = BASKETBALL_ELIGIBILITY_THRESHOLDS[stat]
@@ -76,11 +64,8 @@ def is_stat_eligible_for_player(
         if position not in DEFENSIVE_POSITIONS.get(stat, []):
             return False
         return player_avg >= league_avg * base_threshold
-
-    if stat == "turnovers":
+    else:
         return player_avg >= league_avg * base_threshold
-
-    return player_avg >= league_avg * base_threshold
 
 
 def main():
@@ -88,7 +73,11 @@ def main():
         start = time()
         total_props_generated = 0
 
-        today_str = datetime.now(ZoneInfo("America/New_York")).strftime("%Y-%m-%d")
+        today_str = (
+            sys.argv[1]
+            if len(sys.argv) > 1
+            else datetime.now(ZoneInfo("America/New_York")).strftime("%Y-%m-%d")
+        )
 
         stats_list = get_basketball_stats_list()
         configs = get_basketball_prop_configs()
