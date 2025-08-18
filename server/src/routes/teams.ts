@@ -5,26 +5,10 @@ import { apiKeyMiddleware } from "../middleware";
 import { logger } from "../logger";
 import { db } from "../db";
 import { handleError } from "../utils/handleError";
+import { createInsertSchema } from "drizzle-zod";
 
 export const teamsRoute = Router();
-
-function validateTeamData(
-  teamData: any,
-): teamData is InferInsertModel<typeof team> {
-  const validLeagues = leagueType.enumValues;
-  return (
-    (typeof teamData.teamId === "number" &&
-      typeof teamData.league === "string" &&
-      validLeagues.includes(teamData.league as any) &&
-      typeof teamData.fullName === "string" &&
-      typeof teamData.abbreviation === "string") ||
-    ((teamData.abbreviation === null ||
-      typeof teamData.abbreviation === "string") &&
-      (teamData.location === null || typeof teamData.location === "string") &&
-      (teamData.mascot === null || typeof teamData.arena === "string") &&
-      teamData.arena === null)
-  );
-}
+const teamsSchema = createInsertSchema(team)
 
 teamsRoute.post("/teams", apiKeyMiddleware, async (req, res) => {
   try {
@@ -38,21 +22,9 @@ teamsRoute.post("/teams", apiKeyMiddleware, async (req, res) => {
       return;
     }
 
-    const invalidTeams = teamsToInsert.filter((teamData, index) => {
-      if (!validateTeamData(teamData)) {
-        logger.warn(`Invalid team data at index ${index}`, { teamData });
-        return true;
-      }
-      return false;
-    });
-
-    if (invalidTeams.length > 0) {
-      res.status(400).json({
-        error: "Invalid team data provided",
-        details: `${invalidTeams.length} teams(s) have invalid data.`,
-      });
-      return;
-    }
+    for (const entry of teamsToInsert) {
+      teamsSchema.parse(entry)
+    } 
 
     const result = await db
       .insert(team)

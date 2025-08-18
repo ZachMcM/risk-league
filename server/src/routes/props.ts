@@ -3,17 +3,11 @@ import { alias } from "drizzle-orm/pg-core";
 import { Router } from "express";
 import moment from "moment";
 import { db } from "../db";
-import {
-  game,
-  leagueType,
-  matchUser,
-  player,
-  prop,
-  team
-} from "../db/schema";
+import { game, leagueType, matchUser, player, prop, team } from "../db/schema";
 import { logger } from "../logger";
 import { apiKeyMiddleware, authMiddleware } from "../middleware";
 import { handleError } from "../utils/handleError";
+import { createInsertSchema } from "drizzle-zod";
 
 export const propsRoute = Router();
 
@@ -37,7 +31,7 @@ propsRoute.get("/props/today", authMiddleware, async (req, res) => {
     const todayMatches = await db.query.matchUser.findMany({
       where: and(
         gte(matchUser.createdAt, startOfDay),
-        lt(matchUser.createdAt, endOfDay),
+        lt(matchUser.createdAt, endOfDay)
       ),
       columns: {
         id: true,
@@ -76,29 +70,29 @@ propsRoute.get("/props/today", authMiddleware, async (req, res) => {
       .from(prop)
       .innerJoin(
         game,
-        and(eq(prop.gameId, game.gameId), eq(prop.league, game.league)),
+        and(eq(prop.gameId, game.gameId), eq(prop.league, game.league))
       )
       .innerJoin(
         player,
-        and(eq(prop.playerId, player.playerId), eq(prop.league, player.league)),
+        and(eq(prop.playerId, player.playerId), eq(prop.league, player.league))
       )
       .innerJoin(
         team,
-        and(eq(player.teamId, team.teamId), eq(player.league, team.league)),
+        and(eq(player.teamId, team.teamId), eq(player.league, team.league))
       )
       .innerJoin(
         homeTeam,
         and(
           eq(game.homeTeamId, homeTeam.teamId),
-          eq(game.league, homeTeam.league),
-        ),
+          eq(game.league, homeTeam.league)
+        )
       )
       .innerJoin(
         awayTeam,
         and(
           eq(game.awayTeamId, awayTeam.teamId),
-          eq(game.league, awayTeam.league),
-        ),
+          eq(game.league, awayTeam.league)
+        )
       )
       .where(
         and(
@@ -106,8 +100,8 @@ propsRoute.get("/props/today", authMiddleware, async (req, res) => {
           lt(game.startTime, endOfDay),
           gt(game.startTime, new Date().toISOString()), // games that haven't started
           eq(game.league, league as (typeof leagueType.enumValues)[number]), // correct league
-          notInArray(prop.id, propsPickedAlready),
-        ),
+          notInArray(prop.id, propsPickedAlready)
+        )
       );
 
     logger.debug(`Available props length ${availableProps.length}`);
@@ -131,58 +125,13 @@ propsRoute.get("/props/today", authMiddleware, async (req, res) => {
   }
 });
 
-function validateChoices(choices: string[]) {
-  for (const choice of choices) {
-    if (!["over", "under"].includes(choice)) {
-      return false
-    }
-  }
-  return true
-}
+const propsSchema = createInsertSchema(prop);
 
 propsRoute.post("/props", apiKeyMiddleware, async (req, res) => {
   try {
-    const {
-      line,
-      gameId,
-      playerId,
-      statName,
-      statDisplayName,
-      choices,
-      league,
-    } = req.body as {
-      line: number | undefined;
-      gameId: string | undefined;
-      playerId: number | undefined;
-      statName: string | undefined;
-      statDisplayName: string | undefined;
-      choices: string[] | undefined;
-      league: string | undefined;
-    };
+    propsSchema.parse(req.body);
 
-    if (
-      line == undefined ||
-      gameId == undefined ||
-      playerId == undefined ||
-      league == undefined ||
-      !leagueType.enumValues.includes(league as any) ||
-      statName == undefined ||
-      statDisplayName == undefined ||
-      (!Array.isArray(choices) || (choices !== undefined && !validateChoices(choices)))
-    ) {
-      res.status(400).json({ error: "Invalid request body" });
-      return;
-    }
-
-    const newProp = await db.insert(prop).values({
-      line,
-      gameId,
-      playerId,
-      statDisplayName,
-      statName,
-      choices,
-      league: league as (typeof leagueType.enumValues)[number],
-    });
+    const newProp = await db.insert(prop).values(req.body);
 
     res.json(newProp);
   } catch (error) {

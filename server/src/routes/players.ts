@@ -18,26 +18,10 @@ import {
 } from "../types/dataFeeds";
 import { dataFeedsReq } from "../utils/dataFeedsUtils";
 import { handleError } from "../utils/handleError";
+import { createInsertSchema } from "drizzle-zod";
 
 export const playersRoute = Router();
-
-function validatePlayerData(
-  playerData: any
-): playerData is InferInsertModel<typeof player> {
-  const validLeagues = leagueType.enumValues;
-  return (
-    typeof playerData.playerId === "number" &&
-    typeof playerData.name === "string" &&
-    typeof playerData.teamId === "number" &&
-    typeof playerData.position === "string" &&
-    (typeof playerData.number === "number" || playerData.number === null) &&
-    (typeof playerData.height === "string" || playerData.height === null) &&
-    (typeof playerData.weight === "number" || playerData.weight === null) &&
-    (typeof playerData.status === "string" || playerData.status === null) &&
-    typeof playerData.league === "string" &&
-    validLeagues.includes(playerData.league as any)
-  );
-}
+const playersSchema = createInsertSchema(player)
 
 playersRoute.post("/players", apiKeyMiddleware, async (req, res) => {
   try {
@@ -51,24 +35,15 @@ playersRoute.post("/players", apiKeyMiddleware, async (req, res) => {
       return;
     }
 
-    const validPlayers = playersToInsert.filter((playerData, index) => {
-      if (!validatePlayerData(playerData)) {
-        logger.warn(`Invalid player data at index ${index}`, { playerData });
-        return false;
-      }
-      return true;
-    });
-
-    if (validPlayers.length === 0) {
-      res.status(304).json({ error: "No valid players provided" });
-      return;
+    for (const entry of playersToInsert) {
+      playersSchema.parse(entry)
     }
 
     // Check which players have existing teams
     const playersWithValidTeams = [];
     let skippedCount = 0;
 
-    for (const playerData of validPlayers) {
+    for (const playerData of playersToInsert) {
       try {
         const teamExists = await db
           .select({ teamId: team.teamId })

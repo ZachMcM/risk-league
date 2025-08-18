@@ -2,7 +2,6 @@ import { and, eq, ilike, ne } from "drizzle-orm";
 import { Router } from "express";
 import { db } from "../db";
 import { leagueType, user } from "../db/schema";
-import { logger } from "../logger";
 import { authMiddleware } from "../middleware";
 import { calculateProgression } from "../utils/calculateProgression";
 import { findNextRank } from "../utils/findNextRank";

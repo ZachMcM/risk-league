@@ -5,22 +5,11 @@ import { db } from "../db";
 import { game, leagueType } from "../db/schema";
 import { InferInsertModel } from "drizzle-orm";
 import { handleError } from "../utils/handleError";
+import { createInsertSchema } from "drizzle-zod";
 
 export const gamesRoute = Router();
 
-function validateGameData(
-  gameData: any,
-): gameData is InferInsertModel<typeof game> {
-  const validLeagues = leagueType.enumValues;
-  return (
-    typeof gameData.gameId === "string" &&
-    typeof gameData.startTime === "string" &&
-    typeof gameData.homeTeamId === "number" &&
-    typeof gameData.awayTeamId === "number" &&
-    typeof gameData.league === "string" &&
-    validLeagues.includes(gameData.league as any)
-  );
-}
+const gamesSchema = createInsertSchema(game)
 
 gamesRoute.post("/games", apiKeyMiddleware, async (req, res) => {
   try {
@@ -34,20 +23,8 @@ gamesRoute.post("/games", apiKeyMiddleware, async (req, res) => {
       return;
     }
 
-    const invalidGames = gamesToInsert.filter((gameData, index) => {
-      if (!validateGameData(gameData)) {
-        logger.warn(`Invalid game data at index ${index}`, { gameData });
-        return true;
-      }
-      return false;
-    });
-
-    if (invalidGames.length > 0) {
-      res.status(400).json({
-        error: "Invalid game data provided",
-        details: `${invalidGames.length} game(s) have invalid data.`,
-      });
-      return;
+    for (const entry of gamesToInsert) {
+      gamesSchema.parse(entry)
     }
 
     const result = await db

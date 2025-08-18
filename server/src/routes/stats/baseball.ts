@@ -5,7 +5,7 @@ import {
   InferInsertModel,
   InferSelectModel,
   or,
-  sql
+  sql,
 } from "drizzle-orm";
 import { Router } from "express";
 import { db } from "../../db";
@@ -13,12 +13,13 @@ import {
   baseballPlayerStats,
   baseballTeamStats,
   game,
-  leagueType
+  leagueType,
 } from "../../db/schema";
 import { logger } from "../../logger";
 import { apiKeyMiddleware } from "../../middleware";
 import { redis } from "../../redis";
 import { handleError } from "../../utils/handleError";
+import { createInsertSchema } from "drizzle-zod";
 
 // Create type-safe union of valid baseball stats (including extended stats)
 type BaseballPlayerStatsRow = InferSelectModel<typeof baseballPlayerStats>;
@@ -27,94 +28,11 @@ type ValidBaseballStat =
       BaseballPlayerStatsRow,
       "id" | "gameId" | "playerId" | "league" | "status"
     >
-  | "battingAvg"
-  | "sluggingPct"
-  | "obp"
-  | "ops"
-  | "hitsRunsRbis";
-
-// List of valid numeric stats for runtime validation
-const VALID_BASEBALL_STATS: ValidBaseballStat[] = [
-  "errors",
-  "hits",
-  "runs",
-  "singles",
-  "doubles",
-  "triples",
-  "atBats",
-  "walks",
-  "caughtStealing",
-  "homeRuns",
-  "putouts",
-  "stolenBases",
-  "strikeouts",
-  "hitByPitch",
-  "intentionalWalks",
-  "rbis",
-  "outs",
-  "hitsAllowed",
-  "pitchingStrikeouts",
-  "losses",
-  "earnedRuns",
-  "saves",
-  "runsAllowed",
-  "wins",
-  "singlesAllowed",
-  "doublesAllowed",
-  "triplesAllowed",
-  "pitchingWalks",
-  "balks",
-  "blownSaves",
-  "pitchingCaughtStealing",
-  "homeRunsAllowed",
-  "inningsPitched",
-  "pitchingPutouts",
-  "stolenBasesAllowed",
-  "wildPitches",
-  "pitchingHitByPitch",
-  "holds",
-  "pitchingIntentionalWalks",
-  "pitchesThrown",
-  "strikes",
-  // Extended stats
-  "battingAvg",
-  "sluggingPct",
-  "obp",
-  "ops",
-  "hitsRunsRbis",
-];
 
 export const baseballRoute = Router();
 
-function validateTeamStats(
-  teamStats: any
-): teamStats is InferInsertModel<typeof baseballTeamStats> {
-  const validLeagues = leagueType.enumValues;
-  return (
-    typeof teamStats.gameId === "string" &&
-    typeof teamStats.teamId === "number" &&
-    typeof teamStats.league === "string" &&
-    validLeagues.includes(teamStats.league as any) &&
-    (typeof teamStats.errors === "number" || teamStats.errors === undefined) &&
-    (typeof teamStats.hits === "number" || teamStats.hits === undefined) &&
-    (typeof teamStats.runs === "number" || teamStats.runs === undefined) &&
-    (typeof teamStats.doubles === "number" ||
-      teamStats.doubles === undefined) &&
-    (typeof teamStats.triples === "number" ||
-      teamStats.triples === undefined) &&
-    (typeof teamStats.atBats === "number" || teamStats.atBats === undefined) &&
-    (typeof teamStats.walks === "number" || teamStats.walks === undefined) &&
-    (typeof teamStats.caughtStealing === "number" ||
-      teamStats.caughtStealing === undefined) &&
-    (typeof teamStats.homeRuns === "number" ||
-      teamStats.homeRuns === undefined) &&
-    (typeof teamStats.stolenBases === "number" ||
-      teamStats.stolenBases === undefined) &&
-    (typeof teamStats.strikeouts === "number" ||
-      teamStats.strikeouts === undefined) &&
-    (typeof teamStats.rbis === "number" || teamStats.rbis === undefined)
-  );
-}
+const baseballTeamStatsSchema = createInsertSchema(baseballTeamStats);
+const baseballPlayerStatsSchema = createInsertSchema(baseballPlayerStats);
 
 baseballRoute.post(
   "/stats/baseball/teams",
@@ -130,24 +48,8 @@ baseballRoute.post(
         return;
       }
 
-      const invalidTeamStats = teamStatsToInsert.filter(
-        (teamStatsData, index) => {
-          if (!validateTeamStats(teamStatsData)) {
-            logger.warn(`Invalid team stats data at index ${index}`, {
-              teamStatsData,
-            });
-            return true;
-          }
-          return false;
-        }
-      );
-
-      if (invalidTeamStats.length > 0) {
-        res.status(400).json({
-          error: "Invalid team stats data provided",
-          details: `${invalidTeamStats.length} team stats have invalid data.`,
-        });
-        return;
+      for (const entry of teamStatsToInsert) {
+        baseballTeamStatsSchema.parse(entry);
       }
 
       const result = await db
@@ -167,97 +69,6 @@ baseballRoute.post(
   }
 );
 
-function validatePlayerStats(
-  playerStats: any
-): playerStats is InferInsertModel<typeof baseballPlayerStats> {
-  const validLeagues = leagueType.enumValues;
-  return (
-    typeof playerStats.gameId === "string" &&
-    typeof playerStats.playerId === "number" &&
-    typeof playerStats.teamId === "number" &&
-    typeof playerStats.league === "string" &&
-    validLeagues.includes(playerStats.league as any) &&
-    (typeof playerStats.errors === "number" ||
-      playerStats.errors === undefined) &&
-    (typeof playerStats.hits === "number" || playerStats.hits === undefined) &&
-    (typeof playerStats.runs === "number" || playerStats.runs === undefined) &&
-    (typeof playerStats.singles === "number" ||
-      playerStats.singles === undefined) &&
-    (typeof playerStats.doubles === "number" ||
-      playerStats.doubles === undefined) &&
-    (typeof playerStats.triples === "number" ||
-      playerStats.triples === undefined) &&
-    (typeof playerStats.atBats === "number" ||
-      playerStats.atBats === undefined) &&
-    (typeof playerStats.walks === "number" ||
-      playerStats.walks === undefined) &&
-    (typeof playerStats.caughtStealing === "number" ||
-      playerStats.caughtStealing === undefined) &&
-    (typeof playerStats.homeRuns === "number" ||
-      playerStats.homeRuns === undefined) &&
-    (typeof playerStats.putouts === "number" ||
-      playerStats.putouts === undefined) &&
-    (typeof playerStats.stolenBases === "number" ||
-      playerStats.stolenBases === undefined) &&
-    (typeof playerStats.strikeouts === "number" ||
-      playerStats.strikeouts === undefined) &&
-    (typeof playerStats.hitByPitch === "number" ||
-      playerStats.hitByPitch === undefined) &&
-    (typeof playerStats.intentionalWalks === "number" ||
-      playerStats.intentionalWalks === undefined) &&
-    (typeof playerStats.rbis === "number" || playerStats.rbis === undefined) &&
-    (typeof playerStats.outs === "number" || playerStats.outs === undefined) &&
-    (typeof playerStats.hitsAllowed === "number" ||
-      playerStats.hitsAllowed === undefined) &&
-    (typeof playerStats.pitchingStrikeouts === "number" ||
-      playerStats.pitchingStrikeouts === undefined) &&
-    (typeof playerStats.losses === "number" ||
-      playerStats.losses === undefined) &&
-    (typeof playerStats.earnedRuns === "number" ||
-      playerStats.earnedRuns === undefined) &&
-    (typeof playerStats.saves === "number" ||
-      playerStats.saves === undefined) &&
-    (typeof playerStats.runsAllowed === "number" ||
-      playerStats.runsAllowed === undefined) &&
-    (typeof playerStats.wins === "number" || playerStats.wins === undefined) &&
-    (typeof playerStats.singlesAllowed === "number" ||
-      playerStats.singlesAllowed === undefined) &&
-    (typeof playerStats.doublesAllowed === "number" ||
-      playerStats.doublesAllowed === undefined) &&
-    (typeof playerStats.triplesAllowed === "number" ||
-      playerStats.triplesAllowed === undefined) &&
-    (typeof playerStats.pitchingWalks === "number" ||
-      playerStats.pitchingWalks === undefined) &&
-    (typeof playerStats.balks === "number" ||
-      playerStats.balks === undefined) &&
-    (typeof playerStats.blownSaves === "number" ||
-      playerStats.blownSaves === undefined) &&
-    (typeof playerStats.pitchingCaughtStealing === "number" ||
-      playerStats.pitchingCaughtStealing === undefined) &&
-    (typeof playerStats.homeRunsAllowed === "number" ||
-      playerStats.homeRunsAllowed === undefined) &&
-    (typeof playerStats.inningsPitched === "number" ||
-      playerStats.inningsPitched === undefined) &&
-    (typeof playerStats.pitchingPutouts === "number" ||
-      playerStats.pitchingPutouts === undefined) &&
-    (typeof playerStats.stolenBasesAllowed === "number" ||
-      playerStats.stolenBasesAllowed === undefined) &&
-    (typeof playerStats.wildPitches === "number" ||
-      playerStats.wildPitches === undefined) &&
-    (typeof playerStats.pitchingHitByPitch === "number" ||
-      playerStats.pitchingHitByPitch === undefined) &&
-    (typeof playerStats.holds === "number" ||
-      playerStats.holds === undefined) &&
-    (typeof playerStats.pitchingIntentionalWalks === "number" ||
-      playerStats.pitchingIntentionalWalks === undefined) &&
-    (typeof playerStats.pitchesThrown === "number" ||
-      playerStats.pitchesThrown === undefined) &&
-    (typeof playerStats.strikes === "number" ||
-      playerStats.strikes === undefined) &&
-    typeof playerStats.status === "string"
-  );
-}
-
 baseballRoute.post(
   "/stats/baseball/players",
   apiKeyMiddleware,
@@ -273,24 +84,8 @@ baseballRoute.post(
         return;
       }
 
-      const invalidPlayerStats = playerStatsToInsert.filter(
-        (playerStatsData, index) => {
-          if (!validatePlayerStats(playerStatsData)) {
-            logger.warn(`Invalid player stats data at index ${index}`, {
-              playerStatsData,
-            });
-            return true;
-          }
-          return false;
-        }
-      );
-
-      if (invalidPlayerStats.length > 0) {
-        res.status(400).json({
-          error: "Invalid player stats data provided",
-          details: `${invalidPlayerStats.length} player stats have invalid data.`,
-        });
-        return;
+      for (const entry of playerStatsToInsert) {
+        baseballPlayerStatsSchema.parse(entry);
       }
 
       const result = await db
@@ -436,10 +231,7 @@ async function getPlayerTeamStats(
     .from(game)
     .innerJoin(
       baseballPlayerStats,
-      and(
-        eq(game.gameId, baseballPlayerStats.gameId),
-        eq(game.league, league)
-      )
+      and(eq(game.gameId, baseballPlayerStats.gameId), eq(game.league, league))
     )
     .where(
       and(
@@ -578,15 +370,6 @@ baseballRoute.get(
 
       if (!leagueType.enumValues.includes(league)) {
         res.status(400).json({ error: "Invalid league parameter" });
-        return;
-      }
-
-      // Validate stat exists at runtime
-      if (!VALID_BASEBALL_STATS.includes(requestedStat)) {
-        res.status(400).json({
-          error: "Invalid stat parameter",
-          validStats: VALID_BASEBALL_STATS,
-        });
         return;
       }
 

@@ -75,6 +75,8 @@ def calculate_basketball_player_extended_stats(player_stats, team_stats, opp_tea
 def calculate_basketball_team_extended_stats(game, team, team_stats, opp_team_stats):
     """Calculate extended basketball team statistics."""
     
+    opp_team = "away_team" if team == "home_team" else "home_team"
+
     # Get all player stats for team minutes calculation
     team_player_stats = []
     if "player_box" in game and team in game["player_box"]:
@@ -106,10 +108,10 @@ def calculate_basketball_team_extended_stats(game, team, team_stats, opp_team_st
     pace = (48 * (team_possessions + opp_possessions)) / (2 * (team_minutes / 5)) if team_minutes > 0 else 0
     
     # Offensive Rating (points per 100 possessions)
-    offensive_rating = 100 * team_stats["score"] / team_possessions if team_possessions > 0 else 0
+    offensive_rating = 100 * game["full_box"][team]["score"] / team_possessions if team_possessions > 0 else 0
     
     # Defensive Rating (opponent points per 100 possessions)
-    defensive_rating = 100 * opp_team_stats["score"] / opp_possessions if opp_possessions > 0 else 0
+    defensive_rating = 100 * game["full_box"][opp_team]["score"] / opp_possessions if opp_possessions > 0 else 0
     
     return {
         "pace": round(pace, 2),

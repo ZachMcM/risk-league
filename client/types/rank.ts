@@ -4,8 +4,8 @@ export type Tier =
   | "Gold"
   | "Platinum"
   | "Diamond"
-  | "Master"
   | "Elite"
+  | "Hall of Famer"
   | "Legend";
 
 export type Level = "I" | "II" | "III";

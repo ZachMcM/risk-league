@@ -4,8 +4,8 @@ export type Tier =
   | "Gold"
   | "Platinum"
   | "Diamond"
-  | "Master"
   | "Elite"
+  | "Hall of Famer"
   | "Legend";
 
 export type Level = "I" | "II" | "III";
@@ -52,15 +52,15 @@ export const ranks: Rank[] = [
   { tier: "Diamond", level: "II", minPoints: 2550, maxPoints: 2749 },
   { tier: "Diamond", level: "I", minPoints: 2750, maxPoints: 2949 },
 
-  // Master Tier - Expert players, 250 point bands
-  { tier: "Master", level: "III", minPoints: 2950, maxPoints: 3199 },
-  { tier: "Master", level: "II", minPoints: 3200, maxPoints: 3449 },
-  { tier: "Master", level: "I", minPoints: 3450, maxPoints: 3699 },
+  // Elite Tier - Expert players, 250 point bands
+  { tier: "Elite", level: "III", minPoints: 2950, maxPoints: 3199 },
+  { tier: "Elite", level: "II", minPoints: 3200, maxPoints: 3449 },
+  { tier: "Elite", level: "I", minPoints: 3450, maxPoints: 3699 },
 
-  // Elite Tier - Top players, 300 point bands
-  { tier: "Elite", level: "III", minPoints: 3700, maxPoints: 3999 },
-  { tier: "Elite", level: "II", minPoints: 4000, maxPoints: 4299 },
-  { tier: "Elite", level: "I", minPoints: 4300, maxPoints: 4599 },
+  // Hall of Famer Tier - Top players, 300 point bands
+  { tier: "Hall of Famer", level: "III", minPoints: 3700, maxPoints: 3999 },
+  { tier: "Hall of Famer", level: "II", minPoints: 4000, maxPoints: 4299 },
+  { tier: "Hall of Famer", level: "I", minPoints: 4300, maxPoints: 4599 },
 
   // Legend Tier - The best of the best
   { tier: "Legend", level: null, minPoints: 4600, maxPoints: Infinity },

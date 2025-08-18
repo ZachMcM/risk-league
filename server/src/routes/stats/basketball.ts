@@ -6,7 +6,7 @@ import {
   InferInsertModel,
   InferSelectModel,
   or,
-  sql
+  sql,
 } from "drizzle-orm";
 import { Router } from "express";
 import { db } from "../../db";
@@ -21,104 +21,18 @@ import { logger } from "../../logger";
 import { apiKeyMiddleware } from "../../middleware";
 import { redis } from "../../redis";
 import { handleError } from "../../utils/handleError";
+import { createInsertSchema } from "drizzle-zod";
 
 type BasketballPlayerStatsRow = InferSelectModel<typeof basketballPlayerStats>;
 type ValidBasketballStat =
   | keyof Omit<
       BasketballPlayerStatsRow,
       "id" | "gameId" | "playerId" | "league" | "status"
-    >
-  | "trueShootingPct"
-  | "usageRate"
-  | "reboundsPct"
-  | "assistsPct"
-  | "blocksPct"
-  | "stealsPct"
-  | "threePct"
-  | "pointsReboundsAssists"
-  | "pointsRebounds"
-  | "pointsAssists"
-  | "reboundsAssists";
-
-const VALID_BASKETBALL_STATS: ValidBasketballStat[] = [
-  "fouls",
-  "blocks",
-  "points",
-  "steals",
-  "assists",
-  "minutes",
-  "turnovers",
-  "rebounds",
-  "twoPointsMade",
-  "fieldGoalsMade",
-  "freeThrowsMade",
-  "threePointsMade",
-  "defensiveRebounds",
-  "offensiveRebounds",
-  "twoPointPercentage",
-  "twoPointsAttempted",
-  "fieldGoalsAttempted",
-  "freeThrowsAttempted",
-  "threePointsAttempted",
-  // Extended stats
-  "trueShootingPct",
-  "usageRate",
-  "reboundsPct",
-  "assistsPct",
-  "blocksPct",
-  "stealsPct",
-  "threePct",
-  "pointsReboundsAssists",
-  "pointsRebounds",
-  "pointsAssists",
-  "reboundsAssists",
-];
+    >;
 
 export const basketballRoute = Router();
-
-function validateTeamStats(
-  teamStats: any
-): teamStats is InferInsertModel<typeof basketballTeamStats> {
-  const validLeagues = leagueType.enumValues;
-  return (
-    typeof teamStats.gameId === "string" &&
-    typeof teamStats.teamId === "number" &&
-    typeof teamStats.league === "string" &&
-    validLeagues.includes(teamStats.league as any) &&
-    (typeof teamStats.score === "number" || teamStats.score === undefined) &&
-    (typeof teamStats.fouls === "number" || teamStats.fouls === undefined) &&
-    (typeof teamStats.blocks === "number" || teamStats.blocks === undefined) &&
-    (typeof teamStats.steals === "number" || teamStats.steals === undefined) &&
-    (typeof teamStats.assists === "number" ||
-      teamStats.assists === undefined) &&
-    (typeof teamStats.turnovers === "number" ||
-      teamStats.turnovers === undefined) &&
-    (typeof teamStats.rebounds === "number" ||
-      teamStats.rebounds === undefined) &&
-    (typeof teamStats.twoPointsMade === "number" ||
-      teamStats.twoPointsMade === undefined) &&
-    (typeof teamStats.fieldGoalsMade === "number" ||
-      teamStats.fieldGoalsMade === undefined) &&
-    (typeof teamStats.freeThrowsMade === "number" ||
-      teamStats.freeThrowsMade === undefined) &&
-    (typeof teamStats.threePointsMade === "number" ||
-      teamStats.threePointsMade === undefined) &&
-    (typeof teamStats.defensiveRebounds === "number" ||
-      teamStats.defensiveRebounds === undefined) &&
-    (typeof teamStats.offensiveRebounds === "number" ||
-      teamStats.offensiveRebounds === undefined) &&
-    (typeof teamStats.twoPointPercentage === "number" ||
-      teamStats.twoPointPercentage === undefined) &&
-    (typeof teamStats.twoPointsAttempted === "number" ||
-      teamStats.twoPointsAttempted === undefined) &&
-    (typeof teamStats.fieldGoalsAttempted === "number" ||
-      teamStats.fieldGoalsAttempted === undefined) &&
-    (typeof teamStats.freeThrowsAttempted === "number" ||
-      teamStats.freeThrowsAttempted === undefined) &&
-    (typeof teamStats.threePointsAttempted === "number" ||
-      teamStats.threePointsAttempted === undefined)
-  );
-}
+const basketballPlayerStatsSchema = createInsertSchema(basketballPlayerStats);
+const basketballTeamStatsSchema = createInsertSchema(basketballTeamStats);
 
 basketballRoute.post(
   "/stats/basketball/teams",
@@ -134,24 +48,8 @@ basketballRoute.post(
         return;
       }
 
-      const invalidTeamStats = teamStatsToInsert.filter(
-        (teamStatsData, index) => {
-          if (!validateTeamStats(teamStatsData)) {
-            logger.warn(`Invalid team stats data at index ${index}`, {
-              teamStatsData,
-            });
-            return true;
-          }
-          return false;
-        }
-      );
-
-      if (invalidTeamStats.length > 0) {
-        res.status(400).json({
-          error: "Invalid team stats data provided",
-          details: `${invalidTeamStats.length} team stats have invalid data.`,
-        });
-        return;
+      for (const entry of teamStatsToInsert) {
+        basketballTeamStatsSchema.parse(entry);
       }
 
       const result = await db
@@ -171,58 +69,6 @@ basketballRoute.post(
   }
 );
 
-function validatePlayerStats(
-  playerStats: any
-): playerStats is InferInsertModel<typeof basketballPlayerStats> {
-  const validLeagues = leagueType.enumValues;
-  return (
-    typeof playerStats.gameId === "string" &&
-    typeof playerStats.playerId === "number" &&
-    typeof playerStats.teamId === "number" &&
-    typeof playerStats.league === "string" &&
-    validLeagues.includes(playerStats.league as any) &&
-    (typeof playerStats.fouls === "number" ||
-      playerStats.fouls === undefined) &&
-    (typeof playerStats.blocks === "number" ||
-      playerStats.blocks === undefined) &&
-    (typeof playerStats.points === "number" ||
-      playerStats.points === undefined) &&
-    (typeof playerStats.steals === "number" ||
-      playerStats.steals === undefined) &&
-    (typeof playerStats.assists === "number" ||
-      playerStats.assists === undefined) &&
-    (typeof playerStats.minutes === "number" ||
-      playerStats.minutes === undefined) &&
-    (typeof playerStats.turnovers === "number" ||
-      playerStats.turnovers === undefined) &&
-    (typeof playerStats.rebounds === "number" ||
-      playerStats.rebounds === undefined) &&
-    (typeof playerStats.twoPointsMade === "number" ||
-      playerStats.twoPointsMade === undefined) &&
-    (typeof playerStats.fieldGoalsMade === "number" ||
-      playerStats.fieldGoalsMade === undefined) &&
-    (typeof playerStats.freeThrowsMade === "number" ||
-      playerStats.freeThrowsMade === undefined) &&
-    (typeof playerStats.threePointsMade === "number" ||
-      playerStats.threePointsMade === undefined) &&
-    (typeof playerStats.defensiveRebounds === "number" ||
-      playerStats.defensiveRebounds === undefined) &&
-    (typeof playerStats.offensiveRebounds === "number" ||
-      playerStats.offensiveRebounds === undefined) &&
-    (typeof playerStats.twoPointPercentage === "number" ||
-      playerStats.twoPointPercentage === undefined) &&
-    (typeof playerStats.twoPointsAttempted === "number" ||
-      playerStats.twoPointsAttempted === undefined) &&
-    (typeof playerStats.fieldGoalsAttempted === "number" ||
-      playerStats.fieldGoalsAttempted === undefined) &&
-    (typeof playerStats.freeThrowsAttempted === "number" ||
-      playerStats.freeThrowsAttempted === undefined) &&
-    (typeof playerStats.threePointsAttempted === "number" ||
-      playerStats.threePointsAttempted === undefined) &&
-    typeof playerStats.status === "string"
-  );
-}
-
 basketballRoute.post(
   "/stats/basketball/players",
   apiKeyMiddleware,
@@ -238,24 +84,8 @@ basketballRoute.post(
         return;
       }
 
-      const invalidPlayerStats = playerStatsToInsert.filter(
-        (playerStatsData, index) => {
-          if (!validatePlayerStats(playerStatsData)) {
-            logger.warn(`Invalid player stats data at index ${index}`, {
-              playerStatsData,
-            });
-            return true;
-          }
-          return false;
-        }
-      );
-
-      if (invalidPlayerStats.length > 0) {
-        res.status(400).json({
-          error: "Invalid player stats data provided",
-          details: `${invalidPlayerStats.length} player stats have invalid data.`,
-        });
-        return;
+      for (const entry of playerStatsToInsert) {
+        basketballPlayerStatsSchema.parse(entry);
       }
 
       const result = await db
@@ -447,7 +277,7 @@ async function getPlayerTeamStats(
           )
       ).map((row) => row);
 
-      return stats
+      return stats;
     })
   );
 }
@@ -556,14 +386,6 @@ basketballRoute.get(
         res
           .status(400)
           .json({ error: "Invalid league parameter for basketball" });
-        return;
-      }
-
-      if (!VALID_BASKETBALL_STATS.includes(requestedStat)) {
-        res.status(400).json({
-          error: "Invalid stat parameter",
-          validStats: VALID_BASKETBALL_STATS,
-        });
         return;
       }
 
