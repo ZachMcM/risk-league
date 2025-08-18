@@ -13,7 +13,7 @@ from prop_generation.configs.baseball import (batting_stats,
                                               get_baseball_stats_list,
                                               pitching_stats)
 from prop_generation.generator.base import GameStats
-from prop_generation.generator.base_generator import BasePropGenerator
+from orchestration.prop_generation.generator.main import BasePropGenerator
 from utils import data_feeds_req, getenv_required, server_req, setup_logger
 
 logger = setup_logger(__name__)

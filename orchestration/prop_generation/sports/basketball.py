@@ -17,7 +17,7 @@ from prop_generation.configs.basketball import (
     get_basketball_stats_list,
 )
 from prop_generation.generator.base import GameStats
-from prop_generation.generator.base_generator import BasePropGenerator
+from orchestration.prop_generation.generator.main import BasePropGenerator
 from utils import data_feeds_req, getenv_required, server_req, setup_logger
 
 logger = setup_logger(__name__)

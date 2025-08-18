@@ -3,7 +3,7 @@ import sys
 from datetime import datetime, timedelta
 
 from utils import data_feeds_req, server_req, setup_logger
-from extract_stats import extract_player_stats, extract_team_stats, LEAGUE_CONFIG
+from extract_stats.main import extract_player_stats, extract_team_stats, LEAGUE_CONFIG
 
 logger = setup_logger(__name__)
 

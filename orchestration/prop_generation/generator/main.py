@@ -1,4 +1,4 @@
-from typing import TypeVar, Any
+from typing import TypeVar, Any, Protocol
 import warnings
 import numpy as np
 import pandas as pd
@@ -9,8 +9,14 @@ from sklearn.preprocessing import StandardScaler
 from prop_generation.generator.base import GameStats, ModelType, PropConfig, PropGenerator
 from prop_generation.generator.features import FeatureExtractor
 
-PlayerStatsType = TypeVar("PlayerStatsType")
-TeamStatsType = TypeVar("TeamStatsType")
+
+class StatsDict(Protocol):
+    """Protocol for objects that support dictionary-like access"""
+    def __getitem__(self, key: str) -> Any: ...
+
+
+PlayerStatsType = TypeVar("PlayerStatsType", bound=StatsDict)
+TeamStatsType = TypeVar("TeamStatsType", bound=StatsDict)
 
 BIAS = 0.2
 
