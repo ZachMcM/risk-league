@@ -16,6 +16,39 @@ from prop_generation.generator.base import (
 from prop_generation.generator.registry import football_registry, register_football_stat
 
 
+ELIGIBILITY_THRESHOLDS = {
+    "QB": {
+        "passing_yards": 0.5,  # Starting QBs should generate props
+        "passing_touchdowns": 0.5,
+        "passing_rushing_touchdowns": 0.5,
+        "passing_interceptions": 0.5,  # Lower threshold for interceptions
+    },
+    "RB": {
+        "rushing_yards": 0.4,  # Primary and backup RBs
+        "rushing_touchdowns": 0.3,  # TDs are less frequent
+        "receiving_yards": 0.2,  # Pass-catching RBs
+    },
+    "WR": {
+        "receiving_yards": 0.3,  # WR1, WR2, some WR3s
+        "receiving_touchdowns": 0.2,  # TDs are less frequent
+        "receiving_rushing_touchdowns": 0.2,
+    },
+    "TE": {
+        "receiving_yards": 0.25,  # Pass-catching TEs
+        "receiving_touchdowns": 0.2,
+        "receiving_rushing_touchdowns": 0.2,
+    },
+    "K": {
+        "field_goals_made": 0.5,  # Most active kickers
+    },
+    "PK": {
+        "field_goals_made": 0.5,  # Most active kickers
+    },
+}
+
+SAMPLE_SIZE = 5
+MIN_LINE_FOR_UNDER = 10
+
 @register_football_stat
 def passing_yards_config() -> PropConfig:
     """Passing Yards configuration"""
@@ -210,8 +243,8 @@ def passing_interceptions_config() -> PropConfig:
             FeatureDefinition("completions", "completions", DataScope.PLAYER),
             FeatureDefinition("passer_rating", "passerRating", DataScope.PLAYER),
             FeatureDefinition(
-                "opp_defensive_interceptions",
-                "defensiveInterceptions",
+                "opp_defense_interceptions",
+                "defenseInterceptions",
                 DataScope.OPPONENT,
             ),
             FeatureDefinition("team_turnovers", "turnovers", DataScope.TEAM),

@@ -13,29 +13,18 @@ from my_types.server import (
     Player,
 )
 from prop_generation.configs.basketball import (
+    ELIGIBILITY_THRESHOLDS,
+    SAMPLE_SIZE,
+    MIN_LINE_FOR_UNDER,
     get_basketball_prop_configs,
     get_basketball_stats_list,
 )
 from prop_generation.generator.base import GameStats
-from orchestration.prop_generation.generator.main import BasePropGenerator
-from utils import data_feeds_req, getenv_required, server_req, setup_logger
+from prop_generation.generator.main import BasePropGenerator
+from utils import data_feeds_req, server_req, setup_logger
 
 logger = setup_logger(__name__)
 
-BASKETBALL_ELIGIBILITY_THRESHOLDS = {
-    "points": 0.25,
-    "rebounds": 0.5,
-    "free_throws_made": 0.5,
-    "assists": 0.25,
-    "three_points_made": 0.35,
-    "blocks": 0.5,
-    "steals": 0.5,
-    "turnovers": 0.8,
-    "points_rebounds_assists": 0.5,
-    "points_rebounds": 0.5,
-    "points_assists": 0.5,
-    "rebounds_assists": 0.5,
-}
 
 def is_stat_eligible_for_player(
     stat: str,
@@ -45,14 +34,13 @@ def is_stat_eligible_for_player(
     league_minutes_avg: float,
 ) -> bool:
     """Check if a player is eligible for a specific stat prop based on performance and position."""
-    if stat not in BASKETBALL_ELIGIBILITY_THRESHOLDS:
+    if stat not in ELIGIBILITY_THRESHOLDS:
         return False
 
-    if minutes_avg <= 0.5 * league_minutes_avg:
-        logger.info("Failed minutes threshold")
+    if minutes_avg <=  ELIGIBILITY_THRESHOLDS["minutes"] * league_minutes_avg:
         return False
 
-    base_threshold = BASKETBALL_ELIGIBILITY_THRESHOLDS[stat]
+    base_threshold = ELIGIBILITY_THRESHOLDS[stat]
 
     return player_avg >= base_threshold * league_avg
 
@@ -64,6 +52,7 @@ def get_position_umbrella(position: str):
         return "G"
     else:
         return "C"
+
 
 def main():
     try:
@@ -87,10 +76,12 @@ def main():
 
             leagues_averages = {}
             for stat in stats_list:
+                config = configs[stat]
                 leagues_averages[stat] = {}
                 for position in ["G", "F", "C"]:
+                    logger.info(f"Fetching league average {stat} for {position}")
                     league_position_avg: LeagueAverages = server_req(
-                        route=f"/stats/basketball/league/{league}/averages/{stat}?position={position}",
+                        route=f"/stats/basketball/league/{league}/averages/{config.target_field}?position={position}",
                         method="GET",
                     ).json()
                     leagues_averages[stat][position] = league_position_avg["average"]
@@ -101,7 +92,6 @@ def main():
                 route=f"/stats/basketball/league/{league}/averages/minutes",
                 method="GET",
             ).json()
-            sample_size = getenv_required("BASKETBALL_SAMPLE_SIZE")
 
             games_today = today_schedule_req.json()
             games_list = games_today["data"][league]
@@ -109,29 +99,29 @@ def main():
                 logger.info(f"Processing {league} game {game['game_ID']}")
                 team_ids: list[int] = [game["home_team_ID"], game["away_team_ID"]]
 
-                # game_insert_body = {
-                #     "gameId": game["game_ID"],
-                #     "startTime": game["game_time"],
-                #     "homeTeamId": team_ids[0],
-                #     "awayTeamId": team_ids[1],
-                #     "league": league,
-                # }
-                # server_req(
-                #     route="/games", method="POST", body=json.dumps(game_insert_body)
-                # )
+                game_insert_body = {
+                    "gameId": game["game_ID"],
+                    "startTime": game["game_time"],
+                    "homeTeamId": team_ids[0],
+                    "awayTeamId": team_ids[1],
+                    "league": league,
+                }
+                server_req(
+                    route="/games", method="POST", body=json.dumps(game_insert_body)
+                )
 
                 for index, team_id in enumerate(team_ids):
                     team_active_players_data: list[Player] = server_req(
                         route=f"/players/league/{league}/team/{team_id}/active",
                         method="GET",
                     ).json()
-                    eligible_stats = []
 
                     for player in team_active_players_data:
-                        position_umbrella = get_position_umbrella(player['position'])
-                        
+                        eligible_stats = []
+                        position_umbrella = get_position_umbrella(player["position"])
+
                         player_stats_list: list[BasketballPlayerStats] = server_req(
-                            route=f"/stats/basketball/league/{league}/players/{player['playerId']}?limit={sample_size}",
+                            route=f"/stats/basketball/league/{league}/players/{player['playerId']}?limit={SAMPLE_SIZE}",
                             method="GET",
                         ).json()
 
@@ -159,7 +149,7 @@ def main():
                                     ]
                                 )
                             )
-
+                            
                             if is_stat_eligible_for_player(
                                 stat,
                                 player_stat_avg,
@@ -168,20 +158,23 @@ def main():
                                 league_avg_minutes_data["average"],
                             ):
                                 eligible_stats.append(stat)
+                                
+                        if not eligible_stats:
+                            continue
 
                         team_stats_list: list[BasketballTeamStats] = server_req(
-                            route=f"/stats/basketball/league/{league}/players/{player['playerId']}/team-stats?limit={sample_size}",
+                            route=f"/stats/basketball/league/{league}/players/{player['playerId']}/team-stats?limit={SAMPLE_SIZE}",
                             method="GET",
                         ).json()
                         prev_opponent_stats_list: list[BasketballTeamStats] = (
                             server_req(
-                                route=f"/stats/basketball/league/{league}/players/{player['playerId']}/team-stats/opponents?limit={sample_size}",
+                                route=f"/stats/basketball/league/{league}/players/{player['playerId']}/team-stats/opponents?limit={SAMPLE_SIZE}",
                                 method="GET",
                             ).json()
                         )
                         curr_opponents_stats_list: list[BasketballTeamStats] = (
                             server_req(
-                                route=f"/stats/basketball/league/{league}/teams/{team_ids[0] if index == 0 else team_ids[1]}?limit={sample_size}",
+                                route=f"/stats/basketball/league/{league}/teams/{team_ids[0] if index == 0 else team_ids[1]}?limit={SAMPLE_SIZE}",
                                 method="GET",
                             ).json()
                         )
@@ -210,7 +203,7 @@ def main():
                                     "league": league,
                                     "gameId": game["game_ID"],
                                     "choices": (
-                                        ["over", "under"] if prop_line > 5 else ["over"]
+                                        ["over", "under"] if prop_line > MIN_LINE_FOR_UNDER else ["over"]
                                     ),
                                 }
 

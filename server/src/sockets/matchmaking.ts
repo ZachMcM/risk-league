@@ -6,6 +6,7 @@ import { db } from "../db";
 import { leagueType, match, matchUser, user } from "../db/schema";
 import { redis } from "../redis";
 import { getRank } from "../utils/getRank";
+import { MAX_STARTING_BALANCE, MIN_STARTING_BALANCE } from "../config";
 
 export async function createMatch({
   user1Id,
@@ -19,10 +20,8 @@ export async function createMatch({
   type?: string;
 }) {
   const startingBalance = Math.round(
-    parseInt(process.env.MIN_STARTING_BALANCE!) +
-      Math.random() *
-        (parseInt(process.env.MAX_STARTING_BALANCE!) -
-          parseInt(process.env.MIN_STARTING_BALANCE!)),
+    MIN_STARTING_BALANCE +
+      Math.random() * (MAX_STARTING_BALANCE - MIN_STARTING_BALANCE)
   );
 
   const [matchResult] = await db
@@ -136,7 +135,7 @@ export async function matchMakingHandler(socket: Socket) {
   }
 
   logger.info(
-    `User ${userId} connected to matchmaking namespace for ${league}`,
+    `User ${userId} connected to matchmaking namespace for ${league}`
   );
 
   socket.join(userId);

@@ -22,6 +22,7 @@ import { apiKeyMiddleware } from "../../middleware";
 import { redis } from "../../redis";
 import { handleError } from "../../utils/handleError";
 import { createInsertSchema } from "drizzle-zod";
+import { MIN_GAMES_FOR_CURRENT_BASKETBALL_SEASON } from "../../config";
 
 type BasketballPlayerStatsRow = InferSelectModel<typeof basketballPlayerStats>;
 type ValidBasketballStat =
@@ -389,13 +390,6 @@ basketballRoute.get(
         return;
       }
 
-      const minGamesEnvVar =
-        league === "NBA"
-          ? "MIN_GAMES_FOR_CURRENT_NBA_SEASON"
-          : "MIN_GAMES_FOR_CURRENT_NCAABB_SEASON";
-
-      const minGames = parseInt(process.env[minGamesEnvVar]!);
-
       // Basketball seasons span calendar years (Oct/Nov to Apr/May)
       // Current season year is based on when season started
       const now = new Date();
@@ -463,7 +457,7 @@ basketballRoute.get(
         )
       ).map((row) => row.basketball_player_stats);
 
-      if (statsList.length < minGames) {
+      if (statsList.length < MIN_GAMES_FOR_CURRENT_BASKETBALL_SEASON) {
         const previousSeasonYear = currentSeasonYear - 1;
 
         let fallbackQuery = db
@@ -539,7 +533,7 @@ basketballRoute.get(
         average: parseFloat(average.toFixed(4)),
         sampleSize: statsList.length,
         dataSource:
-          statsList.length < minGames
+          statsList.length < MIN_GAMES_FOR_CURRENT_BASKETBALL_SEASON
             ? "current + previous season"
             : "current season",
       };

@@ -3,13 +3,13 @@ import { apiKeyMiddleware } from "../middleware";
 import { logger } from "../logger";
 import { db } from "../db";
 import { game, leagueType } from "../db/schema";
-import { InferInsertModel } from "drizzle-orm";
+import { InferInsertModel, sql } from "drizzle-orm";
 import { handleError } from "../utils/handleError";
 import { createInsertSchema } from "drizzle-zod";
 
 export const gamesRoute = Router();
 
-const gamesSchema = createInsertSchema(game)
+const gamesSchema = createInsertSchema(game);
 
 gamesRoute.post("/games", apiKeyMiddleware, async (req, res) => {
   try {
@@ -24,12 +24,18 @@ gamesRoute.post("/games", apiKeyMiddleware, async (req, res) => {
     }
 
     for (const entry of gamesToInsert) {
-      gamesSchema.parse(entry)
+      gamesSchema.parse(entry);
     }
 
     const result = await db
       .insert(game)
       .values(gamesToInsert)
+      .onConflictDoUpdate({
+        target: [game.gameId, game.league],
+        set: {
+          gameId: sql`EXCLUDED.game_id`,
+        },
+      })
       .returning({ id: game.gameId });
 
     logger.info(`Successfully inserted ${result.length} game(s)`);

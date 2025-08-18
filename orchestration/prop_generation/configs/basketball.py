@@ -10,6 +10,25 @@ def fgm_config() -> PropConfig:
 from prop_generation.generator.base import DataScope, FeatureDefinition, ModelType, PropConfig
 from prop_generation.generator.registry import basketball_registry, register_basketball_stat
 
+ELIGIBILITY_THRESHOLDS = {
+    "minutes": 0.5,
+    "points": 0.75,
+    "rebounds": 0.75,
+    "free_throws_made": 1.75,
+    "assists": 0.75,
+    "three_points_made": 1.5,
+    "three_points_attempted": 1.5,
+    "blocks": 1.5,
+    "steals": 1.5,
+    "turnovers": 1.5,
+    "points_rebounds_assists": 1,
+    "points_rebounds": 1.25,
+    "points_assists": 1.25,
+    "rebounds_assists": 1.25,
+}
+
+SAMPLE_SIZE = 15
+MIN_LINE_FOR_UNDER = 5
 
 @register_basketball_stat
 def points_config() -> PropConfig:

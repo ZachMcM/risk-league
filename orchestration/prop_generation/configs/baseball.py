@@ -15,14 +15,24 @@ from prop_generation.generator.base import (
 )
 from prop_generation.generator.registry import register_baseball_stat, baseball_registry
 
-pitching_stats = [
+
+ELIGIBILITY_THRESHOLDS = {
+    "stolen_bases": 1.5,
+    "at_bats": 1.5
+}
+
+SAMPLE_SIZE = 20
+
+MIN_LINE_FOR_UNDER = 5
+
+PITCHING_STATS = [
     "pitching_strikeouts",
     "pitches_thrown",
     "earned_runs",
     "hits_allowed",
     "pitching_walks",
 ]
-batting_stats = [
+BATTING_STATS = [
     "home_runs",
     "doubles",
     "triples",
@@ -214,6 +224,7 @@ def pitching_strikeouts_config() -> PropConfig:
             FeatureDefinition("strikes", "strikes", DataScope.PLAYER),
             FeatureDefinition("opp_strikeouts", "strikeouts", DataScope.OPPONENT),
             FeatureDefinition("opp_batting_avg", "battingAvg", DataScope.OPPONENT),
+            FeatureDefinition("opp_slugging_pct", "sluggingPct", DataScope.OPPONENT)
         ],
         model_type=ModelType.RIDGE,
         model_params={"alpha": 1},
@@ -237,6 +248,9 @@ def pitches_thrown_config() -> PropConfig:
             FeatureDefinition("hits_allowed", "hitsAllowed", DataScope.PLAYER),
             FeatureDefinition("opp_ops", "ops", DataScope.OPPONENT),
             FeatureDefinition("opp_runs", "runs", DataScope.OPPONENT),
+            FeatureDefinition("opp_strikeouts", "strikeouts", DataScope.OPPONENT),
+            FeatureDefinition("opp_batting_avg", "battingAvg", DataScope.OPPONENT),
+            FeatureDefinition("opp_slugging_pct", "sluggingPct", DataScope.OPPONENT)
         ],
         model_type=ModelType.RIDGE,
         model_params={"alpha": 1},
@@ -257,6 +271,9 @@ def earned_runs_config() -> PropConfig:
             FeatureDefinition("home_runs_allowed", "homeRunsAllowed", DataScope.PLAYER),
             FeatureDefinition("opp_runs", "runs", DataScope.OPPONENT),
             FeatureDefinition("opp_ops", "ops", DataScope.OPPONENT),
+            FeatureDefinition("opp_strikeouts", "strikeouts", DataScope.OPPONENT),
+            FeatureDefinition("opp_batting_avg", "battingAvg", DataScope.OPPONENT),
+            FeatureDefinition("opp_slugging_pct", "sluggingPct", DataScope.OPPONENT)
         ],
         model_type=ModelType.RIDGE,
         model_params={"alpha": 1},
@@ -278,6 +295,7 @@ def hits_allowed_config() -> PropConfig:
             ),
             FeatureDefinition("opp_batting_avg", "battingAvg", DataScope.OPPONENT),
             FeatureDefinition("opp_slugging_pct", "sluggingPct", DataScope.OPPONENT),
+            FeatureDefinition("opp_strikeouts", "strikeouts", DataScope.OPPONENT),
         ],
         model_type=ModelType.RIDGE,
         model_params={"alpha": 1},
@@ -295,6 +313,7 @@ def pitching_walks_config() -> PropConfig:
             FeatureDefinition("innings_pitched", "inningsPitched", DataScope.PLAYER),
             FeatureDefinition("pitches_thrown", "pitchesThrown", DataScope.PLAYER),
             FeatureDefinition("opp_walks", "walks", DataScope.OPPONENT),
+            FeatureDefinition("opp_obp", "obp", DataScope.OPPONENT)
         ],
         model_type=ModelType.POISSON,
         model_params={"alpha": 1},

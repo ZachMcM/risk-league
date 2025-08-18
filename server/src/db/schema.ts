@@ -480,13 +480,21 @@ export const baseballTeamStats = pgTable(
     gameId: text("game_id").notNull(),
     // Extended baseball team stats
     homeRunsAllowed: integer("home_runs_allowed").default(0).notNull(),
+    doublesAllowed: integer("doubles_allowed").default(0).notNull(),
+    triplesAllowed: integer("triples_allowed").default(0).notNull(),
+    hitsAllowed: integer().default(0).notNull(),
+    runsAllowed: integer().default(0).notNull(),
+    strikes: integer().default(0).notNull(),
+    pitchingWalks: integer("pitching_walks").default(0).notNull(),
+    pitchesThrown: integer().default(0).notNull(),
     pitchingStrikeouts: integer("pitching_strikeouts").default(0).notNull(),
     battingAvg: doublePrecision("batting_avg").default(0.0).notNull(),
-    onBasePercentage: doublePrecision("on_base_percentage").default(0.0).notNull(),
-    sluggingPercentage: doublePrecision("slugging_percentage").default(0.0).notNull(),
+    obp: doublePrecision("on_base_percentage").default(0.0).notNull(),
+    pitchingCaughtStealing: integer("pitching_caught_stealing").default(0).notNull(),
+    sluggingPct: doublePrecision("slugging_pct").default(0.0).notNull(),
     ops: doublePrecision().default(0.0).notNull(),
-    teamEra: doublePrecision("team_era").default(0.0).notNull(),
-    teamWhip: doublePrecision("team_whip").default(0.0).notNull()
+    stolenBasesAllowed: integer("stolen_bases_allowed").default(0).notNull(),
+    earnedRuns: integer("earned_runs").default(0).notNull()
   },
   (table) => [
     foreignKey({

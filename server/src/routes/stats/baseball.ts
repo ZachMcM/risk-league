@@ -20,6 +20,7 @@ import { apiKeyMiddleware } from "../../middleware";
 import { redis } from "../../redis";
 import { handleError } from "../../utils/handleError";
 import { createInsertSchema } from "drizzle-zod";
+import { MIN_GAMES_FOR_CURRENT_MLB_SEASON } from "../../config";
 
 // Create type-safe union of valid baseball stats (including extended stats)
 type BaseballPlayerStatsRow = InferSelectModel<typeof baseballPlayerStats>;
@@ -266,7 +267,7 @@ async function getPlayerTeamStats(
               eq(baseballTeamStats.league, league)
             )
           )
-      ).map((row) => row);
+      );
 
       return stats;
     })
@@ -372,8 +373,7 @@ baseballRoute.get(
         res.status(400).json({ error: "Invalid league parameter" });
         return;
       }
-
-      const minGames = parseInt(process.env.MIN_GAMES_FOR_CURRENT_SEASON_MLB!);
+;
       const currentYear = new Date().getFullYear();
 
       const cacheKey = `baseball:averages:${league}:${requestedStat}:${currentYear}`;
@@ -403,7 +403,7 @@ baseballRoute.get(
           )
       ).map((row) => row.baseball_player_stats);
 
-      if (statsList.length < minGames) {
+      if (statsList.length < MIN_GAMES_FOR_CURRENT_MLB_SEASON) {
         const pastYear = currentYear - 1;
 
         statsList = (
@@ -447,7 +447,7 @@ baseballRoute.get(
         average: parseFloat(average.toFixed(4)),
         sampleSize: statsList.length,
         dataSource:
-          statsList.length < minGames
+          statsList.length < MIN_GAMES_FOR_CURRENT_MLB_SEASON
             ? "current + previous season"
             : "current season",
       };

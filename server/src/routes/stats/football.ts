@@ -2,10 +2,11 @@ import {
   and,
   desc,
   eq,
+  inArray,
   InferInsertModel,
   InferSelectModel,
   or,
-  sql
+  sql,
 } from "drizzle-orm";
 import { Router } from "express";
 import { db } from "../../db";
@@ -21,6 +22,7 @@ import { apiKeyMiddleware } from "../../middleware";
 import { redis } from "../../redis";
 import { handleError } from "../../utils/handleError";
 import { createInsertSchema } from "drizzle-zod";
+import { MIN_GAMES_FOR_CURRENT_FOOTBALL_SEASON } from "../../config";
 
 // Create type-safe union of valid football stats
 type FootballPlayerStatsRow = InferSelectModel<typeof footballPlayerStats>;
@@ -28,11 +30,11 @@ type ValidFootballStat =
   | keyof Omit<
       FootballPlayerStatsRow,
       "id" | "gameId" | "playerId" | "league" | "status"
-    >
+    >;
 
 export const footballRoute = Router();
-const footballTeamStatsSchema = createInsertSchema(footballTeamStats)
-const footballPlayerStatsSchema = createInsertSchema(footballPlayerStats)
+const footballTeamStatsSchema = createInsertSchema(footballTeamStats);
+const footballPlayerStatsSchema = createInsertSchema(footballPlayerStats);
 
 footballRoute.post(
   "/stats/football/teams",
@@ -49,7 +51,7 @@ footballRoute.post(
       }
 
       for (const entry of teamStatsToInsert) {
-        footballTeamStatsSchema.parse(entry)
+        footballTeamStatsSchema.parse(entry);
       }
 
       const result = await db
@@ -85,7 +87,7 @@ footballRoute.post(
       }
 
       for (const entry of playerStatsToInsert) {
-        footballPlayerStatsSchema.parse(entry)
+        footballPlayerStatsSchema.parse(entry);
       }
 
       const result = await db
@@ -240,11 +242,13 @@ async function getPlayerTeamStats(
       footballPlayerStats,
       and(eq(game.gameId, footballPlayerStats.gameId), eq(game.league, league))
     )
-    .where(and(
-      eq(footballPlayerStats.playerId, playerId),
-      eq(footballPlayerStats.league, league),
-      eq(footballPlayerStats.status, "ACT")
-    ))
+    .where(
+      and(
+        eq(footballPlayerStats.playerId, playerId),
+        eq(footballPlayerStats.league, league),
+        eq(footballPlayerStats.status, "ACT")
+      )
+    )
     .orderBy(desc(game.startTime))
     .limit(limit);
 
@@ -385,56 +389,22 @@ footballRoute.get(
         return;
       }
 
-      const minGames = parseInt(
-        process.env.MIN_GAMES_FOR_CURRENT_FOOTBALL_SEASON!
-      );
-      
       // Football seasons span calendar years (Aug/Sep to Jan/Feb)
       // Current season year is based on when season started
       const now = new Date();
       const currentYear = now.getFullYear();
-      const currentSeasonYear = now.getMonth() >= 7 ? currentYear : currentYear - 1; // Season starts in August
+      const currentSeasonYear =
+        now.getMonth() >= 7 ? currentYear : currentYear - 1; // Season starts in August
 
       const position = req.query.position as string | undefined;
 
       // Position is optional - if undefined, pull from all positions
-      if (position && ![
-          "SAF",
-          "CB",
-          "SS",
-          "P",
-          "ILB",
-          "DT",
-          "RB",
-          "QB",
-          "C",
-          "FB",
-          "LS",
-          "DB",
-          "OLB",
-          "LB",
-          "DL",
-          "K",
-          "OG",
-          "OT",
-          "T",
-          "G",
-          "WR",
-          "OL",
-          "TE",
-          "S",
-          "FS",
-          "MLB",
-          "NT",
-          "PK",
-          "DE",
-        ].includes(position)
-      ) {
+      if (position && !["QB", "WR", "TE", "RB", "K", "PK"].includes(position)) {
         res.status(400).json("Invalid position");
         return;
       }
 
-      const cacheKey = position 
+      const cacheKey = position
         ? `football:averages:${league}:${requestedStat}:${position}:${currentSeasonYear}`
         : `football:averages:${league}:${requestedStat}:all:${currentSeasonYear}`;
       const cached = await redis.get(cacheKey);
@@ -472,15 +442,23 @@ footballRoute.get(
             eq(footballPlayerStats.status, "ACT"),
             or(
               sql`EXTRACT(YEAR FROM ${game.startTime}) = ${currentSeasonYear}`,
-              sql`EXTRACT(YEAR FROM ${game.startTime}) = ${currentSeasonYear + 1}`
+              sql`EXTRACT(YEAR FROM ${game.startTime}) = ${
+                currentSeasonYear + 1
+              }`
             ),
             // Add position filter only if position is specified
-            ...(position ? [eq(player.position, position)] : [])
+            ...(position
+              ? [
+                  ["PK", "K"].includes(position)
+                    ? inArray(player.position, ["PK", "K"])
+                    : eq(player.position, position),
+                ]
+              : [])
           )
         )
       ).map((row) => row.football_player_stats);
 
-      if (statsList.length < minGames) {
+      if (statsList.length < MIN_GAMES_FOR_CURRENT_FOOTBALL_SEASON) {
         const previousSeasonYear = currentSeasonYear - 1;
 
         let fallbackQuery = db
@@ -513,13 +491,23 @@ footballRoute.get(
               or(
                 // Current season (spans 2 calendar years)
                 sql`EXTRACT(YEAR FROM ${game.startTime}) = ${currentSeasonYear}`,
-                sql`EXTRACT(YEAR FROM ${game.startTime}) = ${currentSeasonYear + 1}`,
+                sql`EXTRACT(YEAR FROM ${game.startTime}) = ${
+                  currentSeasonYear + 1
+                }`,
                 // Previous season (spans 2 calendar years)
                 sql`EXTRACT(YEAR FROM ${game.startTime}) = ${previousSeasonYear}`,
-                sql`EXTRACT(YEAR FROM ${game.startTime}) = ${previousSeasonYear + 1}`
+                sql`EXTRACT(YEAR FROM ${game.startTime}) = ${
+                  previousSeasonYear + 1
+                }`
               ),
               // Add position filter only if position is specified
-              ...(position ? [eq(player.position, position)] : [])
+              ...(position
+                ? [
+                    ["PK", "K"].includes(position)
+                      ? inArray(player.position, ["PK", "K"])
+                      : eq(player.position, position),
+                  ]
+                : [])
             )
           )
         ).map((row) => row.football_player_stats);
@@ -550,7 +538,7 @@ footballRoute.get(
         average: parseFloat(average.toFixed(4)),
         sampleSize: extendedStatsList.length,
         dataSource:
-          extendedStatsList.length < minGames
+          extendedStatsList.length < MIN_GAMES_FOR_CURRENT_FOOTBALL_SEASON
             ? "current + previous season"
             : "current season",
       };

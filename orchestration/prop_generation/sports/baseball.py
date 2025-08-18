@@ -6,15 +6,24 @@ from time import time
 from zoneinfo import ZoneInfo
 
 import numpy
-from my_types.server import (BaseballPlayerStats, BaseballTeamStats,
-                             LeagueAverages, Player)
-from prop_generation.configs.baseball import (batting_stats,
-                                              get_baseball_prop_configs,
-                                              get_baseball_stats_list,
-                                              pitching_stats)
+from my_types.server import (
+    BaseballPlayerStats,
+    BaseballTeamStats,
+    LeagueAverages,
+    Player,
+)
+from prop_generation.configs.baseball import (
+    BATTING_STATS,
+    PITCHING_STATS,
+    SAMPLE_SIZE,
+    ELIGIBILITY_THRESHOLDS,
+    MIN_LINE_FOR_UNDER,
+    get_baseball_prop_configs,
+    get_baseball_stats_list,
+)
 from prop_generation.generator.base import GameStats
-from orchestration.prop_generation.generator.main import BasePropGenerator
-from utils import data_feeds_req, getenv_required, server_req, setup_logger
+from prop_generation.generator.main import BasePropGenerator
+from utils import data_feeds_req, server_req, setup_logger
 
 logger = setup_logger(__name__)
 
@@ -40,8 +49,6 @@ def main() -> None:
 
         stats_list = get_baseball_stats_list()
         configs = get_baseball_prop_configs()
-
-        sample_size = getenv_required("BASEBALL_SAMPLE_SIZE")
 
         league_avg_at_bats_data: LeagueAverages = server_req(
             route="/stats/baseball/league/MLB/averages/atBats", method="GET"
@@ -74,9 +81,9 @@ def main() -> None:
                 ).json()
 
                 for player in team_active_players_data:
-                    eligible_stats_list = []
+                    eligible_stats = []
                     player_stats_list: list[BaseballPlayerStats] = server_req(
-                        route=f"/stats/baseball/league/MLB/players/{player['playerId']}?limit={sample_size}",
+                        route=f"/stats/baseball/league/MLB/players/{player['playerId']}?limit={SAMPLE_SIZE}",
                         method="GET",
                     ).json()
 
@@ -91,36 +98,42 @@ def main() -> None:
                     )
 
                     for stat in stats_list:
-                        if stat in pitching_stats:
+                        if stat in PITCHING_STATS:
                             if player["playerId"] == starting_pitcher_ids[index]:
-                                eligible_stats_list.append(stat)
+                                eligible_stats.append(stat)
                         elif stat == "stolen_bases":
                             if (
                                 avg_stolen_bases
-                                >= league_avg_stolen_bases_data["average"] * 1.5
+                                >= league_avg_stolen_bases_data["average"]
+                                * ELIGIBILITY_THRESHOLDS["stolen_bases"]
                                 and player["position"] != "P"
                             ):
-                                eligible_stats_list.append(stat)
-                        elif stat in batting_stats:
+                                eligible_stats.append(stat)
+                        elif stat in BATTING_STATS:
                             if (
-                                avg_at_bats >= league_avg_at_bats_data["average"] * 1.5
+                                avg_at_bats
+                                >= league_avg_at_bats_data["average"]
+                                * ELIGIBILITY_THRESHOLDS["at_bats"]
                                 and player["position"] != "P"
                             ):
-                                eligible_stats_list.append(stat)
+                                eligible_stats.append(stat)
 
-                    if len(eligible_stats_list) == 0:
+                    if not eligible_stats:
+                        logger.info(
+                            f"No eligible stats skipping player {player['name']}"
+                        )
                         continue
 
                     team_stats_list: list[BaseballTeamStats] = server_req(
-                        route=f"/stats/baseball/league/MLB/players/{player['playerId']}/team-stats?limit={sample_size}",
+                        route=f"/stats/baseball/league/MLB/players/{player['playerId']}/team-stats?limit={SAMPLE_SIZE}",
                         method="GET",
                     ).json()
                     prev_opponent_stats_list: list[BaseballTeamStats] = server_req(
-                        route=f"/stats/baseball/league/MLB/players/{player['playerId']}/team-stats/opponents?limit={sample_size}",
+                        route=f"/stats/baseball/league/MLB/players/{player['playerId']}/team-stats/opponents?limit={SAMPLE_SIZE}",
                         method="GET",
                     ).json()
                     curr_opponents_stats_list: list[BaseballTeamStats] = server_req(
-                        route=f"/stats/baseball/league/MLB/teams/{team_ids[0] if index == 0 else team_ids[1]}?limit={sample_size}",
+                        route=f"/stats/baseball/league/MLB/teams/{team_ids[0] if index == 0 else team_ids[1]}?limit={SAMPLE_SIZE}",
                         method="GET",
                     ).json()
 
@@ -133,7 +146,7 @@ def main() -> None:
 
                     generator = BasePropGenerator()
 
-                    for stat in eligible_stats_list:
+                    for stat in eligible_stats:
                         config = configs[stat]
                         prop_line = generator.generate_prop(config, games_stats_data)
 
@@ -146,7 +159,12 @@ def main() -> None:
                                 "league": "MLB",
                                 "gameId": game["game_ID"],
                                 "choices": (
-                                    ["over", "under"] if (stat in batting_stats or prop_line > 5) else ["over"]
+                                    ["over", "under"]
+                                    if (
+                                        stat in BATTING_STATS
+                                        or prop_line > MIN_LINE_FOR_UNDER
+                                    )
+                                    else ["over"]
                                 ),
                             }
 

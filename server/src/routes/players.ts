@@ -21,7 +21,7 @@ import { handleError } from "../utils/handleError";
 import { createInsertSchema } from "drizzle-zod";
 
 export const playersRoute = Router();
-const playersSchema = createInsertSchema(player)
+const playersSchema = createInsertSchema(player);
 
 playersRoute.post("/players", apiKeyMiddleware, async (req, res) => {
   try {
@@ -36,7 +36,7 @@ playersRoute.post("/players", apiKeyMiddleware, async (req, res) => {
     }
 
     for (const entry of playersToInsert) {
-      playersSchema.parse(entry)
+      playersSchema.parse(entry);
     }
 
     // Check which players have existing teams
@@ -85,6 +85,7 @@ playersRoute.post("/players", apiKeyMiddleware, async (req, res) => {
         target: [player.playerId, player.league],
         set: {
           teamId: sql`EXCLUDED.team_id`,
+          position: sql`EXCLUDED.position`,
           updatedAt: sql`EXCLUDED.updated_at`,
           status: sql`EXCLUDED.status`,
         },
@@ -155,10 +156,9 @@ playersRoute.get(
           parseInt(injuryEntry.player_id)
         );
 
-        const leagueDepthCharts: LeagueDepthCharts = (await dataFeedsReq(
-          `/depth-charts/${league}`,
-          { team_id: teamId }
-        )).data;
+        const leagueDepthCharts: LeagueDepthCharts = (
+          await dataFeedsReq(`/depth-charts/${league}`, { team_id: teamId })
+        ).data;
 
         const teamDepthChart =
           leagueDepthCharts[league][Object.keys(leagueDepthCharts[league])[0]];
@@ -177,12 +177,14 @@ playersRoute.get(
               const positionDepthChart = positionData as PositionDepthChart;
               Object.entries(positionDepthChart).forEach(([depth, player]) => {
                 if (player && typeof player === "object" && "id" in player) {
-                  const shouldInclude = 
+                  const shouldInclude =
                     (position === "QB" && depth === "1") ||
-                    (["WR1", "WR2", "WR3"].includes(position) && depth === "1") ||
+                    (["WR1", "WR2", "WR3"].includes(position) &&
+                      depth === "1") ||
+                    (position == "PK" && depth == "1") ||
                     (position === "TE" && ["1", "2"].includes(depth)) ||
                     (position === "RB" && ["1", "2", "3"].includes(depth));
-                  
+
                   if (shouldInclude) {
                     depthChartPlayerIds.push(player.id);
                   }

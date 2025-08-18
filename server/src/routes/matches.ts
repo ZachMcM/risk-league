@@ -13,6 +13,7 @@ import {
   getPerfectPlayMultiplier,
 } from "../utils/parlayMultipliers";
 import { handleError } from "../utils/handleError";
+import { K, MIN_PARLAYS_REQUIRED, MIN_PCT_TOTAL_STAKED } from "../config";
 
 export const matchesRoute = Router();
 
@@ -260,8 +261,6 @@ matchesRoute.post("/matches/:id/messages", authMiddleware, async (req, res) => {
  * https://en.wikipedia.org/wiki/Elo_rating_system
  */
 function recalculatePoints(currentPoints: number[], winner: number | null) {
-  const K = parseInt(process.env.K!);
-
   const R_A = currentPoints[0];
   const R_B = currentPoints[1];
 
@@ -290,8 +289,8 @@ function recalculatePoints(currentPoints: number[], winner: number | null) {
 
 matchesRoute.patch("/matches/end", apiKeyMiddleware, async (_, res) => {
   try {
-    const minParlaysRequired = parseInt(process.env.MIN_PARLAYS_REQUIRED!);
-    const minPctTotalStaked = parseFloat(process.env.MIN_PCT_TOTAL_STAKED!);
+    const minParlaysRequired = MIN_PARLAYS_REQUIRED;
+    const minPctTotalStaked = MIN_PCT_TOTAL_STAKED;
 
     const unResolvedMatches = await db.query.match.findMany({
       where: eq(match.resolved, false),
