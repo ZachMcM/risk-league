@@ -4,9 +4,8 @@ import {
   eq,
   InferInsertModel,
   InferSelectModel,
-  ne,
   or,
-  sql,
+  sql
 } from "drizzle-orm";
 import { Router } from "express";
 import { db } from "../../db";
@@ -19,8 +18,8 @@ import {
 } from "../../db/schema";
 import { logger } from "../../logger";
 import { apiKeyMiddleware } from "../../middleware";
-import { handleError } from "../../utils/handleError";
 import { redis } from "../../redis";
+import { handleError } from "../../utils/handleError";
 
 // Create type-safe union of valid football stats
 type FootballPlayerStatsRow = InferSelectModel<typeof footballPlayerStats>;
@@ -347,15 +346,7 @@ footballRoute.get(
           .limit(limit)
       ).map((row) => row.football_player_stats);
 
-      const extendedStats = playerStats.map((stats) => ({
-        ...stats,
-        receivingRushingTouchdowns:
-          stats.receivingTouchdowns + stats.rushingTouchdowns,
-        passingRushingTouchdowns:
-          stats.passingTouchdowns + stats.rushingTouchdowns,
-      }));
-
-      res.json(extendedStats);
+      res.json(playerStats);
     } catch (error) {
       handleError(error, res, "Football stats");
     }
@@ -414,14 +405,7 @@ footballRoute.get(
           .limit(limit)
       ).map((row) => row.football_team_stats);
 
-      const extendedStats = await Promise.all(
-        teamStats.map(
-          async (stats) =>
-            await calculateExtendedTeamStats(stats, teamId, league)
-        )
-      );
-
-      res.json(extendedStats);
+      res.json(teamStats);
     } catch (error) {
       handleError(error, res, "Football stats route");
     }
@@ -479,7 +463,7 @@ async function getPlayerTeamStats(
           )
       ).map((row) => row);
 
-      return await calculateExtendedTeamStats(stats, targetTeamId, league);
+      return stats;
     })
   );
 }
@@ -778,62 +762,3 @@ footballRoute.get(
     }
   }
 );
-
-async function calculateExtendedTeamStats(
-  teamStat: InferSelectModel<typeof footballTeamStats>,
-  teamId: number,
-  league: (typeof leagueType.enumValues)[number]
-) {
-  const oppStats = (await db.query.footballTeamStats.findFirst({
-    where: and(
-      eq(footballTeamStats.gameId, teamStat.gameId),
-      ne(footballTeamStats.teamId, teamStat.teamId),
-      eq(footballTeamStats.league, league)
-    ),
-  }))!;
-
-  const allOpponentStats = (
-    await db
-      .select()
-      .from(footballPlayerStats)
-      .innerJoin(
-        player,
-        and(
-          eq(footballPlayerStats.playerId, player.playerId),
-          eq(footballPlayerStats.league, player.league)
-        )
-      )
-      .where(
-        and(
-          eq(footballPlayerStats.gameId, teamStat.gameId),
-          eq(footballPlayerStats.league, league),
-          eq(footballPlayerStats.status, "ACT"),
-          ne(player.teamId, teamId)
-        )
-      )
-  ).map((row) => row.football_player_stats);
-
-  const passingYardsAllowed =
-    teamStat.passingYardsAllowed ?? oppStats.passingYards;
-
-  const completionsAllowed = allOpponentStats.reduce(
-    (accum, curr) => accum + curr.completions,
-    0
-  );
-
-  const rushingYardsAllowed =
-    teamStat.rushingYardsAllowed ?? oppStats.rushingYards;
-
-  const passingTouchdownsAllowed = oppStats.passingTouchdowns;
-
-  const rushingTouchdownsAllowed = oppStats.rushingTouchdowns;
-
-  return {
-    ...teamStat,
-    passingYardsAllowed,
-    completionsAllowed,
-    rushingYardsAllowed,
-    passingTouchdownsAllowed,
-    rushingTouchdownsAllowed,
-  };
-}

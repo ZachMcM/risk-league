@@ -5,7 +5,7 @@ import {
   InferInsertModel,
   InferSelectModel,
   or,
-  sql,
+  sql
 } from "drizzle-orm";
 import { Router } from "express";
 import { db } from "../../db";
@@ -13,8 +13,7 @@ import {
   baseballPlayerStats,
   baseballTeamStats,
   game,
-  leagueType,
-  player,
+  leagueType
 } from "../../db/schema";
 import { logger } from "../../logger";
 import { apiKeyMiddleware } from "../../middleware";
@@ -355,9 +354,7 @@ baseballRoute.get(
           .limit(limit)
       ).map((row) => row.baseball_player_stats);
 
-      const extendedStats = playerStats.map(calculateExtendedPlayerStats);
-
-      res.json(extendedStats);
+      res.json(playerStats);
     } catch (error) {
       handleError(error, res, "Baseball stats route");
     }
@@ -416,14 +413,7 @@ baseballRoute.get(
           .limit(limit)
       ).map((row) => row.baseball_team_stats);
 
-      const extendedStats = await Promise.all(
-        teamStats.map(
-          async (stats) =>
-            await calculateExtendedTeamStats(stats, teamId, league)
-        )
-      );
-
-      res.json(extendedStats);
+      res.json(teamStats);
     } catch (error) {
       handleError(error, res, "Baseball stats route");
     }
@@ -446,7 +436,10 @@ async function getPlayerTeamStats(
     .from(game)
     .innerJoin(
       baseballPlayerStats,
-      and(eq(game.gameId, baseballPlayerStats.gameId), eq(game.league, league))
+      and(
+        eq(game.gameId, baseballPlayerStats.gameId),
+        eq(game.league, league)
+      )
     )
     .where(
       and(
@@ -483,7 +476,7 @@ async function getPlayerTeamStats(
           )
       ).map((row) => row);
 
-      return await calculateExtendedTeamStats(stats, targetTeamId, league);
+      return stats;
     })
   );
 }
@@ -659,22 +652,19 @@ baseballRoute.get(
         return;
       }
 
-      // Calculate extended stats for all entries
-      const extendedStatsList = statsList.map(calculateExtendedPlayerStats);
-
       // Calculate average for the requested stat (including extended stats)
-      const totalStat = extendedStatsList.reduce((sum, stats) => {
+      const totalStat = statsList.reduce((sum, stats) => {
         const statValue = (stats as any)[requestedStat];
         return sum + (typeof statValue === "number" ? statValue : 0);
       }, 0);
-      const average = totalStat / extendedStatsList.length;
+      const average = totalStat / statsList.length;
 
       const result = {
         stat: requestedStat,
         average: parseFloat(average.toFixed(4)),
-        sampleSize: extendedStatsList.length,
+        sampleSize: statsList.length,
         dataSource:
-          extendedStatsList.length < minGames
+          statsList.length < minGames
             ? "current + previous season"
             : "current season",
       };
@@ -687,179 +677,3 @@ baseballRoute.get(
     }
   }
 );
-
-async function calculateExtendedTeamStats(
-  teamStat: InferSelectModel<typeof baseballTeamStats>,
-  teamId: number,
-  league: (typeof leagueType.enumValues)[number]
-) {
-  const allPlayerStats = (
-    await db
-      .select()
-      .from(baseballPlayerStats)
-      .where(
-        and(
-          eq(baseballPlayerStats.gameId, teamStat.gameId),
-          eq(baseballPlayerStats.teamId, teamId),
-          eq(baseballPlayerStats.league, league),
-          eq(baseballPlayerStats.status, "ACT")
-        )
-      )
-  );
-
-  const homeRunsAllowed = allPlayerStats.reduce(
-    (accum, curr) => accum + curr.homeRunsAllowed,
-    0
-  );
-
-  const pitchingStrikeouts = allPlayerStats.reduce(
-    (accum, curr) => accum + curr.pitchingStrikeouts,
-    0
-  );
-
-  const pitchingWalks = allPlayerStats.reduce(
-    (accum, curr) => accum + curr.pitchingWalks,
-    0
-  );
-
-  const doublesAllowed = allPlayerStats.reduce(
-    (accum, curr) => accum + curr.doublesAllowed,
-    0
-  );
-
-  const hitsAllowed = allPlayerStats.reduce(
-    (accum, curr) => accum + curr.hitsAllowed,
-    0
-  );
-
-  const triplesAllowed = allPlayerStats.reduce(
-    (accum, curr) => accum + curr.triplesAllowed,
-    0
-  );
-
-  const runsAllowed = allPlayerStats.reduce(
-    (accum, curr) => accum + curr.runsAllowed,
-    0
-  );
-
-  const strikes = allPlayerStats.reduce(
-    (accum, curr) => accum + curr.strikes,
-    0
-  );
-
-  const pitchesThrown = allPlayerStats.reduce(
-    (accum, curr) => accum + curr.pitchesThrown,
-    0
-  );
-
-  const battingAvg = teamStat.atBats > 0 ? teamStat.hits / teamStat.atBats : 0;
-
-  const singles = allPlayerStats.reduce(
-    (accum, curr) => accum + curr.singles,
-    0
-  );
-  const sluggingPct = calculateSluggingPct(
-    singles,
-    teamStat.doubles,
-    teamStat.triples,
-    teamStat.homeRuns,
-    teamStat.atBats
-  );
-
-  const hitByPitch = allPlayerStats.reduce(
-    (accum, curr) => accum + curr.hitByPitch,
-    0
-  );
-  const obp = calculateObp(
-    teamStat.hits,
-    hitByPitch,
-    teamStat.atBats,
-    teamStat.walks
-  );
-
-  const ops = sluggingPct + obp;
-
-  const pitchingCaughtStealing = allPlayerStats.reduce(
-    (accum, curr) => accum + curr.pitchingCaughtStealing,
-    0
-  );
-
-  const stolenBasesAllowed = allPlayerStats.reduce(
-    (accum, curr) => accum + curr.stolenBasesAllowed,
-    0
-  );
-
-  const earnedRuns = allPlayerStats.reduce(
-    (accum, curr) => accum + curr.earnedRuns,
-    0
-  );
-
-  return {
-    ...teamStat,
-    homeRunsAllowed,
-    pitchingStrikeouts,
-    pitchingWalks,
-    doublesAllowed,
-    hitsAllowed,
-    triplesAllowed,
-    runsAllowed,
-    strikes,
-    pitchesThrown,
-    battingAvg,
-    sluggingPct,
-    obp,
-    ops,
-    pitchingCaughtStealing,
-    stolenBasesAllowed,
-    earnedRuns,
-  };
-}
-
-function calculateSluggingPct(
-  singles: number,
-  doubles: number,
-  triples: number,
-  home_runs: number,
-  atBats: number
-) {
-  return atBats > 0
-    ? (singles + 2 * doubles + 3 * triples + 4 * home_runs) / atBats
-    : 0;
-}
-
-function calculateObp(
-  hits: number,
-  hitByPitch: number,
-  atBats: number,
-  walks: number
-) {
-  const denominator = atBats + walks + hitByPitch;
-  return denominator > 0 ? (hits + walks + hitByPitch) / denominator : 0;
-}
-
-function calculateExtendedPlayerStats(
-  stats: InferSelectModel<typeof baseballPlayerStats>
-) {
-  const sluggingPct = calculateSluggingPct(
-    stats.singles,
-    stats.doubles,
-    stats.triples,
-    stats.homeRuns,
-    stats.atBats
-  );
-  const obp = calculateObp(
-    stats.hits,
-    stats.hitByPitch,
-    stats.atBats,
-    stats.walks
-  );
-
-  return {
-    ...stats,
-    battingAvg: stats.atBats > 0 ? stats.hits / stats.atBats : 0,
-    sluggingPct,
-    obp,
-    ops: obp + sluggingPct,
-    hitsRunsRbis: stats.hits + stats.runs + stats.rbis,
-  };
-}

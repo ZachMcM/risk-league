@@ -5,9 +5,8 @@ import {
   inArray,
   InferInsertModel,
   InferSelectModel,
-  ne,
   or,
-  sql,
+  sql
 } from "drizzle-orm";
 import { Router } from "express";
 import { db } from "../../db";
@@ -20,8 +19,8 @@ import {
 } from "../../db/schema";
 import { logger } from "../../logger";
 import { apiKeyMiddleware } from "../../middleware";
-import { handleError } from "../../utils/handleError";
 import { redis } from "../../redis";
+import { handleError } from "../../utils/handleError";
 
 type BasketballPlayerStatsRow = InferSelectModel<typeof basketballPlayerStats>;
 type ValidBasketballStat =
@@ -326,13 +325,7 @@ basketballRoute.get(
           .limit(limit)
       ).map((row) => row.basketball_player_stats);
 
-      const extendedStats = await Promise.all(
-        playerStats.map(
-          async (stats) => await calculateExtendedPlayerStats(stats, league)
-        )
-      );
-
-      res.json(extendedStats);
+      res.json(playerStats);
     } catch (error) {
       handleError(error, res, "Basketball stats route");
     }
@@ -391,14 +384,7 @@ basketballRoute.get(
           .limit(limit)
       ).map((row) => row.basketball_team_stats);
 
-      const extendedStats = await Promise.all(
-        teamStats.map(
-          async (stats) =>
-            await calculateExtendedTeamStats(stats, teamId, league)
-        )
-      );
-
-      res.json(extendedStats);
+      res.json(teamStats);
     } catch (error) {
       handleError(error, res, "Basketball stats route");
     }
@@ -461,7 +447,7 @@ async function getPlayerTeamStats(
           )
       ).map((row) => row);
 
-      return await calculateExtendedTeamStats(stats, targetTeamId, league);
+      return stats
     })
   );
 }
@@ -719,26 +705,19 @@ basketballRoute.get(
         return;
       }
 
-      // Calculate extended stats for all entries
-      const extendedStatsList = await Promise.all(
-        statsList.map(
-          async (stats) => await calculateExtendedPlayerStats(stats, league)
-        )
-      );
-
       // Calculate average for the requested stat (including extended stats)
-      const totalStat = extendedStatsList.reduce((sum, stats) => {
+      const totalStat = statsList.reduce((sum, stats) => {
         const statValue = (stats as any)[requestedStat];
         return sum + (typeof statValue === "number" ? statValue : 0);
       }, 0);
-      const average = totalStat / extendedStatsList.length;
+      const average = totalStat / statsList.length;
 
       const result = {
         stat: requestedStat,
         average: parseFloat(average.toFixed(4)),
-        sampleSize: extendedStatsList.length,
+        sampleSize: statsList.length,
         dataSource:
-          extendedStatsList.length < minGames
+          statsList.length < minGames
             ? "current + previous season"
             : "current season",
       };
@@ -751,290 +730,3 @@ basketballRoute.get(
     }
   }
 );
-
-async function calculateExtendedTeamStats(
-  teamStat: InferSelectModel<typeof basketballTeamStats>,
-  teamId: number,
-  league: (typeof leagueType.enumValues)[number]
-) {
-  const oppStats = (await db.query.basketballTeamStats.findFirst({
-    where: and(
-      eq(basketballTeamStats.gameId, teamStat.gameId),
-      ne(basketballTeamStats.teamId, teamStat.teamId),
-      eq(basketballTeamStats.league, league)
-    ),
-  }))!;
-
-  const allPlayerStats = await db
-    .select()
-    .from(basketballPlayerStats)
-    .where(
-      and(
-        eq(basketballPlayerStats.gameId, teamStat.gameId),
-        eq(basketballPlayerStats.league, league),
-        eq(basketballPlayerStats.status, "ACT"),
-        eq(basketballPlayerStats.teamId, teamId)
-      )
-    );
-
-  const oppPossessions = estimatePossessions(
-    oppStats.fieldGoalsAttempted,
-    oppStats.freeThrowsAttempted,
-    oppStats.turnovers,
-    oppStats.offensiveRebounds
-  );
-
-  const teamMinutes = allPlayerStats.reduce(
-    (accum, curr) => accum + curr.minutes,
-    0
-  );
-
-  const possessions = estimatePossessions(
-    teamStat.fieldGoalsAttempted,
-    teamStat.freeThrowsAttempted,
-    teamStat.turnovers,
-    teamStat.offensiveRebounds
-  );
-
-  const pace = calculatePace(possessions, oppPossessions, teamMinutes);
-  const offensiveRating = calculateOffensiveRating(teamStat.score, possessions);
-  const defensiveRating = calculateDefensiveRating(
-    oppStats.score,
-    oppPossessions
-  );
-
-  return {
-    ...teamStat,
-    pace,
-    offensiveRating,
-    defensiveRating,
-  };
-}
-
-// All stat calculations based on https://www.basketball-reference.com/about/glossary.html
-
-function calculateTrueShootingPct(
-  points: number,
-  fieldGoalsAttempted: number,
-  freeThrowsAttempted: number
-) {
-  const denominator = 2 * (fieldGoalsAttempted + 0.44 * freeThrowsAttempted);
-  return denominator > 0 ? points / denominator : 0;
-}
-
-function calculateUsageRate(
-  fieldGoalsAttempted: number,
-  freeThrowsAttempted: number,
-  turnovers: number,
-  teamMinutes: number,
-  minutes: number,
-  teamFieldGoalsAttempted: number,
-  teamFreeThrowsAttempted: number,
-  teamTurnovers: number
-) {
-  const denominator =
-    minutes *
-    (teamFieldGoalsAttempted + 0.44 * teamFreeThrowsAttempted + teamTurnovers);
-  return denominator > 0
-    ? (100 *
-        ((fieldGoalsAttempted + 0.44 * freeThrowsAttempted + turnovers) *
-          (teamMinutes / 5))) /
-        denominator
-    : 0;
-}
-
-function calculateReboundsPct(
-  rebounds: number,
-  teamMinutes: number,
-  minutes: number,
-  teamRebounds: number,
-  oppRebounds: number
-) {
-  const denominator = minutes * (teamRebounds + oppRebounds);
-  return denominator > 0
-    ? (100 * (rebounds * (teamMinutes / 5))) / denominator
-    : 0;
-}
-
-function calculateAssistsPct(
-  assists: number,
-  minutes: number,
-  teamMinutes: number,
-  teamFieldGoalsMade: number,
-  fieldGoalsMade: number
-) {
-  const denominator =
-    (minutes / (teamMinutes / 5)) * teamFieldGoalsMade - fieldGoalsMade;
-  return denominator > 0 ? (100 * assists) / denominator : 0;
-}
-
-function calculateBlocksPct(
-  blocks: number,
-  teamMinutes: number,
-  minutes: number,
-  oppFieldGoalsAttempted: number,
-  oppThreePointsAttempted: number
-) {
-  const denominator =
-    minutes * (oppFieldGoalsAttempted - oppThreePointsAttempted);
-  return denominator > 0
-    ? (100 * (blocks * (teamMinutes / 5))) / denominator
-    : 0;
-}
-
-function estimatePossessions(
-  teamFieldGoalsAttempted: number,
-  teamFreeThrowsAttempted: number,
-  teamTurnovers: number,
-  teamOffensiveRebounds: number
-) {
-  return (
-    teamFieldGoalsAttempted -
-    teamOffensiveRebounds +
-    teamTurnovers +
-    0.44 * teamFreeThrowsAttempted
-  );
-}
-
-function calculateStealsPct(
-  steals: number,
-  teamMinutes: number,
-  minutes: number,
-  oppPossessions: number
-) {
-  const denominator = minutes * oppPossessions;
-  return denominator > 0
-    ? (100 * (steals * (teamMinutes / 5))) / denominator
-    : 0;
-}
-
-function calculatePace(
-  possessions: number,
-  oppPossessions: number,
-  teamMinutes: number
-) {
-  const denominator = 2 * (teamMinutes / 5);
-  return denominator > 0
-    ? 48 * ((possessions + oppPossessions) / denominator)
-    : 0;
-}
-
-function calculateOffensiveRating(teamPoints: number, possessions: number) {
-  return possessions > 0 ? (100 * teamPoints) / possessions : 0;
-}
-
-function calculateDefensiveRating(oppPoints: number, oppPossessions: number) {
-  return oppPossessions > 0 ? (100 * oppPoints) / oppPossessions : 0;
-}
-
-async function calculateExtendedPlayerStats(
-  stats: InferSelectModel<typeof basketballPlayerStats>,
-  league: (typeof leagueType.enumValues)[number]
-) {
-  const teamStats = (await db.query.basketballTeamStats.findFirst({
-    where: and(
-      eq(basketballTeamStats.gameId, stats.gameId),
-      eq(basketballTeamStats.teamId, stats.teamId),
-      eq(basketballTeamStats.league, league)
-    ),
-  }))!;
-
-  const allPlayerStats = await db
-    .select()
-    .from(basketballPlayerStats)
-    .where(
-      and(
-        eq(basketballPlayerStats.gameId, stats.gameId),
-        eq(basketballPlayerStats.teamId, stats.teamId),
-        eq(basketballPlayerStats.league, league),
-        eq(basketballPlayerStats.status, "ACT")
-      )
-    );
-
-  const oppStats = (await db.query.basketballTeamStats.findFirst({
-    where: and(
-      eq(basketballTeamStats.gameId, stats.gameId),
-      ne(basketballTeamStats.teamId, stats.teamId),
-      eq(basketballTeamStats.league, league)
-    ),
-  }))!;
-
-  const teamMinutes = allPlayerStats.reduce(
-    (accum, curr) => accum + curr.minutes,
-    0
-  );
-
-  const trueShootingPct = calculateTrueShootingPct(
-    stats.points,
-    stats.fieldGoalsAttempted,
-    stats.freeThrowsAttempted
-  );
-
-  const usageRate = calculateUsageRate(
-    stats.fieldGoalsAttempted,
-    stats.freeThrowsAttempted,
-    stats.turnovers,
-    teamMinutes,
-    stats.minutes,
-    teamStats.fieldGoalsAttempted,
-    teamStats.freeThrowsAttempted,
-    teamStats.turnovers
-  );
-
-  const reboundsPct = calculateReboundsPct(
-    stats.rebounds,
-    teamMinutes,
-    stats.minutes,
-    teamStats.rebounds,
-    oppStats.rebounds
-  );
-
-  const assistsPct = calculateAssistsPct(
-    stats.assists,
-    stats.minutes,
-    teamMinutes,
-    teamStats.fieldGoalsMade,
-    stats.fieldGoalsMade
-  );
-
-  const blocksPct = calculateBlocksPct(
-    stats.blocks,
-    teamMinutes,
-    stats.minutes,
-    oppStats.fieldGoalsAttempted,
-    oppStats.threePointsAttempted
-  );
-
-  const oppPossessions = estimatePossessions(
-    oppStats.fieldGoalsAttempted,
-    oppStats.freeThrowsAttempted,
-    oppStats.turnovers,
-    oppStats.offensiveRebounds
-  );
-
-  const stealsPct = calculateStealsPct(
-    stats.steals,
-    teamMinutes,
-    stats.minutes,
-    oppPossessions
-  );
-
-  return {
-    ...stats,
-    trueShootingPct,
-    usageRate,
-    reboundsPct,
-    assistsPct,
-    blocksPct,
-    stealsPct,
-    threePct:
-      stats.threePointsAttempted > 0
-        ? stats.threePointsMade / stats.threePointsAttempted
-        : 0,
-    pointsReboundsAssists: stats.points + stats.rebounds + stats.assists,
-    pointsRebounds: stats.points + stats.rebounds,
-    pointsAssists: stats.points + stats.assists,
-    reboundsAssists: stats.rebounds + stats.assists,
-    freeThrowPct: stats.freeThrowsMade / stats.freeThrowsAttempted,
-  };
-}

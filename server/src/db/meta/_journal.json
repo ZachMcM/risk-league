@@ -372,6 +372,13 @@
       "when": 1755406453330,
       "tag": "0052_loud_randall_flagg",
       "breakpoints": true
+    },
+    {
+      "idx": 53,
+      "version": "7",
+      "when": 1755496447312,
+      "tag": "0053_nasty_stark_industries",
+      "breakpoints": true
     }
   ]
 }

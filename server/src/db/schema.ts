@@ -423,7 +423,18 @@ export const baseballPlayerStats = pgTable(
     playerId: integer("player_id").notNull(),
     teamId: integer("team_id").notNull(),
     league: leagueType().notNull(),
-    status: text().notNull()
+    status: text().notNull(),
+    // Extended batting stats
+    battingAvg: doublePrecision("batting_avg").default(0.0).notNull(),
+    obp: doublePrecision().default(0.0).notNull(),
+    sluggingPct: doublePrecision("slugging_pct").default(0.0).notNull(),
+    ops: doublePrecision().default(0.0).notNull(),
+    hitsRunsRbis: integer("hits_runs_rbis").default(0).notNull(),
+    // Extended pitching stats
+    era: doublePrecision().default(0.0).notNull(),
+    whip: doublePrecision().default(0.0).notNull(),
+    kPerNine: doublePrecision("k_per_nine").default(0.0).notNull(),
+    strikePct: doublePrecision("strike_pct").default(0.0).notNull()
   },
   (table) => [
     foreignKey({
@@ -467,6 +478,15 @@ export const baseballTeamStats = pgTable(
     teamId: integer("team_id").notNull(),
     league: leagueType().notNull(),
     gameId: text("game_id").notNull(),
+    // Extended baseball team stats
+    homeRunsAllowed: integer("home_runs_allowed").default(0).notNull(),
+    pitchingStrikeouts: integer("pitching_strikeouts").default(0).notNull(),
+    battingAvg: doublePrecision("batting_avg").default(0.0).notNull(),
+    onBasePercentage: doublePrecision("on_base_percentage").default(0.0).notNull(),
+    sluggingPercentage: doublePrecision("slugging_percentage").default(0.0).notNull(),
+    ops: doublePrecision().default(0.0).notNull(),
+    teamEra: doublePrecision("team_era").default(0.0).notNull(),
+    teamWhip: doublePrecision("team_whip").default(0.0).notNull()
   },
   (table) => [
     foreignKey({
@@ -515,7 +535,20 @@ export const basketballPlayerStats = pgTable(
     threePointsAttempted: integer("three_points_attempted")
       .default(0)
       .notNull(),
-    status: text().notNull()
+    status: text().notNull(),
+    // Extended basketball player stats
+    trueShootingPct: doublePrecision("true_shooting_pct").default(0.0).notNull(),
+    usageRate: doublePrecision("usage_rate").default(0.0).notNull(),
+    reboundsPct: doublePrecision("rebounds_pct").default(0.0).notNull(),
+    assistsPct: doublePrecision("assists_pct").default(0.0).notNull(),
+    blocksPct: doublePrecision("blocks_pct").default(0.0).notNull(),
+    stealsPct: doublePrecision("steals_pct").default(0.0).notNull(),
+    threePct: doublePrecision("three_pct").default(0.0).notNull(),
+    freeThrowPct: doublePrecision("free_throw_pct").default(0.0).notNull(),
+    pointsReboundsAssists: integer("points_rebounds_assists").default(0).notNull(),
+    pointsRebounds: integer("points_rebounds").default(0).notNull(),
+    pointsAssists: integer("points_assists").default(0).notNull(),
+    reboundsAssists: integer("rebounds_assists").default(0).notNull()
   },
   (table) => [
     foreignKey({
@@ -569,6 +602,10 @@ export const basketballTeamStats = pgTable(
     threePointsAttempted: integer("three_points_attempted")
       .default(0)
       .notNull(),
+    // Extended basketball team stats
+    pace: doublePrecision().default(0.0).notNull(),
+    offensiveRating: doublePrecision("offensive_rating").default(0.0).notNull(),
+    defensiveRating: doublePrecision("defensive_rating").default(0.0).notNull()
   },
   (table) => [
     foreignKey({
@@ -617,7 +654,18 @@ export const footballPlayerStats = pgTable(
       .default(0)
       .notNull(),
     extraPointsMade: integer("extra_points_made").default(0).notNull(),
-    status: text().notNull()
+    status: text().notNull(),
+    // Extended football player stats
+    completionPct: doublePrecision("completion_pct").default(0.0).notNull(),
+    yardsPerAttempt: doublePrecision("yards_per_attempt").default(0.0).notNull(),
+    yardsPerCompletion: doublePrecision("yards_per_completion").default(0.0).notNull(),
+    yardsPerCarry: doublePrecision("yards_per_carry").default(0.0).notNull(),
+    yardsPerReception: doublePrecision("yards_per_reception").default(0.0).notNull(),
+    fieldGoalPct: doublePrecision("field_goal_pct").default(0.0).notNull(),
+    extraPointPct: doublePrecision("extra_point_pct").default(0.0).notNull(),
+    receivingRushingTouchdowns: integer("receiving_rushing_touchdowns").default(0).notNull(),
+    passingRushingTouchdowns: integer("passing_rushing_touchdowns").default(0).notNull(),
+    totalYards: doublePrecision("total_yards").default(0.0).notNull()
   },
   (table) => [
     foreignKey({
@@ -710,6 +758,10 @@ export const footballTeamStats = pgTable(
     passingYardsAllowed: integer("passing_yards_allowed"),
     rushingYardsAllowed: integer("rushing_yards_allowed"),
     offenseTouchdowns: integer("offense_touchdowns"),
+    // Extended football team stats
+    completionsAllowed: integer("completions_allowed").default(0).notNull(),
+    passingTouchdownsAllowed: integer("passing_touchdowns_allowed").default(0).notNull(),
+    rushingTouchdownsAllowed: integer("rushing_touchdowns_allowed").default(0).notNull()
   },
   (table) => [
     foreignKey({
