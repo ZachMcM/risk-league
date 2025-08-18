@@ -2,6 +2,7 @@ import {
   and,
   desc,
   eq,
+  inArray,
   InferInsertModel,
   InferSelectModel,
   ne,
@@ -638,8 +639,18 @@ basketballRoute.get(
                 currentSeasonYear + 1
               }`
             ),
-            // Add position filter only if position is specified
-            ...(position ? [eq(player.position, position)] : [])
+            ...(position
+              ? [
+                  inArray(
+                    player.position,
+                    position == "G"
+                      ? ["G", "PG", "SG", "GF"]
+                      : position == "F"
+                      ? ["GF", "F", "SF", "PF", "FC"]
+                      : ["FC", "C"]
+                  ),
+                ]
+              : [])
           )
         )
       ).map((row) => row.basketball_player_stats);
@@ -686,8 +697,18 @@ basketballRoute.get(
                   previousSeasonYear + 1
                 }`
               ),
-              // Add position filter only if position is specified
-              ...(position ? [eq(player.position, position)] : [])
+              ...(position
+                ? [
+                    inArray(
+                      player.position,
+                      position == "G"
+                        ? ["G", "PG", "SG", "GF"]
+                        : position == "F"
+                        ? ["GF", "F", "SF", "PF", "FC"]
+                        : ["FC", "C"]
+                    ),
+                  ]
+                : [])
             )
           )
         ).map((row) => row.basketball_player_stats);
@@ -744,19 +765,17 @@ async function calculateExtendedTeamStats(
     ),
   }))!;
 
-  const allPlayerStats = (
-    await db
-      .select()
-      .from(basketballPlayerStats)
-      .where(
-        and(
-          eq(basketballPlayerStats.gameId, teamStat.gameId),
-          eq(basketballPlayerStats.league, league),
-          eq(basketballPlayerStats.status, "ACT"),
-          eq(basketballPlayerStats.teamId, teamId)
-        )
+  const allPlayerStats = await db
+    .select()
+    .from(basketballPlayerStats)
+    .where(
+      and(
+        eq(basketballPlayerStats.gameId, teamStat.gameId),
+        eq(basketballPlayerStats.league, league),
+        eq(basketballPlayerStats.status, "ACT"),
+        eq(basketballPlayerStats.teamId, teamId)
       )
-  );
+    );
 
   const oppPossessions = estimatePossessions(
     oppStats.fieldGoalsAttempted,
@@ -920,19 +939,17 @@ async function calculateExtendedPlayerStats(
     ),
   }))!;
 
-  const allPlayerStats = (
-    await db
-      .select()
-      .from(basketballPlayerStats)
-      .where(
-        and(
-          eq(basketballPlayerStats.gameId, stats.gameId),
-          eq(basketballPlayerStats.teamId, stats.teamId),
-          eq(basketballPlayerStats.league, league),
-          eq(basketballPlayerStats.status, "ACT")
-        )
+  const allPlayerStats = await db
+    .select()
+    .from(basketballPlayerStats)
+    .where(
+      and(
+        eq(basketballPlayerStats.gameId, stats.gameId),
+        eq(basketballPlayerStats.teamId, stats.teamId),
+        eq(basketballPlayerStats.league, league),
+        eq(basketballPlayerStats.status, "ACT")
       )
-  );
+    );
 
   const oppStats = (await db.query.basketballTeamStats.findFirst({
     where: and(
@@ -1018,5 +1035,6 @@ async function calculateExtendedPlayerStats(
     pointsRebounds: stats.points + stats.rebounds,
     pointsAssists: stats.points + stats.assists,
     reboundsAssists: stats.rebounds + stats.assists,
+    freeThrowPct: stats.freeThrowsMade / stats.freeThrowsAttempted,
   };
 }

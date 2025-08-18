@@ -2,6 +2,7 @@ import {
   boolean,
   doublePrecision,
   foreignKey,
+  index,
   integer,
   pgEnum,
   pgTable,
@@ -122,7 +123,10 @@ export const message = pgTable("message", {
   userId: text("user_id")
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
-});
+}, (table) => [
+  index("idx_message_match_id").on(table.matchId),
+  index("idx_message_created_at").on(table.createdAt),
+]);
 
 export const pick = pgTable("pick", {
   choice: choiceType().notNull(),
@@ -140,7 +144,11 @@ export const pick = pgTable("pick", {
   propId: integer("prop_id")
     .notNull()
     .references(() => prop.id, { onDelete: "cascade" }),
-});
+}, (table) => [
+  index("idx_pick_parlay_id").on(table.parlayId),
+  index("idx_pick_prop_id").on(table.propId),
+  index("idx_pick_status").on(table.status),
+]);
 
 export const team = pgTable(
   "team",
@@ -182,6 +190,7 @@ export const player = pgTable(
       foreignColumns: [team.teamId, team.league],
       name: "fk_team_player",
     }).onDelete("cascade"),
+    index("idx_player_position_league").on(table.position, table.league),
   ],
 );
 
@@ -209,6 +218,7 @@ export const game = pgTable(
       foreignColumns: [team.teamId, team.league],
       name: "fk_away_team_game",
     }).onDelete("cascade"),
+    index("idx_game_start_time_league").on(table.startTime, table.league),
   ],
 );
 
@@ -243,6 +253,9 @@ export const prop = pgTable(
       foreignColumns: [player.playerId, player.league],
       name: "fk_player_prop",
     }).onDelete("cascade"),
+    index("idx_prop_game_league").on(table.gameId, table.league),
+    index("idx_prop_player_league").on(table.playerId, table.league),
+    index("idx_prop_league_resolved").on(table.league, table.resolved),
   ],
 );
 
@@ -261,7 +274,10 @@ export const parlay = pgTable("parlay", {
   resolved: boolean().default(false).notNull(),
   profit: doublePrecision().default(0).notNull(),
   type: parlayType().notNull(),
-});
+}, (table) => [
+  index("idx_parlay_match_user_id").on(table.matchUserId),
+  index("idx_parlay_resolved").on(table.resolved),
+]);
 
 export const matchUser = pgTable("match_user", {
   createdAt: timestamp("created_at", {
@@ -282,7 +298,11 @@ export const matchUser = pgTable("match_user", {
     .references(() => match.id, { onDelete: "cascade" }),
   startingBalance: doublePrecision("starting_balance").default(100).notNull(),
   pointsSnapshot: doublePrecision("points_snapshot").notNull(),
-});
+}, (table) => [
+  index("idx_match_user_user_status").on(table.userId, table.status),
+  index("idx_match_user_created_at").on(table.createdAt),
+  index("idx_match_user_match_id").on(table.matchId),
+]);
 
 export const match = pgTable("match", {
   createdAt: timestamp("created_at", {
@@ -295,7 +315,10 @@ export const match = pgTable("match", {
   id: serial().primaryKey().notNull(),
   league: leagueType().notNull(),
   type: text().default("competitive").notNull(),
-});
+}, (table) => [
+  index("idx_match_resolved").on(table.resolved),
+  index("idx_match_league").on(table.league),
+]);
 
 export const friendship = pgTable(
   "friendship",
@@ -417,7 +440,11 @@ export const baseballPlayerStats = pgTable(
       columns: [table.teamId, team.league],
       foreignColumns: [team.teamId, team.league],
       name: "fk_team_baseball_player_stats"
-    })
+    }),
+    index("idx_baseball_player_stats_player_league").on(table.playerId, table.league),
+    index("idx_baseball_player_stats_game_league").on(table.gameId, table.league),
+    index("idx_baseball_player_stats_league_status").on(table.league, table.status),
+    index("idx_baseball_player_stats_team_league").on(table.teamId, table.league),
   ],
 );
 
@@ -452,6 +479,8 @@ export const baseballTeamStats = pgTable(
       foreignColumns: [game.gameId, game.league],
       name: "fk_game_baseball_team_stats",
     }).onDelete("cascade"),
+    index("idx_baseball_team_stats_team_league").on(table.teamId, table.league),
+    index("idx_baseball_team_stats_game_league").on(table.gameId, table.league),
   ],
 );
 
@@ -503,7 +532,11 @@ export const basketballPlayerStats = pgTable(
       columns: [table.teamId, table.league],
       foreignColumns: [team.teamId, team.league],
       name: "fk_team_basketball_player_stats"
-    })
+    }),
+    index("idx_basketball_player_stats_player_league").on(table.playerId, table.league),
+    index("idx_basketball_player_stats_game_league").on(table.gameId, table.league),
+    index("idx_basketball_player_stats_league_status").on(table.league, table.status),
+    index("idx_basketball_player_stats_team_league").on(table.teamId, table.league),
   ],
 );
 
@@ -548,6 +581,8 @@ export const basketballTeamStats = pgTable(
       foreignColumns: [game.gameId, game.league],
       name: "fk_game_basketball_team_stats",
     }).onDelete("cascade"),
+    index("idx_basketball_team_stats_team_league").on(table.teamId, table.league),
+    index("idx_basketball_team_stats_game_league").on(table.gameId, table.league),
   ],
 );
 
@@ -599,7 +634,11 @@ export const footballPlayerStats = pgTable(
       columns: [table.teamId, table.league],
       foreignColumns: [team.teamId, team.league],
       name: "fk_team_football_player_stats"
-    })
+    }),
+    index("idx_football_player_stats_player_league").on(table.playerId, table.league),
+    index("idx_football_player_stats_game_league").on(table.gameId, table.league),
+    index("idx_football_player_stats_league_status").on(table.league, table.status),
+    index("idx_football_player_stats_team_league").on(table.teamId, table.league),
   ],
 );
 
@@ -683,5 +722,7 @@ export const footballTeamStats = pgTable(
       foreignColumns: [game.gameId, game.league],
       name: "fk_game_football_team_stats",
     }).onDelete("cascade"),
+    index("idx_football_team_stats_team_league").on(table.teamId, table.league),
+    index("idx_football_team_stats_game_league").on(table.gameId, table.league),
   ],
 );

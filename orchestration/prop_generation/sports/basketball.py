@@ -25,8 +25,9 @@ logger = setup_logger(__name__)
 BASKETBALL_ELIGIBILITY_THRESHOLDS = {
     "points": 0.25,
     "rebounds": 0.5,
+    "free_throws_made": 0.5,
     "assists": 0.25,
-    "three_pointers_made": 0.35,
+    "three_points_made": 0.35,
     "blocks": 0.5,
     "steals": 0.5,
     "turnovers": 0.8,
@@ -36,16 +37,8 @@ BASKETBALL_ELIGIBILITY_THRESHOLDS = {
     "rebounds_assists": 0.5,
 }
 
-# Position-specific defensive stat requirements
-DEFENSIVE_POSITIONS = {
-    "steals": ["PG", "SG", "SF"],  # Guards and forwards more likely to steal
-    "blocks": ["PF", "C", "SF"],  # Big men and some forwards more likely to block
-}
-
-
 def is_stat_eligible_for_player(
     stat: str,
-    position: str,
     player_avg: float,
     league_avg: float,
     minutes_avg: float,
@@ -56,17 +49,21 @@ def is_stat_eligible_for_player(
         return False
 
     if minutes_avg <= 0.5 * league_minutes_avg:
+        logger.info("Failed minutes threshold")
         return False
 
     base_threshold = BASKETBALL_ELIGIBILITY_THRESHOLDS[stat]
 
-    if stat in ["steals", "blocks"]:
-        if position not in DEFENSIVE_POSITIONS.get(stat, []):
-            return False
-        return player_avg >= league_avg * base_threshold
-    else:
-        return player_avg >= league_avg * base_threshold
+    return player_avg >= base_threshold * league_avg
 
+
+def get_position_umbrella(position: str):
+    if position in ["FC", "PF", "SF", "F", "GF"]:
+        return "F"
+    elif position in ["SG", "PG", "G"]:
+        return "G"
+    else:
+        return "C"
 
 def main():
     try:
@@ -83,11 +80,22 @@ def main():
         configs = get_basketball_prop_configs()
 
         for league in ["NCAABB", "NBA"]:
-            league_props_generated = 0
             today_schedule_req = data_feeds_req(f"/schedule/{today_str}/{league}")
             if today_schedule_req.status_code == 304:
                 logger.info(f"No {league} games today, skipping")
                 continue
+
+            leagues_averages = {}
+            for stat in stats_list:
+                leagues_averages[stat] = {}
+                for position in ["G", "F", "C"]:
+                    league_position_avg: LeagueAverages = server_req(
+                        route=f"/stats/basketball/league/{league}/averages/{stat}?position={position}",
+                        method="GET",
+                    ).json()
+                    leagues_averages[stat][position] = league_position_avg["average"]
+
+            league_props_generated = 0
 
             league_avg_minutes_data: LeagueAverages = server_req(
                 route=f"/stats/basketball/league/{league}/averages/minutes",
@@ -120,6 +128,8 @@ def main():
                     eligible_stats = []
 
                     for player in team_active_players_data:
+                        position_umbrella = get_position_umbrella(player['position'])
+                        
                         player_stats_list: list[BasketballPlayerStats] = server_req(
                             route=f"/stats/basketball/league/{league}/players/{player['playerId']}?limit={sample_size}",
                             method="GET",
@@ -139,10 +149,7 @@ def main():
 
                         for stat in stats_list:
                             stat_config = configs[stat]
-                            league_stat_avg_data: LeagueAverages = server_req(
-                                route=f"/stats/basketball/league/{league}/averages/{stat_config.target_field}?position={player['position']}",
-                                method="GET",
-                            ).json()
+                            league_stat_avg = leagues_averages[stat][position_umbrella]
 
                             player_stat_avg = float(
                                 numpy.mean(
@@ -155,9 +162,8 @@ def main():
 
                             if is_stat_eligible_for_player(
                                 stat,
-                                player["position"],
                                 player_stat_avg,
-                                league_stat_avg_data["average"],
+                                league_stat_avg,
                                 avg_minutes,
                                 league_avg_minutes_data["average"],
                             ):

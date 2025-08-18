@@ -94,12 +94,12 @@ def assists_config() -> PropConfig:
 
 
 @register_basketball_stat
-def three_pointers_made_config() -> PropConfig:
-    """Three pointers made configuration"""
+def three_points_made_config() -> PropConfig:
+    """3-PT Made configuration"""
     return PropConfig(
-        stat_name="three_pointers_made",
-        target_field="threePointersMade",
-        display_name="Three Pointers Made",
+        stat_name="three_points_made",
+        target_field="threePointsMade",
+        display_name="3-PT Made",
         features=[
             FeatureDefinition("minutes", "minutes", DataScope.PLAYER),
             FeatureDefinition(
@@ -111,7 +111,33 @@ def three_pointers_made_config() -> PropConfig:
             ),
             FeatureDefinition("usage_rate", "usageRate", DataScope.PLAYER),
             FeatureDefinition(
-                "three_pointers_attempted", "threePointersAttempted", DataScope.PLAYER
+                "three_points_attempted", "threePointsAttempted", DataScope.PLAYER
+            ),
+            FeatureDefinition("three_pct", "threePct", DataScope.PLAYER),
+        ],
+        model_type=ModelType.RIDGE,
+        model_params={"alpha": 1},
+    )
+    
+@register_basketball_stat
+def three_points_attempted_config() -> PropConfig:
+    """3-PT Attempted configuration"""
+    return PropConfig(
+        stat_name="three_points_attempted",
+        target_field="threePointsAttempted",
+        display_name="3-PT Attempted",
+        features=[
+            FeatureDefinition("minutes", "minutes", DataScope.PLAYER),
+            FeatureDefinition(
+                "team_offensive_rating", "offensiveRating", DataScope.TEAM
+            ),
+            FeatureDefinition("pace", "pace", DataScope.TEAM),
+            FeatureDefinition(
+                "opp_defensive_rating", "defensiveRating", DataScope.OPPONENT
+            ),
+            FeatureDefinition("usage_rate", "usageRate", DataScope.PLAYER),
+            FeatureDefinition(
+                "three_points_made", "threePointsMade", DataScope.PLAYER
             ),
             FeatureDefinition("three_pct", "threePct", DataScope.PLAYER),
         ],
@@ -332,8 +358,29 @@ def rebounds_assists_config() -> PropConfig:
                 "opp_defensive_rating", "defensiveRating", DataScope.OPPONENT
             ),
         ],
-        model_type=ModelType.RIDGE,
+        model_type=ModelType.POISSON,
         model_params={"alpha": 1},
+    )
+    
+    
+@register_basketball_stat
+def free_throws_made() -> PropConfig:
+    return PropConfig(        
+        stat_name="free_throws_made",
+        target_field="freeThrowsMade",
+        display_name="FT Made",
+        model_type=ModelType.POISSON,
+        features=[
+            FeatureDefinition("minutes", "minutes", DataScope.PLAYER),
+            FeatureDefinition("free_throws_attempted", "freeThrowsAttempted", DataScope.PLAYER),
+            FeatureDefinition("free_throw_pct", "freeThrowPct", DataScope.PLAYER),
+            FeatureDefinition("usage_rate", "usageRate", DataScope.PLAYER),
+            FeatureDefinition("pace", "pace", DataScope.TEAM),
+            FeatureDefinition("team_offensive_rating", "offensiveRating", DataScope.TEAM),
+            FeatureDefinition("opp_defensive_rating", "defensiveRating", DataScope.OPPONENT),
+            FeatureDefinition("opp_fouls", "fouls", DataScope.OPPONENT),
+        ],
+        model_params={"alpha": 1}
     )
 
 
