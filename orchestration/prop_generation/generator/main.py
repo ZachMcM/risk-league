@@ -6,19 +6,28 @@ from sklearn.linear_model import PoissonRegressor, Ridge
 from sklearn.pipeline import Pipeline, make_pipeline
 from sklearn.preprocessing import StandardScaler
 
-from prop_generation.generator.base import GameStats, ModelType, PropConfig, PropGenerator
+from prop_generation.generator.base import (
+    GameStats,
+    ModelType,
+    PropConfig,
+    PropGenerator,
+)
 from prop_generation.generator.features import FeatureExtractor
+import random
 
 
 class StatsDict(Protocol):
     """Protocol for objects that support dictionary-like access"""
+
     def __getitem__(self, key: str) -> Any: ...
 
 
 PlayerStatsType = TypeVar("PlayerStatsType", bound=StatsDict)
 TeamStatsType = TypeVar("TeamStatsType", bound=StatsDict)
 
-BIAS = 0.2
+
+MIN_BIAS = 0.1
+MAX_BIAS = 0.2
 
 
 def round_prop(value: float) -> float:
@@ -46,7 +55,7 @@ class BasePropGenerator(PropGenerator[PlayerStatsType, TeamStatsType]):
         y_values = feature_df[config.target_field]
 
         model = self.create_model(config.model_type, config.model_params)
-        
+
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore", category=RuntimeWarning, module="sklearn")
             model.fit(x_values, y_values)
@@ -60,7 +69,7 @@ class BasePropGenerator(PropGenerator[PlayerStatsType, TeamStatsType]):
             predicted_value = float(model.predict(prediction_features)[0])
 
         sd = float(np.std(y_values, ddof=1))
-        final_prop = predicted_value + BIAS * sd
+        final_prop = predicted_value + random.uniform(MIN_BIAS, MAX_BIAS) * sd
 
         if np.isnan(final_prop) or np.isinf(final_prop):
             return 0.0
