@@ -107,7 +107,7 @@ def assists_config() -> PropConfig:
                 "opp_defensive_rating", "defensiveRating", DataScope.OPPONENT
             ),
         ],
-        model_type=ModelType.RIDGE,
+        model_type=ModelType.POISSON,
         model_params={"alpha": 1},
     )
 
@@ -134,7 +134,7 @@ def three_points_made_config() -> PropConfig:
             ),
             FeatureDefinition("three_pct", "threePct", DataScope.PLAYER),
         ],
-        model_type=ModelType.RIDGE,
+        model_type=ModelType.POISSON,
         model_params={"alpha": 1},
     )
     
@@ -160,7 +160,7 @@ def three_points_attempted_config() -> PropConfig:
             ),
             FeatureDefinition("three_pct", "threePct", DataScope.PLAYER),
         ],
-        model_type=ModelType.RIDGE,
+        model_type=ModelType.POISSON,
         model_params={"alpha": 1},
     )
 
@@ -230,7 +230,7 @@ def turnovers_config() -> PropConfig:
             ),
             FeatureDefinition("opp_steals", "steals", DataScope.OPPONENT),
         ],
-        model_type=ModelType.RIDGE,
+        model_type=ModelType.POISSON,
         model_params={"alpha": 1},
     )
 
@@ -377,7 +377,7 @@ def rebounds_assists_config() -> PropConfig:
                 "opp_defensive_rating", "defensiveRating", DataScope.OPPONENT
             ),
         ],
-        model_type=ModelType.POISSON,
+        model_type=ModelType.RIDGE,
         model_params={"alpha": 1},
     )
     
@@ -388,7 +388,6 @@ def free_throws_made() -> PropConfig:
         stat_name="free_throws_made",
         target_field="freeThrowsMade",
         display_name="FT Made",
-        model_type=ModelType.POISSON,
         features=[
             FeatureDefinition("minutes", "minutes", DataScope.PLAYER),
             FeatureDefinition("free_throws_attempted", "freeThrowsAttempted", DataScope.PLAYER),
@@ -399,6 +398,7 @@ def free_throws_made() -> PropConfig:
             FeatureDefinition("opp_defensive_rating", "defensiveRating", DataScope.OPPONENT),
             FeatureDefinition("opp_fouls", "fouls", DataScope.OPPONENT),
         ],
+        model_type=ModelType.POISSON,
         model_params={"alpha": 1}
     )
 

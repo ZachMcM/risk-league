@@ -226,7 +226,7 @@ def pitching_strikeouts_config() -> PropConfig:
             FeatureDefinition("opp_batting_avg", "battingAvg", DataScope.OPPONENT),
             FeatureDefinition("opp_slugging_pct", "sluggingPct", DataScope.OPPONENT)
         ],
-        model_type=ModelType.RIDGE,
+        model_type=ModelType.POISSON,
         model_params={"alpha": 1},
     )
 
@@ -252,7 +252,7 @@ def pitches_thrown_config() -> PropConfig:
             FeatureDefinition("opp_batting_avg", "battingAvg", DataScope.OPPONENT),
             FeatureDefinition("opp_slugging_pct", "sluggingPct", DataScope.OPPONENT)
         ],
-        model_type=ModelType.RIDGE,
+        model_type=ModelType.POISSON,
         model_params={"alpha": 1},
     )
 
@@ -275,7 +275,7 @@ def earned_runs_config() -> PropConfig:
             FeatureDefinition("opp_batting_avg", "battingAvg", DataScope.OPPONENT),
             FeatureDefinition("opp_slugging_pct", "sluggingPct", DataScope.OPPONENT)
         ],
-        model_type=ModelType.RIDGE,
+        model_type=ModelType.POISSON,
         model_params={"alpha": 1},
     )
 
@@ -297,7 +297,7 @@ def hits_allowed_config() -> PropConfig:
             FeatureDefinition("opp_slugging_pct", "sluggingPct", DataScope.OPPONENT),
             FeatureDefinition("opp_strikeouts", "strikeouts", DataScope.OPPONENT),
         ],
-        model_type=ModelType.RIDGE,
+        model_type=ModelType.POISSON,
         model_params={"alpha": 1},
     )
 
