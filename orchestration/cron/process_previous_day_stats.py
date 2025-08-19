@@ -4,8 +4,8 @@ from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
 from utils import data_feeds_req, server_req, setup_logger
-from extract_stats import extract_player_stats, extract_team_stats
-from extract_stats import LEAGUE_CONFIG
+from extract_stats.main import extract_player_stats, extract_team_stats
+from extract_stats.main import LEAGUE_CONFIG
 from constants import leagues
 
 logger = setup_logger(__name__)

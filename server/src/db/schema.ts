@@ -27,6 +27,7 @@ export const pickStatus = pgEnum("pick_status", [
   "did_not_play",
   "tie",
 ]);
+export const propStatus = pgEnum("prop_status", ["resolved", "not_resolved", "did_not_play"])
 export const choiceType = pgEnum("choice_type", ["over", "under"]);
 
 export const friendshipStatus = pgEnum("friendship_status", [
@@ -236,7 +237,7 @@ export const prop = pgTable(
       .notNull(),
     statName: text("stat_name").notNull(),
     statDisplayName: text("stat_display_name").notNull(),
-    resolved: boolean().default(false).notNull(),
+    status: propStatus().default("not_resolved").notNull(),
     choices: text().array().default(["over", "under"]).notNull(),
     playerId: integer("player_id").notNull(),
     league: leagueType().notNull(),
@@ -255,7 +256,7 @@ export const prop = pgTable(
     }).onDelete("cascade"),
     index("idx_prop_game_league").on(table.gameId, table.league),
     index("idx_prop_player_league").on(table.playerId, table.league),
-    index("idx_prop_league_resolved").on(table.league, table.resolved),
+    index("idx_prop_league_status").on(table.league, table.status),
   ],
 );
 

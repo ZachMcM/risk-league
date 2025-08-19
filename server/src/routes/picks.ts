@@ -29,7 +29,17 @@ picksRoute.patch("/picks", apiKeyMiddleware, async (req, res) => {
 
     const picksToInvalidateList: { id: number }[] = [];
 
-    if (updatedProp.resolved) {
+    if (updatedProp.status == "did_not_play") {
+      const didNotPlayPicks = await db
+        .update(pick)
+        .set({
+          status: "did_not_play",
+        })
+        .where(eq(pick.propId, updatedProp.id))
+        .returning({ id: pick.id });
+
+      picksToInvalidateList.push(...didNotPlayPicks);
+    } else if (updatedProp.status == "resolved") {
       if (updatedProp.currentValue > updatedProp.line) {
         const hits = await db
           .update(pick)
@@ -104,10 +114,10 @@ picksRoute.patch("/picks", apiKeyMiddleware, async (req, res) => {
     }
 
     for (const pickToInvalidate of picksToInvalidateList) {
-      if (prop.resolved) {
+      if (updatedProp.status != "not_resolved") {
         redis.publish(
-          "pick_updated",
-          JSON.stringify({ id: pickToInvalidate.id }),
+          "pick_resolved",
+          JSON.stringify({ id: pickToInvalidate.id })
         );
       }
 
@@ -134,7 +144,7 @@ picksRoute.patch("/picks", apiKeyMiddleware, async (req, res) => {
           extendedPick?.parlay.matchUser.userId!,
         ],
         ["parlay", extendedPick?.parlayId!],
-        ["career", extendedPick?.parlay.matchUser.userId!],
+        ["career", extendedPick?.parlay.matchUser.userId!]
       );
     }
 
