@@ -10,10 +10,18 @@ import {
   getFlexMultiplierTable,
   getPerfectPlayMultiplier,
 } from "~/utils/multiplierUtils";
+import { useQuery } from "@tanstack/react-query";
+import { getParlay } from "~/endpoints";
 
-export default function ParlayCard({ parlay }: { parlay: Parlay }) {
+export default function ParlayCard({ initialData }: { initialData: Parlay }) {
   const searchParams = useLocalSearchParams<{ matchId: string }>();
   const matchId = parseInt(searchParams.matchId);
+
+  const { data: parlay } = useQuery({
+    initialData,
+    queryKey: ["parlay", initialData.id],
+    queryFn: async () => await getParlay(initialData.id),
+  });
 
   return (
     <Link
@@ -34,17 +42,17 @@ export default function ParlayCard({ parlay }: { parlay: Parlay }) {
                   {parlay.type == "flex"
                     ? `${(() => {
                         const table = getFlexMultiplierTable(
-                          parlay.picks.length,
+                          parlay.picks.length
                         );
                         const minMultiplier =
                           table[table.length - 1]?.multiplier || 0;
                         const maxMultiplier = table[0]?.multiplier || 0;
                         return `${minMultiplier.toFixed(
-                          2,
+                          2
                         )}x-${maxMultiplier.toFixed(2)}x`;
                       })()}`
                     : `${getPerfectPlayMultiplier(parlay.picks.length).toFixed(
-                        2,
+                        2
                       )}x`}
                 </Text>
               </View>
@@ -62,8 +70,8 @@ export default function ParlayCard({ parlay }: { parlay: Parlay }) {
                   {!parlay.resolved
                     ? "Active"
                     : parlay.profit > 0
-                      ? "Won"
-                      : "Lost"}
+                    ? "Won"
+                    : "Lost"}
                 </Text>
               </Badge>
             </View>
@@ -82,8 +90,8 @@ export default function ParlayCard({ parlay }: { parlay: Parlay }) {
                 {!parlay.resolved
                   ? "Potential Payout"
                   : parlay.profit > 0
-                    ? "Amount Won"
-                    : "Amount Lost"}
+                  ? "Amount Won"
+                  : "Amount Lost"}
               </Text>
               <Text className="font-bold text-2xl">
                 $
@@ -92,7 +100,7 @@ export default function ParlayCard({ parlay }: { parlay: Parlay }) {
                       (parlay.type == "flex"
                         ? getFlexMultiplier(
                             parlay.picks.length,
-                            parlay.picks.length,
+                            parlay.picks.length
                           )
                         : getPerfectPlayMultiplier(parlay.picks.length)) *
                       parlay.stake

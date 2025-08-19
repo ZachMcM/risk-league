@@ -64,7 +64,7 @@ export default function MatchTabs({
               estimatedItemSize={166}
               renderItem={({ item, index }) => (
                 <GridItemWrapper index={index} numCols={1} gap={12}>
-                  <MatchListCard match={item} />
+                  <MatchListCard initialData={item} />
                 </GridItemWrapper>
               )}
               keyExtractor={(item) => item.id.toString()}
@@ -100,7 +100,7 @@ export default function MatchTabs({
               data={resolvedMatches}
               renderItem={({ item, index }) => (
                 <GridItemWrapper index={index} numCols={1} gap={12}>
-                  <MatchListCard match={item} />
+                  <MatchListCard initialData={item} />
                 </GridItemWrapper>
               )}
               keyExtractor={(item) => item.id.toString()}

@@ -12,8 +12,16 @@ import { Separator } from "../ui/separator";
 import { Text } from "../ui/text";
 import { timeAgo } from "~/utils/dateUtils";
 import LeagueLogo from "../ui/league-logos/LeagueLogo";
+import { useQuery } from "@tanstack/react-query";
+import { getMatch } from "~/endpoints";
 
-export default function MatchListCard({ match }: { match: Match }) {
+export default function MatchListCard({ initialData }: { initialData: Match }) {
+  const { data: match } = useQuery({
+    initialData,
+    queryKey: ["match", initialData.id],
+    queryFn: async () => await getMatch(initialData.id)
+  })
+
   const { data } = authClient.useSession();
   const you = match.matchUsers.find(
     (matchUser) => matchUser.user.id == data?.user.id,

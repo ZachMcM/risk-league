@@ -398,9 +398,12 @@ matchesRoute.patch("/matches", apiKeyMiddleware, async (req, res) => {
         })
         .where(eq(matchUser.id, matchUser1.id));
 
-      await db.update(matchUser).set({
-        status: matchUser2Status,
-      });
+      await db
+        .update(matchUser)
+        .set({
+          status: matchUser2Status,
+        })
+        .where(eq(matchUser.id, matchUser2.id));
 
       await db
         .update(match)
@@ -451,10 +454,6 @@ matchesRoute.patch("/matches", apiKeyMiddleware, async (req, res) => {
 
       invalidateQueries(
         ["match", matchToEnd.id],
-        ["matches", matchUser1.userId, "unresolved"],
-        ["matches", matchUser2.userId, "unresolved"],
-        ["matches", matchUser1.userId, "resolved"],
-        ["matches", matchUser2.userId, "resolved"],
         ["user", matchUser1.userId],
         ["user", matchUser2.userId],
         ["career", matchUser1.userId],

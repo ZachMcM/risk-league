@@ -54,17 +54,17 @@ export default function Parlay() {
                         {parlay.type == "flex"
                           ? `${(() => {
                               const table = getFlexMultiplierTable(
-                                parlay.picks.length,
+                                parlay.picks.length
                               );
                               const minMultiplier =
                                 table[table.length - 1]?.multiplier || 0;
                               const maxMultiplier = table[0]?.multiplier || 0;
                               return `${minMultiplier.toFixed(
-                                2,
+                                2
                               )}x-${maxMultiplier.toFixed(2)}x`;
                             })()}`
                           : `${getPerfectPlayMultiplier(
-                              parlay.picks.length,
+                              parlay.picks.length
                             ).toFixed(2)}x`}
                       </Text>
                       {parlay.type == "flex" && (
@@ -120,8 +120,8 @@ export default function Parlay() {
                     {!parlay.resolved
                       ? "Potential Payout"
                       : parlay.profit > 0
-                        ? "Amount Won"
-                        : "Amount Lost"}
+                      ? "Amount Won"
+                      : "Amount Lost"}
                   </Text>
                   <Text className="font-bold text-2xl">
                     $
@@ -130,7 +130,7 @@ export default function Parlay() {
                           (parlay.type == "flex"
                             ? getFlexMultiplier(
                                 parlay.picks.length,
-                                parlay.picks.length,
+                                parlay.picks.length
                               )
                             : getPerfectPlayMultiplier(parlay.picks.length)) *
                           parlay.stake
@@ -141,7 +141,7 @@ export default function Parlay() {
               </View>
               <View className="flex flex-col gap-4">
                 {parlay.picks.map((pick) => (
-                  <PickCard pick={pick} key={pick.id} />
+                  <PickCard initialData={pick} key={pick.id} />
                 ))}
               </View>
             </View>

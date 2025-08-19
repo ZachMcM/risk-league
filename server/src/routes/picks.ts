@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { apiKeyMiddleware } from "../middleware";
+import { apiKeyMiddleware, authMiddleware } from "../middleware";
 import { db } from "../db";
 import { and, eq } from "drizzle-orm";
 import { pick, prop } from "../db/schema";
@@ -8,6 +8,36 @@ import { invalidateQueries } from "../utils/invalidateQueries";
 import { handleError } from "../utils/handleError";
 
 export const picksRoute = Router();
+
+picksRoute.get("/picks/:id", authMiddleware, async (req, res) => {
+  try {
+    const pickId = parseInt(req.params.id);
+
+    if (isNaN(pickId)) {
+      res.status(400).json({ error: "Invalid id, could not parse" });
+      return;
+    }
+
+    const pickResult = await db.query.pick.findFirst({
+      where: eq(pick.id, pickId),
+      with: {
+        prop: {
+          with: {
+            player: {
+              with: {
+                team: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    res.json(pickResult);
+  } catch (error) {
+    handleError(error, res, "Picks");
+  }
+});
 
 picksRoute.patch("/picks", apiKeyMiddleware, async (req, res) => {
   try {
@@ -23,7 +53,7 @@ picksRoute.patch("/picks", apiKeyMiddleware, async (req, res) => {
     });
 
     if (!updatedProp) {
-      res.status(400).json({ error: `No prop found wiht propId ${propId}` });
+      res.status(400).json({ error: `No prop found with propId ${propId}` });
       return;
     }
 
@@ -91,26 +121,34 @@ picksRoute.patch("/picks", apiKeyMiddleware, async (req, res) => {
 
         picksToInvalidateList.push(...hits);
       }
-    } else if (updatedProp.currentValue > updatedProp.line) {
-      const hits = await db
-        .update(pick)
-        .set({
-          status: "hit",
-        })
-        .where(and(eq(pick.choice, "over"), eq(pick.propId, updatedProp.id)))
-        .returning({ id: pick.id });
+    } else {
+      if (updatedProp.currentValue > updatedProp.line) {
+        const hits = await db
+          .update(pick)
+          .set({
+            status: "hit",
+          })
+          .where(and(eq(pick.choice, "over"), eq(pick.propId, updatedProp.id)))
+          .returning({ id: pick.id });
 
-      picksToInvalidateList.push(...hits);
+        picksToInvalidateList.push(...hits);
 
-      const misses = await db
-        .update(pick)
-        .set({
-          status: "missed",
-        })
-        .where(and(eq(pick.choice, "under"), eq(pick.propId, updatedProp.id)))
-        .returning({ id: pick.id });
+        const misses = await db
+          .update(pick)
+          .set({
+            status: "missed",
+          })
+          .where(and(eq(pick.choice, "under"), eq(pick.propId, updatedProp.id)))
+          .returning({ id: pick.id });
 
-      picksToInvalidateList.push(...misses);
+        picksToInvalidateList.push(...misses);
+      } else {
+        const relatedPicks = await db
+          .select({ id: pick.id })
+          .from(pick)
+          .where(eq(pick.propId, updatedProp.id));
+        picksToInvalidateList.push(...relatedPicks);
+      }
     }
 
     for (const pickToInvalidate of picksToInvalidateList) {
@@ -120,32 +158,8 @@ picksRoute.patch("/picks", apiKeyMiddleware, async (req, res) => {
           JSON.stringify({ id: pickToInvalidate.id })
         );
       }
-
-      const extendedPick = await db.query.pick.findFirst({
-        where: eq(pick.id, pickToInvalidate.id),
-        with: {
-          parlay: {
-            with: {
-              matchUser: {
-                columns: {
-                  matchId: true,
-                  userId: true,
-                },
-              },
-            },
-          },
-        },
-      });
-
-      invalidateQueries(
-        [
-          "parlays",
-          extendedPick?.parlay.matchUser.matchId!,
-          extendedPick?.parlay.matchUser.userId!,
-        ],
-        ["parlay", extendedPick?.parlayId!],
-        ["career", extendedPick?.parlay.matchUser.userId!]
-      );
+      
+      invalidateQueries(["pick", pickToInvalidate.id]);
     }
 
     res.send(`${picksToInvalidateList.length} picks updated`);

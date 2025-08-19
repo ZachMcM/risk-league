@@ -1,15 +1,23 @@
-import { Card, CardContent } from "../ui/card";
-import { View } from "react-native";
-import { Text } from "../ui/text";
+import { useQuery } from "@tanstack/react-query";
+import { ActivityIndicator, View } from "react-native";
+import { getPick } from "~/endpoints";
 import { ArrowDown } from "~/lib/icons/ArrowDown";
 import { ArrowUp } from "~/lib/icons/ArrowUp";
-import { Progress } from "../ui/progress";
-import { X } from "~/lib/icons/X";
 import { Check } from "~/lib/icons/Check";
-import { Pick } from "~/types/parlay";
+import { X } from "~/lib/icons/X";
 import { cn } from "~/utils/cn";
+import { Card, CardContent } from "../ui/card";
+import { Progress } from "../ui/progress";
+import { Text } from "../ui/text";
+import { Pick } from "~/types/parlay";
 
-export default function PickCard({ pick }: { pick: Pick }) {
+export default function PickCard({ initialData }: { initialData: Pick }) {
+  const { data: pick } = useQuery({
+    initialData,
+    queryKey: ["pick", initialData.id],
+    queryFn: async () => await getPick(initialData.id),
+  });
+
   return (
     <Card key={pick.id}>
       <CardContent className="p-4 flex flex-col gap-4">
@@ -43,7 +51,7 @@ export default function PickCard({ pick }: { pick: Pick }) {
                   pick.status != "not_resolved" &&
                     (pick.status == "hit" && "bg-success border-success",
                     pick.status == "missed" &&
-                      "bg-destructive border-destructive"),
+                      "bg-destructive border-destructive")
                 )}
               >
                 {pick.status != "not_resolved" &&
@@ -73,8 +81,8 @@ export default function PickCard({ pick }: { pick: Pick }) {
                 pick.status == "hit"
                   ? "success"
                   : pick.status == "missed"
-                    ? "destructive"
-                    : "default"
+                  ? "destructive"
+                  : "default"
               }
             />
           </View>

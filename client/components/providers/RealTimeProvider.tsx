@@ -57,15 +57,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
 
     socket.on(
       "parlay-resolved",
-      ({
-        league,
-        matchId,
-        parlayId,
-      }: {
-        league: League;
-        matchId: number;
-        parlayId: number;
-      }) => {
+      ({ matchId, parlayId }: { matchId: number; parlayId: number }) => {
         const toastId = toast.custom(
           <Link
             href={{
@@ -76,21 +68,18 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
             onPress={() => toast.dismiss(toastId)}
           >
             <Card>
-              <CardContent className="w-full flex flex-row gap-3 items-center px-4 py-3">
-                <LeagueLogo league={league} size={28} />
-                <View className="flex flex-col flex-1">
-                  <Text className="font-bold text-lg">
-                    One of your {league.toUpperCase()} parlays finished!
-                  </Text>
-                  <Text className="text-muted-foreground font-semibold">
-                    Click here to view the results!
-                  </Text>
-                </View>
+              <CardContent className="w-full flex flex-col px-4 py-3">
+                <Text className="font-bold text-lg">
+                  One of your parlays finished!
+                </Text>
+                <Text className="text-muted-foreground font-semibold">
+                  Click here to view the results!
+                </Text>
               </CardContent>
             </Card>
-          </Link>,
+          </Link>
         );
-      },
+      }
     );
 
     socket.on(
@@ -126,9 +115,9 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
                 </View>
               </CardContent>
             </Card>
-          </Link>,
+          </Link>
         );
-      },
+      }
     );
 
     socket.on(
@@ -158,9 +147,9 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
                 </View>
               </CardContent>
             </Card>
-          </Link>,
+          </Link>
         );
-      },
+      }
     );
 
     socket.on(
@@ -190,9 +179,9 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
                 </View>
               </CardContent>
             </Card>
-          </Link>,
+          </Link>
         );
-      },
+      }
     );
 
     socket.on("match-message-received", (message: Message) => {
@@ -229,7 +218,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
                 </View>
               </CardContent>
             </Card>
-          </Link>,
+          </Link>
         );
       }
     });
@@ -270,14 +259,14 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
             </Link>,
             {
               duration: Infinity,
-            },
+            }
           );
         }
-      },
+      }
     );
 
     socket.on(
-      "friendly-match-request-decliend",
+      "friendly-match-request-declined",
       ({
         image,
         username,
@@ -302,9 +291,9 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
                 </Text>
               </View>
             </CardContent>
-          </Card>,
+          </Card>
         );
-      },
+      }
     );
 
     socket.on(
@@ -314,7 +303,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
           pathname: "/match/[matchId]",
           params: { matchId },
         });
-      },
+      }
     );
 
     return () => {

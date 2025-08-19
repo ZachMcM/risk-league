@@ -6,7 +6,7 @@ import {
   Match,
   Message,
 } from "./types/match";
-import { Parlay } from "./types/parlay";
+import { Parlay, Pick } from "./types/parlay";
 import { Prop } from "./types/prop";
 import { Rank } from "./types/rank";
 import { Career, Friendship, User } from "./types/user";
@@ -46,7 +46,7 @@ export async function httpRequest({
 
   const res = await fetch(
     `${process.env.EXPO_PUBLIC_API_URL}${endpoint}`,
-    fetchOptions,
+    fetchOptions
   );
 
   const data = await res.json();
@@ -143,6 +143,15 @@ export async function getParlay(id: number): Promise<Parlay> {
   return parlay;
 }
 
+export async function getPick(id: number): Promise<Pick> {
+  const pick = await httpRequest({
+    endpoint: `/picks/${id}`,
+    method: "GET",
+  });
+
+  return pick;
+}
+
 export async function getParlays(matchId: number): Promise<Parlay[]> {
   const parlays = await httpRequest({
     endpoint: `/parlays?matchId=${matchId}`,
@@ -158,7 +167,7 @@ export async function postParlay(
     type: string;
     stake: number;
     picks: { prop: Prop; choice: string }[];
-  },
+  }
 ): Promise<{ id: number }> {
   return await httpRequest({
     endpoint: `/parlays/${matchId}`,
@@ -201,7 +210,7 @@ export async function patchFriendRequest(outgoingId: string) {
 
 export async function postFriendlyMatchRequest(
   incomingId: string,
-  league: League,
+  league: League
 ) {
   await httpRequest({
     endpoint: "/friendly-match-requests",
@@ -212,7 +221,7 @@ export async function postFriendlyMatchRequest(
 
 export async function patchFriendlyMatchRequest(
   id: number,
-  status: "declined" | "accepted",
+  status: "declined" | "accepted"
 ) {
   await httpRequest({
     endpoint: `/friendly-match-requests/${id}`,
