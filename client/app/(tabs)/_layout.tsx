@@ -56,14 +56,6 @@ export default function TabsLayout() {
           tabBarIcon: ({ color }) => <Contact color={color} />,
         }}
       />
-      <Tabs.Screen
-        name="leaderboard"
-        options={{
-          title: "Leaderboard",
-          header: () => <PageTitle title="Leaderboard" />,
-          tabBarIcon: ({ color }) => <Trophy color={color} />,
-        }}
-      />
     </Tabs>
   );
 }

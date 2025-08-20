@@ -69,7 +69,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
           >
             <Card>
               <CardContent className="w-full flex flex-col px-4 py-3">
-                <Text className="font-bold text-lg">
+                <Text className="font-bold">
                   One of your match parlays finished!
                 </Text>
                 <Text className="text-muted-foreground font-semibold">
@@ -104,9 +104,9 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
           >
             <Card>
               <CardContent className="w-full flex flex-row gap-4 items-center px-4 py-3">
-                <LeagueLogo league={league} size={36} />
+                <LeagueLogo league={league} size={32} />
                 <View className="flex flex-col flex-1">
-                  <Text className="font-bold text-lg">
+                  <Text className="font-bold">
                     One of your {league.toUpperCase()} {type} matches ended!
                   </Text>
                   <Text className="text-muted-foreground font-semibold">
@@ -140,7 +140,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
                   username={username}
                 />
                 <View className="flex flex-col flex-1">
-                  <Text className="font-bold text-lg">{username}</Text>
+                  <Text className="font-bold">{username}</Text>
                   <Text className="font-semibold text-muted-foreground">
                     Requested to be friends!
                   </Text>
@@ -249,7 +249,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
                     username={username}
                   />
                   <View className="flex flex-col flex-1">
-                    <Text className="font-bold text-lg">{username}</Text>
+                    <Text className="font-bold">{username}</Text>
                     <Text className="text-muted-foreground font-semibold">
                       Challenged you to a {league.toUpperCase()} friendly match!
                     </Text>
@@ -285,7 +285,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
                 username={username}
               />
               <View className="flex flex-col flex-1">
-                <Text className="font-bold text-lg">{username}</Text>
+                <Text className="font-bold">{username}</Text>
                 <Text className="text-muted-foreground font-semibold">
                   Declined your {league.toUpperCase()} friendly match request!
                 </Text>

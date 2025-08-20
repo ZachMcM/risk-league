@@ -32,8 +32,8 @@ export default function MatchStatsDialog({ match }: { match: ExtendedMatch }) {
           <ChartColumnIncreasing size={16} className="text-foreground" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-lg w-[95vw]">
-        <Text className="font-bold text-xl">Match Statistics</Text>
+      <DialogContent className="max-w-lg w-[95vw] p-4">
+        <Text className="font-bold text-xl pt-2 px-2">Match Statistics</Text>
         <View className="">
           <Table className="table-fixed w-full">
             <TableHeader>

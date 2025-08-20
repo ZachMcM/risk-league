@@ -79,7 +79,7 @@ export default function MatchTabs({
                   No completed matches
                 </Text>
                 <Text className="font-semibold text-muted-foreground text-center max-w-sm">
-                  You don't have any matches completed matches currently
+                  You don't have any completed matches currently
                 </Text>
               </View>
               <Button

@@ -30,13 +30,13 @@ export default function StartMatchCard({
   const { data: props, isPending: arePropsPending } = useQuery({
     queryKey: ["props", league, data?.user.id],
     queryFn: async () => await getTodayProps(league),
+    
   });
 
   return (
     <Card
       className={cn(
         "w-[48%] self-stretch",
-        arePropsPending && "animate-pulse",
         (arePropsPending || props == undefined || props.length == 0) &&
           "opacity-50"
       )}

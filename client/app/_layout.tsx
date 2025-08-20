@@ -135,6 +135,14 @@ export function RootNavigatior() {
         name="career"
         options={{ headerShown: false, presentation: "modal" }}
       />
+      <Stack.Screen
+        name="settings"
+        options={{ headerShown: false, presentation: "modal" }}
+      />
+      <Stack.Screen
+        name="leaderboard"
+        options={{ headerShown: false, presentation: "modal" }}
+      />
     </Stack>
   );
 }
@@ -168,7 +176,7 @@ export function useRefreshOnFocus<T>(refetch: () => Promise<T>) {
       }
 
       refetch();
-    }, [refetch]),
+    }, [refetch])
   );
 }
 

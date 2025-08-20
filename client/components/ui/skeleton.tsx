@@ -2,6 +2,7 @@ import * as React from "react";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
+  useDerivedValue,
   withRepeat,
   withSequence,
   withTiming,
@@ -21,11 +22,15 @@ function Skeleton({
       withSequence(withTiming(0.5, { duration }), withTiming(1, { duration })),
       -1,
     );
-  }, []);
+  }, [sv]);
 
-  const style = useAnimatedStyle(() => ({
-    opacity: sv.value,
-  }));
+  const opacity = useDerivedValue(() => sv.value);
+
+  const style = useAnimatedStyle(() => {
+    return {
+      opacity: opacity.value,
+    };
+  });
 
   return (
     <Animated.View

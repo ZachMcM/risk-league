@@ -1,9 +1,20 @@
 import { useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
-import { router } from "expo-router";
+import { Link, router } from "expo-router";
 import { View } from "react-native";
+import Animated, { FadeIn } from "react-native-reanimated";
 import StartMatchCard from "~/components/matches/StartMatchCard";
 import { Button } from "~/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuShortcut,
+  DropdownMenuTrigger,
+} from "~/components/ui/dropdown-menu";
 import ProfileImage from "~/components/ui/profile-image";
 import { Progress } from "~/components/ui/progress";
 import { RankText } from "~/components/ui/rank-text";
@@ -14,8 +25,10 @@ import { Text } from "~/components/ui/text";
 import { getUserRank } from "~/endpoints";
 import { authClient } from "~/lib/auth-client";
 import { leagues } from "~/lib/constants";
-import { ChartBarDecreasing } from "~/lib/icons/ChartBarDecreasing";
+import { ChartColumnIncreasing } from "~/lib/icons/CharColumnIncreasing";
 import { Cog } from "~/lib/icons/Cog";
+import { Trophy } from "~/lib/icons/Trophy";
+import { Ellipsis } from "~/lib/icons/Ellipsis";
 
 export default function Home() {
   const { data } = authClient.useSession();
@@ -59,16 +72,40 @@ export default function Home() {
             )}
           </View>
           <View className="flex flex-row items-center gap-2">
-            <Button size="icon" variant="outline">
-              <Cog className="text-foreground" size={18} />
-            </Button>
             <Button
               size="icon"
               variant="outline"
-              onPress={() => router.navigate("/career")}
+              onPress={() => router.navigate("/settings")}
             >
-              <ChartBarDecreasing className="text-foreground" size={18} />
+              <Cog className="text-foreground" size={18} />
             </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="icon" variant="outline">
+                  <Ellipsis className="text-foreground" size={18} />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-44 mt-2">
+                <DropdownMenuItem
+                  className="w-full"
+                  onPress={() => router.navigate("/career")}
+                >
+                  <ChartColumnIncreasing
+                    className="text-foreground"
+                    size={18}
+                  />
+                  <Text>Career</Text>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  className="w-full"
+                  onPress={() => router.navigate("/leaderboard")}
+                >
+                  <Trophy className="text-foreground" size={18} />
+                  <Text>Leaderboard</Text>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </View>
         </View>
         {isUserPending ? (
@@ -118,7 +155,7 @@ export default function Home() {
             {leagues.map((league) => (
               <StartMatchCard key={league} league={league} />
             ))}
-          </View>          
+          </View>
         </View>
       </View>
     </ScrollContainer>

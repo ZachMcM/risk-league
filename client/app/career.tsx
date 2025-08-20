@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { View } from "react-native";
+import { Dimensions, ScrollView, View } from "react-native";
+import { LineChart } from "react-native-chart-kit";
 import { Card, CardContent } from "~/components/ui/card";
 import ModalContainer from "~/components/ui/modal-container";
 import { Progress } from "~/components/ui/progress";
@@ -8,11 +9,11 @@ import { Skeleton } from "~/components/ui/skeleton";
 import { Text } from "~/components/ui/text";
 import { getCareer } from "~/endpoints";
 import { authClient } from "~/lib/auth-client";
-import { Trophy } from "~/lib/icons/Trophy";
 import { Star } from "~/lib/icons/Star";
-import { Crown } from "~/lib/icons/Crown";
 import { TrendingUp } from "~/lib/icons/TrendingUp";
+import { Trophy } from "~/lib/icons/Trophy";
 import RankBadge from "~/components/ui/RankBadge";
+import RankGraph from "~/components/career/RankGraph";
 
 export default function Career() {
   const { data } = authClient.useSession();
@@ -29,10 +30,7 @@ export default function Career() {
           <Text className="font-bold text-4xl">Career</Text>
           {isCareerPending ? (
             <View className="flex flex-col gap-3">
-              {/* <View className="flex flex-row items-center gap-3">
-                <Skeleton className="h-40 flex-1 self-stretch" />
-                <Skeleton className="h-40 flex-1 self-stretch" />
-              </View> */}
+              <Skeleton className="h-48 flex-1 self-stretch" />
               <Skeleton className="h-48 flex-1 self-stretch" />
               <Skeleton className="h-48 flex-1 self-stretch" />
               <Skeleton className="h-48 flex-1 self-stretch" />
@@ -44,37 +42,32 @@ export default function Career() {
           ) : (
             career && (
               <View className="flex flex-col gap-4">
-                {/* <View className="flex flex-row gap-4">
-                  <Card className="flex-1 self-stretch">
-                    <CardContent className="p-6 flex flex-col gap-4">
+                <Card className="flex-1 self-stretch">
+                  <CardContent className="p-6 flex flex-col gap-4">
+                    <View className="flex flex-col gap-2">
                       <View className="flex flex-row items-center justify-between">
-                        <Text className="font-bold">Peak Rank</Text>
+                        <Text className="font-bold">Points Timeline</Text>
                         <TrendingUp
                           className="text-muted-foreground"
                           size={16}
                         />
                       </View>
-                      <RankBadge
-                        gradientStyle={{ alignSelf: "flex-start" }}
-                        rank={career.peakRank}
-                        showIcon
+                    </View>
+                    {career.pointsTimeline.length > 0 ? (
+                      <RankGraph
+                        pointsTimeline={career.pointsTimeline}
+                        peakRank={career.peakRank}
+                        currentRank={career.currentRank}
                       />
-                    </CardContent>
-                  </Card>
-                  <Card className="flex-1 self-stretch">
-                    <CardContent className="p-6 flex flex-col gap-4">
-                      <View className="flex flex-row items-center justify-between">
-                        <Text className="font-bold">Current Rank</Text>
-                        <Crown className="text-muted-foreground" size={16} />
+                    ) : (
+                      <View className="h-48 flex items-center justify-center">
+                        <Text className="text-muted-foreground">
+                          No timeline data available
+                        </Text>
                       </View>
-                      <RankBadge
-                        gradientStyle={{ alignSelf: "flex-start" }}
-                        rank={career.currentRank}
-                        showIcon
-                      />
-                    </CardContent>
-                  </Card>
-                </View> */}
+                    )}
+                  </CardContent>
+                </Card>
                 <Card className="flex-1 self-stretch">
                   <CardContent className="p-6 flex flex-col gap-4">
                     <View className="flex flex-col gap-2">
@@ -96,7 +89,7 @@ export default function Career() {
                             : `${Math.round(
                                 (career.matchStats.wins /
                                   career.matchStats.total) *
-                                  100,
+                                  100
                               )}%`}
                         </Text>
                       </View>
@@ -142,7 +135,7 @@ export default function Career() {
                             : `${Math.round(
                                 (career.parlayStats.wins /
                                   career.parlayStats.total) *
-                                  100,
+                                  100
                               )}%`}
                         </Text>
                       </View>
