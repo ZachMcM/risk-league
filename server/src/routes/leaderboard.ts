@@ -60,7 +60,7 @@ leaderboardRoute.get("/leaderboard", authMiddleware, async (req, res) => {
         progression: calculateProgression(userEntry.points),
         points:
           rank.tier == "Legend"
-            ? userEntry.points - ranks[5].minPoints
+            ? Math.round(userEntry.points - ranks[ranks.length - 1].minPoints)
             : undefined,
         position: offset + index + 1,
         wins: userEntry.matchUsers.filter(

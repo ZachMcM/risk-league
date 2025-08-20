@@ -113,7 +113,7 @@ export default function MatchListCard({ initialData }: { initialData: Match }) {
                   <TrendingDown className="text-primary" size={20} />
                 )}
                 <Text className="font-bold text-2xl text-primary">
-                  {you.pointsDelta >= 0 && "+"}
+                  {you.pointsDelta >= 0 && "+ "}
                   {you.progressionDelta !== null
                     ? `${you.progressionDelta}%`
                     : `${you.pointsDelta} Points`}

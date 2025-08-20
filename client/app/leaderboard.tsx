@@ -25,8 +25,6 @@ function LeaderboardItem({
     wins: number;
   };
 }) {
-  console.log(user.username);
-
   return (
     <View className="flex flex-col gap-4">
       <View className="flex flex-row items-center gap-3">
@@ -53,7 +51,7 @@ function LeaderboardItem({
               />
               {user.points && (
                 <RankText tier={user.rank.tier} className="font-bold text-sm">
-                  {user.points} points
+                  {user.points}
                 </RankText>
               )}
             </View>

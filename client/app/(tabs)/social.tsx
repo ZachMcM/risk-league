@@ -156,7 +156,7 @@ export default function Friends() {
                 estimatedItemSize={60}
                 showsVerticalScrollIndicator={false}
                 renderItem={({ item, index }) => (
-                  <GridItemWrapper index={index} numCols={1} gap={12}>
+                  <GridItemWrapper index={index} numCols={1} gap={16}>
                     <UserCard
                       user={item}
                       friendship={friendships?.find(
@@ -192,7 +192,7 @@ export default function Friends() {
                 showsVerticalScrollIndicator={false}
                 data={friendRequests}
                 renderItem={({ item, index }) => (
-                  <GridItemWrapper index={index} numCols={1} gap={12}>
+                  <GridItemWrapper index={index} numCols={1} gap={16}>
                     <UserCard friendship={item} user={item.friend} />
                   </GridItemWrapper>
                 )}
@@ -232,7 +232,7 @@ export default function Friends() {
                 estimatedItemSize={60}
                 showsVerticalScrollIndicator={false}
                 renderItem={({ item, index }) => (
-                  <GridItemWrapper index={index} gap={12} numCols={1}>
+                  <GridItemWrapper index={index} gap={16} numCols={1}>
                     <UserCard friendship={item} user={item.friend} />
                   </GridItemWrapper>
                 )}

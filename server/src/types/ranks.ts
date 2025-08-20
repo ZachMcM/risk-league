@@ -40,15 +40,15 @@ export const ranks: Rank[] = [
   { tier: "All-Star", level: "II", minPoints: 2400, maxPoints: 2599 },
   { tier: "All-Star", level: "I", minPoints: 2600, maxPoints: 2799 },
 
-  // Elite Tier - Slightly wider (225 points each)
-  { tier: "Elite", level: "III", minPoints: 2800, maxPoints: 3024 },
-  { tier: "Elite", level: "II", minPoints: 3025, maxPoints: 3249 },
-  { tier: "Elite", level: "I", minPoints: 3250, maxPoints: 3474 },
+  // Superstar Tier - Slightly wider (225 points each)
+  { tier: "Superstar", level: "III", minPoints: 2800, maxPoints: 3024 },
+  { tier: "Superstar", level: "II", minPoints: 3025, maxPoints: 3249 },
+  { tier: "Superstar", level: "I", minPoints: 3250, maxPoints: 3474 },
 
-  // Superstar Tier - Wider for top players (275 points each)
-  { tier: "Superstar", level: "III", minPoints: 3475, maxPoints: 3749 },
-  { tier: "Superstar", level: "II", minPoints: 3750, maxPoints: 4024 },
-  { tier: "Superstar", level: "I", minPoints: 4025, maxPoints: 4299 },
+  // Elite Tier - Wider for top players (275 points each)
+  { tier: "Elite", level: "III", minPoints: 3475, maxPoints: 3749 },
+  { tier: "Elite", level: "II", minPoints: 3750, maxPoints: 4024 },
+  { tier: "Elite", level: "I", minPoints: 4025, maxPoints: 4299 },
 
   // Legend Tier - The pinnacle
   { tier: "Legend", level: null, minPoints: 4300, maxPoints: Infinity },
