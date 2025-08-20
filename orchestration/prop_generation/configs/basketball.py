@@ -7,8 +7,16 @@ def fgm_config() -> PropConfig:
     return PropConfig(...)
 """
 
-from prop_generation.generator.base import DataScope, FeatureDefinition, ModelType, PropConfig
-from prop_generation.generator.registry import basketball_registry, register_basketball_stat
+from prop_generation.generator.base import (
+    DataScope,
+    FeatureDefinition,
+    ModelType,
+    PropConfig,
+)
+from prop_generation.generator.registry import (
+    basketball_registry,
+    register_basketball_stat,
+)
 
 ELIGIBILITY_THRESHOLDS = {
     "minutes": 0.5,
@@ -29,6 +37,7 @@ ELIGIBILITY_THRESHOLDS = {
 
 SAMPLE_SIZE = 15
 MIN_LINE_FOR_UNDER = 5
+
 
 @register_basketball_stat
 def points_config() -> PropConfig:
@@ -137,7 +146,8 @@ def three_points_made_config() -> PropConfig:
         model_type=ModelType.POISSON,
         model_params={"alpha": 1},
     )
-    
+
+
 @register_basketball_stat
 def three_points_attempted_config() -> PropConfig:
     """3-PT Attempted configuration"""
@@ -155,9 +165,7 @@ def three_points_attempted_config() -> PropConfig:
                 "opp_defensive_rating", "defensiveRating", DataScope.OPPONENT
             ),
             FeatureDefinition("usage_rate", "usageRate", DataScope.PLAYER),
-            FeatureDefinition(
-                "three_points_made", "threePointsMade", DataScope.PLAYER
-            ),
+            FeatureDefinition("three_points_made", "threePointsMade", DataScope.PLAYER),
             FeatureDefinition("three_pct", "threePct", DataScope.PLAYER),
         ],
         model_type=ModelType.POISSON,
@@ -380,26 +388,32 @@ def rebounds_assists_config() -> PropConfig:
         model_type=ModelType.RIDGE,
         model_params={"alpha": 1},
     )
-    
-    
+
+
 @register_basketball_stat
 def free_throws_made() -> PropConfig:
-    return PropConfig(        
+    return PropConfig(
         stat_name="free_throws_made",
         target_field="freeThrowsMade",
         display_name="FT Made",
         features=[
             FeatureDefinition("minutes", "minutes", DataScope.PLAYER),
-            FeatureDefinition("free_throws_attempted", "freeThrowsAttempted", DataScope.PLAYER),
+            FeatureDefinition(
+                "free_throws_attempted", "freeThrowsAttempted", DataScope.PLAYER
+            ),
             FeatureDefinition("free_throw_pct", "freeThrowPct", DataScope.PLAYER),
             FeatureDefinition("usage_rate", "usageRate", DataScope.PLAYER),
             FeatureDefinition("pace", "pace", DataScope.TEAM),
-            FeatureDefinition("team_offensive_rating", "offensiveRating", DataScope.TEAM),
-            FeatureDefinition("opp_defensive_rating", "defensiveRating", DataScope.OPPONENT),
+            FeatureDefinition(
+                "team_offensive_rating", "offensiveRating", DataScope.TEAM
+            ),
+            FeatureDefinition(
+                "opp_defensive_rating", "defensiveRating", DataScope.OPPONENT
+            ),
             FeatureDefinition("opp_fouls", "fouls", DataScope.OPPONENT),
         ],
         model_type=ModelType.POISSON,
-        model_params={"alpha": 1}
+        model_params={"alpha": 1},
     )
 
 

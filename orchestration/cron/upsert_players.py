@@ -1,7 +1,7 @@
 import json
 import sys
 
-from constants import leagues
+from constants import LEAGUES
 from utils import data_feeds_req, server_req, setup_logger
 
 logger = setup_logger(__name__)
@@ -16,7 +16,7 @@ def main():
         provided_leagues = []
 
         for i in range(1, len(sys.argv)):
-            if sys.argv[i] not in leagues:
+            if sys.argv[i] not in LEAGUES:
                 logger.error("Invalid league command argument")
                 sys.exit(1)
             provided_leagues.append(sys.argv[i])

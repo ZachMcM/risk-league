@@ -161,6 +161,7 @@ export const team = pgTable(
     location: text(),
     mascot: text(),
     arena: text(),
+    conference: text()
   },
   (table) => [primaryKey({ columns: [table.teamId, table.league] })],
 );

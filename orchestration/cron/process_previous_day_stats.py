@@ -6,7 +6,7 @@ from zoneinfo import ZoneInfo
 from utils import data_feeds_req, server_req, setup_logger
 from extract_stats.main import extract_player_stats, extract_team_stats
 from extract_stats.main import LEAGUE_CONFIG
-from constants import leagues
+from constants import LEAGUES
 
 logger = setup_logger(__name__)
 
@@ -55,7 +55,7 @@ def main():
             datetime.now(ZoneInfo("America/New_York")) - timedelta(days=1)
         ).strftime("%Y-%m-%d")
 
-        for league in leagues:
+        for league in LEAGUES:
             feed_req = data_feeds_req(f"/live/{yesterday_str}/{league}")
             if feed_req.status_code == 304:
                 logger.info(f"Skipping {league}, no games yesterday")

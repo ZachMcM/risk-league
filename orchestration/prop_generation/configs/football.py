@@ -15,7 +15,6 @@ from prop_generation.generator.base import (
 )
 from prop_generation.generator.registry import football_registry, register_football_stat
 
-
 ELIGIBILITY_THRESHOLDS = {
     "QB": {
         "passing_yards": 0.5,  # Starting QBs should generate props
@@ -48,6 +47,7 @@ ELIGIBILITY_THRESHOLDS = {
 
 SAMPLE_SIZE = 5
 MIN_LINE_FOR_UNDER = 10
+
 
 @register_football_stat
 def passing_yards_config() -> PropConfig:

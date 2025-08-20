@@ -4,7 +4,7 @@ import sys
 import json
 
 from apscheduler.schedulers.background import BackgroundScheduler
-from constants import leagues
+from constants import LEAGUES
 from datetime import datetime
 from zoneinfo import ZoneInfo
 from utils import data_feeds_req, server_req
@@ -20,7 +20,7 @@ def resolve_matches():
     """
     completed_leagues = []
 
-    for league in leagues:
+    for league in LEAGUES:
         today_str = datetime.now(ZoneInfo("America/New_York")).strftime("%Y-%m-%d")
         live_feed_req = data_feeds_req(f"/live/{today_str}/{league}")
         if live_feed_req.status_code == 304:

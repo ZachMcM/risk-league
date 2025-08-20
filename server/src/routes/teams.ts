@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { leagueType, team } from "../db/schema";
-import { InferInsertModel } from "drizzle-orm";
+import { and, eq, InferInsertModel, sql } from "drizzle-orm";
 import { apiKeyMiddleware } from "../middleware";
 import { logger } from "../logger";
 import { db } from "../db";
@@ -8,7 +8,7 @@ import { handleError } from "../utils/handleError";
 import { createInsertSchema } from "drizzle-zod";
 
 export const teamsRoute = Router();
-const teamsSchema = createInsertSchema(team)
+const teamsSchema = createInsertSchema(team);
 
 teamsRoute.post("/teams", apiKeyMiddleware, async (req, res) => {
   try {
@@ -23,12 +23,22 @@ teamsRoute.post("/teams", apiKeyMiddleware, async (req, res) => {
     }
 
     for (const entry of teamsToInsert) {
-      teamsSchema.parse(entry)
-    } 
+      teamsSchema.parse(entry);
+    }
 
     const result = await db
       .insert(team)
       .values(teamsToInsert)
+      .onConflictDoUpdate({
+        target: [team.teamId, team.league],
+        set: {
+          conference: sql`EXCLUDED.conference`,
+          abbreviation: sql`EXCLUDED.abbreviation`,
+          location: sql`EXCLUDED.location`,
+          mascot: sql`EXCLUDED.mascot`,
+          arena: sql`EXCLUDED.arena`,
+        },
+      })
       .returning({ id: team.teamId });
 
     logger.info(`Successfully inserted ${result.length} teams(s)`);
@@ -51,3 +61,29 @@ teamsRoute.post("/teams", apiKeyMiddleware, async (req, res) => {
     handleError(error, res, "Teams route");
   }
 });
+
+
+teamsRoute.get("/teams/:teamId/league/:leagueId", apiKeyMiddleware, async (req, res) => {
+  try {
+    const teamId = parseInt(req.params.teamId)
+    const league = req.params.league as (typeof leagueType.enumValues)[number] | undefined
+
+    if (league === undefined || !leagueType.enumValues.includes(league)) {
+      res.status(400).json({ error: "Invalid league parameter" })
+      return
+    }
+
+    if (isNaN(teamId)) {
+      res.status(400).json({ error: "Invalid teamId parameter" })
+      return
+    }
+
+    const teamResult = await db.query.team.findFirst({
+      where: and(eq(team.teamId, teamId), eq(team.league, league))
+    })
+
+    res.json(teamResult)
+  } catch (error) {
+    handleError(error, res, "Teams")
+  }
+})
