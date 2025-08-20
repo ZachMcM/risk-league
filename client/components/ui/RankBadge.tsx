@@ -1,10 +1,9 @@
 import { StyleProp, ViewStyle } from "react-native";
-import { Level, Rank, Tier } from "~/types/rank";
-import { RankGradient } from "./rank-gradient";
-import { RankText } from "./rank-text";
+import { Rank } from "~/types/rank";
 import { cn } from "~/utils/cn";
 import { LogoIcon } from "./logo-icon";
-import { cva } from "class-variance-authority";
+import { RankGradient } from "./rank-gradient";
+import { RankText } from "./rank-text";
 
 export default function RankBadge({
   rank,
@@ -37,23 +36,19 @@ export default function RankBadge({
       {showIcon && (
         <LogoIcon
           className={cn(
-            rank.tier == "Bronze"
+            rank.tier == "Rookie"
               ? "!text-amber-600"
-              : rank.tier == "Silver"
-                ? "!text-gray-400"
-                : rank.tier == "Gold"
-                  ? "!text-yellow-500"
-                  : rank.tier == "Platinum"
-                    ? "!text-blue-400"
-                    : rank.tier == "Diamond"
-                      ? "!text-sky-500"
-                      : rank.tier == "Master"
-                        ? "!text-purple-500"
-                        : rank.tier == "Elite"
-                          ? "!text-fuchsia-500"
-                          : "!text-rose-500",
+              : rank.tier == "Pro"
+              ? "!text-gray-400"
+              : rank.tier == "All-Star"
+              ? "!text-yellow-500"
+              : rank.tier == "Superstar"
+              ? "!text-blue-400"
+              : rank.tier == "Elite"
+              ? "!text-fuchsia-500"
+              : "!text-rose-500",
             "h-5 w-5",
-            iconClassName,
+            iconClassName
           )}
         />
       )}

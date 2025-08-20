@@ -1,11 +1,9 @@
 export type Tier =
-  | "Bronze"
-  | "Silver"
-  | "Gold"
-  | "Platinum"
-  | "Diamond"
+  | "Rookie"
+  | "Pro"
+  | "All-Star"
   | "Elite"
-  | "Hall of Famer"
+  | "Superstar"
   | "Legend";
 
 export type Level = "I" | "II" | "III";

@@ -4,6 +4,7 @@ export type User = {
   id: string;
   image: string;
   username: string;
+  points?: number;
   rank: Rank;
 };
 

@@ -10,6 +10,7 @@ import { propsRoute } from "./props";
 import { teamsRoute } from "./teams";
 import { usersRoute } from "./users";
 import { statsRoute } from "./stats";
+import { leaderboardRoute } from "./leaderboard";
 
 export const routes = express.Router();
 
@@ -24,3 +25,4 @@ routes.use(gamesRoute);
 routes.use(teamsRoute);
 routes.use(playersRoute);
 routes.use(statsRoute);
+routes.use(leaderboardRoute)

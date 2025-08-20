@@ -68,7 +68,14 @@ export default function Home() {
             {isUserPending ? (
               <Skeleton className="h-4 w-1/3" />
             ) : (
-              user && <RankBadge showIcon rank={user.rank} />
+              user && (
+                <View className="flex flex-row items-center gap-2">
+                  <RankBadge showIcon rank={user.rank} />
+                  <RankText tier={user.rank.tier} className="font-bold">
+                    {user.points}
+                  </RankText>
+                </View>
+              )
             )}
           </View>
           <View className="flex flex-row items-center gap-2">
@@ -115,14 +122,15 @@ export default function Home() {
           </View>
         ) : (
           user &&
-          (user.nextRank && user.progression !== null ? (
+          user.nextRank &&
+          user.progression !== null && (
             <View className="flex flex-col gap-2">
               <View className="flex flex-row items-center justify-between">
                 <Text className="font-semibold text-muted-foreground text-xl">
                   Progress to next rank
                 </Text>
                 <Text className="font-bold text-primary text-2xl">
-                  {user.progression}%
+                  {user.progression} / 100
                 </Text>
               </View>
               <Progress value={user.progression} variant="primary" />
@@ -138,16 +146,7 @@ export default function Home() {
                 </Text>
               </View>
             </View>
-          ) : (
-            <View className="flex flex-row gap-1 items-center">
-              <Text className="font-bold text-2xl text-primary">
-                {user.points}
-              </Text>
-              <Text className="font-bold text-2xl text-muted-foreground">
-                points
-              </Text>
-            </View>
-          ))
+          )
         )}
         <View className="flex flex-col gap-4">
           <Text className="text-3xl font-bold">Competitive</Text>

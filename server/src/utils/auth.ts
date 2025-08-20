@@ -8,6 +8,8 @@ export const auth = betterAuth({
   plugins: [
     username({
       usernameNormalization: false,
+      minUsernameLength: 1,
+      maxUsernameLength: 16,
     }),
     expo(),
   ],

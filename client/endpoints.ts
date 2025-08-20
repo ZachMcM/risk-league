@@ -1,5 +1,6 @@
 import { authClient } from "./lib/auth-client";
 import { League } from "./lib/constants";
+import { LeaderboardPage } from "./types/leaderboard";
 import {
   ExtendedMatch,
   FriendlyMatchRequest,
@@ -239,4 +240,14 @@ export async function getFriendlyMatchRequests(): Promise<
   });
 
   return friendlyMatchRequests;
+}
+
+export async function getLeaderboardPage(
+  page: number
+): Promise<LeaderboardPage> {
+  const leaderboardPage = await httpRequest({
+    endpoint: `/leaderboard?page=${page}`,
+    method: "GET",
+  });
+  return leaderboardPage;
 }

@@ -94,7 +94,7 @@ export default function Messages() {
 
   return (
     <ModalContainer>
-      <View className="flex flex-1 flex-col">
+      <View className="flex flex-1">
         {areMessagesPending ? (
           <ActivityIndicator className="text-foreground" />
         ) : (

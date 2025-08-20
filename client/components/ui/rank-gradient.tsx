@@ -13,23 +13,19 @@ export function RankGradient({
   children: ReactNode;
   style?: StyleProp<ViewStyle>;
 }) {
-  const getGradientColors = (tier: string) => {
+  const getGradientColors = (tier: Tier) => {
     switch (tier) {
-      case "Bronze":
+      case "Rookie":
         return ["rgba(254, 154, 0, 0.2)", "rgba(225, 113, 0, 0.1)"] as const;
-      case "Silver":
+      case "Pro":
         return [
           "rgba(153, 161, 175, 0.2)",
           "rgba(113, 113, 123, 0.1)",
         ] as const;
-      case "Gold":
+      case "All-Star":
         return ["rgba(240, 177, 0, 0.2)", "rgba(208, 135, 0, 0.1)"] as const;
-      case "Platinum":
+      case "Superstar":
         return ["rgba(142, 197, 255, 0.2)", "rgba(81, 162, 255, 0.1)"] as const;
-      case "Diamond":
-        return ["rgba(0, 188, 255, 0.2)", "rgba(0, 166, 244, 0.1)"] as const;
-      case "Master":
-        return ["rgba(194, 122, 255, 0.2)", "rgba(173, 70, 255, 0.1)"] as const;
       case "Elite":
         return [
           "rgba(244, 168, 255, 0.2)",
@@ -40,20 +36,16 @@ export function RankGradient({
     }
   };
 
-  const getBorderColor = (tier: string) => {
+  const getBorderColor = (tier: Tier) => {
     switch (tier) {
-      case "Bronze":
+      case "Rookie":
         return "rgba(254, 154, 0, 0.2)";
-      case "Silver":
+      case "Pro":
         return "rgba(153, 161, 175, 0.2)";
-      case "Gold":
+      case "All-Star":
         return "rgba(240, 177, 0, 0.2)";
-      case "Platinum":
+      case "Superstar":
         return "rgba(142, 197, 255, 0.2)";
-      case "Diamond":
-        return "rgba(0, 188, 255, 0.2)";
-      case "Master":
-        return "rgba(194, 122, 255, 0.2)";
       case "Elite":
         return "rgba(244, 168, 255, 0.2)";
       default:

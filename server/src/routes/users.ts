@@ -8,6 +8,7 @@ import { findNextRank } from "../utils/findNextRank";
 import { findRank } from "../utils/findRank";
 import { getMaxKey } from "../utils/getMaxKey";
 import { handleError } from "../utils/handleError";
+import { ranks } from "../types/ranks";
 
 export const usersRoute = Router();
 
@@ -72,7 +73,7 @@ usersRoute.get("/users/rank", authMiddleware, async (_, res) => {
       rank,
       nextRank,
       progression: calculateProgression(userResult.points),
-      points: userResult.points,
+      points: rank.tier == "Legend" ? userResult.points - ranks[5].minPoints : undefined,
     });
   } catch (error) {
     handleError(error, res, "Users route");

@@ -26,23 +26,19 @@ export default function RankIcon({
     >
       <LogoIcon
         className={cn(
-          tier == "Bronze"
+          tier == "Rookie"
             ? "!text-amber-600"
-            : tier == "Silver"
-              ? "!text-gray-400"
-              : tier == "Gold"
-                ? "!text-yellow-500"
-                : tier == "Platinum"
-                  ? "!text-blue-400"
-                  : tier == "Diamond"
-                    ? "!text-sky-500"
-                    : tier == "Master"
-                      ? "!text-purple-500"
-                      : tier == "Elite"
-                        ? "!text-fuchsia-500"
-                        : "!text-rose-500",
+            : tier == "Pro"
+            ? "!text-gray-400"
+            : tier == "All-Star"
+            ? "!text-yellow-500"
+            : tier == "Superstar"
+            ? "!text-blue-400"
+            : tier == "Elite"
+            ? "!text-fuchsia-500"
+            : "!text-rose-500",
           "h-8 w-8",
-          iconClassName,
+          iconClassName
         )}
       />
     </RankGradient>
