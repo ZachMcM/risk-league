@@ -84,13 +84,13 @@ export default function FinalizeParlay() {
           position: "bottom-center",
         });
       },
-      onSuccess: ({ id }: { id: number }) => {
+      onSuccess: () => {
         clearParlay();
         invalidateQueries(
           queryClient,
           ["match", matchId],
           ["parlays", matchId, data?.user.id!],
-          ["props", matchId, data?.user.id],
+          ["props", match?.league, data?.user.id],
           ["career", data?.user.id!],
         );
         toast.success("Parlay Successfully created", {

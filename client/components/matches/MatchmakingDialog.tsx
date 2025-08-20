@@ -1,6 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
-import { useRef, useState } from "react";
+import { ReactNode, useRef, useState } from "react";
 import { View } from "react-native";
 import { io } from "socket.io-client";
 import { toast } from "sonner-native";
@@ -29,7 +29,12 @@ interface MatchmakingDialogProps {
 export default function MatchmakingDialog({
   children,
   league,
-}: MatchmakingDialogProps) {
+  disableTrigger = false,
+}: {
+  children: ReactNode;
+  league: League;
+  disableTrigger?: boolean;
+}) {
   const queryClient = useQueryClient();
   const { data } = authClient.useSession();
   const userId = data?.user.id!;
@@ -63,7 +68,7 @@ export default function MatchmakingDialog({
     socketRef.current = socket;
 
     socket.on("connect", () =>
-      console.log("Connected to matchmaking namespace"),
+      console.log("Connected to matchmaking namespace")
     );
 
     socket.on("match-found", ({ matchId }: { matchId: string }) => {
@@ -112,7 +117,7 @@ export default function MatchmakingDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
+      <DialogTrigger disabled={disableTrigger} asChild>{children}</DialogTrigger>
       <DialogContent className="max-w-md">
         <View className="flex flex-col items-center gap-4 py-4">
           <View className="relative mx-auto w-20 h-20 bg-primary/20 rounded-full flex items-center justify-center">

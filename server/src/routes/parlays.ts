@@ -203,10 +203,8 @@ parlaysRoute.post("/parlays/:matchId", authMiddleware, async (req, res) => {
     invalidateQueries(
       ["match", matchId],
       ["parlays", matchId, matchUserResult.userId],
-      ["matches", matchUserResult.match.matchUsers[0].userId, "unresolved"],
-      ["matches", matchUserResult.match.matchUsers[1].userId, "unresolved"],
-      ["matches", matchUserResult.match.matchUsers[0].userId, "resolved"],
-      ["matches", matchUserResult.match.matchUsers[1].userId, "resolved"]
+      ["props", matchUserResult.match.type, matchUserResult.userId],
+      ["career", matchUserResult.userId]
     );
 
     res.json(parlayResult);
@@ -314,7 +312,7 @@ parlaysRoute.patch("/parlays", apiKeyMiddleware, async (req, res) => {
 
     io.of("/realtime")
       .to(`user:${parlayResult.matchUser.userId}`)
-      .emit("parlay-resolved", {
+      .emit("match-parlay-resolved", {
         matchId: parlayResult.matchUser.matchId,
         parlayId: parlayResult.id,
       });

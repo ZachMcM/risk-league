@@ -56,7 +56,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
     });
 
     socket.on(
-      "parlay-resolved",
+      "match-parlay-resolved",
       ({ matchId, parlayId }: { matchId: number; parlayId: number }) => {
         const toastId = toast.custom(
           <Link
@@ -70,7 +70,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
             <Card>
               <CardContent className="w-full flex flex-col px-4 py-3">
                 <Text className="font-bold text-lg">
-                  One of your parlays finished!
+                  One of your match parlays finished!
                 </Text>
                 <Text className="text-muted-foreground font-semibold">
                   Click here to view the results!

@@ -1,19 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Fragment, useEffect, useState } from "react";
+import { useEffect } from "react";
 import { ActivityIndicator, View } from "react-native";
 import MatchDetails from "~/components/matches/MatchDetails";
 import ParlaysView from "~/components/parlays/ParlaysView";
-import PropsView from "~/components/props/PropsView";
 import { Button } from "~/components/ui/button";
-import { Container } from "~/components/ui/container";
 import { ScrollContainer } from "~/components/ui/scroll-container";
-import { Separator } from "~/components/ui/separator";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { Text } from "~/components/ui/text";
-import { getMatch, getParlays, getTodayProps } from "~/endpoints";
+import { getMatch, getParlays } from "~/endpoints";
 import { authClient } from "~/lib/auth-client";
-import { MessageCircle } from "~/lib/icons/MessageCircle";
 import { Plus } from "~/lib/icons/Plus";
 
 export default function Match() {

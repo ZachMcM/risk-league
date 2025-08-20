@@ -454,6 +454,10 @@ matchesRoute.patch("/matches", apiKeyMiddleware, async (req, res) => {
 
       invalidateQueries(
         ["match", matchToEnd.id],
+        ["matches", matchUser1.userId, "resolved"],
+        ["matches", matchUser2.userId, "resolved"],
+        ["matches", matchUser1.userId, "unresolved"],
+        ["matches", matchUser2.userId, "unresolved"],
         ["user", matchUser1.userId],
         ["user", matchUser2.userId],
         ["career", matchUser1.userId],

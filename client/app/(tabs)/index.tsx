@@ -16,7 +16,6 @@ import { authClient } from "~/lib/auth-client";
 import { leagues } from "~/lib/constants";
 import { ChartBarDecreasing } from "~/lib/icons/ChartBarDecreasing";
 import { Cog } from "~/lib/icons/Cog";
-import { Users } from "~/lib/icons/Users";
 
 export default function Home() {
   const { data } = authClient.useSession();
@@ -113,10 +112,13 @@ export default function Home() {
             </View>
           ))
         )}
-        <View className="flex flex-row items-center gap-3 flex-wrap">
-          {leagues.map((league) => (
-            <StartMatchCard key={league} league={league} />
-          ))}
+        <View className="flex flex-col gap-4">
+          <Text className="text-3xl font-bold">Competitive</Text>
+          <View className="flex flex-row items-center gap-3 flex-wrap">
+            {leagues.map((league) => (
+              <StartMatchCard key={league} league={league} />
+            ))}
+          </View>          
         </View>
       </View>
     </ScrollContainer>

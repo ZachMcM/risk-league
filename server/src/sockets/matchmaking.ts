@@ -7,6 +7,7 @@ import { leagueType, match, matchUser, user } from "../db/schema";
 import { redis } from "../redis";
 import { getRank } from "../utils/getRank";
 import { MAX_STARTING_BALANCE, MIN_STARTING_BALANCE } from "../config";
+import { invalidateQueries } from "../utils/invalidateQueries";
 
 export async function createMatch({
   user1Id,
@@ -59,6 +60,11 @@ export async function createMatch({
     userId: user2Id,
     matchId: matchResult.id,
   });
+
+  invalidateQueries(
+    ["matches", user1Id, "unresolved"],
+    ["matches", user2Id, "unresolved"]
+  );
 
   return matchResult.id;
 }

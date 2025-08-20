@@ -50,6 +50,7 @@ def main() -> None:
         stats_list = get_baseball_stats_list()
         configs = get_baseball_prop_configs()
 
+        logger.info("Fetching MLB league average at bats")
         league_avg_at_bats_data: LeagueAverages = server_req(
             route="/stats/baseball/league/MLB/averages/atBats", method="GET"
         ).json()
@@ -66,6 +67,7 @@ def main() -> None:
                 game["away_pitcher"]["player_id"],
             ]
 
+            logger.info("Fetching MLB league average stolen bases")
             game_insert_body = {
                 "gameId": game["game_ID"],
                 "startTime": game["game_time"],
