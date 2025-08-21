@@ -191,7 +191,7 @@ def extract_baseball_batting_stats(
         "intentionalWalks": player_stats["IBB"],
         "rbis": player_stats["RBI"],
         "outs": player_stats["Outs"],
-        "status": player_stats["status"],
+        "status": player_stats.get("status", "INACT"),
     }
     
     # Calculate extended batting stats
@@ -233,7 +233,7 @@ def extract_baseball_pitching_stats(
         "pitchingIntentionalWalks": player_stats["IBB"],
         "pitchesThrown": player_stats["pitches"],
         "strikes": player_stats["strikes"],
-        "status": player_stats["status"],
+        "status": player_stats.get("status", "INACT"),
     }
     
     # Calculate extended pitching stats

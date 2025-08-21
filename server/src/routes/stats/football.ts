@@ -90,12 +90,43 @@ footballRoute.post(
         footballPlayerStatsSchema.parse(entry);
       }
 
+      // Filter out players that don't exist in the database
+      const playerIds = [...new Set(playerStatsToInsert.map(entry => entry.playerId))];
+      const league = playerStatsToInsert[0].league;
+      
+      const existingPlayers = await db
+        .select({ playerId: player.playerId })
+        .from(player)
+        .where(
+          and(
+            inArray(player.playerId, playerIds),
+            eq(player.league, league)
+          )
+        );
+
+      const existingPlayerIds = new Set(existingPlayers.map(p => p.playerId));
+      const validEntries = playerStatsToInsert.filter(entry => 
+        existingPlayerIds.has(entry.playerId)
+      );
+
+      if (validEntries.length === 0) {
+        res.status(400).json({ error: "No valid player entries found - all players missing from database" });
+        return;
+      }
+
+      if (validEntries.length !== playerStatsToInsert.length) {
+        const missingPlayerIds = playerStatsToInsert
+          .filter(entry => !existingPlayerIds.has(entry.playerId))
+          .map(entry => entry.playerId);
+        logger.warn(`Players not found in database, skipping: ${missingPlayerIds.join(', ')}`);
+      }
+
       const result = await db
         .insert(footballPlayerStats)
-        .values(playerStatsToInsert)
+        .values(validEntries)
         .returning({ id: footballPlayerStats.id });
 
-      logger.info(`Successfully inserted ${result.length} player stat entries`);
+      logger.info(`Successfully inserted ${result.length} player stat entries (${playerStatsToInsert.length - validEntries.length} skipped)`);
 
       res.json(isBatch ? result : result[0]);
     } catch (error) {

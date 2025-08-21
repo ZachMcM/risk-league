@@ -167,7 +167,7 @@ def extract_football_player_stats(game, team_id, player_id, player_stats, league
         "teamId": int(team_id),
         "completions": player_stats.get("completions", 0),
         "fumblesLost": player_stats.get("fumbles_lost", 0),
-        "rushingLong": player_stats.get("rushing_long", 0),
+        "rushingLong": player_stats.get("rushing_long", 0.0),
         "passerRating": player_stats.get("passer_rating", 0.0),
         "passingYards": player_stats.get("passing_yards", 0.0),
         "rushingYards": player_stats.get("rushing_yards", 0.0),
@@ -177,7 +177,7 @@ def extract_football_player_stats(game, team_id, player_id, player_stats, league
         "passingTouchdowns": player_stats.get("passing_touchdowns", 0),
         "rushingTouchdowns": player_stats.get("rushing_touchdowns", 0),
         "passingInterceptions": player_stats.get("passing_interceptions", 0),
-        "receivingLong": player_stats.get("receiving_long", 0),
+        "receivingLong": player_stats.get("receiving_long", 0.0),
         "receivingYards": player_stats.get("receiving_yards", 0),
         "receivingTouchdowns": player_stats.get("receiving_touchdowns", 0),
         "receptions": player_stats.get("receptions", 0),
@@ -186,7 +186,7 @@ def extract_football_player_stats(game, team_id, player_id, player_stats, league
         "fieldGoalsLong": player_stats.get("field_goals_long", 0.0),
         "extraPointsAttempted": player_stats.get("extra_points_attempted", 0),
         "extraPointsMade": player_stats.get("extra_points_made", 0),
-        "status": player_stats["status"],
+        "status": player_stats.get("status", "INACT"),
     }
     
     # Calculate extended stats

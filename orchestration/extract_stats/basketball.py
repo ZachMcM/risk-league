@@ -202,7 +202,7 @@ def extract_basketball_player_stats(game, team_id, player_id, player_stats, leag
         "fieldGoalsAttempted": player_stats["field_goals_attempted"],
         "freeThrowsAttempted": player_stats["free_throws_attempted"],
         "threePointsAttempted": player_stats["three_points_attempted"],
-        "status": player_stats["status"],
+        "status": player_stats.get("status", "INACT"),
     }
     
     # Calculate extended stats
