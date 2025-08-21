@@ -305,7 +305,6 @@ matchesRoute.patch("/matches", apiKeyMiddleware, async (req, res) => {
         return;
     }
 
-
     const minParlaysRequired = MIN_PARLAYS_REQUIRED;
     const minPctTotalStaked = MIN_PCT_TOTAL_STAKED;
 

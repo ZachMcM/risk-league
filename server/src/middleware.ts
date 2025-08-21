@@ -42,9 +42,12 @@ export const corsOrApiKeyMiddleware = async (
   next: NextFunction
 ) => {
   // TODO add datafeeds domain
+  logger.info({ body: req.body })
+
   const allowedDomains = [""];
 
   const origin = req.headers.origin;
+  logger.info(`Origin: ${origin}`)
   const corsValid = origin && allowedDomains.includes(origin);
 
   const apiKey = req.headers["x-api-key"];
