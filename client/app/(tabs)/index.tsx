@@ -9,7 +9,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuTrigger
+  DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 import ProfileImage from "~/components/ui/profile-image";
 import { Progress } from "~/components/ui/progress";
@@ -25,6 +25,7 @@ import { Cog } from "~/lib/icons/Cog";
 import { Ellipsis } from "~/lib/icons/Ellipsis";
 import { Trophy } from "~/lib/icons/Trophy";
 import { User } from "~/lib/icons/User";
+import { ChevronRight } from "~/lib/icons/ChevronRight";
 
 export default function Home() {
   const { data } = authClient.useSession();
@@ -88,24 +89,27 @@ export default function Home() {
                   <Ellipsis className="text-foreground" size={18} />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-44 mt-2">
+              <DropdownMenuContent className="w-52 mt-2">
                 <DropdownMenuItem
-                  className="w-full"
+                  className="w-full justify-between"
                   onPress={() => router.navigate("/career")}
                 >
-                  <User
-                    className="text-foreground"
-                    size={18}
-                  />
-                  <Text>Career</Text>
+                  <View className="flex flex-row items-center gap-2">
+                    <User className="text-foreground" size={18} />
+                    <Text>Career</Text>
+                  </View>
+                  <ChevronRight className="text-foreground" size={18} />
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  className="w-full"
+                  className="w-full justify-between"
                   onPress={() => router.navigate("/leaderboard")}
                 >
-                  <Trophy className="text-foreground" size={18} />
-                  <Text>Leaderboard</Text>
+                  <View className="flex flex-row items-center gap-2">
+                    <Trophy className="text-foreground" size={18} />
+                    <Text>Leaderboard</Text>
+                  </View>
+                  <ChevronRight className="text-foreground" size={18} />
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
