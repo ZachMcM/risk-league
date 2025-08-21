@@ -296,25 +296,23 @@ function recalculatePoints(currentPoints: number[], winner: number | null) {
 
 matchesRoute.patch("/matches", apiKeyMiddleware, async (req, res) => {
   try {
-    if (!req.body.completedLeagues) {
-      res.status(400).json({
-        error: "Invalid request, missing completedLeagues in request body",
-      });
-      return;
+    const league = req.query.league as undefined | (typeof leagueType.enumValues)[number]
+
+    if (league === undefined || !leagueType.enumValues.includes(league)) {
+        res.status(400).json({
+          error: "Invalid request, missing leagues",
+        });
+        return;
     }
+
 
     const minParlaysRequired = MIN_PARLAYS_REQUIRED;
     const minPctTotalStaked = MIN_PCT_TOTAL_STAKED;
 
-    const completedLeagues = req.body
-      .completedLeagues as (typeof leagueType.enumValues)[number][];
-
-    logger.debug(completedLeagues)
-
     const unResolvedMatches = await db.query.match.findMany({
       where: and(
         eq(match.resolved, false),
-        inArray(match.league, completedLeagues)
+        eq(match.league, league)
       ),
       with: {
         matchUsers: {

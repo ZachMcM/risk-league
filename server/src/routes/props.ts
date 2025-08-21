@@ -13,9 +13,14 @@ import {
   team,
 } from "../db/schema";
 import { logger } from "../logger";
-import { apiKeyMiddleware, authMiddleware } from "../middleware";
+import {
+  apiKeyMiddleware,
+  authMiddleware,
+  corsOrApiKeyMiddleware,
+} from "../middleware";
 import { handleError } from "../utils/handleError";
 import { createInsertSchema } from "drizzle-zod";
+import cors from "cors";
 
 export const propsRoute = Router();
 
@@ -135,12 +140,15 @@ propsRoute.post("/props", apiKeyMiddleware, async (req, res) => {
   }
 });
 
-
-propsRoute.patch("/props/league/:league", apiKeyMiddleware, async (req, res) => {
-  try {
-    // TODO
-    res.send("Route in progress")
-  } catch (error) {
-    handleError(error, res, "Props")
+propsRoute.post(
+  "/props/league/:league",
+  corsOrApiKeyMiddleware,
+  async (req, res) => {
+    try {
+      // TODO
+      res.send("Route in progress");
+    } catch (error) {
+      handleError(error, res, "Props");
+    }
   }
-})
+);

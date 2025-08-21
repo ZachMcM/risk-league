@@ -6,7 +6,7 @@ import { logger } from "./logger";
 export const authMiddleware = async (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ) => {
   const session = await auth.api.getSession({
     headers: fromNodeHeaders(req.headers),
@@ -24,7 +24,7 @@ export const authMiddleware = async (
 export const apiKeyMiddleware = async (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ) => {
   const apiKey = req.headers["x-api-key"];
 
@@ -34,4 +34,28 @@ export const apiKeyMiddleware = async (
   }
 
   next();
+};
+
+export const corsOrApiKeyMiddleware = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  // TODO add datafeeds domain
+  const allowedDomains = [""];
+
+  const origin = req.headers.origin;
+  const corsValid = origin && allowedDomains.includes(origin);
+
+  const apiKey = req.headers["x-api-key"];
+  const apiKeyValid = apiKey === process.env.API_KEY;
+
+  if (corsValid || apiKeyValid) {
+    next();
+    return;
+  }
+
+  res.status(403).json({
+    error: "Access denied: Invalid origin and missing/invalid API key",
+  });
 };
