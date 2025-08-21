@@ -134,3 +134,13 @@ propsRoute.post("/props", apiKeyMiddleware, async (req, res) => {
     handleError(error, res, "Props route");
   }
 });
+
+
+propsRoute.patch("/props", apiKeyMiddleware, async (req, res) => {
+  try {
+    // TODO
+    res.send("Route in progress")
+  } catch (error) {
+    handleError(error, res, "Props")
+  }
+})
