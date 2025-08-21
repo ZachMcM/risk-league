@@ -26,6 +26,8 @@ import { Ellipsis } from "~/lib/icons/Ellipsis";
 import { Trophy } from "~/lib/icons/Trophy";
 import { User } from "~/lib/icons/User";
 import { ChevronRight } from "~/lib/icons/ChevronRight";
+import NewUserDialog from "~/components/help/NewUserDialog";
+import { useState } from "react";
 
 export default function Home() {
   const { data } = authClient.useSession();
@@ -35,8 +37,17 @@ export default function Home() {
     queryFn: getUserRank,
   });
 
+  const [newUserDialog, setNewUserDialog] = useState(
+    new Date().getTime() - new Date(data?.user.createdAt!).getTime() <= 6000
+  );
+
   return (
     <ScrollContainer className="px-0" safeAreaInsets>
+      <NewUserDialog
+        isOpen={newUserDialog}
+        close={() => setNewUserDialog(false)}
+        onOpenChange={setNewUserDialog}
+      />
       <View className="relative w-full">
         <View className="relative overflow-hidden h-36">
           {!data?.user.header ? (

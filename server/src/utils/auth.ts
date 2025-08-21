@@ -19,11 +19,11 @@ export const auth = betterAuth({
     enabled: true,
     sendResetPassword: async ({ user, url }) => {
       await resend.emails.send({
-        from: "noreply@auth.riskleague.app",
+        from: "Risk League <noreply@auth.riskleague.app>",
         to: user.email,
         subject: "Password Reset from Risk League",
         html: `
-          <p>Click the link to reset your password: <a href="${url}">Reset Password</a></p>
+          <p>Click the link to reset your password: <a href="${url}">${url}</a>.</p>
         `,
       });
     },

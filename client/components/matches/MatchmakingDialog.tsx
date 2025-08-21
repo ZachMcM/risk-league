@@ -21,11 +21,6 @@ const messages = [
   "Hang tight, almost there...",
 ];
 
-interface MatchmakingDialogProps {
-  children: React.ReactNode;
-  league: League;
-}
-
 export default function MatchmakingDialog({
   children,
   league,
@@ -151,7 +146,7 @@ export default function MatchmakingDialog({
               variant="outline"
               className="flex flex-row gap-2 items-center"
             >
-              <X size={24} className="text-foreground" />
+              <X className="text-foreground" />
               <Text>Cancel Search</Text>
             </Button>
           </View>

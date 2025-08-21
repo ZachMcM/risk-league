@@ -16,6 +16,7 @@ import {
   MIN_PCT_TOTAL_STAKED,
   MIN_STAKE_PCT,
 } from "~/lib/config";
+import { Separator } from "~/components/ui/separator";
 
 export default function Help() {
   const insets = useSafeAreaInsets();
@@ -51,6 +52,7 @@ export default function Help() {
                   Match Overview
                 </Text>
               </Pressable>
+              <Separator/>
               <Pressable
                 onPress={() => scrollToSection("types")}
                 className="flex flex-row items-center gap-2 p-2 rounded-lg active:bg-muted"
@@ -58,6 +60,7 @@ export default function Help() {
                 <Play className="text-primary" size={20} />
                 <Text className="font-semibold text-primary">Match Types</Text>
               </Pressable>
+              <Separator/>
               <Pressable
                 onPress={() => scrollToSection("guidelines")}
                 className="flex flex-row items-center gap-2 p-2 rounded-lg active:bg-muted"
@@ -67,6 +70,7 @@ export default function Help() {
                   Match Guidelines
                 </Text>
               </Pressable>
+              <Separator/>
               <Pressable
                 onPress={() => scrollToSection("parlays")}
                 className="flex flex-row items-center gap-2 p-2 rounded-lg active:bg-muted"
@@ -76,6 +80,7 @@ export default function Help() {
                   Building Parlays
                 </Text>
               </Pressable>
+              <Separator/>
               <Pressable
                 onPress={() => scrollToSection("timeline")}
                 className="flex flex-row items-center gap-2 p-2 rounded-lg active:bg-muted"
