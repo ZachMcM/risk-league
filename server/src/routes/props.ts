@@ -142,11 +142,10 @@ propsRoute.post("/props", apiKeyMiddleware, async (req, res) => {
 
 propsRoute.post(
   "/props/league/:league",
-  corsOrApiKeyMiddleware,
   async (req, res) => {
     try {
       // TODO
-      res.send("Route in progress");
+      res.json(req.body);
     } catch (error) {
       handleError(error, res, "Props");
     }
