@@ -84,7 +84,7 @@ export default function Friends() {
           friendlyMatchRequests.map((request) => (
             <FriendlyMatchRequestCard
               friendlyMatchRequest={request}
-              key={request.id}
+              key={`friendly-match-${request.id}`}
             />
           ))
         )}
@@ -165,7 +165,7 @@ export default function Friends() {
                     />
                   </GridItemWrapper>
                 )}
-                keyExtractor={(item) => item.id}
+                keyExtractor={(item) => `search-${item.id}`}
               />
             )}
           </TabsContent>
@@ -196,7 +196,7 @@ export default function Friends() {
                     <UserCard friendship={item} user={item.friend} />
                   </GridItemWrapper>
                 )}
-                keyExtractor={(item) => item.friend.id}
+                keyExtractor={(item) => `request-${item.friend.id}`}
               />
             )}
           </TabsContent>
@@ -236,7 +236,7 @@ export default function Friends() {
                     <UserCard friendship={item} user={item.friend} />
                   </GridItemWrapper>
                 )}
-                keyExtractor={(item) => item.friend.id}
+                keyExtractor={(item) => `friend-${item.friend.id}`}
               />
             )}
           </TabsContent>

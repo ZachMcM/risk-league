@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogTrigger } from "../ui/dialog";
 import { LogoIcon } from "../ui/logo-icon";
 import { Progress } from "../ui/progress";
 import { Text } from "../ui/text";
-import { League } from "~/lib/constants";
+import { League } from "~/lib/config";
 
 const messages = [
   "Matching skill levels...",

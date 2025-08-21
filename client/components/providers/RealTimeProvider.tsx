@@ -5,7 +5,7 @@ import { View } from "react-native";
 import { io } from "socket.io-client";
 import { toast } from "sonner-native";
 import { authClient } from "~/lib/auth-client";
-import { League } from "~/lib/constants";
+import { League } from "~/lib/config";
 import { Message } from "~/types/match";
 import { Card, CardContent } from "../ui/card";
 import LeagueLogo from "../ui/league-logos/LeagueLogo";

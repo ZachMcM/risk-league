@@ -124,25 +124,27 @@ export function RootNavigatior() {
             headerShown: false,
           }}
         />
+        <Stack.Screen name="match" options={{ headerShown: false }} />
+        <Stack.Screen
+          name="career"
+          options={{ headerShown: false, presentation: "modal" }}
+        />
+        <Stack.Screen
+          name="settings"
+          options={{ headerShown: false, presentation: "modal" }}
+        />
+        <Stack.Screen
+          name="leaderboard"
+          options={{ headerShown: false, presentation: "modal" }}
+        />
       </Stack.Protected>
       <Stack.Protected guard={data == null}>
         <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="signin" options={{ headerShown: false }} />
         <Stack.Screen name="signup" options={{ headerShown: false }} />
+        <Stack.Screen name="reset-password" options={{ headerShown: false }} />
+        <Stack.Screen name="forgot-password" options={{ headerShown: false }} />
       </Stack.Protected>
-      <Stack.Screen name="match" options={{ headerShown: false }} />
-      <Stack.Screen
-        name="career"
-        options={{ headerShown: false, presentation: "modal" }}
-      />
-      <Stack.Screen
-        name="settings"
-        options={{ headerShown: false, presentation: "modal" }}
-      />
-      <Stack.Screen
-        name="leaderboard"
-        options={{ headerShown: false, presentation: "modal" }}
-      />
     </Stack>
   );
 }

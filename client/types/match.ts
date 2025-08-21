@@ -1,4 +1,4 @@
-import { League } from "~/lib/constants";
+import { League } from "~/lib/config";
 import { Rank } from "./rank";
 import { User } from "./user";
 

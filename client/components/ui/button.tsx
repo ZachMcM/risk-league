@@ -10,7 +10,7 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default: "bg-primary web:hover:opacity-90 active:opacity-90",
-        destructive: "bg-destructive web:hover:opacity-90 active:opacity-90",
+        destructive: "bg-card border border-border web:hover:opacity-90 active:opacity-90",
         success: "bg-success web:hover:opacity-90 active:opacity-90",
         outline:
           "border border-input bg-background web:hover:bg-accent web:hover:text-accent-foreground active:bg-accent",
@@ -40,7 +40,7 @@ const buttonTextVariants = cva(
     variants: {
       variant: {
         default: "text-primary-foreground",
-        destructive: "text-destructive-foreground",
+        destructive: "text-destructive",
         success: "text-success-foreground",
         outline: "group-active:text-accent-foreground",
         secondary:

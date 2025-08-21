@@ -22,6 +22,7 @@ export const propsRoute = Router();
 propsRoute.get("/props/today", authMiddleware, async (req, res) => {
   try {
     const league = req.query.league;
+    const competitive = req.query.competitive === "false";
 
     if (
       league === undefined ||
@@ -36,39 +37,41 @@ propsRoute.get("/props/today", authMiddleware, async (req, res) => {
     const startOfDay = moment().startOf("day").toISOString();
     const endOfDay = moment().endOf("day").toISOString();
 
-    const todayMatches = await db.query.matchUser.findMany({
-      where: and(
-        gte(matchUser.createdAt, startOfDay),
-        lt(matchUser.createdAt, endOfDay)
-      ),
-      columns: {
-        id: true,
-      },
-      with: {
-        parlays: {
-          with: {
-            picks: true,
-          },
-        },
-        match: {
-          columns: {
-            type: true,
-          },
-        },
-      },
-    });
-
     const propsPickedAlready: number[] = [];
 
-    todayMatches
-      .filter((match) => match.match.type == "competitive")
-      .forEach((match) => {
-        match.parlays.forEach((parlay) => {
-          parlay.picks.forEach((pick) => {
-            propsPickedAlready.push(pick.propId!);
+    if (competitive) {
+      const todayMatches = await db.query.matchUser.findMany({
+        where: and(
+          gte(matchUser.createdAt, startOfDay),
+          lt(matchUser.createdAt, endOfDay)
+        ),
+        columns: {
+          id: true,
+        },
+        with: {
+          parlays: {
+            with: {
+              picks: true,
+            },
+          },
+          match: {
+            columns: {
+              type: true,
+            },
+          },
+        },
+      });
+
+      todayMatches
+        .filter((match) => match.match.type == "competitive")
+        .forEach((match) => {
+          match.parlays.forEach((parlay) => {
+            parlay.picks.forEach((pick) => {
+              propsPickedAlready.push(pick.propId!);
+            });
           });
         });
-      });
+    }
 
     const availablePropIds = await db
       .select({

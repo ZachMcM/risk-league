@@ -3,6 +3,7 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { username } from "better-auth/plugins";
 import { db } from "../db";
+import { resend } from "../resend";
 
 export const auth = betterAuth({
   plugins: [
@@ -13,9 +14,19 @@ export const auth = betterAuth({
     }),
     expo(),
   ],
-  trustedOrigins: ["riskleague://*"],
+  trustedOrigins: ["riskleague://", "riskleague://reset-password"],
   emailAndPassword: {
     enabled: true,
+    sendResetPassword: async ({ user, url }) => {
+      await resend.emails.send({
+        from: "noreply@auth.riskleague.app",
+        to: user.email,
+        subject: "Password Reset from Risk League",
+        html: `
+          <p>Click the link to reset your password: <a href="${url}">Reset Password</a></p>
+        `,
+      });
+    },
   },
   database: drizzleAdapter(db, {
     provider: "pg",

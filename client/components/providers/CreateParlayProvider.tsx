@@ -54,13 +54,6 @@ export function CreateParlayProvider({ children }: { children: ReactNode }) {
       toast.error("Sorry, you can't have more than 6 picks");
       return;
     }
-    const playerExists = picks.find(
-      (pick) => pick.prop.player.playerId == newPick.prop.playerId,
-    );
-    if (playerExists) {
-      toast.error("Sorry, you can't make multiple picks for the same player");
-      return;
-    }
     setPicks([...picks, newPick]);
   }
 

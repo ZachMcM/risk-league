@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { ScrollView, View } from "react-native";
-import { League, propStats } from "~/lib/constants";
+import { League, propStats } from "~/lib/config";
 import { Search } from "~/lib/icons/Search";
 import { Prop } from "~/types/prop";
 import { cn } from "~/utils/cn";

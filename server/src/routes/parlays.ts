@@ -166,17 +166,6 @@ parlaysRoute.post("/parlays/:matchId", authMiddleware, async (req, res) => {
       return;
     }
 
-    const existingPlayerIds: number[] = [];
-    for (const pickEntry of picks) {
-      if (existingPlayerIds.includes(pickEntry.prop.playerId!)) {
-        res.status(400).json({
-          error: "Cannot pick the same player twice",
-        });
-        return;
-      }
-      existingPlayerIds.push(pickEntry.prop.playerId!);
-    }
-
     await db
       .update(matchUser)
       .set({ balance: matchUserResult.balance - stake })
@@ -203,7 +192,7 @@ parlaysRoute.post("/parlays/:matchId", authMiddleware, async (req, res) => {
     invalidateQueries(
       ["match", matchId],
       ["parlays", matchId, matchUserResult.userId],
-      ["props", matchUserResult.match.type, matchUserResult.userId],
+      ["props", matchUserResult.match.type, matchUserResult.userId, "competitive"],
       ["career", matchUserResult.userId]
     );
 

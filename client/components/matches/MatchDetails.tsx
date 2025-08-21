@@ -13,6 +13,7 @@ import { Button } from "../ui/button";
 import ProfileImage from "../ui/profile-image";
 import { Text } from "../ui/text";
 import MatchStatsDialog from "./MatchStatsDialog";
+import { MIN_PARLAYS_REQUIRED, MIN_PCT_TOTAL_STAKED } from "~/lib/config";
 
 export default function MatchDetails({ match }: { match: ExtendedMatch }) {
   const { data } = authClient.useSession();
@@ -24,10 +25,9 @@ export default function MatchDetails({ match }: { match: ExtendedMatch }) {
   )!;
 
   const minTotalStaked = Math.round(
-    parseFloat(process.env.EXPO_PUBLIC_MIN_PCT_TOTAL_STAKED!) *
+    MIN_PCT_TOTAL_STAKED *
       currentMatchUser.startingBalance,
   );
-  const minParlaysReq = parseInt(process.env.EXPO_PUBLIC_MIN_PARLAYS_REQUIRED!);
 
   const badgeVariant = getBadgeVariant(
     currentMatchUser.status,
@@ -59,14 +59,14 @@ export default function MatchDetails({ match }: { match: ExtendedMatch }) {
           },
         );
       }
-      if (currentMatchUser.totalParlays < minParlaysReq) {
+      if (currentMatchUser.totalParlays < MIN_PARLAYS_REQUIRED) {
         parlaysToast = toast.custom(
           <Alert variant="destructive">
             <AlertTriangle className="text-destructive" size={20} />
             <AlertTitle className="text-foreground">
-              You need to create {minParlaysReq - currentMatchUser.totalParlays}{" "}
+              You need to create {MIN_PARLAYS_REQUIRED - currentMatchUser.totalParlays}{" "}
               more parlay
-              {minParlaysReq - currentMatchUser.totalParlays > 1 && "s"}!
+              {MIN_PARLAYS_REQUIRED - currentMatchUser.totalParlays > 1 && "s"}!
             </AlertTitle>
           </Alert>,
           {

@@ -1,19 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
-import { Link, router } from "expo-router";
+import { router } from "expo-router";
 import { View } from "react-native";
-import Animated, { FadeIn } from "react-native-reanimated";
-import StartMatchCard from "~/components/matches/StartMatchCard";
+import PlayCard from "~/components/matches/PlayCard";
 import { Button } from "~/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuGroup,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuShortcut,
-  DropdownMenuTrigger,
+  DropdownMenuTrigger
 } from "~/components/ui/dropdown-menu";
 import ProfileImage from "~/components/ui/profile-image";
 import { Progress } from "~/components/ui/progress";
@@ -24,11 +20,11 @@ import { Skeleton } from "~/components/ui/skeleton";
 import { Text } from "~/components/ui/text";
 import { getUserRank } from "~/endpoints";
 import { authClient } from "~/lib/auth-client";
-import { leagues } from "~/lib/constants";
-import { ChartColumnIncreasing } from "~/lib/icons/CharColumnIncreasing";
+import { LEAGUES } from "~/lib/config";
 import { Cog } from "~/lib/icons/Cog";
-import { Trophy } from "~/lib/icons/Trophy";
 import { Ellipsis } from "~/lib/icons/Ellipsis";
+import { Trophy } from "~/lib/icons/Trophy";
+import { User } from "~/lib/icons/User";
 
 export default function Home() {
   const { data } = authClient.useSession();
@@ -97,7 +93,7 @@ export default function Home() {
                   className="w-full"
                   onPress={() => router.navigate("/career")}
                 >
-                  <ChartColumnIncreasing
+                  <User
                     className="text-foreground"
                     size={18}
                   />
@@ -151,8 +147,8 @@ export default function Home() {
         <View className="flex flex-col gap-4">
           <Text className="text-3xl font-bold">Competitive</Text>
           <View className="flex flex-row items-center gap-3 flex-wrap">
-            {leagues.map((league) => (
-              <StartMatchCard key={league} league={league} />
+            {LEAGUES.map((league) => (
+              <PlayCard key={league} league={league} />
             ))}
           </View>
         </View>

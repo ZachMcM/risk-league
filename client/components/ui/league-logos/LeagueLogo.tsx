@@ -1,4 +1,4 @@
-import { League } from "~/lib/constants";
+import { League } from "~/lib/config";
 import MlbLogo from "./MlbLogo";
 import NbaLogo from "./NbaLogo";
 import NcaaLogo from "./NcaaLogo";

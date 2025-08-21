@@ -4,8 +4,7 @@ import PageTitle from "~/components/ui/page-title";
 import { NAV_THEME } from "~/lib/constants";
 import { Dices } from "~/lib/icons/Dices";
 import { Home } from "~/lib/icons/Home";
-import { Trophy } from "~/lib/icons/Trophy";
-import { Users } from "~/lib/icons/Users";
+import { Info } from "~/lib/icons/Info";
 import { Contact } from "~/lib/icons/Contact";
 import { useColorScheme } from "~/lib/useColorScheme";
 
@@ -54,6 +53,14 @@ export default function TabsLayout() {
           title: "Social",
           header: () => <PageTitle title="Social" />,
           tabBarIcon: ({ color }) => <Contact color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="help"
+        options={{
+          title: "Help",
+          header: () => <PageTitle title="Help" />,
+          tabBarIcon: ({ color }) => <Info color={color} />,
         }}
       />
     </Tabs>

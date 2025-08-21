@@ -1,4 +1,4 @@
-import { League } from "~/lib/constants";
+import { League } from "~/lib/config";
 
 export type Team = {
   teamId: number;

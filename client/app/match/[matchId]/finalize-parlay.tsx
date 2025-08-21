@@ -15,6 +15,7 @@ import ModalContainer from "~/components/ui/modal-container";
 import { Text } from "~/components/ui/text";
 import { getMatch, postParlay } from "~/endpoints";
 import { authClient } from "~/lib/auth-client";
+import { MIN_STAKE_PCT } from "~/lib/config";
 import { CircleMinus } from "~/lib/icons/CircleMinus";
 import { Prop } from "~/types/prop";
 import { cn } from "~/utils/cn";
@@ -37,10 +38,10 @@ export default function FinalizeParlay() {
   const { data } = authClient.useSession();
 
   const { balance } = match?.matchUsers.find(
-    (matchUser) => matchUser.user.id == data?.user.id!,
+    (matchUser) => matchUser.user.id == data?.user.id!
   )!;
 
-  const minStake = Math.round(balance * 0.2);
+  const minStake = Math.round(balance * MIN_STAKE_PCT);
 
   const [stake, setStake] = useState<number | null>(minStake);
   const [type, setType] = useState("perfect");
@@ -85,14 +86,23 @@ export default function FinalizeParlay() {
         });
       },
       onSuccess: () => {
-        clearParlay();
-        invalidateQueries(
-          queryClient,
+        const queriesToInvalidate = [
           ["match", matchId],
           ["parlays", matchId, data?.user.id!],
-          ["props", match?.league, data?.user.id],
           ["career", data?.user.id!],
-        );
+        ];
+
+        if (match?.type == "competitive") {
+          queriesToInvalidate.push([
+            "props",
+            match?.league,
+            data?.user.id!,
+            "competitive",
+          ]);
+        }
+
+        clearParlay();
+        invalidateQueries(queryClient, ...queriesToInvalidate);
         toast.success("Parlay Successfully created", {
           position: "bottom-center",
         });
@@ -147,7 +157,7 @@ export default function FinalizeParlay() {
             onPress={() => setType("perfect")}
             className={cn(
               "flex flex-1 flex-row items-center justify-center border-b border-border pb-4",
-              type == "perfect" && "border-primary",
+              type == "perfect" && "border-primary"
             )}
           >
             <Text className="font-bold text-lg">Perfect Play</Text>
@@ -156,7 +166,7 @@ export default function FinalizeParlay() {
             onPress={() => setType("flex")}
             className={cn(
               "flex flex-1 flex-row items-center justify-center border-b border-border pb-4",
-              type == "flex" && "border-primary",
+              type == "flex" && "border-primary"
             )}
           >
             <Text className="font-bold text-lg">Flex Play</Text>
@@ -216,7 +226,7 @@ export default function FinalizeParlay() {
                                 (type == "flex"
                                   ? getFlexMultiplier(
                                       picks.length,
-                                      picks.length,
+                                      picks.length
                                     )
                                   : getPerfectPlayMultiplier(picks.length)) *
                                 stake
@@ -247,7 +257,7 @@ export default function FinalizeParlay() {
                           <View className="bg-primary/10 py-1 px-2 rounded-lg">
                             <Text className="font-semibold text-primary">
                               {getPerfectPlayMultiplier(picks.length).toFixed(
-                                2,
+                                2
                               )}
                               x
                             </Text>
@@ -310,7 +320,7 @@ export default function FinalizeParlay() {
                 <Text
                   className={cn(
                     "font-semibold text-lg",
-                    formError && "text-destructive",
+                    formError && "text-destructive"
                   )}
                 >
                   Balance:
@@ -320,7 +330,7 @@ export default function FinalizeParlay() {
                     "font-semibold text-lg",
                     formError
                       ? "text-destructive"
-                      : stake && stake != 0 && "line-through",
+                      : stake && stake != 0 && "line-through"
                   )}
                 >
                   ${balance.toFixed(2)}
@@ -368,7 +378,7 @@ export function PickEntryCard({
     <View
       className={cn(
         "flex flex-row items-center justify-between border-border py-4 mx-4",
-        !isLast && "border-b",
+        !isLast && "border-b"
       )}
     >
       <View className="flex flex-row items-center gap-6">
@@ -418,8 +428,7 @@ export function PickEntryCard({
             }}
             className={cn(
               "w-20 flex-row justify-center items-center bg-secondary border border-border",
-              getPickChoice(prop.id) == choice &&
-                "border-primary bg-primary/20",
+              getPickChoice(prop.id) == choice && "border-primary bg-primary/20"
             )}
             key={`${prop.id}_option_${i}`}
             size="sm"

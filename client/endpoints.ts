@@ -1,5 +1,5 @@
 import { authClient } from "./lib/auth-client";
-import { League } from "./lib/constants";
+import { League } from "./lib/config";
 import { LeaderboardPage } from "./types/leaderboard";
 import {
   ExtendedMatch,
@@ -126,9 +126,9 @@ export async function postMessage(matchId: number, content: string) {
   });
 }
 
-export async function getTodayProps(league: League): Promise<Prop[]> {
+export async function getTodayProps(league: League, competitive: boolean): Promise<Prop[]> {
   const todayProps = await httpRequest({
-    endpoint: `/props/today?league=${league}`,
+    endpoint: `/props/today?league=${league}&competitive=${competitive}`,
     method: "GET",
   });
 

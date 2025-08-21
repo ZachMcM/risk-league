@@ -7,13 +7,13 @@ import { Card, CardContent } from "../ui/card";
 import LeagueLogo from "../ui/league-logos/LeagueLogo";
 import { Text } from "../ui/text";
 import MatchmakingDialog from "./MatchmakingDialog";
-import { League } from "~/lib/constants";
 import { useQuery } from "@tanstack/react-query";
 import { authClient } from "~/lib/auth-client";
 import { getTodayProps } from "~/endpoints";
 import { cn } from "~/utils/cn";
+import { League } from "~/lib/config";
 
-export default function StartMatchCard({
+export default function PlayCard({
   league,
 }: {
   league: League;
@@ -28,9 +28,8 @@ export default function StartMatchCard({
   const { data } = authClient.useSession();
 
   const { data: props, isPending: arePropsPending } = useQuery({
-    queryKey: ["props", league, data?.user.id],
-    queryFn: async () => await getTodayProps(league),
-    
+    queryKey: ["props", league, data?.user.id, "competitive"],
+    queryFn: async () => await getTodayProps(league, true),
   });
 
   return (
@@ -38,7 +37,7 @@ export default function StartMatchCard({
       className={cn(
         "w-[48%] self-stretch",
         (arePropsPending || props == undefined || props.length == 0) &&
-          "opacity-50"
+          "opacity-40"
       )}
     >
       <CardContent className="p-0 flex-1 flex flex-col">
@@ -67,15 +66,17 @@ export default function StartMatchCard({
                 {league}
               </Text>
             </View>
-            <Text className="text-muted-foreground">{arePropsPending ? "..." : props?.length} Props Available</Text>
+            <Text className="text-muted-foreground">
+              {arePropsPending ? "..." : props?.length} Props Available
+            </Text>
           </View>
           <MatchmakingDialog
             disableTrigger={arePropsPending || !props || props.length == 0}
             league={league}
           >
             <Button className="flex flex-row items-center gap-2">
-              <Play className="text-foreground" size={18} />
-              <Text className="font-bold">Start Match</Text>
+              <Text className="font-bold">Play</Text>
+              <Play className="text-foreground" size={16} />
             </Button>
           </MatchmakingDialog>
         </View>

@@ -7,16 +7,19 @@ export function ScrollContainer({
   children,
   className,
   safeAreaInsets = false,
+  ref
 }: {
   children?: ReactNode;
   className?: string;
   safeAreaInsets?: boolean;
+  ref?: React.RefObject<ScrollView | null>
 }) {
   const insets = useSafeAreaInsets();
 
   return (
     <KeyboardAvoidingView className="flex-1 flex" behavior="padding">
       <ScrollView
+        ref={ref}
         keyboardShouldPersistTaps="handled"
         contentContainerClassName="flex-grow"
         contentContainerStyle={{
@@ -25,7 +28,7 @@ export function ScrollContainer({
         }}
         showsVerticalScrollIndicator={false}
       >
-        <View className={cn("flex flex-1 px-4 pt-2 pb-14", className)}>
+        <View className={cn("flex flex-1 px-4 pt-2 pb-16", className)}>
           {children}
         </View>
       </ScrollView>
