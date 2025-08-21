@@ -136,7 +136,7 @@ propsRoute.post("/props", apiKeyMiddleware, async (req, res) => {
 });
 
 
-propsRoute.patch("/props", apiKeyMiddleware, async (req, res) => {
+propsRoute.patch("/props/league/:league", apiKeyMiddleware, async (req, res) => {
   try {
     // TODO
     res.send("Route in progress")
