@@ -12,18 +12,18 @@ import { Prop } from "./types/prop";
 import { Rank } from "./types/rank";
 import { Career, Friendship, User } from "./types/user";
 
-export type HttpRequestParams = {
+export type serverRequestParams = {
   endpoint: string;
   method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   body?: string;
   tokenOverride?: string;
 };
 
-export async function httpRequest({
+export async function serverRequest({
   endpoint,
   method,
   body,
-}: HttpRequestParams) {
+}: serverRequestParams) {
   const cookies = authClient.getCookie();
 
   const headers = {
@@ -59,13 +59,18 @@ export async function httpRequest({
   return data;
 }
 
+export async function getUser(id: string): Promise<User> {
+  const user = await serverRequest({ endpoint: `/users/${id}`, method: "GET" });
+  return user;
+}
+
 export async function getUserRank(): Promise<{
   rank: Rank;
   nextRank: Rank;
   progression: number;
-  points: number;
+  points?: number;
 }> {
-  const user = await httpRequest({
+  const user = await serverRequest({
     endpoint: "/users/rank",
     method: "GET",
   });
@@ -74,7 +79,7 @@ export async function getUserRank(): Promise<{
 }
 
 export async function getUsers(searchQuery: string): Promise<User[]> {
-  const users = await httpRequest({
+  const users = await serverRequest({
     endpoint: `/users?searchQuery=${searchQuery}`,
     method: "GET",
   });
@@ -82,9 +87,9 @@ export async function getUsers(searchQuery: string): Promise<User[]> {
   return users;
 }
 
-export async function getCareer(): Promise<Career> {
-  const career = await httpRequest({
-    endpoint: "/users/career",
+export async function getCareer(id: string): Promise<Career> {
+  const career = await serverRequest({
+    endpoint: `/users/${id}/career`,
     method: "GET",
   });
 
@@ -92,7 +97,7 @@ export async function getCareer(): Promise<Career> {
 }
 
 export async function getMatches(resolved: boolean): Promise<Match[]> {
-  const matches = await httpRequest({
+  const matches = await serverRequest({
     endpoint: `/matches?resolved=${resolved}`,
     method: "GET",
   });
@@ -101,7 +106,7 @@ export async function getMatches(resolved: boolean): Promise<Match[]> {
 }
 
 export async function getMatch(id: number): Promise<ExtendedMatch> {
-  const match = await httpRequest({
+  const match = await serverRequest({
     endpoint: `/matches/${id}`,
     method: "GET",
   });
@@ -110,7 +115,7 @@ export async function getMatch(id: number): Promise<ExtendedMatch> {
 }
 
 export async function getMessages(id: number): Promise<Message[]> {
-  const messages = await httpRequest({
+  const messages = await serverRequest({
     endpoint: `/matches/${id}/messages`,
     method: "GET",
   });
@@ -119,15 +124,18 @@ export async function getMessages(id: number): Promise<Message[]> {
 }
 
 export async function postMessage(matchId: number, content: string) {
-  await httpRequest({
+  await serverRequest({
     endpoint: `/matches/${matchId}/messages`,
     method: "POST",
     body: JSON.stringify({ content }),
   });
 }
 
-export async function getTodayProps(league: League, competitive: boolean): Promise<Prop[]> {
-  const todayProps = await httpRequest({
+export async function getTodayProps(
+  league: League,
+  competitive: boolean
+): Promise<Prop[]> {
+  const todayProps = await serverRequest({
     endpoint: `/props/today?league=${league}&competitive=${competitive}`,
     method: "GET",
   });
@@ -136,7 +144,7 @@ export async function getTodayProps(league: League, competitive: boolean): Promi
 }
 
 export async function getParlay(id: number): Promise<Parlay> {
-  const parlay = await httpRequest({
+  const parlay = await serverRequest({
     endpoint: `/parlays/${id}`,
     method: "GET",
   });
@@ -145,7 +153,7 @@ export async function getParlay(id: number): Promise<Parlay> {
 }
 
 export async function getPick(id: number): Promise<Pick> {
-  const pick = await httpRequest({
+  const pick = await serverRequest({
     endpoint: `/picks/${id}`,
     method: "GET",
   });
@@ -154,7 +162,7 @@ export async function getPick(id: number): Promise<Pick> {
 }
 
 export async function getParlays(matchId: number): Promise<Parlay[]> {
-  const parlays = await httpRequest({
+  const parlays = await serverRequest({
     endpoint: `/parlays?matchId=${matchId}`,
     method: "GET",
   });
@@ -170,15 +178,23 @@ export async function postParlay(
     picks: { prop: Prop; choice: string }[];
   }
 ): Promise<{ id: number }> {
-  return await httpRequest({
+  return await serverRequest({
     endpoint: `/parlays/${matchId}`,
     method: "POST",
     body: JSON.stringify(parlay),
   });
 }
 
+export async function getFriendship(otherUserId: string): Promise<Friendship> {
+  const friendship = await serverRequest({
+    endpoint: `/friendship?otherUserId=${otherUserId}`,
+    method: "GET",
+  });
+  return friendship;
+}
+
 export async function getFriends(): Promise<Friendship[]> {
-  const friends = await httpRequest({
+  const friends = await serverRequest({
     endpoint: "/friendships",
     method: "GET",
   });
@@ -187,7 +203,7 @@ export async function getFriends(): Promise<Friendship[]> {
 }
 
 export async function postFriendRequest(incomingId: string) {
-  await httpRequest({
+  await serverRequest({
     endpoint: "/friendships",
     method: "POST",
     body: JSON.stringify({ incomingId }),
@@ -195,14 +211,14 @@ export async function postFriendRequest(incomingId: string) {
 }
 
 export async function deleteFriendship(otherId: string) {
-  await httpRequest({
+  await serverRequest({
     endpoint: `/friendships?otherId=${otherId}`,
     method: "DELETE",
   });
 }
 
 export async function patchFriendRequest(outgoingId: string) {
-  await httpRequest({
+  await serverRequest({
     endpoint: "/friendships",
     method: "PATCH",
     body: JSON.stringify({ outgoingId }),
@@ -213,7 +229,7 @@ export async function postFriendlyMatchRequest(
   incomingId: string,
   league: League
 ) {
-  await httpRequest({
+  await serverRequest({
     endpoint: "/friendly-match-requests",
     method: "POST",
     body: JSON.stringify({ incomingId, league }),
@@ -224,7 +240,7 @@ export async function patchFriendlyMatchRequest(
   id: number,
   status: "declined" | "accepted"
 ) {
-  await httpRequest({
+  await serverRequest({
     endpoint: `/friendly-match-requests/${id}`,
     method: "PATCH",
     body: JSON.stringify({ status }),
@@ -234,7 +250,7 @@ export async function patchFriendlyMatchRequest(
 export async function getFriendlyMatchRequests(): Promise<
   FriendlyMatchRequest[]
 > {
-  const friendlyMatchRequests = await httpRequest({
+  const friendlyMatchRequests = await serverRequest({
     endpoint: "/friendly-match-requests",
     method: "GET",
   });
@@ -245,7 +261,7 @@ export async function getFriendlyMatchRequests(): Promise<
 export async function getLeaderboardPage(
   page: number
 ): Promise<LeaderboardPage> {
-  const leaderboardPage = await httpRequest({
+  const leaderboardPage = await serverRequest({
     endpoint: `/leaderboard?page=${page}`,
     method: "GET",
   });

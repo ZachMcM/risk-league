@@ -12,6 +12,34 @@ import { ranks } from "../types/ranks";
 
 export const usersRoute = Router();
 
+usersRoute.get("/users/id", authMiddleware, async (req, res) => {
+  try {
+    const id = req.params.id;
+
+    const userResult = await db.query.user.findFirst({
+      where: eq(user?.id, id),
+      columns: {
+        id: true,
+        username: true,
+        image: true,
+        points: true,
+        header: true,
+      },
+    });
+
+    res.json(
+      userResult === undefined
+        ? undefined
+        : {
+            ...userResult,
+            rank: findRank(userResult.points),
+          }
+    );
+  } catch (error) {
+    handleError(error, res, "Users");
+  }
+});
+
 usersRoute.get("/users", authMiddleware, async (req, res) => {
   try {
     const searchQuery = (req.query.searchQuery as string | undefined) || "";
@@ -31,6 +59,7 @@ usersRoute.get("/users", authMiddleware, async (req, res) => {
         username: true,
         image: true,
         points: true,
+        header: true,
       },
       limit: 10,
     });
@@ -83,8 +112,10 @@ usersRoute.get("/users/rank", authMiddleware, async (_, res) => {
   }
 });
 
-usersRoute.get("/users/career", authMiddleware, async (_, res) => {
+usersRoute.get("/users/:id/career", authMiddleware, async (req, res) => {
   try {
+    const id = req.params.id;
+
     const userResult = await db.query.user.findFirst({
       columns: {
         id: true,
@@ -148,7 +179,7 @@ usersRoute.get("/users/career", authMiddleware, async (_, res) => {
           },
         },
       },
-      where: eq(user.id, res.locals.userId!),
+      where: eq(user.id, id),
     });
 
     if (!userResult) {

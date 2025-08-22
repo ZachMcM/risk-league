@@ -31,7 +31,7 @@ export default function OnboardingDialog({
   const steps = [
     <WelcomeStep />,
     <ProfileImageStep />,
-    <HeaderImageStep />,
+    // <HeaderImageStep />,
     <HowToPlayStep close={close} />,
   ];
 

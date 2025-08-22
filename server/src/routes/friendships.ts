@@ -11,12 +11,40 @@ import { handleError } from "../utils/handleError";
 
 export const friendshipsRoute = Router();
 
+friendshipsRoute.get("/friendship", authMiddleware, async (req, res) => {
+  try {
+    const otherUserId = req.query.otherUserId as string | undefined;
+
+    if (otherUserId === undefined) {
+      res.status(400).json({ error: "Invalid request, missing otherUserId" });
+      return;
+    }
+
+    const friendshipResult = await db.query.friendship.findFirst({
+      where: or(
+        and(
+          eq(friendship.outgoingId, res.locals.userId!),
+          eq(friendship.incomingId, otherUserId)
+        ),
+        and(
+          eq(friendship.outgoingId, otherUserId),
+          eq(friendship.incomingId, res.locals.userId!)
+        )
+      ),
+    });
+
+    res.json(friendshipResult)
+  } catch (error) {
+    handleError(error, res, "Friendships");
+  }
+});
+
 friendshipsRoute.get("/friendships", authMiddleware, async (_, res) => {
   try {
     const friendshipResults = await db.query.friendship.findMany({
       where: or(
         eq(friendship.incomingId, res.locals.userId!),
-        eq(friendship.outgoingId, res.locals.userId!),
+        eq(friendship.outgoingId, res.locals.userId!)
       ),
       with: {
         incomingUser: {
@@ -25,6 +53,7 @@ friendshipsRoute.get("/friendships", authMiddleware, async (_, res) => {
             points: true,
             image: true,
             username: true,
+            header: true,
           },
         },
         outgoingUser: {
@@ -33,6 +62,7 @@ friendshipsRoute.get("/friendships", authMiddleware, async (_, res) => {
             points: true,
             image: true,
             username: true,
+            header: true,
           },
         },
       },
@@ -78,7 +108,7 @@ friendshipsRoute.post("/friendships", authMiddleware, async (req, res) => {
     const existingFriendship = await db.query.friendship.findFirst({
       where: and(
         eq(friendship.outgoingId, res.locals.userId!),
-        eq(friendship.incomingId, incomingId),
+        eq(friendship.incomingId, incomingId)
       ),
     });
 
@@ -96,7 +126,7 @@ friendshipsRoute.post("/friendships", authMiddleware, async (req, res) => {
 
     invalidateQueries(
       ["friendships", incomingId],
-      ["friendships", res.locals.userId!],
+      ["friendships", res.locals.userId!]
     );
 
     const outgoingUser = await db.query.user.findFirst({
@@ -131,12 +161,12 @@ friendshipsRoute.delete("/friendships", authMiddleware, async (req, res) => {
       where: or(
         and(
           eq(friendship.incomingId, otherId),
-          eq(friendship.outgoingId, res.locals.userId!),
+          eq(friendship.outgoingId, res.locals.userId!)
         ),
         and(
           eq(friendship.incomingId, res.locals.userId!),
-          eq(friendship.outgoingId, otherId),
-        ),
+          eq(friendship.outgoingId, otherId)
+        )
       ),
     });
 
@@ -150,8 +180,8 @@ friendshipsRoute.delete("/friendships", authMiddleware, async (req, res) => {
       .where(
         and(
           eq(friendship.incomingId, friendshipResult.incomingId),
-          eq(friendship.outgoingId, friendshipResult.outgoingId),
-        ),
+          eq(friendship.outgoingId, friendshipResult.outgoingId)
+        )
       );
 
     await db
@@ -163,20 +193,20 @@ friendshipsRoute.delete("/friendships", authMiddleware, async (req, res) => {
         or(
           and(
             eq(friendlyMatchRequest.incomingId, friendshipResult.incomingId),
-            eq(friendlyMatchRequest.outgoingId, friendshipResult.outgoingId),
+            eq(friendlyMatchRequest.outgoingId, friendshipResult.outgoingId)
           ),
           and(
             eq(friendlyMatchRequest.incomingId, friendshipResult.outgoingId),
-            eq(friendlyMatchRequest.outgoingId, friendshipResult.incomingId),
-          ),
-        ),
+            eq(friendlyMatchRequest.outgoingId, friendshipResult.incomingId)
+          )
+        )
       );
 
     invalidateQueries(
       ["friendships", friendshipResult.incomingId],
       ["friendships", friendshipResult.outgoingId],
       ["friendly-match-requests", friendshipResult.incomingId],
-      ["friendly-match-requests", friendshipResult.outgoingId],
+      ["friendly-match-requests", friendshipResult.outgoingId]
     );
 
     res.status(200);
@@ -204,13 +234,13 @@ friendshipsRoute.patch("/friendships", authMiddleware, async (req, res) => {
       .where(
         and(
           eq(friendship.outgoingId, outgoingId),
-          eq(friendship.incomingId, res.locals.userId!),
-        ),
+          eq(friendship.incomingId, res.locals.userId!)
+        )
       );
 
     invalidateQueries(
       ["friendships", outgoingId],
-      ["friendships", res.locals.userId!],
+      ["friendships", res.locals.userId!]
     );
 
     const incomingUser = await db.query.user.findFirst({

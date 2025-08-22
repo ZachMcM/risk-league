@@ -32,7 +32,7 @@ function LeaderboardItem({
         <ProfileImage
           className="h-14 w-14"
           username={user.username}
-          image={user.image}
+          image={user.image!}
         />
         <View className="flex flex-col gap-2 flex-1">
           <Text className="font-bold text-lg">{user.username}</Text>

@@ -49,7 +49,7 @@ app.all("/api/auth/*splat", toNodeHandler(auth));
 app.use(cors());
 app.use(morgan("combined"));
 app.use(express.json());
-app.use(limiter);
+// app.use(limiter);
 app.use("/", routes);
 
 httpServer.listen(port, () => {

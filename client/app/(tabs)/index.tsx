@@ -5,6 +5,7 @@ import { useState } from "react";
 import { View } from "react-native";
 import PlayCard from "~/components/matches/PlayCard";
 import OnboardingDialog from "~/components/onboarding/OnboardingDialog";
+import ProfileHeader from "~/components/social/ProfileHeader";
 import { Button } from "~/components/ui/button";
 import {
   DropdownMenu,
@@ -33,49 +34,32 @@ export default function Home() {
   const { data } = authClient.useSession();
 
   const { data: user, isPending: isUserPending } = useQuery({
-    queryKey: ["user", data?.user.id],
+    queryKey: ["user", data?.user.id, "rank"],
     queryFn: getUserRank,
   });
 
   const [onboardingDialog, setOnboardingDialog] = useState(
-    // new Date().getTime() - new Date(data?.user.createdAt!).getTime() <= 6000
-    true
+    new Date().getTime() - new Date(data?.user.createdAt!).getTime() <= 6000
   );
 
   return (
-    <ScrollContainer className="px-0" safeAreaInsets>
+    <ScrollContainer safeAreaInsets>
       <OnboardingDialog
         isOpen={onboardingDialog}
         close={() => setOnboardingDialog(false)}
         onOpenChange={setOnboardingDialog}
       />
-      <View className="relative w-full">
-        <View className="relative overflow-hidden h-36">
-          {!data?.user.header ? (
-            <View className="w-full h-full bg-primary" />
-          ) : (
-            <Image
-              contentFit="cover"
-              source={data?.user.header}
-              style={{ width: "100%", height: "100%" }}
-              className="bg-primary"
-            />
-          )}
-        </View>
-        <View className="absolute -bottom-16 left-4 p-2 bg-background rounded-full">
-          <ProfileImage
-            className="w-28 h-28"
-            image={data?.user.image!}
-            username={data?.user.username!}
-          />
-        </View>
-      </View>
-      <View className="flex flex-1 flex-col gap-6 px-4 pt-20">
+      <ProfileHeader
+        image={data?.user.image!}
+        username={data?.user.username!}
+        header={data?.user.header!}
+      />
+      <View className="flex flex-1 flex-col gap-6 pt-20">
         <View className="flex flex-row items-center justify-between">
           <View className="flex flex-col gap-4 items-start">
             <Text className="font-bold text-2xl">{data?.user.username}</Text>
             {isUserPending ? (
-              <Skeleton className="h-4 w-1/3" />
+              <Skeleton className="h-6 w-36 rounded-full" />
             ) : (
               user && (
                 <View className="flex flex-row items-center gap-2">

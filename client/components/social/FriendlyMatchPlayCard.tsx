@@ -25,7 +25,7 @@ export default function FriendlyMatchPlayCard({
   });
 
   return arePropsPending ? (
-    <Skeleton className="w-[48%] self-stretch" />
+    <Skeleton className="w-[48%] self-stretch h-40" />
   ) : (
     props && props.length > 0 && (
       <Pressable

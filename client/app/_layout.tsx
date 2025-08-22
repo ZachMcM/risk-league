@@ -104,10 +104,10 @@ export default function RootLayout() {
                 },
               }}
             />
+            <PortalHost />
           </QueryClientProvider>
         </GestureHandlerRootView>
       </SafeAreaProvider>
-      <PortalHost />
     </React.Fragment>
   );
 }
@@ -135,6 +135,10 @@ export function RootNavigatior() {
         />
         <Stack.Screen
           name="leaderboard"
+          options={{ headerShown: false, presentation: "modal" }}
+        />
+        <Stack.Screen
+          name="users/[id]"
           options={{ headerShown: false, presentation: "modal" }}
         />
       </Stack.Protected>
