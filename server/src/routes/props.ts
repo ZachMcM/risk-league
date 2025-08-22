@@ -1,26 +1,20 @@
 import { and, eq, gt, gte, lt, notInArray } from "drizzle-orm";
-import { alias } from "drizzle-orm/pg-core";
+import { createInsertSchema } from "drizzle-zod";
 import { Router } from "express";
 import moment from "moment";
 import { db } from "../db";
 import {
   game,
   leagueType,
-  match,
   matchUser,
-  player,
-  prop,
-  team,
+  prop
 } from "../db/schema";
 import { logger } from "../logger";
 import {
   apiKeyMiddleware,
-  authMiddleware,
-  corsOrApiKeyMiddleware,
+  authMiddleware
 } from "../middleware";
 import { handleError } from "../utils/handleError";
-import { createInsertSchema } from "drizzle-zod";
-import cors from "cors";
 
 export const propsRoute = Router();
 

@@ -2,6 +2,9 @@ import { NextFunction, Request, Response } from "express";
 import { auth } from "./utils/auth";
 import { fromNodeHeaders } from "better-auth/node";
 import { logger } from "./logger";
+import rateLimit from "express-rate-limit";
+import RedisStore from "rate-limit-redis";
+import { redis } from "./redis";
 
 export const authMiddleware = async (
   req: Request,
@@ -34,31 +37,4 @@ export const apiKeyMiddleware = async (
   }
 
   next();
-};
-
-export const corsOrApiKeyMiddleware = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  // TODO add datafeeds domain
-  logger.info({ body: req.body })
-
-  const allowedDomains = [""];
-
-  const origin = req.headers.origin;
-  logger.info(`Origin: ${origin}`)
-  const corsValid = origin && allowedDomains.includes(origin);
-
-  const apiKey = req.headers["x-api-key"];
-  const apiKeyValid = apiKey === process.env.API_KEY;
-
-  if (corsValid || apiKeyValid) {
-    next();
-    return;
-  }
-
-  res.status(403).json({
-    error: "Access denied: Invalid origin and missing/invalid API key",
-  });
 };
