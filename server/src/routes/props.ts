@@ -145,7 +145,9 @@ propsRoute.post(
   async (req, res) => {
     try {
       // TODO
-      res.json(req.body);
+      const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress 
+      logger.info(`Body: ${JSON.stringify(req.body)}`)
+      logger.info(`IP: ${ip}`)
     } catch (error) {
       handleError(error, res, "Props");
     }
