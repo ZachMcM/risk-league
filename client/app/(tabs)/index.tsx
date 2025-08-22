@@ -1,8 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { router } from "expo-router";
+import { useState } from "react";
 import { View } from "react-native";
 import PlayCard from "~/components/matches/PlayCard";
+import OnboardingDialog from "~/components/onboarding/OnboardingDialog";
 import { Button } from "~/components/ui/button";
 import {
   DropdownMenu,
@@ -21,13 +23,11 @@ import { Text } from "~/components/ui/text";
 import { getUserRank } from "~/endpoints";
 import { authClient } from "~/lib/auth-client";
 import { LEAGUES } from "~/lib/config";
+import { ChevronRight } from "~/lib/icons/ChevronRight";
 import { Cog } from "~/lib/icons/Cog";
 import { Ellipsis } from "~/lib/icons/Ellipsis";
 import { Trophy } from "~/lib/icons/Trophy";
 import { User } from "~/lib/icons/User";
-import { ChevronRight } from "~/lib/icons/ChevronRight";
-import NewUserDialog from "~/components/help/NewUserDialog";
-import { useState } from "react";
 
 export default function Home() {
   const { data } = authClient.useSession();
@@ -37,16 +37,17 @@ export default function Home() {
     queryFn: getUserRank,
   });
 
-  const [newUserDialog, setNewUserDialog] = useState(
-    new Date().getTime() - new Date(data?.user.createdAt!).getTime() <= 6000
+  const [onboardingDialog, setOnboardingDialog] = useState(
+    // new Date().getTime() - new Date(data?.user.createdAt!).getTime() <= 6000
+    true
   );
 
   return (
     <ScrollContainer className="px-0" safeAreaInsets>
-      <NewUserDialog
-        isOpen={newUserDialog}
-        close={() => setNewUserDialog(false)}
-        onOpenChange={setNewUserDialog}
+      <OnboardingDialog
+        isOpen={onboardingDialog}
+        close={() => setOnboardingDialog(false)}
+        onOpenChange={setOnboardingDialog}
       />
       <View className="relative w-full">
         <View className="relative overflow-hidden h-36">
