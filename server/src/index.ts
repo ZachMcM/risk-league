@@ -33,8 +33,11 @@ const limiter = rateLimit({
   windowMs: 1 * 60 * 1000, // 1 minute
   max: (req) => {
     const apiKey = req.headers["x-api-key"];
-    return apiKey === process.env.API_KEY
-      ? 100000
+    const ipAddress =
+      req.headers["x-forwarded-for"] || req.socket.remoteAddress;
+    return apiKey === process.env.API_KEY ||
+      ipAddress === process.env.DATA_FEEDS_PUSH_IP_ADDRESS
+      ? Infinity
       : parseInt(process.env.MAX_REQS_PER_WINDOW!);
   }, // Limit each IP to 3000 requests per minute
   message: "Too many requests from this IP, please try again later",

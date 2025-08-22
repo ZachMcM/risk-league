@@ -38,3 +38,22 @@ export const apiKeyMiddleware = async (
 
   next();
 };
+
+export const apiKeyOrIpAddressMiddleware = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const apiKey = req.headers["x-api-key"];
+  const ipAddress = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
+
+  if (
+    apiKey != process.env.API_KEY ||
+    ipAddress != process.env.DATA_FEEDS_PUSH_IP_ADDRESS
+  ) {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
+
+  next();
+};
