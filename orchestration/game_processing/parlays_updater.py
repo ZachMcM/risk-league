@@ -1,23 +1,32 @@
-from utils import setup_logger, server_req
+from utils import setup_logger, server_req, getenv_required
 from redis_utils import listen_for_messages, create_redis_client
+import concurrent.futures
 
 logger = setup_logger(__name__)
 
 redis_client = create_redis_client()
 
+PARLAYS_UPDATER_MAX_WORKERS = int(getenv_required("PARLAYS_UPDATER_MAX_WORKERS"))
+
+def handle_pick_resolved(data):
+    """Handles incoming parlay_pick_resolved messages"""
+    pick_id = data.get("id")
+    if not pick_id:
+        logger.error("Received parlay_pick_resolved message without id")
+        return
+
+    server_req(route=f"/parlays?pickId={pick_id}", method="PATCH")
+
+
 def listen_for_parlay_pick_resolved():
     """Function that listens for a parlay_pick_resolved message on redis"""
-    def handle_pick_resolved(data):
-        """Handles incoming parlay_pick_resolved messages"""
-        pick_id = data.get("id")
-        if not pick_id:
-            logger.error("Received parlay_pick_resolved message without id")
-            return
+    with concurrent.futures.ThreadPoolExecutor(max_workers=PARLAYS_UPDATER_MAX_WORKERS) as executor:
 
-        server_req(route=f"/parlays?pickId={pick_id}", method="PATCH")
+        def async_handler(data):
+            executor.submit(handle_pick_resolved, data)
 
-    logger.info("Listening for parlay_pick_resolved messages...")
-    listen_for_messages(redis_client, "parlay_pick_resolved", handle_pick_resolved)
+        logger.info("Listening for parlay_pick_resolved messages...")
+        listen_for_messages(redis_client, "parlay_pick_resolved", async_handler)
 
 
 def main():
