@@ -3,6 +3,7 @@ import { TodayPlayerProps } from "~/types/prop";
 import { Text } from "../ui/text";
 import { Badge } from "../ui/badge";
 import { Card, CardContent } from "../ui/card";
+import { formatDate } from "~/utils/dateUtils";
 
 export default function PlayerProps({
   playerProps,
@@ -45,7 +46,9 @@ export default function PlayerProps({
                   <Text className="text-sm">{game.awayTeam.abbreviation}</Text>
                 </Badge>
               </View>
-              <Text className="text-muted-foreground">{}</Text>
+              <Text className="text-muted-foreground">
+                {formatDate(game.startTime)}
+              </Text>
             </View>
           </CardContent>
         </Card>
