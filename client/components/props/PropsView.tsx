@@ -19,7 +19,7 @@ export default function PropsView({
   league: League;
 }) {
   const [propFilter, setPropFilter] = useState<string>(
-    propStats.filter((stat) => stat.league == league)[0].id,
+    propStats.filter((stat) => stat.leagues.includes(league))[0].displayName
   );
   const [searchActivated, setSearchActivated] = useState(false);
   const [searchContent, setSearchContent] = useState<string>("");
@@ -38,11 +38,11 @@ export default function PropsView({
             ?.toLocaleLowerCase()
             .includes(searchLower) ||
           prop.player.position?.toLocaleLowerCase().includes(searchLower) ||
-          prop.statDisplayName?.toLocaleLowerCase().includes(searchLower),
+          prop.statDisplayName?.toLocaleLowerCase().includes(searchLower)
       );
     }
     const selectedFilter = filter ?? propFilter;
-    return props.filter((prop) => prop.statName == selectedFilter);
+    return props.filter((prop) => prop.statDisplayName == selectedFilter);
   };
 
   return (
@@ -85,19 +85,20 @@ export default function PropsView({
               <Text className="font-semibold">Search</Text>
             </Button>
             {propStats
-              .filter((stat) => stat.league == league)
+              .filter((stat) => stat.leagues.includes(league))
               .map((stat) => (
                 <Button
-                  key={stat.id}
+                  key={stat.displayName}
                   variant="secondary"
                   size="sm"
                   className={cn(
                     "border-2 border-border/80 shadow-sm min-w-0",
-                    propFilter == stat.id && "border-primary bg-primary/20",
+                    propFilter == stat.displayName &&
+                      "border-primary bg-primary/20"
                   )}
-                  onPress={() => setPropFilter(stat.id)}
+                  onPress={() => setPropFilter(stat.displayName)}
                 >
-                  <Text className="font-semibold">{stat.name}</Text>
+                  <Text className="font-semibold">{stat.displayName}</Text>
                 </Button>
               ))}
           </ScrollView>

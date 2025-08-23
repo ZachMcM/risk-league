@@ -40,6 +40,13 @@ export default function Layout() {
             presentation: "modal",
           }}
         />
+        <Stack.Screen
+          name="players/[playerId]"
+          options={{
+            headerShown: false,
+            presentation: "modal"
+          }}
+        />
       </Stack>
     </CreateParlayProvider>
   );

@@ -30,8 +30,6 @@ export default function Props() {
     staleTime: 1440 * 60 * 1000,
   });
 
-  console.log(props);
-
   return (
     <ModalContainer>
       <Container className="pt-10 pb-0">

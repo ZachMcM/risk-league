@@ -24,7 +24,6 @@ import {
 
 export default function Parlay() {
   const searchParams = useLocalSearchParams<{
-    matchId: string;
     parlayId: string;
   }>();
 

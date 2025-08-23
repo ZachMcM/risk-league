@@ -192,7 +192,19 @@ parlaysRoute.post("/parlays/:matchId", authMiddleware, async (req, res) => {
     invalidateQueries(
       ["match", matchId],
       ["parlays", matchId, matchUserResult.userId],
-      ["props", matchUserResult.match.type, matchUserResult.userId, "competitive"],
+      [
+        "props",
+        matchUserResult.match.league,
+        matchUserResult.userId,
+        "competitive",
+      ],
+      ...picks.map((pickEntry) => [
+        "player-props",
+        pickEntry.prop.playerId,
+        matchUserResult.match.league,
+        matchUserResult.userId,
+        "competitive",
+      ]),
       ["career", matchUserResult.userId]
     );
 

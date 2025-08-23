@@ -1,27 +1,180 @@
-import { and, eq, gt, gte, lt, notInArray } from "drizzle-orm";
+import { and, desc, eq, gt, gte, lt, notInArray } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { Router } from "express";
 import moment from "moment";
 import { db } from "../db";
 import {
+  baseballPlayerStats,
+  basketballPlayerStats,
+  footballPlayerStats,
   game,
   leagueType,
   matchUser,
-  prop
+  player,
+  prop,
 } from "../db/schema";
-import { logger } from "../logger";
 import {
   apiKeyMiddleware,
   apiKeyOrIpAddressMiddleware,
-  authMiddleware
+  authMiddleware,
 } from "../middleware";
 import { handleError } from "../utils/handleError";
+import { logger } from "../logger";
 
 export const propsRoute = Router();
 
+propsRoute.get("/props/today/players/:playerId", async (req, res) => {
+  try {
+    const league = req.query.league as (typeof leagueType.enumValues)[number];
+    const competitive = req.query.competitive === "false";
+    const playerId = parseInt(req.params.playerId as string);
+
+    if (
+      league === undefined ||
+      !leagueType.enumValues.includes(league as any) ||
+      isNaN(playerId)
+    ) {
+      res.status(400).json({
+        error: "League or playerId parameter is invalid",
+      });
+      return;
+    }
+
+    const startOfDay = moment().startOf("day").toISOString();
+    const endOfDay = moment().endOf("day").toISOString();
+
+    const propsPickedAlready: number[] = [];
+
+    if (competitive) {
+      const todayMatches = await db.query.matchUser.findMany({
+        where: and(
+          gte(matchUser.createdAt, startOfDay),
+          lt(matchUser.createdAt, endOfDay)
+        ),
+        columns: {
+          id: true,
+        },
+        with: {
+          parlays: {
+            with: {
+              picks: true,
+            },
+          },
+          match: {
+            columns: {
+              type: true,
+            },
+          },
+        },
+      });
+
+      todayMatches
+        .filter((match) => match.match.type == "competitive")
+        .forEach((match) => {
+          match.parlays.forEach((parlay) => {
+            parlay.picks.forEach((pick) => {
+              propsPickedAlready.push(pick.propId!);
+            });
+          });
+        });
+    }
+
+    const playerResult = await db.query.player.findFirst({
+      where: and(eq(player.playerId, playerId), eq(player.league, league)),
+      with: {
+        team: true,
+      },
+    });
+
+    const availableProps = await db
+      .select({
+        id: prop.id,
+        line: prop.line,
+        statName: prop.statName,
+        statDisplayName: prop.statDisplayName,
+        choices: prop.choices,
+        gameId: prop.gameId,
+      })
+      .from(prop)
+      .innerJoin(
+        game,
+        and(eq(prop.gameId, game.gameId), eq(prop.league, game.league))
+      )
+      .where(
+        and(
+          gte(game.startTime, startOfDay),
+          lt(game.startTime, endOfDay),
+          gt(game.startTime, new Date().toISOString()), // games that haven't started
+          eq(game.league, league), // correct league
+          eq(prop.playerId, playerId),
+          notInArray(prop.id, propsPickedAlready)
+        )
+      );
+
+    const fromTable =
+      league == "MLB"
+        ? baseballPlayerStats
+        : ["NFL", "NCAAFB"].includes(league)
+        ? footballPlayerStats
+        : basketballPlayerStats;
+
+    const prevGameStats = await db
+      .select({ stats: fromTable, game: game })
+      .from(fromTable)
+      .innerJoin(
+        game,
+        and(
+          eq(fromTable.gameId, game.gameId),
+          eq(fromTable.league, game.league)
+        )
+      )
+      .where(
+        and(
+          eq(fromTable.playerId, playerId),
+          eq(fromTable.league, league),
+          eq(fromTable.status, "ACT")
+        )
+      )
+      .orderBy(desc(game.startTime))
+      .limit(5);
+
+    const propsWithPastResults = availableProps.map((prop) => ({
+      ...prop,
+      previousResults: prevGameStats.map((prev) => ({
+        time: prev.game.startTime,
+        value: (prev.stats as any)[prop.statName] as number,
+      })),
+    }));
+
+    const gameIds = [...new Set(availableProps.map((prop) => prop.gameId))];
+
+    const gamesList = await Promise.all(
+      gameIds.map(async (id) => {
+        const gameResult = await db.query.game.findFirst({
+          where: and(eq(game.gameId, id), eq(game.league, league)),
+          with: {
+            awayTeam: true,
+            homeTeam: true,
+          },
+        });
+
+        return gameResult;
+      })
+    );
+
+    res.json({
+      player: playerResult,
+      games: gamesList,
+      props: propsWithPastResults,
+    });
+  } catch (error) {
+    handleError(error, res, "Props");
+  }
+});
+
 propsRoute.get("/props/today", authMiddleware, async (req, res) => {
   try {
-    const league = req.query.league;
+    const league = req.query.league as (typeof leagueType.enumValues)[number];
     const competitive = req.query.competitive === "false";
 
     if (
@@ -87,7 +240,7 @@ propsRoute.get("/props/today", authMiddleware, async (req, res) => {
           gte(game.startTime, startOfDay),
           lt(game.startTime, endOfDay),
           gt(game.startTime, new Date().toISOString()), // games that haven't started
-          eq(game.league, league as (typeof leagueType.enumValues)[number]), // correct league
+          eq(game.league, league), // correct league
           notInArray(prop.id, propsPickedAlready)
         )
       );
@@ -136,10 +289,10 @@ propsRoute.post("/props", apiKeyMiddleware, async (req, res) => {
 });
 
 propsRoute.post(
-  "/props/league/:league", apiKeyOrIpAddressMiddleware,
+  "/props/league/:league",
+  apiKeyOrIpAddressMiddleware,
   async (req, res) => {
     try {
-      
     } catch (error) {
       handleError(error, res, "Props");
     }

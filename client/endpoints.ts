@@ -8,7 +8,7 @@ import {
   Message,
 } from "./types/match";
 import { Parlay, Pick } from "./types/parlay";
-import { Prop } from "./types/prop";
+import { Prop, TodayPlayerProps } from "./types/prop";
 import { Rank } from "./types/rank";
 import { Career, Friendship, User } from "./types/user";
 
@@ -141,6 +141,18 @@ export async function getTodayProps(
   });
 
   return todayProps;
+}
+
+export async function getTodayPlayerProps(
+  league: League,
+  competitive: boolean,
+  playerId: number
+): Promise<TodayPlayerProps> {
+  const todayPlayerProps = await serverRequest({
+    endpoint: `/props/today/players/${playerId}?league=${league}&competitive=${competitive}`,
+    method: "GET",
+  });
+  return todayPlayerProps;
 }
 
 export async function getParlay(id: number): Promise<Parlay> {

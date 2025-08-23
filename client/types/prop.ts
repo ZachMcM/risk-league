@@ -46,3 +46,19 @@ export type Game = {
   homeTeam: Team;
   awayTeam: Team;
 };
+
+export type SimplifiedProp = {
+  id: number;
+  line: number;
+  statName: string;
+  statDisplayName: string;
+  choices: string[];
+  gameId: string;
+  previousResults: { time: string; value: number }[];
+};
+
+export type TodayPlayerProps = {
+  player: Player;
+  games: Game[];
+  props: SimplifiedProp[];
+};

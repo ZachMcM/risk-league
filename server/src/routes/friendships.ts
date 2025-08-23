@@ -33,7 +33,7 @@ friendshipsRoute.get("/friendship", authMiddleware, async (req, res) => {
       ),
     });
 
-    res.json(friendshipResult)
+    res.json(friendshipResult ?? null)
   } catch (error) {
     handleError(error, res, "Friendships");
   }
