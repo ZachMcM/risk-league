@@ -66,7 +66,7 @@ teamsRoute.post("/teams", apiKeyMiddleware, async (req, res) => {
 teamsRoute.get("/teams/:teamId/league/:leagueId", apiKeyMiddleware, async (req, res) => {
   try {
     const teamId = parseInt(req.params.teamId)
-    const league = req.params.league as (typeof leagueType.enumValues)[number] | undefined
+    const league = req.params.leagueId as (typeof leagueType.enumValues)[number] | undefined
 
     if (league === undefined || !leagueType.enumValues.includes(league)) {
       res.status(400).json({ error: "Invalid league parameter" })

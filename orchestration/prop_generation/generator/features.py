@@ -1,9 +1,16 @@
 import pandas as pd
-from typing import Generic, TypeVar
+from typing import Generic, TypeVar, Protocol, Any
 from prop_generation.generator.base import DataScope, FeatureDefinition, GameStats
 
-PlayerStatsType = TypeVar("PlayerStatsType")
-TeamStatsType = TypeVar("TeamStatsType")
+
+class StatsDict(Protocol):
+    """Protocol for objects that support dictionary-like access"""
+
+    def __getitem__(self, key: str) -> Any: ...
+
+
+PlayerStatsType = TypeVar("PlayerStatsType", bound=StatsDict)
+TeamStatsType = TypeVar("TeamStatsType", bound=StatsDict)
 
 
 def calculate_weighted_arithmetic_mean(values: list[float]) -> float:
@@ -81,7 +88,8 @@ class FeatureExtractor(Generic[PlayerStatsType, TeamStatsType]):
 
         data = {}
         for definition in feature_definitions:
-            data[definition.name] = self.extract_feature_value(definition, game_data)
+            feature_values = self.extract_feature_value(definition, game_data)
+            data[definition.name] = feature_values
 
         return pd.DataFrame(data)
 

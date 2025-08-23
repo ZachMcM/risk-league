@@ -63,9 +63,15 @@ class GameStats(Generic[PlayerStatsType, TeamStatsType]):
         prev_opponents_stats_list: list[TeamStatsType],
         curr_opponent_stats_list: list[TeamStatsType],
     ):
-        self.player_stats_list = player_stats_list
-        self.team_stats_list = team_stats_list
-        self.prev_opponents_stats_list = prev_opponents_stats_list
+        min_length = min(
+            len(player_stats_list),
+            len(team_stats_list),
+            len(prev_opponents_stats_list),
+            len(curr_opponent_stats_list)
+        )
+        self.player_stats_list = player_stats_list[:min_length]
+        self.team_stats_list = team_stats_list[:min_length]
+        self.prev_opponents_stats_list = prev_opponents_stats_list[:min_length]
         self.curr_opponent_stats_list = curr_opponent_stats_list
 
 
