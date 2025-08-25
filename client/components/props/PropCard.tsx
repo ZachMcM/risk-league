@@ -8,6 +8,7 @@ import { Button } from "../ui/button";
 import { Card, CardContent } from "../ui/card";
 import { Text } from "../ui/text";
 import { Badge } from "../ui/badge";
+import { formatName } from "~/utils/stringUtils";
 
 export default function PropCard({ prop }: { prop: Prop }) {
   const searchParams = useLocalSearchParams() as { matchId: string };
@@ -43,7 +44,7 @@ export default function PropCard({ prop }: { prop: Prop }) {
               </Text>
             </View>
             <Text className="font-bold text-lg text-center">
-              {prop.player.name}
+              {formatName(prop.player.name)}
             </Text>
             <Text className="font-semibold text-muted-foreground text-sm text-center">
               {prop.game.homeTeamId == prop.player.teamId
