@@ -86,15 +86,8 @@ propsRoute.get("/props/today/players/:playerId", async (req, res) => {
       },
     });
 
-    const availableProps = await db
-      .select({
-        id: prop.id,
-        line: prop.line,
-        statName: prop.statName,
-        statDisplayName: prop.statDisplayName,
-        choices: prop.choices,
-        gameId: prop.gameId,
-      })
+    const availablePropIds = await db
+      .select({ id: prop.id })
       .from(prop)
       .innerJoin(
         game,
@@ -105,11 +98,36 @@ propsRoute.get("/props/today/players/:playerId", async (req, res) => {
           gte(game.startTime, startOfDay),
           lt(game.startTime, endOfDay),
           gt(game.startTime, new Date().toISOString()), // games that haven't started
-          eq(game.league, league), // correct league
+          eq(game.league, league),
           eq(prop.playerId, playerId),
           notInArray(prop.id, propsPickedAlready)
         )
       );
+
+    const extendedAvailableProps = (
+      await Promise.all(
+        availablePropIds.map(async (propEntry) => {
+          const propResult = await db.query.prop.findFirst({
+            where: eq(prop.id, propEntry.id),
+            with: {
+              game: {
+                with: {
+                  homeTeam: true,
+                  awayTeam: true,
+                },
+              },
+              player: {
+                with: {
+                  team: true,
+                },
+              },
+            },
+          });
+
+          return propResult;
+        })
+      )
+    ).filter((prop) => prop !== undefined);
 
     const fromTable =
       league == "MLB"
@@ -138,7 +156,7 @@ propsRoute.get("/props/today/players/:playerId", async (req, res) => {
       .orderBy(desc(game.startTime))
       .limit(5);
 
-    const propsWithPastResults = availableProps.map((prop) => ({
+    const propsWithPastResults = extendedAvailableProps.map((prop) => ({
       ...prop,
       previousResults: prevGameStats.map((prev) => ({
         time: prev.game.startTime,
@@ -146,7 +164,9 @@ propsRoute.get("/props/today/players/:playerId", async (req, res) => {
       })),
     }));
 
-    const gameIds = [...new Set(availableProps.map((prop) => prop.gameId))];
+    const gameIds = [
+      ...new Set(extendedAvailableProps.map((prop) => prop.gameId)),
+    ];
 
     const gamesList = await Promise.all(
       gameIds.map(async (id) => {
@@ -239,7 +259,7 @@ propsRoute.get("/props/today", authMiddleware, async (req, res) => {
         and(
           gte(game.startTime, startOfDay),
           lt(game.startTime, endOfDay),
-          gt(game.startTime, new Date().toISOString()), // games that haven't started
+          gt(game.startTime, new Date().toISOString()),
           eq(game.league, league), // correct league
           notInArray(prop.id, propsPickedAlready)
         )

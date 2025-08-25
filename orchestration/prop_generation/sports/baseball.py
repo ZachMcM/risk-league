@@ -161,12 +161,7 @@ def main() -> None:
                                 "league": "MLB",
                                 "gameId": game["game_ID"],
                                 "choices": (
-                                    ["over", "under"]
-                                    if (
-                                        stat in BATTING_STATS
-                                        or prop_line > MIN_LINE_FOR_UNDER
-                                    )
-                                    else ["over"]
+                                    ["over", "under"] if prop_line > MIN_LINE_FOR_UNDER else ["over"]
                                 ),
                             }
 

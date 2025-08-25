@@ -57,7 +57,7 @@ export default function PropsView({
           />
           <Button
             size="sm"
-            variant="secondary"
+            variant="foreground"
             onPress={() => {
               setSearchActivated(false);
               setSearchContent("");
