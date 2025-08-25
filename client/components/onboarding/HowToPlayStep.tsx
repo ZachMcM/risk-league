@@ -21,7 +21,6 @@ export default function HowToPlayStep({ close }: { close: () => void }) {
       </View>
       <Button
         size="lg"
-        variant="outline"
         onPress={() => {
           close()
           router.navigate("/help")

@@ -1,17 +1,60 @@
-import { Fragment } from "react";
-import { View } from "react-native";
+import { Fragment, useState } from "react";
+import { ActivityIndicator, View } from "react-native";
 import { Camera } from "~/lib/icons/Camera";
 import { Upload } from "~/lib/icons/Upload";
 import { Text } from "../ui/text";
 import ProfileImage from "../ui/profile-image";
 import { authClient } from "~/lib/auth-client";
 import { Button } from "../ui/button";
+import * as ImagePicker from "expo-image-picker";
+import { patchUserImage } from "~/endpoints";
+import { toast } from "sonner-native";
 
 export default function ProfileImageStep() {
-  const { data } = authClient.useSession();
+  const { data, refetch } = authClient.useSession();
+
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedAsset, setSelectedAsset] =
+    useState<ImagePicker.ImagePickerAsset | null>(null);
+  const [isPickerLoading, setIsPickerLoading] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+
+  async function pickImage() {
+    setIsPickerLoading(true);
+    let res = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
+    });
+
+    if (!res.canceled) {
+      setSelectedImage(res.assets[0].uri);
+      setSelectedAsset(res.assets[0]);
+    }
+    setIsPickerLoading(false);
+  }
 
   async function handleImageUpload() {
-    
+    if (!selectedAsset || !data?.user.id) return;
+
+    setIsUploading(true);
+    try {
+      // Upload image using the asset URI directly
+      await patchUserImage(data.user.id, selectedAsset);
+
+      // Refetch auth session to get updated user data
+      refetch();
+
+      // Reset selected image since it's now uploaded
+      setSelectedImage(null);
+      setSelectedAsset(null);
+    } catch (error) {
+      toast.error("Image upload failed!")
+      console.log(error)
+    } finally {
+      setIsUploading(false);
+    }
   }
 
   return (
@@ -30,14 +73,41 @@ export default function ProfileImageStep() {
       <View className="flex flex-col gap-4 items-center w-full">
         <ProfileImage
           username={data?.user.username!}
-          image={data?.user.image!}
+          image={selectedImage ?? data?.user.image!}
           className="h-24 w-24"
         />
       </View>
-      <Button size="lg" className="flex flex-row items-center gap-2" variant="outline">
-        <Upload className="text-foreground"/>
-        <Text className="font-bold">Upload Photo</Text>
-      </Button>
+      {selectedImage ? (
+        <Button
+          size="lg"
+          variant="secondary"
+          className="flex flex-row items-center gap-2"
+          onPress={handleImageUpload}
+          disabled={isUploading}
+        >
+          {isUploading ? (
+            <ActivityIndicator className="text-foreground" />
+          ) : (
+            <Upload className="text-foreground" />
+          )}
+          <Text className="font-bold">Save Image</Text>
+        </Button>
+      ) : (
+        <Button
+          size="lg"
+          className="flex flex-row items-center gap-2"
+          variant="outline"
+          onPress={pickImage}
+          disabled={isPickerLoading}
+        >
+          {isPickerLoading ? (
+            <ActivityIndicator className="text-foreground" />
+          ) : (
+            <Upload className="text-foreground" />
+          )}
+          <Text className="font-bold">Choose Image</Text>
+        </Button>
+      )}
     </Fragment>
   );
 }

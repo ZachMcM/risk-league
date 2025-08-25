@@ -31,7 +31,6 @@ export default function OnboardingDialog({
   const steps = [
     <WelcomeStep />,
     <ProfileImageStep />,
-    // <HeaderImageStep />,
     <HowToPlayStep close={close} />,
   ];
 
@@ -57,15 +56,17 @@ export default function OnboardingDialog({
           </View>
           {steps[step]}
           <View className="flex flex-row w-full gap-2">
-            <Button
-              onPress={() => setStep(step + 1)}
-              size="lg"
-              variant="default"
-              className="flex flex-row items-center gap-2 flex-1"
-            >
-              <Text className="font-bold">Continue</Text>
-              <ArrowRight className="text-foreground" size={18} />
-            </Button>
+            {step !== steps.length - 1 && (
+              <Button
+                onPress={() => setStep(step + 1)}
+                size="lg"
+                variant="default"
+                className="flex flex-row items-center gap-2 flex-1"
+              >
+                <Text className="font-bold">Continue</Text>
+                <ArrowRight className="text-foreground" size={18} />
+              </Button>
+            )}
             <Button onPress={close} size="lg" variant="outline">
               <Text className="font-bold">Skip</Text>
             </Button>

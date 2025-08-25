@@ -21,11 +21,6 @@ export default function User() {
     queryFn: async () => await getUser(id),
   });
 
-  const { data: friendship, isPending: isFriendshipPending } = useQuery({
-    queryKey: ["friendship", currUserData?.user.id, id],
-    queryFn: async () => await getFriendship(id),
-  });
-
   return (
     <ModalContainer>
       <ScrollContainer className="pt-10">
@@ -45,15 +40,10 @@ export default function User() {
                     <Text className="font-bold text-2xl">{user.username}</Text>
                     <RankBadge showIcon rank={user.rank} />
                   </View>
-                  {isFriendshipPending ? (
-                    <ActivityIndicator className="text-foreground" />
-                  ) : (
-                    <FriendshipButtons
-                      portalHost="inside-modal-page"
-                      user={user}
-                      friendship={friendship}
-                    />
-                  )}
+                  <FriendshipButtons
+                    portalHost="inside-modal-page"
+                    user={user}
+                  />
                 </View>
                 <View className="flex flex-col gap-6">
                   <Text className="font-bold text-3xl">Career</Text>

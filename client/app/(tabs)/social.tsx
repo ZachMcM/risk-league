@@ -28,11 +28,11 @@ export default function Friends() {
   });
 
   const friends = friendships?.filter(
-    (friendship) => friendship.status == "accepted",
+    (friendship) => friendship.status == "accepted"
   );
   const friendRequests = friendships?.filter(
     (friendship) =>
-      friendship.status == "pending" && friendship.incomingId == data?.user.id!,
+      friendship.status == "pending" && friendship.incomingId == data?.user.id!
   );
 
   const {
@@ -115,7 +115,7 @@ export default function Friends() {
                 className={cn(
                   tabsValue == "search"
                     ? "text-foreground"
-                    : "text-muted-foreground",
+                    : "text-muted-foreground"
                 )}
                 size={18}
               />
@@ -157,12 +157,7 @@ export default function Friends() {
                 showsVerticalScrollIndicator={false}
                 renderItem={({ item, index }) => (
                   <GridItemWrapper index={index} numCols={1} gap={16}>
-                    <UserCard
-                      user={item}
-                      friendship={friendships?.find(
-                        (friendship) => friendship.friend.id == item.id,
-                      )}
-                    />
+                    <UserCard user={item} />
                   </GridItemWrapper>
                 )}
                 keyExtractor={(item) => `search-${item.id}`}
@@ -193,7 +188,7 @@ export default function Friends() {
                 data={friendRequests}
                 renderItem={({ item, index }) => (
                   <GridItemWrapper index={index} numCols={1} gap={16}>
-                    <UserCard friendship={item} user={item.friend} />
+                    <UserCard user={item.friend} />
                   </GridItemWrapper>
                 )}
                 keyExtractor={(item) => `request-${item.friend.id}`}
@@ -233,7 +228,7 @@ export default function Friends() {
                 showsVerticalScrollIndicator={false}
                 renderItem={({ item, index }) => (
                   <GridItemWrapper index={index} gap={16} numCols={1}>
-                    <UserCard friendship={item} user={item.friend} />
+                    <UserCard user={item.friend} />
                   </GridItemWrapper>
                 )}
                 keyExtractor={(item) => `friend-${item.friend.id}`}

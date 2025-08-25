@@ -136,6 +136,7 @@ export default function ResetPassword() {
           <Button
             size="lg"
             onPress={handleSubmit(onSubmit)}
+            disabled={isPending}
             className="flex-row gap-2 items-center"
           >
             <Text className="font-bold">Confirm</Text>

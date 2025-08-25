@@ -1,5 +1,6 @@
 import { authClient } from "./lib/auth-client";
 import { League } from "./lib/config";
+import * as ImagePicker from "expo-image-picker";
 import { LeaderboardPage } from "./types/leaderboard";
 import {
   ExtendedMatch,
@@ -16,6 +17,7 @@ export type serverRequestParams = {
   endpoint: string;
   method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   body?: string;
+  formData?: FormData;
   tokenOverride?: string;
 };
 
@@ -23,6 +25,7 @@ export async function serverRequest({
   endpoint,
   method,
   body,
+  formData,
 }: serverRequestParams) {
   const cookies = authClient.getCookie();
 
@@ -30,8 +33,8 @@ export async function serverRequest({
     Cookie: cookies,
   } as any;
 
-  // Only add Content-Type if body is provided
-  if (body !== undefined) {
+  // Only add Content-Type if body is provided (not for FormData)
+  if (body !== undefined && !formData) {
     headers["Content-Type"] = "application/json";
   }
 
@@ -40,8 +43,10 @@ export async function serverRequest({
     headers,
   };
 
-  // Only add body if it's not undefined
-  if (body !== undefined) {
+  // Use formData if provided, otherwise use body
+  if (formData !== undefined) {
+    fetchOptions.body = formData;
+  } else if (body !== undefined) {
     fetchOptions.body = body;
   }
 
@@ -62,6 +67,55 @@ export async function serverRequest({
 export async function getUser(id: string): Promise<User> {
   const user = await serverRequest({ endpoint: `/users/${id}`, method: "GET" });
   return user;
+}
+
+export async function patchUserImage(
+  userId: string,
+  asset: ImagePicker.ImagePickerAsset
+) {
+  const formData = new FormData();
+
+  // In React Native, append the image with uri, type, and name
+  formData.append("image", {
+    uri: asset.uri,
+    type: asset.mimeType || "image/jpeg",
+    name: asset.fileName || "image.jpg",
+  } as any);
+
+  return await serverRequest({
+    endpoint: `/users/${userId}/image`,
+    method: "PATCH",
+    formData,
+  });
+}
+
+export async function updateUserProfile(
+  userId: string,
+  data: {
+    username: string;
+    name: string;
+    image: ImagePicker.ImagePickerAsset | null;
+  }
+) {
+  const formData = new FormData();
+
+  // Add text fields
+  formData.append("username", data.username);
+  formData.append("name", data.name);
+
+  if (data.image) {
+    formData.append("image", {
+      uri: data.image.uri,
+      type: data.image.mimeType || "image/jpeg",
+      name: data.image.fileName || "image.jpg",
+    } as any);
+  }
+
+  return await serverRequest({
+    endpoint: `/users/${userId}`,
+    method: "PUT",
+    formData,
+  });
 }
 
 export async function getUserRank(): Promise<{
@@ -197,7 +251,7 @@ export async function postParlay(
   });
 }
 
-export async function getFriendship(otherUserId: string): Promise<Friendship> {
+export async function getFriendship(otherUserId: string): Promise<Friendship | null> {
   const friendship = await serverRequest({
     endpoint: `/friendship?otherUserId=${otherUserId}`,
     method: "GET",

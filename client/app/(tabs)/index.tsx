@@ -73,8 +73,8 @@ export default function Home() {
           </View>
           <View className="flex flex-row items-center gap-2">
             <Button
-              size="icon"
               variant="outline"
+              size="icon"
               onPress={() => router.navigate("/settings")}
             >
               <Cog className="text-foreground" size={18} />

@@ -1,11 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { Pressable, View } from "react-native";
-import {
-  getUser
-} from "~/endpoints";
-import { authClient } from "~/lib/auth-client";
-import { Friendship, User } from "~/types/user";
+import { getUser } from "~/endpoints";
+import { User } from "~/types/user";
 import RankBadge from "../ui/RankBadge";
 import ProfileImage from "../ui/profile-image";
 import { Text } from "../ui/text";
@@ -13,14 +10,9 @@ import FriendshipButtons from "./FriendshipButtons";
 
 export function UserCard({
   user,
-  friendship,
 }: {
   user: User;
-  friendship?: Friendship;
 }) {
-  const { data } = authClient.useSession();
-  console.log(friendship);
-
   const { data: userProfile } = useQuery({
     queryKey: ["user", user.id],
     queryFn: async () => await getUser(user.id),
@@ -58,7 +50,7 @@ export function UserCard({
           />
         </View>
       </View>
-      <FriendshipButtons user={user} friendship={friendship} />
+      <FriendshipButtons user={user} />
     </Pressable>
   );
 }

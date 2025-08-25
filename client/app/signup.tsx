@@ -104,7 +104,9 @@ export default function SignUp() {
                   value={value}
                   onSubmitEditing={handleSubmit(onSubmit)}
                 />
-                {error && <Text className="text-destructive">{error.message}</Text>}
+                {error && (
+                  <Text className="text-destructive">{error.message}</Text>
+                )}
               </View>
             )}
             name="email"
@@ -125,7 +127,9 @@ export default function SignUp() {
                   className={cn(error && "border-destructive")}
                   value={value}
                 />
-                {error && <Text className="text-destructive">{error.message}</Text>}
+                {error && (
+                  <Text className="text-destructive">{error.message}</Text>
+                )}
               </View>
             )}
             name="username"
@@ -146,7 +150,9 @@ export default function SignUp() {
                   className={cn(error && "border-destructive")}
                   value={value}
                 />
-                {error && <Text className="text-destructive">{error.message}</Text>}
+                {error && (
+                  <Text className="text-destructive">{error.message}</Text>
+                )}
               </View>
             )}
             name="name"
@@ -168,7 +174,9 @@ export default function SignUp() {
                   className={cn(error && "border-destructive")}
                   value={value}
                 />
-                {error && <Text className="text-destructive">{error.message}</Text>}
+                {error && (
+                  <Text className="text-destructive">{error.message}</Text>
+                )}
               </View>
             )}
             name="password"
@@ -191,7 +199,9 @@ export default function SignUp() {
                   value={value}
                   onSubmitEditing={handleSubmit(onSubmit)}
                 />
-                {error && <Text className="text-destructive">{error.message}</Text>}
+                {error && (
+                  <Text className="text-destructive">{error.message}</Text>
+                )}
               </View>
             )}
             name="confirmPassword"
@@ -199,6 +209,7 @@ export default function SignUp() {
           <Button
             size="lg"
             onPress={handleSubmit(onSubmit)}
+            disabled={isPending}
             className="flex-row gap-2 items-center"
           >
             <Text className="font-bold">Sign Up</Text>

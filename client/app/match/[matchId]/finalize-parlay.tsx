@@ -349,6 +349,7 @@ export default function FinalizeParlay() {
             </View>
             <Button
               onPress={handleSubmitParlay}
+              disabled={isCreatingParlayPending}
               className="w-full flex flex-row items-center gap-2"
             >
               <Text className="font-bold">Submit Parlay</Text>

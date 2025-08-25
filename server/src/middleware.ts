@@ -1,10 +1,7 @@
+import { fromNodeHeaders } from "better-auth/node";
 import { NextFunction, Request, Response } from "express";
 import { auth } from "./utils/auth";
-import { fromNodeHeaders } from "better-auth/node";
-import { logger } from "./logger";
-import rateLimit from "express-rate-limit";
-import RedisStore from "rate-limit-redis";
-import { redis } from "./redis";
+import multer from "multer";
 
 export const authMiddleware = async (
   req: Request,
@@ -57,3 +54,8 @@ export const apiKeyOrIpAddressMiddleware = async (
 
   next();
 };
+
+export const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fieldSize: 1000 * 1024 * 1024 }
+})

@@ -114,6 +114,7 @@ export default function SignIn() {
           <Button
             size="lg"
             onPress={handleSubmit(onSubmit)}
+            disabled={isPending}
             className="flex-row gap-2 items-center"
           >
             <Text className="font-bold">Sign In</Text>

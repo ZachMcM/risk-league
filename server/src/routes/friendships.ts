@@ -33,7 +33,7 @@ friendshipsRoute.get("/friendship", authMiddleware, async (req, res) => {
       ),
     });
 
-    res.json(friendshipResult ?? null)
+    res.json(friendshipResult ?? null);
   } catch (error) {
     handleError(error, res, "Friendships");
   }
@@ -126,7 +126,9 @@ friendshipsRoute.post("/friendships", authMiddleware, async (req, res) => {
 
     invalidateQueries(
       ["friendships", incomingId],
-      ["friendships", res.locals.userId!]
+      ["friendships", res.locals.userId!],
+      ["friendship", incomingId, res.locals.userId!],
+      ["friendship", res.locals.userId!, incomingId]
     );
 
     const outgoingUser = await db.query.user.findFirst({
@@ -205,11 +207,13 @@ friendshipsRoute.delete("/friendships", authMiddleware, async (req, res) => {
     invalidateQueries(
       ["friendships", friendshipResult.incomingId],
       ["friendships", friendshipResult.outgoingId],
+      ["friendship", friendshipResult.incomingId, friendshipResult.outgoingId],
+      ["friendship", friendshipResult.outgoingId, friendshipResult.incomingId],
       ["friendly-match-requests", friendshipResult.incomingId],
       ["friendly-match-requests", friendshipResult.outgoingId]
     );
 
-    res.status(200);
+    res.status(200).json({ success: true });
   } catch (error) {
     handleError(error, res, "Friendships route");
   }
@@ -239,6 +243,8 @@ friendshipsRoute.patch("/friendships", authMiddleware, async (req, res) => {
       );
 
     invalidateQueries(
+      ["friendship", outgoingId, res.locals.userId!],
+      ["friendship", res.locals.userId!, outgoingId],
       ["friendships", outgoingId],
       ["friendships", res.locals.userId!]
     );

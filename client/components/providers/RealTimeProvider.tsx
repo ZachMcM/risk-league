@@ -65,7 +65,10 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
               params: { matchId, openSubRoute: "parlay", subRouteId: parlayId },
             }}
             className="m-3"
-            onPress={() => toast.dismiss(toastId)}
+            onPress={() => {
+              router.dismissAll();
+              toast.dismiss(toastId);
+            }}
           >
             <Card>
               <CardContent className="w-full flex flex-col px-4 py-3">
@@ -100,7 +103,10 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
               params: { matchId: id },
             }}
             className="m-3"
-            onPress={() => toast.dismiss(toastId)}
+            onPress={() => {
+              router.dismissAll();
+              toast.dismiss(toastId);
+            }}
           >
             <Card>
               <CardContent className="w-full flex flex-row gap-4 items-center px-4 py-3">
@@ -130,7 +136,10 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
               params: { tab: "requests" },
             }}
             className="m-3"
-            onPress={() => toast.dismiss(toastId)}
+            onPress={() => {
+              router.dismissAll();
+              toast.dismiss(toastId);
+            }}
           >
             <Card>
               <CardContent className="w-full flex flex-row gap-3 items-center px-4 py-3">
@@ -162,7 +171,10 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
               params: { tab: "friends" },
             }}
             className="m-3"
-            onPress={() => toast.dismiss(toastId)}
+            onPress={() => {
+              router.dismissAll();
+              toast.dismiss(toastId);
+            }}
           >
             <Card>
               <CardContent className="w-full flex flex-row gap-3 items-center px-4 py-3">
@@ -196,7 +208,10 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
               pathname: "/match/[matchId]",
               params: { matchId: message.matchId, openSubRoute: "messages" },
             }}
-            onPress={() => toast.dismiss(toastId)}
+            onPress={() => {
+              router.dismissAll();
+              toast.dismiss(toastId);
+            }}
           >
             <Card>
               <CardContent className="w-full flex flex-row gap-3 items-center px-4 py-3">
@@ -239,7 +254,10 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
             <Link
               href="/(tabs)/social"
               className="m-3"
-              onPress={() => toast.dismiss(toastId)}
+              onPress={() => {
+                router.dismissAll();
+                toast.dismiss(toastId);
+              }}
             >
               <Card>
                 <CardContent className="w-full flex flex-row gap-3 items-center px-4 py-3">
@@ -299,6 +317,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
     socket.on(
       "friendly-match-request-accepted",
       ({ matchId }: { matchId: number }) => {
+        router.dismissAll();
         router.navigate({
           pathname: "/match/[matchId]",
           params: { matchId },

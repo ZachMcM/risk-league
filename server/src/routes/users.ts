@@ -1,18 +1,114 @@
+import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { and, eq, ilike, ne } from "drizzle-orm";
 import { Router } from "express";
 import { db } from "../db";
 import { leagueType, user } from "../db/schema";
-import { authMiddleware } from "../middleware";
+import { logger } from "../logger";
+import { authMiddleware, upload } from "../middleware";
+import { r2 } from "../r2";
+import { ranks } from "../types/ranks";
 import { calculateProgression } from "../utils/calculateProgression";
 import { findNextRank } from "../utils/findNextRank";
 import { findRank } from "../utils/findRank";
 import { getMaxKey } from "../utils/getMaxKey";
 import { handleError } from "../utils/handleError";
-import { ranks } from "../types/ranks";
 
 export const usersRoute = Router();
 
-usersRoute.get("/users/id", authMiddleware, async (req, res) => {
+usersRoute.patch(
+  "/users/:id/image",
+  authMiddleware,
+  upload.single("image"),
+  async (req, res) => {
+    try {
+      const userId = req.params.id;
+      const file = req.file;
+
+      if (!file) {
+        res.status(400).json({ error: "No image file provided" });
+        return;
+      }
+
+      const fileName = `profile/${userId}-${Date.now()}.${file.originalname
+        .split(".")
+        .pop()}`;
+
+      await r2.send(
+        new PutObjectCommand({
+          Bucket: process.env.R2_BUCKET_NAME!,
+          Key: fileName,
+          Body: file.buffer,
+          ContentType: file.mimetype,
+        })
+      );
+
+      const imageUrl = `${process.env.R2_PUBLIC_URL}/${fileName}`;
+      logger.debug(imageUrl);
+
+      await db.update(user).set({ image: imageUrl }).where(eq(user.id, userId));
+
+      res.json(imageUrl);
+    } catch (error) {
+      handleError(error, res, "Users");
+    }
+  }
+);
+
+usersRoute.put(
+  "/users/:id",
+  authMiddleware,
+  upload.single("image"),
+  async (req, res) => {
+    try {
+      const userId = req.params.id;
+      const file = req.file;
+      const username = req.body.username as string | undefined;
+      const name = req.body.name as string | undefined;
+
+      if (!name) {
+        res.status(400).json({ error: "No name provided" });
+        return;
+      }
+
+      if (!username) {
+        res.status(400).json({ error: "No username provided" });
+        return;
+      }
+
+      let imageUrl: string | undefined | null;
+
+      if (file) {
+        const fileName = `profile/${userId}-${Date.now()}.${file.originalname
+          .split(".")
+          .pop()}`;
+
+        await r2.send(
+          new PutObjectCommand({
+            Bucket: process.env.R2_BUCKET_NAME!,
+            Key: fileName,
+            Body: file.buffer,
+            ContentType: file.mimetype,
+          })
+        );
+
+        imageUrl = `${process.env.R2_PUBLIC_URL}/${fileName}`;
+      }
+
+      await db
+        .update(user)
+        .set(
+          imageUrl ? { image: imageUrl, username, name } : { username, name }
+        )
+        .where(eq(user.id, userId));
+
+      res.json({ success: true });
+    } catch (error) {
+      handleError(error, res, "Users");
+    }
+  }
+);
+
+usersRoute.get("/users/:id/rank", authMiddleware, async (req, res) => {
   try {
     const id = req.params.id;
 
