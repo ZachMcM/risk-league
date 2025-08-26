@@ -22,7 +22,6 @@ from prop_generation.configs.basketball import (
 from prop_generation.generator.base import GameStats
 from prop_generation.generator.main import BasePropGenerator
 from utils import data_feeds_req, server_req, setup_logger
-from constants import VALID_COLLEGE_CONFERENCES, VALID_INDEPENDENT_TEAMS
 
 logger = setup_logger(__name__)
 
@@ -98,17 +97,6 @@ def main():
             games_list = games_today["data"][league]
             for game in games_list:        
                 team_ids: list[int] = [game["home_team_ID"], game["away_team_ID"]]
-
-                if league == "NCAABB":
-                    home_team_data = server_req(
-                        route=f"/teams/{team_ids[0]}/league/{league}", method="GET"
-                    ).json()
-                    if home_team_data["conference"] not in VALID_COLLEGE_CONFERENCES and home_team_data["fullName"] not in VALID_INDEPENDENT_TEAMS:
-                        away_team_data = server_req(
-                            route=f"/teams/{team_ids[1]}/league/{league}", method="GET"
-                        ).json()
-                        if away_team_data["conference"] not in VALID_COLLEGE_CONFERENCES and away_team_data["fullName"] not in VALID_INDEPENDENT_TEAMS:
-                            continue
                                 
                 logger.info(f"Processing {league} game {game['game_ID']}")
 

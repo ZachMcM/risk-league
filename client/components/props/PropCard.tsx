@@ -36,34 +36,40 @@ export default function PropCard({ prop }: { prop: Prop }) {
       className="flex-1"
     >
       <Card className={cn("flex-1", isPropPicked(prop.id) && "border-primary")}>
-        <CardContent className="px-4 pt-2 pb-4 flex flex-col items-center gap-2">
-          <View className="flex flex-col items-center">
-            <View className="relative">
-              <PlayerImage image={prop.player.image} scale={1.2} />
-              <View className="flex flex-row items-center self-center gap-2 bottom-1.5">
-                <Badge variant="secondary">
-                  <Text>
-                    {prop.player.team.abbreviation} • {prop.player.position}
-                  </Text>
-                </Badge>
-              </View>
-            </View>
-              <Text className="font-bold text-white text-center">
-                {formatName(prop.player.name)}
-              </Text>
-              <Text className="text-muted-foreground text-sm text-center font-normal">
-                {prop.game.homeTeamId == prop.player.teamId
-                  ? `@ ${
-                      prop.game.awayTeam.abbreviation ??
-                      prop.game.awayTeam.fullName
-                    }`
-                  : `vs ${
-                      prop.game.homeTeam.abbreviation ??
-                      prop.game.homeTeam.fullName
-                    }`}{" "}
-                • {moment(prop.game.startTime).format("ddd h:mm A")}
-              </Text>
-            </View>
+        <CardContent className="px-4 pt-2 pb-4 flex flex-col items-center gap-2 relative">
+          {prop.player.team.image && (
+            <Image
+              contentFit="contain"
+              source={{
+                uri: prop.player.team.image,
+              }}
+              style={{
+                width: 20,
+                height: 20,
+                position: "absolute",
+                right: 16,
+                top: 16,
+              }}
+            />
+          )}
+          <View className="flex flex-col gap-1 items-center">
+            <PlayerImage image={prop.player.image} scale={1.1} />
+            <Text className="font-bold text-white text-center">
+              {formatName(prop.player.name)}
+            </Text>
+            <Text className="text-muted-foreground text-sm text-center font-normal">
+              {prop.game.homeTeamId == prop.player.teamId
+                ? `@ ${
+                    prop.game.awayTeam.abbreviation ??
+                    prop.game.awayTeam.fullName
+                  }`
+                : `vs ${
+                    prop.game.homeTeam.abbreviation ??
+                    prop.game.homeTeam.fullName
+                  }`}{" "}
+              • {moment(prop.game.startTime).format("ddd h:mm A")}
+            </Text>
+          </View>
           <View className="flex flex-col items-center">
             <Text className="font-extrabold text-2xl">{prop.line}</Text>
             <Text className="text-muted-foreground">

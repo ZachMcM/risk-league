@@ -18,7 +18,10 @@ def search_espn_team(name):
     items = data.get("items", [])
     if items:
         item = items[0]
-        return item.get("logos", [])[0]["href"]
+        return {
+            "color": item.get("color", {}),
+            "alternateColor": item.get("alternateColor", {}),
+        }
     return None
 
 
@@ -44,19 +47,24 @@ def main():
         for i in range(starting_index, len(teams_list)):
             team = teams_list[i]
             logger.info(f"Processing team {team['fullName']} {i + 1}/{len(teams_list)}")
-            team_logo = search_espn_team(team["fullName"])
+            team_info = search_espn_team(team["fullName"])
+            if not team_info:
+                continue
 
-            if team_logo:
-                response = requests.get(team_logo)
-                img_buffer = response.content
-
-                files = {"image": ("headshot.png", img_buffer, "image/png")}
+            if team_info["color"] and team_info["alternateColor"]:
                 server_req(
-                    route=f"/teams/{team['teamId']}/league/{league}/image",
+                    route=f"/teams/{team['teamId']}/league/{league}/colors",
                     method="PUT",
-                    files=files,
+                    body=json.dumps(
+                        {
+                            "color": team_info["color"],
+                            "alternateColor": team_info["alternateColor"],
+                        }
+                    ),
                 )
-                logger.info(f"Updated {team['fullName']} Logo URL: {team_logo}")
+                logger.info(
+                    f"Updated {team['fullName']} color: {team_info['color']} alternateColor: {team_info['alternateColor']}"
+                )
 
             time.sleep(0.1)
 

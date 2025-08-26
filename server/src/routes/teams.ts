@@ -117,6 +117,55 @@ teamsRoute.get(
 );
 
 teamsRoute.put(
+  "/teams/:id/league/:league/colors",
+  apiKeyMiddleware,
+  upload.single("image"),
+  async (req, res) => {
+    try {
+      const teamId = parseInt(req.params.id);
+
+      if (isNaN(teamId)) {
+        res.status(400).json({ error: "Invalid player id" });
+        return;
+      }
+
+      const league = req.params.league as
+        | (typeof leagueType.enumValues)[number]
+        | undefined;
+
+      if (league === undefined || !leagueType.enumValues.includes(league)) {
+        res.status(400).json({ error: "Invalid league parameter" });
+        return;
+      }
+
+      const { color, alternateColor } = req.body as {
+        color: string | undefined;
+        alternateColor: string | undefined;
+      };
+
+      if (!color || !alternateColor) {
+        res.status(400).json({
+          error: "Invalid request body need color and alternateColor",
+        });
+        return;
+      }
+
+      await db
+        .update(team)
+        .set({
+          color,
+          alternateColor,
+        })
+        .where(and(eq(team.league, league), eq(team.teamId, teamId)));
+
+      res.json({ success: true });
+    } catch (error) {
+      handleError(error, res, "Players");
+    }
+  }
+);
+
+teamsRoute.put(
   "/teams/:id/league/:league/image",
   apiKeyMiddleware,
   upload.single("image"),

@@ -157,7 +157,10 @@ export default function CareerInfo({ userId }: { userId: string }) {
                       <Star className="text-muted-foreground" size={16} />
                     </View>
                     <View className="flex flex-col gap-1 items-center">
-                      <PlayerImage image={career.mostBetPlayer.player.image} scale={1.2} />
+                      <PlayerImage
+                        image={career.mostBetPlayer.player.image}
+                        scale={1.2}
+                      />
                       <Text className="text-2xl font-bold text-center">
                         {career.mostBetPlayer.player.name}
                       </Text>
@@ -174,7 +177,14 @@ export default function CareerInfo({ userId }: { userId: string }) {
                       <Star className="text-muted-foreground" size={16} />
                     </View>
                     <View className="flex flex-col gap-1 items-center">
-                      {/* TODO image goes here */}
+                      {career.mostBetTeam.team.image && (
+                        <Image
+                          source={{
+                            uri: career.mostBetTeam.team.image,
+                          }}
+                          style={{ width: 50, height: 50 }}
+                        />
+                      )}
                       <Text className="text-2xl font-bold text-center">
                         {career.mostBetTeam.team.fullName}
                       </Text>

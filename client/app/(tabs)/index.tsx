@@ -33,7 +33,7 @@ import { User } from "~/lib/icons/User";
 export default function Home() {
   const { data } = authClient.useSession();
 
-  const { data: user, isPending: isUserPending } = useQuery({
+  const { data: userRank, isPending: isUserRankPending } = useQuery({
     queryKey: ["user", data?.user.id, "rank"],
     queryFn: getUserRank,
   });
@@ -58,14 +58,14 @@ export default function Home() {
         <View className="flex flex-row items-center justify-between">
           <View className="flex flex-col gap-4 items-start">
             <Text className="font-bold text-2xl">{data?.user.username}</Text>
-            {isUserPending ? (
+            {isUserRankPending ? (
               <Skeleton className="h-6 w-36 rounded-full" />
             ) : (
-              user && (
+              userRank && (
                 <View className="flex flex-row items-center gap-2">
-                  <RankBadge showIcon rank={user.rank} />
-                  <RankText tier={user.rank.tier} className="font-bold">
-                    {user.points}
+                  <RankBadge showIcon rank={userRank.rank} />
+                  <RankText tier={userRank.rank.tier} className="font-bold">
+                    {userRank.points}
                   </RankText>
                 </View>
               )
@@ -111,31 +111,31 @@ export default function Home() {
             </DropdownMenu>
           </View>
         </View>
-        {isUserPending ? (
+        {isUserRankPending ? (
           <View className="flex flex-col gap-2">
             <Skeleton className="h-2 w-1/2" />
             <Skeleton className="h-4 w-full" />
           </View>
         ) : (
-          user &&
-          user.nextRank &&
-          user.progression !== null && (
+          userRank &&
+          userRank.nextRank &&
+          userRank.progression !== null && (
             <View className="flex flex-col gap-2">
               <View className="flex flex-row items-center justify-between">
                 <Text className="font-semibold text-muted-foreground text-xl">
                   Progress to next rank
                 </Text>
                 <Text className="font-bold text-primary text-2xl">
-                  {user.progression} / 100
+                  {userRank.progression} / 100
                 </Text>
               </View>
-              <Progress value={user.progression} variant="primary" />
+              <Progress value={userRank.progression} variant="primary" />
               <View className="flex flex-row items-center justify-between w-full">
                 <Text className="font-semibold text-muted-foreground flex-1 text-left">
                   0%
                 </Text>
-                <RankText tier={user.rank.tier} className="flex-1 text-center">
-                  {user.nextRank.tier} {user.nextRank.level}
+                <RankText tier={userRank.rank.tier} className="flex-1 text-center">
+                  {userRank.nextRank.tier} {userRank.nextRank.level}
                 </RankText>
                 <Text className="font-semibold text-muted-foreground flex-1 text-right">
                   100%

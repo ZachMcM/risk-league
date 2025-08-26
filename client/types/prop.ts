@@ -7,6 +7,7 @@ export type Team = {
   location: string | null;
   mascot: string | null;
   league: League;
+  image: string | null
 };
 
 export type Player = {
@@ -20,7 +21,7 @@ export type Player = {
   height: string | null;
   weight: number | null;
   team: Team;
-  image: string
+  image: string | null
 };
 
 export type Prop = {

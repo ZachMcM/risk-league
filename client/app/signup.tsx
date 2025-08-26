@@ -38,7 +38,10 @@ const schema = z
     username: z
       .string()
       .min(1, { message: "Username is required" })
-      .max(16, { message: "Username can't be more than 50 characters" }),
+      .max(16, { message: "Username can't be more than 16 characters" })
+      .regex(/^[a-zA-Z0-9_]+$/, { 
+        message: "Username can only contain letters, numbers, and underscores" 
+      }),
   })
   .refine(({ password, confirmPassword }) => confirmPassword === password, {
     message: "Passwords don't match",

@@ -27,13 +27,14 @@ export type Career = {
   mostBetPlayer: {
     player: {
       name: string;
-      image: string
+      image: string | null
     };
     count: number;
   } | null;
   mostBetTeam: {
     team: {
       fullName: String;
+      image: string | null
     };
     count: number;
   } | null;

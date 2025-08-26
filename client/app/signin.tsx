@@ -13,7 +13,12 @@ import { Link } from "expo-router";
 import { Container } from "~/components/ui/container";
 
 const schema = z.object({
-  username: z.string().min(1, { message: "Username is required" }),
+  username: z
+    .string()
+    .min(1, { message: "Username is required" })
+    .regex(/^[a-zA-Z0-9_]+$/, { 
+      message: "Username can only contain letters, numbers, and underscores" 
+    }),
   password: z
     .string()
     .min(8, { message: "Password can't be less than 8 characters" })

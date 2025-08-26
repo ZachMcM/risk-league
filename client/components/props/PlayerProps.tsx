@@ -42,21 +42,46 @@ export default function PlayerProps({
       </View>
       {playerProps.games.map((game) => (
         <Card key={game.gameId}>
-          <CardContent className="p-4 flex flex-row items-center justify-between">
-            <Badge variant="foreground">
-              <Text className="text-sm">{game.homeTeam.abbreviation}</Text>
-            </Badge>
-            <View className="flex flex-col gap-2">
-              <View className="px-1 py-0.5 bg-primary rounded-full flex flex-row items-center justify-center self-center">
-                <Text className="font-bold text-sm">vs</Text>
+          <CardContent className="py-4 px-6 flex flex-row items-center justify-between">
+            {game.homeTeam.image ? (
+              <View className="flex flex-col justify-center items-center gap-1">
+                <Image
+                  contentFit="contain"
+                  source={{
+                    uri: game.homeTeam.image,
+                  }}
+                  style={{ width: 35, height: 35 }}
+                />
+                <Text className="text-muted-foreground text-xs">
+                  {game.homeTeam.abbreviation}
+                </Text>
               </View>
-              <Text className="text-muted-foreground text-center text-sm">
-                Starts {moment(game.startTime).format("ddd h:mm A")}
-              </Text>
-            </View>
-            <Badge variant="foreground">
-              <Text className="text-sm">{game.awayTeam.abbreviation}</Text>
-            </Badge>
+            ) : (
+              <Badge variant="secondary">
+                <Text className="text-sm">{game.homeTeam.abbreviation}</Text>
+              </Badge>
+            )}
+            <Text className="text-muted-foreground text-center max-w-xs text-sm">
+              Starts {moment(game.startTime).format("ddd h:mm A")}
+            </Text>
+            {game.awayTeam.image ? (
+              <View className="flex flex-col justify-center items-center gap-1">
+                <Image
+                  contentFit="contain"
+                  source={{
+                    uri: game.awayTeam.image,
+                  }}
+                  style={{ width: 35, height: 35 }}
+                />
+                <Text className="text-muted-foreground text-xs">
+                  {game.awayTeam.abbreviation}
+                </Text>
+              </View>
+            ) : (
+              <Badge variant="secondary">
+                <Text className="text-sm">{game.awayTeam.abbreviation}</Text>
+              </Badge>
+            )}
           </CardContent>
         </Card>
       ))}

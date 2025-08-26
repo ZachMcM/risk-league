@@ -24,7 +24,10 @@ const schema = z.object({
   username: z
     .string()
     .min(1, { message: "Username is required" })
-    .max(16, { message: "Username can't be more than 50 characters" }),
+    .max(16, { message: "Username can't be more than 50 characters" })
+    .regex(/^[a-zA-Z0-9_]+$/, {
+      message: "Username can only contain letters, numbers, and underscores",
+    }),
   name: z
     .string()
     .min(1, { message: "Name is required." })
@@ -36,9 +39,9 @@ type FormValues = z.infer<typeof schema>;
 export default function Settings() {
   const { data, isPending, refetch } = authClient.useSession();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [selectedAsset, setSelectedAsset] = useState<ImagePicker.ImagePickerAsset | null>(null);
+  const [selectedAsset, setSelectedAsset] =
+    useState<ImagePicker.ImagePickerAsset | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
 
   const { control, handleSubmit } = useForm({
     resolver: zodResolver(schema),
@@ -62,15 +65,15 @@ export default function Settings() {
     }
   }
 
-  async function onSubmit({ username, name }: FormValues) {    
+  async function onSubmit({ username, name }: FormValues) {
     setIsSubmitting(true);
-    try {             
+    try {
       await updateUserProfile(data?.user.id!, {
         username,
         name,
         image: selectedAsset,
       });
-      
+
       refetch();
       toast.success("Successfully updated settings");
       router.dismiss();
@@ -89,7 +92,7 @@ export default function Settings() {
     <ModalContainer>
       <ScrollContainer className="pt-10">
         <View className="flex flex-col w-full gap-6">
-          <Text className="font-bold text-4xl">Settings</Text>          
+          <Text className="font-bold text-4xl">Settings</Text>
           <View className="flex flex-col gap-2 items-center">
             <Label>Profile Image</Label>
             <TouchableOpacity onPress={pickImage}>

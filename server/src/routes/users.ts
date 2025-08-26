@@ -258,6 +258,7 @@ usersRoute.get("/users/:id/career", authMiddleware, async (req, res) => {
                                 fullName: true,
                                 teamId: true,
                                 league: true,
+                                image: true
                               },
                             },
                           },
@@ -307,7 +308,7 @@ usersRoute.get("/users/:id/career", authMiddleware, async (req, res) => {
       {
         playerId: number;
         league: (typeof leagueType.enumValues)[number];
-        image: string
+        image: string | null
         name: string;
       }
     > = new Map();
@@ -316,6 +317,7 @@ usersRoute.get("/users/:id/career", authMiddleware, async (req, res) => {
     const pickedTeamInfo: Map<
       string,
       {
+        image: string | null
         teamId: number;
         league: (typeof leagueType.enumValues)[number];
         fullName: string;
@@ -339,7 +341,7 @@ usersRoute.get("/users/:id/career", authMiddleware, async (req, res) => {
             name: pick.prop.player.name,
             playerId: pick.prop.player.playerId,
             league: pick.prop.player.league,
-            image: pick.prop.player.image!
+            image: pick.prop.player.image
           };
 
           pickedPlayerCounts.set(
@@ -353,6 +355,7 @@ usersRoute.get("/users/:id/career", authMiddleware, async (req, res) => {
             fullName: pick.prop.player.team.fullName,
             teamId: pick.prop.player.team.teamId,
             league: pick.prop.player.team.league,
+            image: pick.prop.player.team.image
           };
 
           pickedTeamCounts.set(
