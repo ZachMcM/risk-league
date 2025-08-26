@@ -7,7 +7,6 @@ import { useCreateParlay } from "../providers/CreateParlayProvider";
 import { Button } from "../ui/button";
 import { Card, CardContent } from "../ui/card";
 import { Text } from "../ui/text";
-import { Badge } from "../ui/badge";
 import { formatName } from "~/utils/stringUtils";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
@@ -20,11 +19,6 @@ export default function PropCard({ prop }: { prop: Prop }) {
   const { isPropPicked, addPick, removePick, updatePick, getPickChoice } =
     useCreateParlay();
 
-  // Safety check for essential prop data
-  if (!prop.player?.name || !prop.line || !prop.choices) {
-    return null;
-  }
-
   return (
     <Pressable
       onPress={() =>
@@ -35,7 +29,12 @@ export default function PropCard({ prop }: { prop: Prop }) {
       }
       className="flex-1"
     >
-      <Card className={cn("flex-1", isPropPicked(prop.id) && "border-primary")}>
+      <Card
+        className={cn(
+          "flex-1 overflow-hidden",
+          isPropPicked(prop.id) && "border-primary"
+        )}
+      >
         <CardContent className="px-4 pt-2 pb-4 flex flex-col items-center gap-2 relative">
           {prop.player.team.image && (
             <Image
@@ -47,14 +46,14 @@ export default function PropCard({ prop }: { prop: Prop }) {
                 width: 20,
                 height: 20,
                 position: "absolute",
-                right: 16,
-                top: 16,
+                right: 12,
+                top: 12,
               }}
             />
           )}
           <View className="flex flex-col gap-1 items-center">
             <PlayerImage image={prop.player.image} scale={1.1} />
-            <Text className="font-bold text-white text-center">
+            <Text className="font-bold text-center">
               {formatName(prop.player.name)}
             </Text>
             <Text className="text-muted-foreground text-sm text-center font-normal">

@@ -18,7 +18,7 @@ def search_espn_team(name):
     items = data.get("items", [])
     if items:
         item = items[0]
-        return item.get("logos", [])[0]["href"]
+        return item.get("logos", [])[1]["href"]
     return None
 
 

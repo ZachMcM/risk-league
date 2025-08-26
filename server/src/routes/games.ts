@@ -1,15 +1,58 @@
 import { Router } from "express";
-import { apiKeyMiddleware } from "../middleware";
+import { apiKeyMiddleware, authMiddleware } from "../middleware";
 import { logger } from "../logger";
 import { db } from "../db";
 import { game, leagueType } from "../db/schema";
-import { InferInsertModel, sql } from "drizzle-orm";
+import { and, eq, gte, InferInsertModel, sql, lt } from "drizzle-orm";
 import { handleError } from "../utils/handleError";
 import { createInsertSchema } from "drizzle-zod";
+import moment from "moment";
 
 export const gamesRoute = Router();
 
 const gamesSchema = createInsertSchema(game);
+
+gamesRoute.get(
+  "/games/league/:league/today",
+  authMiddleware,
+  async (req, res) => {
+    try {
+      const league = req.params.league as (typeof leagueType.enumValues)[number] | undefined;
+
+      if (
+        league === undefined ||
+        !leagueType.enumValues.includes(league as any)
+      ) {
+        res.status(400).json({
+          error: "League or playerId parameter is invalid",
+        });
+        return;
+      }
+
+      const startOfDay = moment()
+        .subtract(1, "day")
+        .startOf("day")
+        .toISOString();
+      const endOfDay = moment().endOf("day").toISOString();
+
+      const todayGames = await db.query.game.findMany({
+        where: and(
+          eq(game.league, league),
+          gte(game.startTime, startOfDay),
+          lt(game.startTime, endOfDay),
+        ),
+        with: {
+          homeTeam: true,
+          awayTeam: true
+        }
+      })
+
+      res.json(todayGames)
+    } catch (error) {
+      handleError(error, res, "Games");
+    }
+  }
+);
 
 gamesRoute.post("/games", apiKeyMiddleware, async (req, res) => {
   try {
@@ -42,19 +85,6 @@ gamesRoute.post("/games", apiKeyMiddleware, async (req, res) => {
 
     res.json(isBatch ? result : result[0]);
   } catch (error) {
-    logger.error("Error inserting games:", error);
-
-    if (error instanceof Error) {
-      if (error.message.includes("duplicate key")) {
-        res.status(409).json({ error: "One or more games already exist" });
-        return;
-      }
-      if (error.message.includes("foreign key")) {
-        res.status(400).json({ error: "Invalid team ID provided" });
-        return;
-      }
-    }
-
     handleError(error, res, "Games route");
   }
 });

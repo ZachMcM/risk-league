@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useLocalSearchParams } from "expo-router";
 import { ActivityIndicator, View } from "react-native";
+import GamesList from "~/components/props/GamesList";
 import PropsView from "~/components/props/PropsView";
 import { CreateParlayFooter } from "~/components/providers/CreateParlayProvider";
 import { Container } from "~/components/ui/container";
@@ -38,13 +39,14 @@ export default function Props() {
         ) : (
           props !== undefined &&
           match !== undefined && (
-            <View className="flex flex-col gap-6 flex-1">
+            <View className="flex flex-col gap-4 flex-1">
               <View className="flex flex-row self-start items-center gap-2 border-b-2 pb-2 border-primary">
                 <LeagueLogo league={match.league} size={26} />
                 <Text className="font-bold text-xl">
                   {match.league.toUpperCase()} Props
                 </Text>
               </View>
+              <GamesList league={match.league} />
               <PropsView props={props} league={match.league} />
             </View>
           )

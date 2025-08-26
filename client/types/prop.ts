@@ -8,6 +8,8 @@ export type Team = {
   mascot: string | null;
   league: League;
   image: string | null
+  color: string | null
+  alternateColor: string | null
 };
 
 export type Player = {

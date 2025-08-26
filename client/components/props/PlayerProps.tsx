@@ -25,15 +25,18 @@ export default function PlayerProps({
   const { isPropPicked, addPick, removePick, updatePick, getPickChoice } =
     useCreateParlay();
 
-  console.log(playerProps.props[0].previousResults);
-
   return (
-    <View className="flex flex-col gap-4">
-      <View className="flex flex-row w-full justify-between gap-4 items-end border-b border-border">
+    <View className="flex flex-col gap-4 flex-1 overflow-hidden">
+      <View className="flex flex-row w-full justify-between gap-4 items-end relative">
         <View className="flex flex-col gap-1 flex-1 py-4">
-          <Text className="text-4xl font-bold flex-wrap">
-            {playerProps.player.name}
-          </Text>
+          <View className="flex flex-col">
+            <Text className="text-2xl font-semibold flex-wrap">
+              {playerProps.player.name.split(" ")[0]}
+            </Text>
+            <Text className="text-4xl font-bold flex-wrap">
+              {playerProps.player.name.split(" ")[1]}
+            </Text>
+          </View>
           <Text className="text-muted-foreground text-lg">
             {playerProps.player.team.fullName} • {playerProps.player.position}
           </Text>
@@ -71,7 +74,7 @@ export default function PlayerProps({
                   source={{
                     uri: game.awayTeam.image,
                   }}
-                  style={{ width: 35, height: 35 }}
+                  style={{ width: 30, height: 30 }}
                 />
                 <Text className="text-muted-foreground text-xs">
                   {game.awayTeam.abbreviation}
@@ -95,11 +98,13 @@ export default function PlayerProps({
             <Card>
               <CardContent className="p-4">
                 <View className="flex flex-row items-center justify-between flex-1">
-                  <View className="flex flex-row items-center gap-4">
+                  <View className="flex flex-row items-center gap-3">
                     <AccordionTrigger />
                     <View className="flex flex-col">
-                      <Text className="font-bold text-3xl">{prop.line}</Text>
-                      <Text className="text-lg">{prop.statDisplayName}</Text>
+                      <Text className="font-bold text-xl">{prop.line}</Text>
+                      <Text className="text-muted-foreground">
+                        {prop.statDisplayName}
+                      </Text>
                     </View>
                   </View>
                   <View className="flex flex-row items-center justify-center gap-1">

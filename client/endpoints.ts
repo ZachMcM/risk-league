@@ -9,7 +9,7 @@ import {
   Message,
 } from "./types/match";
 import { Parlay, Pick } from "./types/parlay";
-import { Prop, TodayPlayerProps } from "./types/prop";
+import { Game, Prop, TodayPlayerProps } from "./types/prop";
 import { Rank } from "./types/rank";
 import { Career, Friendship, User } from "./types/user";
 
@@ -116,6 +116,15 @@ export async function updateUserProfile(
     method: "PUT",
     formData,
   });
+}
+
+export async function getTodayGames(league: League): Promise<Game[]> {
+  const todayGames = await serverRequest({
+    endpoint: `/games/league/${league}/today`,
+    method: "GET",
+  });
+
+  return todayGames;
 }
 
 export async function getUserRank(): Promise<{
@@ -251,7 +260,9 @@ export async function postParlay(
   });
 }
 
-export async function getFriendship(otherUserId: string): Promise<Friendship | null> {
+export async function getFriendship(
+  otherUserId: string
+): Promise<Friendship | null> {
   const friendship = await serverRequest({
     endpoint: `/friendship?otherUserId=${otherUserId}`,
     method: "GET",
