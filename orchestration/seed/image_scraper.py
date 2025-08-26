@@ -34,10 +34,10 @@ def main():
           
         league = sys.argv[1]
 
-        starting_id = 0
+        starting_index = 0
 
         if len(sys.argv) > 2:
-            starting_id = int(sys.argv[2])
+            starting_index = int(sys.argv[2])
 
         total_scraped = 0
         
@@ -45,7 +45,7 @@ def main():
             route=f"/players/league/{league}/active", method="GET"
         ).json()
 
-        for i in range(starting_id, len(players_list)):
+        for i in range(starting_index, len(players_list)):
             player = players_list[i]
             logger.info(f"Processing player {player['name']} {i + 1}/{len(players_list)}")
             match = search_espn_player(player["name"])
@@ -64,7 +64,7 @@ def main():
 
                 time.sleep(0.1)
 
-        logger.info(f"Scraped a total of {total_scraped}/{len(players_list)}")
+        logger.info(f"Scraped a total of {total_scraped}/{len(players_list) - (starting_index + 1)}")
 
     except Exception as e:
         logger.error(f"Error in main: {e}")
