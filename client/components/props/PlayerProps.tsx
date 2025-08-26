@@ -167,12 +167,14 @@ export default function PlayerProps({
                                 }}
                               />
                             </View>
-                            <Text className="text-sm font-semibold text-center">
-                              {result.value}
-                            </Text>
-                            <Text className="text-xs text-muted-foreground text-center">
-                              {gameDate}
-                            </Text>
+                            <View className="flex flex-col">
+                              <Text className="text-lg font-semibold text-center">
+                                {result.value}
+                              </Text>
+                              <Text className="!text-sm text-muted-foreground text-center">
+                                {gameDate}
+                              </Text>                              
+                            </View>
                           </View>
                         );
                       })}
