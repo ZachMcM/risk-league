@@ -95,9 +95,9 @@ propsRoute.get("/props/today/players/:playerId", async (req, res) => {
       )
       .where(
         and(
-          // gte(game.startTime, startOfDay),
-          // lt(game.startTime, endOfDay),
-          // gt(game.startTime, new Date().toISOString()), 
+          gte(game.startTime, startOfDay),
+          lt(game.startTime, endOfDay),
+          gt(game.startTime, new Date().toISOString()), 
           eq(game.league, league),
           eq(prop.playerId, playerId),
           notInArray(prop.id, propsPickedAlready)
@@ -257,9 +257,9 @@ propsRoute.get("/props/today", authMiddleware, async (req, res) => {
       )
       .where(
         and(
-          // gte(game.startTime, startOfDay),
-          // lt(game.startTime, endOfDay),
-          // gt(game.startTime, new Date().toISOString()),
+          gte(game.startTime, startOfDay),
+          lt(game.startTime, endOfDay),
+          gt(game.startTime, new Date().toISOString()),
           eq(game.league, league), 
           notInArray(prop.id, propsPickedAlready)
         )
