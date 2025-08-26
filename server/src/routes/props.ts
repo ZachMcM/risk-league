@@ -40,7 +40,7 @@ propsRoute.get("/props/today/players/:playerId", async (req, res) => {
       return;
     }
 
-    const startOfDay = moment().startOf("day").toISOString();
+    const startOfPreviousDay = moment().subtract(1, 'day').startOf("day").toISOString();
     const endOfDay = moment().endOf("day").toISOString();
 
     const propsPickedAlready: number[] = [];
@@ -48,7 +48,7 @@ propsRoute.get("/props/today/players/:playerId", async (req, res) => {
     if (competitive) {
       const todayMatches = await db.query.matchUser.findMany({
         where: and(
-          gte(matchUser.createdAt, startOfDay),
+          gte(matchUser.createdAt, startOfPreviousDay),
           lt(matchUser.createdAt, endOfDay)
         ),
         columns: {
@@ -95,7 +95,7 @@ propsRoute.get("/props/today/players/:playerId", async (req, res) => {
       )
       .where(
         and(
-          gte(game.startTime, startOfDay),
+          gte(game.startTime, startOfPreviousDay),
           lt(game.startTime, endOfDay),
           gt(game.startTime, new Date().toISOString()), 
           eq(game.league, league),
@@ -207,7 +207,7 @@ propsRoute.get("/props/today", authMiddleware, async (req, res) => {
       return;
     }
 
-    const startOfDay = moment().startOf("day").toISOString();
+    const startOfPreviousDay = moment().subtract(1, 'day').startOf("day").toISOString();
     const endOfDay = moment().endOf("day").toISOString();
 
     const propsPickedAlready: number[] = [];
@@ -215,7 +215,7 @@ propsRoute.get("/props/today", authMiddleware, async (req, res) => {
     if (competitive) {
       const todayMatches = await db.query.matchUser.findMany({
         where: and(
-          gte(matchUser.createdAt, startOfDay),
+          gte(matchUser.createdAt, startOfPreviousDay),
           lt(matchUser.createdAt, endOfDay)
         ),
         columns: {
@@ -246,6 +246,8 @@ propsRoute.get("/props/today", authMiddleware, async (req, res) => {
         });
     }
 
+    logger.debug(`props already picked: ${propsPickedAlready}`)
+
     const availablePropIds = await db
       .select({
         id: prop.id,
@@ -257,7 +259,7 @@ propsRoute.get("/props/today", authMiddleware, async (req, res) => {
       )
       .where(
         and(
-          gte(game.startTime, startOfDay),
+          gte(game.startTime, startOfPreviousDay),
           lt(game.startTime, endOfDay),
           gt(game.startTime, new Date().toISOString()),
           eq(game.league, league), 

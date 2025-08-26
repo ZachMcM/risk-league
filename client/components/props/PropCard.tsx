@@ -11,6 +11,7 @@ import { Badge } from "../ui/badge";
 import { formatName } from "~/utils/stringUtils";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
+import PlayerImage from "../ui/player-image";
 
 export default function PropCard({ prop }: { prop: Prop }) {
   const searchParams = useLocalSearchParams() as { matchId: string };
@@ -38,11 +39,7 @@ export default function PropCard({ prop }: { prop: Prop }) {
         <CardContent className="px-4 pt-2 pb-4 flex flex-col items-center gap-2">
           <View className="flex flex-col items-center">
             <View className="relative">
-              <Image
-                contentFit="contain"
-                source={prop.player.image}
-                style={{ width: 104, height: 78 }}
-              />
+              <PlayerImage image={prop.player.image} scale={1.2} />
               <View className="flex flex-row items-center self-center gap-2 bottom-1.5">
                 <Badge variant="secondary">
                   <Text>

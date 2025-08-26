@@ -27,6 +27,7 @@ export type Career = {
   mostBetPlayer: {
     player: {
       name: string;
+      image: string
     };
     count: number;
   } | null;

@@ -35,11 +35,7 @@ export default function PlayCard({
 
   return (
     <Card
-      className={cn(
-        "w-[48%] self-stretch",
-        (arePropsPending || props == undefined || props.length == 0) &&
-          "opacity-40"
-      )}
+      className={cn("w-[48%] self-stretch", arePropsPending && "animate-pulse", (!arePropsPending && props?.length == 0 && "opacity-60"))}
     >
       <CardContent className="p-0 flex-1 flex flex-col">
         <View className={"relative overflow-hidden h-32"}>

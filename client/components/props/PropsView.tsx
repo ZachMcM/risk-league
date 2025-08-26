@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { ScrollView, View } from "react-native";
+import { createRef, useRef, useState, useEffect } from "react";
+import { ScrollView, TextInput, View } from "react-native";
 import { League, propStats } from "~/lib/config";
 import { Search } from "~/lib/icons/Search";
 import { Prop } from "~/types/prop";
@@ -45,11 +45,23 @@ export default function PropsView({
     return props.filter((prop) => prop.statDisplayName == selectedFilter);
   };
 
+  const searchBarRef = useRef<TextInput>(null);
+
+  useEffect(() => {
+    if (searchActivated) {
+      setTimeout(() => {
+        searchBarRef.current?.focus();
+      }, 100);
+    }
+  }, [searchActivated]);
+
   return (
     <View className="flex flex-col gap-4 flex-1">
       {searchActivated ? (
         <View className="flex flex-row items-center gap-3 w-full py-1 h-11">
           <SearchBar
+            // @ts-ignore
+            ref={searchBarRef}
             value={searchContent}
             onChangeText={setSearchContent}
             placeholder="Search"

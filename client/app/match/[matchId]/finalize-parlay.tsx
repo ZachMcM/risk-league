@@ -104,7 +104,7 @@ export default function FinalizeParlay() {
         clearParlay();
         invalidateQueries(queryClient, ...queriesToInvalidate);
         toast.success("Parlay Successfully created", {
-          position: "bottom-center",
+          position: "top-center",
         });
         router.dismissAll();
       },

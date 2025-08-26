@@ -174,6 +174,7 @@ export const team = pgTable(
     mascot: text(),
     arena: text(),
     conference: text(),
+    image: text()
   },
   (table) => [primaryKey({ columns: [table.teamId, table.league] })]
 );
@@ -196,7 +197,7 @@ export const player = pgTable(
     height: text(),
     weight: integer(),
     number: integer(),
-    image: text().default(process.env.DEFAULT_IMAGE_URL!)
+    image: text()
   },
   (table) => [
     primaryKey({ columns: [table.playerId, table.league] }),

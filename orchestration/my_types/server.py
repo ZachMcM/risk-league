@@ -1,6 +1,19 @@
 from typing import TypedDict, Literal
 
 
+class Team(TypedDict):
+    """Team from API response"""
+
+    teamId: int
+    league: Literal["MLB", "NBA", "NFL", "NCAAFB", "NCAABB"]
+    fullName: str
+    abbreviation: str
+    location: str
+    mascot: str
+    arena: str
+    conference: str
+
+
 class Player(TypedDict):
     """Player from API response"""
 

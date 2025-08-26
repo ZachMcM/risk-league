@@ -11,6 +11,8 @@ import { TrendingUp } from "~/lib/icons/TrendingUp";
 import { Trophy } from "~/lib/icons/Trophy";
 import { Progress } from "../ui/progress";
 import RankGraph from "../career/RankGraph";
+import { Image } from "expo-image";
+import PlayerImage from "../ui/player-image";
 
 export default function CareerInfo({ userId }: { userId: string }) {
   const { data: career, isPending: isCareerPending } = useQuery({
@@ -155,7 +157,7 @@ export default function CareerInfo({ userId }: { userId: string }) {
                       <Star className="text-muted-foreground" size={16} />
                     </View>
                     <View className="flex flex-col gap-1 items-center">
-                      {/* TODO image goes here */}
+                      <PlayerImage image={career.mostBetPlayer.player.image} scale={1.2} />
                       <Text className="text-2xl font-bold text-center">
                         {career.mostBetPlayer.player.name}
                       </Text>

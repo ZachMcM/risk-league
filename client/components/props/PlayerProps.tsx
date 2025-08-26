@@ -15,6 +15,7 @@ import {
 } from "../ui/accordion";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
+import PlayerImage from "../ui/player-image";
 
 export default function PlayerProps({
   playerProps,
@@ -37,11 +38,7 @@ export default function PlayerProps({
             {playerProps.player.team.fullName} • {playerProps.player.position}
           </Text>
         </View>
-        <Image
-          contentFit="contain"
-          source={playerProps.player.image}
-          style={{ width: 160, height: 120 }}
-        />
+        <PlayerImage image={playerProps.player.image} scale={2} />
       </View>
       {playerProps.games.map((game) => (
         <Card key={game.gameId}>
@@ -153,18 +150,15 @@ export default function PlayerProps({
                             className="flex flex-col items-center gap-2 flex-1"
                           >
                             <View className="flex flex-col items-center justify-end h-24 relative">
-                              <LinearGradient
-                                colors={
+                              <View
+                                className={cn(
+                                  "w-8 rounded-t-md z-50",
+                                  height !== 0 && "border",
                                   isAboveLine
-                                    ? ["rgba(34, 197, 94, 0.9)", "rgba(34, 197, 94, 0.6)", "rgba(34, 197, 94, 0.1)"]
-                                    : ["rgba(239, 68, 68, 0.9)", "rgba(239, 68, 68, 0.6)", "rgba(239, 68, 68, 0.1)"]
-                                }
-                                style={{ 
-                                  height: `${height}%`,
-                                  width: 32,
-                                  borderTopLeftRadius: 4,
-                                  borderTopRightRadius: 4,
-                                }}
+                                    ? "bg-green-950 border-green-700"
+                                    : "bg-red-950 border-red-700"
+                                )}
+                                style={{ height: `${height}%` }}
                               />
                             </View>
                             <View className="flex flex-col">
@@ -173,7 +167,7 @@ export default function PlayerProps({
                               </Text>
                               <Text className="!text-sm text-muted-foreground text-center">
                                 {gameDate}
-                              </Text>                              
+                              </Text>
                             </View>
                           </View>
                         );
