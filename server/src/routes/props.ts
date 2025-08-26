@@ -20,6 +20,7 @@ import {
 } from "../middleware";
 import { handleError } from "../utils/handleError";
 import { logger } from "../logger";
+import { success } from "zod";
 
 export const propsRoute = Router();
 
@@ -318,6 +319,8 @@ propsRoute.post("/props/league/:league", async (req, res) => {
 
     logger.info(`IP Addres: ${ipAddress}`)
     logger.info(`Req body: ${body}`)
+
+    res.json({ success: true })
   } catch (error) {
     handleError(error, res, "Props");
   }
