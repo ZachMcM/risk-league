@@ -196,6 +196,7 @@ export const player = pgTable(
     height: text(),
     weight: integer(),
     number: integer(),
+    image: text().default(process.env.DEFAULT_IMAGE_URL!)
   },
   (table) => [
     primaryKey({ columns: [table.playerId, table.league] }),

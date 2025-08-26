@@ -58,6 +58,7 @@ def server_req(
     route: str,
     method: Literal["GET", "POST", "PUT", "DELETE", "PATCH"],
     body: Optional[str] = None,
+    files: Optional[dict] = None,
 ):
     """Make authenticated requests to the server API.
 
@@ -65,6 +66,7 @@ def server_req(
         route: API route (e.g., '/teams')
         method: HTTP method
         body: JSON string body for request (optional)
+        files: Dictionary of files for multipart form data (optional)
 
     Returns:
         Response object from requests
@@ -78,18 +80,22 @@ def server_req(
     SERVER_API_KEY = getenv_required("SERVER_API_KEY")
 
     url = f"{SERVER_API_BASE_URL}{route}"
-    headers = {"x-api-key": SERVER_API_KEY, "Content-Type": "application/json"}
+    headers = {"x-api-key": SERVER_API_KEY}
+    
+    # Only set Content-Type for JSON if no files are being sent
+    if not files:
+        headers["Content-Type"] = "application/json"
 
     if method == "GET":
         response = requests.get(url, headers=headers, timeout=30)
     elif method == "POST":
-        response = requests.post(url, headers=headers, data=body, timeout=30)
+        response = requests.post(url, headers=headers, data=body, files=files, timeout=30)
     elif method == "PUT":
-        response = requests.put(url, headers=headers, data=body, timeout=30)
+        response = requests.put(url, headers=headers, data=body, files=files, timeout=30)
     elif method == "DELETE":
         response = requests.delete(url, headers=headers, timeout=30)
     elif method == "PATCH":
-        response = requests.patch(url, headers=headers, data=body, timeout=30)
+        response = requests.patch(url, headers=headers, data=body, files=files, timeout=30)
     else:
         raise ValueError(f"Unsupported HTTP method: {method}")
 

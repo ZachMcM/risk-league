@@ -13,6 +13,8 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "../ui/accordion";
+import { Image } from "expo-image";
+import { LinearGradient } from "expo-linear-gradient";
 
 export default function PlayerProps({
   playerProps,
@@ -22,10 +24,12 @@ export default function PlayerProps({
   const { isPropPicked, addPick, removePick, updatePick, getPickChoice } =
     useCreateParlay();
 
+  console.log(playerProps.props[0].previousResults);
+
   return (
     <View className="flex flex-col gap-4">
-      <View className="flex flex-row w-full justify-between gap-4 items-end">
-        <View className="flex flex-col gap-1 flex-1">
+      <View className="flex flex-row w-full justify-between gap-4 items-end border-b border-border">
+        <View className="flex flex-col gap-1 flex-1 py-4">
           <Text className="text-4xl font-bold flex-wrap">
             {playerProps.player.name}
           </Text>
@@ -33,35 +37,29 @@ export default function PlayerProps({
             {playerProps.player.team.fullName} • {playerProps.player.position}
           </Text>
         </View>
-        {/* TODO Player image goes here */}
+        <Image
+          contentFit="contain"
+          source={playerProps.player.image}
+          style={{ width: 160, height: 120 }}
+        />
       </View>
       {playerProps.games.map((game) => (
         <Card key={game.gameId}>
-          <CardContent className="p-4 flex flex-col gap-2">
-            <View className=" flex flex-row items-center justify-between">
-              <View className="flex flex-row items-center gap-3">
-                <Badge variant="foreground">
-                  <Text className="text-sm">{game.homeTeam.abbreviation}</Text>
-                </Badge>
-                <Text className="font-semibold text-lg">
-                  {game.homeTeam.mascot}
-                </Text>
+          <CardContent className="p-4 flex flex-row items-center justify-between">
+            <Badge variant="foreground">
+              <Text className="text-sm">{game.homeTeam.abbreviation}</Text>
+            </Badge>
+            <View className="flex flex-col gap-2">
+              <View className="px-1 py-0.5 bg-primary rounded-full flex flex-row items-center justify-center self-center">
+                <Text className="font-bold text-sm">vs</Text>
               </View>
-              <View className="px-2 py-1 bg-primary rounded-full flex flex-row items-center justify-center">
-                <Text className="font-bold">vs</Text>
-              </View>
-              <View className="flex flex-row items-center gap-3">
-                <Text className="font-semibold text-lg">
-                  {game.awayTeam.mascot}
-                </Text>
-                <Badge variant="foreground">
-                  <Text className="text-sm">{game.awayTeam.abbreviation}</Text>
-                </Badge>
-              </View>
+              <Text className="text-muted-foreground text-center text-sm">
+                Starts {moment(game.startTime).format("ddd h:mm A")}
+              </Text>
             </View>
-            <Text className="text-muted-foreground text-center">
-              Starts {moment(game.startTime).format("ddd h:mm A")}
-            </Text>
+            <Badge variant="foreground">
+              <Text className="text-sm">{game.awayTeam.abbreviation}</Text>
+            </Badge>
           </CardContent>
         </Card>
       ))}
@@ -116,10 +114,18 @@ export default function PlayerProps({
                   <View className="flex flex-col gap-3 mt-6">
                     <View className="flex flex-row justify-between items-center relative">
                       <View className="absolute inset-0 h-24 pointer-events-none">
-                        <View 
+                        <View
                           className="absolute w-full flex flex-row"
-                          style={{ 
-                            top: `${100 - (prop.line / Math.max(...prop.previousResults.map(r => r.value), prop.line)) * 100}%`
+                          style={{
+                            top: `${
+                              100 -
+                              (prop.line /
+                                Math.max(
+                                  ...prop.previousResults.map((r) => r.value),
+                                  prop.line
+                                )) *
+                                100
+                            }%`,
                           }}
                         >
                           {Array.from({ length: 72 }, (_, i) => (
@@ -134,19 +140,31 @@ export default function PlayerProps({
                       </View>
                       {prop.previousResults.map((result, index) => {
                         const isAboveLine = result.value > prop.line;
-                        const maxValue = Math.max(...prop.previousResults.map(r => r.value), prop.line);
+                        const maxValue = Math.max(
+                          ...prop.previousResults.map((r) => r.value),
+                          prop.line
+                        );
                         const height = (result.value / maxValue) * 100;
                         const gameDate = moment(result.time).format("M/D/YY");
-                        
+
                         return (
-                          <View key={index} className="flex flex-col items-center gap-2 flex-1">
+                          <View
+                            key={index}
+                            className="flex flex-col items-center gap-2 flex-1"
+                          >
                             <View className="flex flex-col items-center justify-end h-24 relative">
-                              <View 
-                                className={cn(
-                                  "w-8 rounded-t-md border-t border-l border-r z-50",
-                                  isAboveLine ? "bg-success border-success" : "bg-destructive border-destructive"
-                                )}
-                                style={{ height: `${height}%` }}
+                              <LinearGradient
+                                colors={
+                                  isAboveLine
+                                    ? ["rgba(34, 197, 94, 0.9)", "rgba(34, 197, 94, 0.6)", "rgba(34, 197, 94, 0.1)"]
+                                    : ["rgba(239, 68, 68, 0.9)", "rgba(239, 68, 68, 0.6)", "rgba(239, 68, 68, 0.1)"]
+                                }
+                                style={{ 
+                                  height: `${height}%`,
+                                  width: 32,
+                                  borderTopLeftRadius: 4,
+                                  borderTopRightRadius: 4,
+                                }}
                               />
                             </View>
                             <Text className="text-sm font-semibold text-center">
@@ -161,7 +179,15 @@ export default function PlayerProps({
                     </View>
                     <View className="flex flex-row items-center justify-center gap-1">
                       <Text className="text-sm text-muted-foreground">
-                        {(prop.previousResults.reduce((sum, r) => sum + r.value, 0) / prop.previousResults.length).toFixed(1)} avg last {prop.previousResults.length}
+                        {prop.previousResults.length > 0
+                          ? (
+                              prop.previousResults.reduce(
+                                (sum, r) => sum + r.value,
+                                0
+                              ) / prop.previousResults.length
+                            ).toFixed(1)
+                          : "0.0"}{" "}
+                        avg last {prop.previousResults.length}
                       </Text>
                     </View>
                   </View>

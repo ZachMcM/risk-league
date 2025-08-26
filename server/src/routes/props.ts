@@ -95,9 +95,9 @@ propsRoute.get("/props/today/players/:playerId", async (req, res) => {
       )
       .where(
         and(
-          gte(game.startTime, startOfDay),
-          lt(game.startTime, endOfDay),
-          gt(game.startTime, new Date().toISOString()), // games that haven't started
+          // gte(game.startTime, startOfDay),
+          // lt(game.startTime, endOfDay),
+          // gt(game.startTime, new Date().toISOString()), 
           eq(game.league, league),
           eq(prop.playerId, playerId),
           notInArray(prop.id, propsPickedAlready)
@@ -160,7 +160,7 @@ propsRoute.get("/props/today/players/:playerId", async (req, res) => {
       ...prop,
       previousResults: prevGameStats.map((prev) => ({
         time: prev.game.startTime,
-        value: (prev.stats as any)[prop.statName] as number,
+        value: (prev.stats as any)[prop.statName] || 0,
       })),
     }));
 
@@ -257,10 +257,10 @@ propsRoute.get("/props/today", authMiddleware, async (req, res) => {
       )
       .where(
         and(
-          gte(game.startTime, startOfDay),
-          lt(game.startTime, endOfDay),
-          gt(game.startTime, new Date().toISOString()),
-          eq(game.league, league), // correct league
+          // gte(game.startTime, startOfDay),
+          // lt(game.startTime, endOfDay),
+          // gt(game.startTime, new Date().toISOString()),
+          eq(game.league, league), 
           notInArray(prop.id, propsPickedAlready)
         )
       );

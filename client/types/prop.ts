@@ -20,6 +20,7 @@ export type Player = {
   height: string | null;
   weight: number | null;
   team: Team;
+  image: string
 };
 
 export type Prop = {

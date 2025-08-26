@@ -22,7 +22,6 @@ export default function ProfileHeader({
               contentFit="cover"
               source={header}
               style={{ width: "100%", height: "100%" }}
-              className="bg-primary"
             />
           </View>
         )}

@@ -17,7 +17,7 @@ const badgeVariants = cva(
           "border-transparent bg-destructive/20 web:hover:opacity-80 active:opacity-80",
         success:
           "border-transparent bg-success/20 web:hover:opacity-80 active:opacity-80",
-        outline: "text-foreground",
+        outline: "text-foreground bg-background",
         foreground:
           "border-transparent bg-foreground web:hover:opacity-80 active:opacity-80",
         active:

@@ -92,7 +92,7 @@ export default function PropsView({
                   variant="secondary"
                   size="sm"
                   className={cn(
-                    "border-2 border-border/80 shadow-sm min-w-0",
+                    "border-2 border-border shadow-sm min-w-0",
                     propFilter == stat.displayName &&
                       "border-primary bg-primary/20"
                   )}
@@ -122,6 +122,7 @@ export default function PropsView({
           contentContainerStyle={{
             paddingBottom: 42,
           }}
+          showsVerticalScrollIndicator={false}
           data={filteredProps()}
           renderItem={({ item, index }) => (
             <GridItemWrapper index={index} numCols={2} gap={12}>

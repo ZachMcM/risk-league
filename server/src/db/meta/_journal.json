@@ -421,6 +421,13 @@
       "when": 1755813754737,
       "tag": "0059_tearful_galactus",
       "breakpoints": true
+    },
+    {
+      "idx": 60,
+      "version": "7",
+      "when": 1756159170182,
+      "tag": "0060_gray_thaddeus_ross",
+      "breakpoints": true
     }
   ]
 }
