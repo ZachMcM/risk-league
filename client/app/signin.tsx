@@ -16,8 +16,8 @@ const schema = z.object({
   username: z
     .string()
     .min(1, { message: "Username is required" })
-    .regex(/^[a-zA-Z0-9_]+$/, { 
-      message: "Username can only contain letters, numbers, and underscores" 
+    .regex(/^[a-zA-Z0-9_]+$/, {
+      message: "Username can only contain letters, numbers, and underscores",
     }),
   password: z
     .string()
@@ -49,8 +49,8 @@ export default function SignIn() {
         password,
       },
       {
-        onError: ({ error }) => {
-          toast.error(error.message);
+        onError: ({ error, response, request }) => {
+          toast.error(error.message ?? response.text);
         },
       }
     );
@@ -134,7 +134,9 @@ export default function SignIn() {
             </Link>
           </Text>
           <Link push className="underline" href="/forgot-password">
-            <Text className="text-center text-lg text-muted-foreground">Forgot Password?</Text>
+            <Text className="text-center text-lg text-muted-foreground">
+              Forgot Password?
+            </Text>
           </Link>
         </View>
       </View>

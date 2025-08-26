@@ -45,11 +45,11 @@ const limiter = rateLimit({
 
 socketServer(io);
 
-app.all("/api/auth/*splat", toNodeHandler(auth));
 app.use(cors());
 app.use(morgan("combined"));
+app.all("/api/auth/*splat", toNodeHandler(auth));
 app.use(express.json());
-// app.use(limiter);
+app.use(limiter);
 app.use("/", routes);
 
 httpServer.listen(port, () => {

@@ -1,5 +1,6 @@
 import "~/global.css";
 
+import NetInfo from '@react-native-community/netinfo';
 import {
   DarkTheme,
   DefaultTheme,
@@ -14,7 +15,6 @@ import {
   QueryClient,
   QueryClientProvider,
 } from "@tanstack/react-query";
-import * as Network from "expo-network";
 import { SplashScreen, Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import * as React from "react";
@@ -24,19 +24,18 @@ import { Appearance, AppState, Platform } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Toaster } from "sonner-native";
+import { RealtimeProvider } from "~/components/providers/RealtimeProvider";
 import { SplashScreenController } from "~/components/ui/splash";
 import { setAndroidNavigationBar } from "~/lib/android-navigation-bar";
 import { authClient } from "~/lib/auth-client";
 import { NAV_THEME } from "~/lib/constants";
 import { useColorScheme } from "~/lib/useColorScheme";
-import { RealtimeProvider } from "~/components/providers/RealtimeProvider";
 
 onlineManager.setEventListener((setOnline) => {
-  const eventSubscription = Network.addNetworkStateListener((state) => {
-    setOnline(!!state.isConnected);
-  });
-  return eventSubscription.remove;
-});
+  return NetInfo.addEventListener((state) => {
+    setOnline(!!state.isConnected)
+  })
+})
 
 const LIGHT_THEME: Theme = {
   ...DefaultTheme,
@@ -57,7 +56,7 @@ SplashScreen.preventAutoHideAsync();
 
 export {
   // Catch any errors thrown by the Layout component.
-  ErrorBoundary,
+  ErrorBoundary
 } from "expo-router";
 
 const queryClient = new QueryClient();
