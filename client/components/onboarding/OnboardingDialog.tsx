@@ -1,22 +1,13 @@
-import { useQueryClient } from "@tanstack/react-query";
-import { router } from "expo-router";
-import { ReactNode, useRef, useState } from "react";
+import { useState } from "react";
 import { View } from "react-native";
-import { io } from "socket.io-client";
-import { toast } from "sonner-native";
-import { authClient } from "~/lib/auth-client";
+import { ArrowRight } from "~/lib/icons/ArrowRight";
 import { Button } from "../ui/button";
-import { Dialog, DialogContent, DialogTrigger } from "../ui/dialog";
-import { LogoIcon } from "../ui/logo-icon";
+import { Dialog, DialogContent } from "../ui/dialog";
 import { Progress } from "../ui/progress";
 import { Text } from "../ui/text";
-import { League } from "~/lib/config";
-import WelcomeStep from "./WelcomeStep";
-import { Info } from "~/lib/icons/Info";
-import { ArrowRight } from "~/lib/icons/ArrowRight";
-import ProfileImageStep from "./ProfileImageStep";
-import HeaderImageStep from "./HeaderImageStep";
 import HowToPlayStep from "./HowToPlayStep";
+import ProfileImageStep from "./ProfileImageStep";
+import WelcomeStep from "./WelcomeStep";
 
 export default function OnboardingDialog({
   isOpen,

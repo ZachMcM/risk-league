@@ -29,6 +29,7 @@ import { Cog } from "~/lib/icons/Cog";
 import { Ellipsis } from "~/lib/icons/Ellipsis";
 import { Trophy } from "~/lib/icons/Trophy";
 import { User } from "~/lib/icons/User";
+import { Info } from "~/lib/icons/Info"
 
 export default function Home() {
   const { data } = authClient.useSession();
@@ -88,6 +89,17 @@ export default function Home() {
               <DropdownMenuContent className="w-52 mt-2">
                 <DropdownMenuItem
                   className="w-full justify-between"
+                  onPress={() => router.navigate("/help")}
+                >
+                  <View className="flex flex-row items-center gap-2">
+                    <Info className="text-foreground" size={18} />
+                    <Text>Help</Text>
+                  </View>
+                  <ChevronRight className="text-foreground" size={18} />
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  className="w-full justify-between"
                   onPress={() => router.navigate("/career")}
                 >
                   <View className="flex flex-row items-center gap-2">
@@ -134,7 +146,10 @@ export default function Home() {
                 <Text className="font-semibold text-muted-foreground flex-1 text-left">
                   0%
                 </Text>
-                <RankText tier={userRank.rank.tier} className="flex-1 text-center">
+                <RankText
+                  tier={userRank.rank.tier}
+                  className="flex-1 text-center"
+                >
                   {userRank.nextRank.tier} {userRank.nextRank.level}
                 </RankText>
                 <Text className="font-semibold text-muted-foreground flex-1 text-right">

@@ -1,6 +1,6 @@
 import "~/global.css";
 
-import NetInfo from '@react-native-community/netinfo';
+import NetInfo from "@react-native-community/netinfo";
 import {
   DarkTheme,
   DefaultTheme,
@@ -15,7 +15,7 @@ import {
   QueryClient,
   QueryClientProvider,
 } from "@tanstack/react-query";
-import { SplashScreen, Stack } from "expo-router";
+import { SplashScreen, Stack, Tabs } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import * as React from "react";
 import { useEffect } from "react";
@@ -33,9 +33,9 @@ import { useColorScheme } from "~/lib/useColorScheme";
 
 onlineManager.setEventListener((setOnline) => {
   return NetInfo.addEventListener((state) => {
-    setOnline(!!state.isConnected)
-  })
-})
+    setOnline(!!state.isConnected);
+  });
+});
 
 const LIGHT_THEME: Theme = {
   ...DefaultTheme,
@@ -56,7 +56,7 @@ SplashScreen.preventAutoHideAsync();
 
 export {
   // Catch any errors thrown by the Layout component.
-  ErrorBoundary
+  ErrorBoundary,
 } from "expo-router";
 
 const queryClient = new QueryClient();
@@ -112,11 +112,11 @@ export default function RootLayout() {
 }
 
 export function RootNavigatior() {
-  const { data } = authClient.useSession();
+  const { data: currentUserData } = authClient.useSession();
 
   return (
     <Stack>
-      <Stack.Protected guard={data != null}>
+      <Stack.Protected guard={currentUserData != null}>
         <Stack.Screen
           name="(tabs)"
           options={{
@@ -140,8 +140,12 @@ export function RootNavigatior() {
           name="users/[id]"
           options={{ headerShown: false, presentation: "modal" }}
         />
+        <Stack.Screen
+          name="help"
+          options={{ headerShown: false, presentation: "modal" }}
+        />
       </Stack.Protected>
-      <Stack.Protected guard={data == null}>
+      <Stack.Protected guard={currentUserData == null}>
         <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="signin" options={{ headerShown: false }} />
         <Stack.Screen name="signup" options={{ headerShown: false }} />

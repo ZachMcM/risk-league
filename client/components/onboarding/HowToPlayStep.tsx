@@ -1,11 +1,10 @@
+import { router } from "expo-router";
 import { Fragment } from "react";
 import { View } from "react-native";
-import { LogoIcon } from "../ui/logo-icon";
-import { Text } from "../ui/text";
 import { Dices } from "~/lib/icons/Dices";
 import { Info } from "~/lib/icons/Info";
 import { Button } from "../ui/button";
-import { router } from "expo-router";
+import { Text } from "../ui/text";
 
 export default function HowToPlayStep({ close }: { close: () => void }) {
   return (

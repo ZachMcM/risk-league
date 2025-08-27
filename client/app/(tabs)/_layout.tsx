@@ -55,14 +55,6 @@ export default function TabsLayout() {
           tabBarIcon: ({ color }) => <Contact color={color} />,
         }}
       />
-      <Tabs.Screen
-        name="help"
-        options={{
-          title: "Help",
-          header: () => <PageTitle title="Help" />,
-          tabBarIcon: ({ color }) => <Info color={color} />,
-        }}
-      />
     </Tabs>
   );
 }
