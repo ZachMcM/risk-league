@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ScrollView, View } from "react-native";
 import { Search } from "~/lib/icons/Search";
 import { Parlay } from "~/types/parlay";
@@ -7,6 +7,7 @@ import { Button } from "../ui/button";
 import { SearchBar } from "../ui/search-bar";
 import { Text } from "../ui/text";
 import ParlayCard from "./ParlayCard";
+import { TextInput } from "react-native-gesture-handler";
 
 const parlayFiltersList = [
   "all",
@@ -21,6 +22,8 @@ export default function ParlaysView({ parlays }: { parlays: Parlay[] }) {
   const [searchContent, setSearchContent] = useState("");
   const [parlayFilter, setParlayFilter] =
     useState<(typeof parlayFiltersList)[number]>("all");
+
+  const searchBarRef = useRef<TextInput | null>(null);
 
   const filteredParlays = (filter?: (typeof parlayFiltersList)[number]) => {
     if (searchActivated) {
@@ -41,7 +44,7 @@ export default function ParlaysView({ parlays }: { parlays: Parlay[] }) {
                 ?.toLocaleLowerCase()
                 .includes(searchLower)
             );
-          }),
+          })
       );
     }
     const selectedFilter = filter ?? parlayFilter;
@@ -49,20 +52,28 @@ export default function ParlaysView({ parlays }: { parlays: Parlay[] }) {
       selectedFilter == "all"
         ? true
         : selectedFilter == "active"
-          ? !parlay.resolved
-          : selectedFilter == "completed"
-            ? parlay.resolved
-            : selectedFilter == "lost"
-              ? parlay.profit < 0
-              : parlay.profit > 0,
+        ? !parlay.resolved
+        : selectedFilter == "completed"
+        ? parlay.resolved
+        : selectedFilter == "lost"
+        ? parlay.profit < 0
+        : parlay.profit > 0
     );
   };
+
+  useEffect(() => {
+    if (searchActivated) {
+      searchBarRef.current?.focus();
+    }
+  }, [searchActivated]);
 
   return (
     <View className="flex flex-col gap-4">
       {searchActivated ? (
         <View className="flex flex-row items-center gap-3 w-full py-1 h-11">
           <SearchBar
+            // @ts-ignore
+            ref={searchBarRef}
             value={searchContent}
             onChangeText={setSearchContent}
             placeholder="Search"
@@ -104,7 +115,7 @@ export default function ParlaysView({ parlays }: { parlays: Parlay[] }) {
                 size="sm"
                 className={cn(
                   "border-2 border-border/80 shadow-sm min-w-0",
-                  parlayFilter == filter && "border-primary bg-primary/20",
+                  parlayFilter == filter && "border-primary bg-primary/20"
                 )}
                 onPress={() => setParlayFilter(filter)}
               >

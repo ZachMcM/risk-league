@@ -49,9 +49,7 @@ export default function PropsView({
 
   useEffect(() => {
     if (searchActivated) {
-      setTimeout(() => {
-        searchBarRef.current?.focus();
-      }, 100);
+      searchBarRef.current?.focus();
     }
   }, [searchActivated]);
 
