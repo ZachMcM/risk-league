@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
 import moment from "moment";
 import { Fragment, useEffect, useState } from "react";
@@ -12,6 +13,7 @@ import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import { Label } from "~/components/ui/label";
 import ModalContainer from "~/components/ui/modal-container";
+import PlayerImage from "~/components/ui/player-image";
 import { Text } from "~/components/ui/text";
 import { getMatch, postParlay } from "~/endpoints";
 import { authClient } from "~/lib/auth-client";
@@ -295,7 +297,7 @@ export default function FinalizeParlay() {
                     size="sm"
                     onPress={() =>
                       router.replace({
-                        pathname: "/match/[matchId]",
+                        pathname: "/match/[matchId]/props",
                         params: { matchId },
                       })
                     }
@@ -382,7 +384,7 @@ export function PickEntryCard({
         !isLast && "border-b"
       )}
     >
-      <View className="flex flex-row items-center gap-6">
+      <View className="flex flex-row items-center gap-3">
         <Pressable
           onPress={() => {
             removePick(prop.id);
@@ -390,14 +392,9 @@ export function PickEntryCard({
         >
           <CircleMinus className="text-destructive" size={20} />
         </Pressable>
+        <PlayerImage image={pick.prop.player.image} />
         <View className="flex flex-col gap-1">
-          <View className="flex flex-row items-center gap-2">
-            <Text className="font-bold">{prop.player.name}</Text>
-            <Text className="font-semibold text-muted-foreground">
-              {prop.player.position}
-            </Text>
-          </View>
-
+          <Text className="font-bold">{prop.player.name}</Text>
           <Text className="font-semibold text-muted-foreground text-sm">
             {prop.game.homeTeamId == prop.player.teamId
               ? `@ ${
@@ -408,7 +405,7 @@ export function PickEntryCard({
                 }`}{" "}
             • {moment(prop.game.startTime).format("ddd h:mm A")}
           </Text>
-          <Text className="font-semibold text-lg">
+          <Text className="font-bold">
             {prop.line} {prop.statDisplayName}
           </Text>
         </View>

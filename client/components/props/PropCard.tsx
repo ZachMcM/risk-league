@@ -11,6 +11,7 @@ import { formatName } from "~/utils/stringUtils";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import PlayerImage from "../ui/player-image";
+import { Separator } from "../ui/separator";
 
 export default function PropCard({ prop }: { prop: Prop }) {
   const searchParams = useLocalSearchParams() as { matchId: string };
@@ -23,7 +24,7 @@ export default function PropCard({ prop }: { prop: Prop }) {
     <Pressable
       onPress={() =>
         router.navigate({
-          pathname: "/match/[matchId]/players/[playerId]",
+          pathname: "/match/[matchId]/props/players/[playerId]",
           params: { matchId, playerId: prop.playerId },
         })
       }
@@ -52,9 +53,10 @@ export default function PropCard({ prop }: { prop: Prop }) {
             />
           )}
           <View className="flex flex-col gap-1 items-center">
-            <PlayerImage image={prop.player.image} scale={1.1} />
+            <PlayerImage image={prop.player.image} className="h-20 w-20" />
             <Text className="font-bold text-center">
-              {formatName(prop.player.name)}
+              {formatName(prop.player.name).firstName[0]}.{" "}
+              {formatName(prop.player.name).lastName}
             </Text>
             <Text className="text-muted-foreground text-sm text-center font-normal">
               {prop.game.homeTeamId == prop.player.teamId

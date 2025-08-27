@@ -7,6 +7,7 @@ import { truncate } from "lodash";
 import { router, useLocalSearchParams } from "expo-router";
 import { toast } from "sonner-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { getPerfectPlayMultiplier } from "~/utils/multiplierUtils";
 
 type Pick = {
   prop: Prop;
@@ -36,7 +37,7 @@ export function CreateParlayProvider({ children }: { children: ReactNode }) {
 
   function updatePick(propId: number, newPick: string) {
     const updatedPicks = picks.map((pick) =>
-      pick.prop.id === propId ? { ...pick, choice: newPick } : pick,
+      pick.prop.id === propId ? { ...pick, choice: newPick } : pick
     );
     setPicks(updatedPicks);
   }
@@ -102,26 +103,17 @@ export function CreateParlayFooter() {
       className="flex flex-row items-center bg-background justify-between gap-4 border-t border-border p-4"
       style={{ paddingBottom: insets.bottom }}
     >
-      {/* TODO replace with images */}
       <Text className="font-semibold text-muted-foreground max-w-[50%]">
-        {picks.length == 0
+        {picks.length < 2
           ? "Make at least 2 picks..."
-          : truncate(
-              picks
-                .map((pick) => pick.prop.player.name)
-                .filter((e, i, self) => i === self.indexOf(e))
-                .join(", "),
-              {
-                length: 25,
-              },
-            )}
+          : `${getPerfectPlayMultiplier(picks.length).toFixed(2)}% Multiplier`}
       </Text>
       <Button
         variant="foreground"
         className="flex flex-row items-center gap-3 rounded-full"
         onPress={() =>
           router.navigate({
-            pathname: "/match/[matchId]/finalize-parlay",
+            pathname: "/match/[matchId]/props/finalize-parlay",
             params: { matchId },
           })
         }

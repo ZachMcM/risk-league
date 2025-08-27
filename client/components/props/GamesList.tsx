@@ -1,14 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import moment from "moment";
-import { ActivityIndicator, ScrollView, View } from "react-native";
+import { ScrollView, View } from "react-native";
 import { getTodayGames } from "~/endpoints";
-import { authClient } from "~/lib/auth-client";
 import { League } from "~/lib/config";
 import { Game } from "~/types/prop";
 import { Card, CardContent } from "../ui/card";
-import { Text } from "../ui/text";
 import { Skeleton } from "../ui/skeleton";
+import { Text } from "../ui/text";
 
 function GameCard({ game }: { game: Game }) {
   return (
@@ -27,7 +26,7 @@ function GameCard({ game }: { game: Game }) {
               />
             )}
             <Text className="font-bold text-sm">
-              {game.awayTeam.abbreviation || game.awayTeam.mascot}
+              {game.awayTeam.abbreviation}
             </Text>
           </View>
           <View className="flex flex-row items-center gap-2">
@@ -39,7 +38,7 @@ function GameCard({ game }: { game: Game }) {
               />
             )}
             <Text className="font-bold text-sm">
-              {game.homeTeam.abbreviation || game.homeTeam.mascot}
+              {game.homeTeam.abbreviation}
             </Text>
           </View>
         </View>

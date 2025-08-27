@@ -159,7 +159,6 @@ export default function CareerInfo({ userId }: { userId: string }) {
                     <View className="flex flex-col gap-1 items-center">
                       <PlayerImage
                         image={career.mostBetPlayer.player.image}
-                        scale={1.2}
                       />
                       <Text className="text-2xl font-bold text-center">
                         {career.mostBetPlayer.player.name}

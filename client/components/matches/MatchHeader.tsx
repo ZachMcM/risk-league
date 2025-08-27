@@ -32,7 +32,7 @@ export default function MatchHeader() {
       }}
     >
       <Pressable onPress={() => router.back()}>
-        <ChevronLeft size={18} className="text-foreground" />
+        <ChevronLeft size={20} className="text-foreground" />
       </Pressable>
       {isPending ? (
         <Skeleton className="h-2 my-3 w-1/2" />
@@ -41,11 +41,11 @@ export default function MatchHeader() {
           <View className="flex flex-row items-center gap-1.5">
             <View className="flex flex-row items-center gap-2">
               <LeagueLogo league={match.league} size={28} />
-              <Text className="text-lg uppercase font-bold">
+              <Text className="text-xl uppercase font-bold">
                 {match.league}
               </Text>
             </View>
-            <Text className="font-semibold text-muted-foreground capitalize text-lg">
+            <Text className="font-semibold text-muted-foreground capitalize text-xl">
               {match.type} Match
             </Text>
           </View>

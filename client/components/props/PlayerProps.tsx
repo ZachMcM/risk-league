@@ -1,21 +1,21 @@
+import { Image } from "expo-image";
+import moment from "moment";
 import { View } from "react-native";
 import { TodayPlayerProps } from "~/types/prop";
-import { Text } from "../ui/text";
-import { Badge } from "../ui/badge";
-import { Card, CardContent } from "../ui/card";
-import moment from "moment";
-import { useCreateParlay } from "../providers/CreateParlayProvider";
-import { Button } from "../ui/button";
 import { cn } from "~/utils/cn";
+import { formatName } from "~/utils/stringUtils";
+import { useCreateParlay } from "../providers/CreateParlayProvider";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "../ui/accordion";
-import { Image } from "expo-image";
-import { LinearGradient } from "expo-linear-gradient";
+import { Badge } from "../ui/badge";
+import { Button } from "../ui/button";
+import { Card, CardContent } from "../ui/card";
 import PlayerImage from "../ui/player-image";
+import { Text } from "../ui/text";
 
 export default function PlayerProps({
   playerProps,
@@ -26,22 +26,22 @@ export default function PlayerProps({
     useCreateParlay();
 
   return (
-    <View className="flex flex-col gap-4 flex-1 overflow-hidden">
-      <View className="flex flex-row w-full justify-between gap-4 items-end relative">
+    <View className="flex flex-col gap-4 flex-1">
+      <View className="flex flex-row w-full justify-between gap-4 items-center">
         <View className="flex flex-col gap-1 flex-1 py-4">
           <View className="flex flex-col">
             <Text className="text-2xl font-semibold flex-wrap">
-              {playerProps.player.name.split(" ")[0]}
+              {formatName(playerProps.player.name).firstName}
             </Text>
             <Text className="text-4xl font-bold flex-wrap">
-              {playerProps.player.name.split(" ")[1]}
+              {formatName(playerProps.player.name).lastName}
             </Text>
           </View>
           <Text className="text-muted-foreground text-lg">
             {playerProps.player.team.fullName} • {playerProps.player.position}
           </Text>
         </View>
-        <PlayerImage image={playerProps.player.image} scale={2} />
+        <PlayerImage image={playerProps.player.image} className="h-28 w-28" />
       </View>
       {playerProps.games.map((game) => (
         <Card key={game.gameId}>

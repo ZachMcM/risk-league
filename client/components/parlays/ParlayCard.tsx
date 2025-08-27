@@ -12,6 +12,10 @@ import {
 } from "~/utils/multiplierUtils";
 import { useQuery } from "@tanstack/react-query";
 import { getParlay } from "~/endpoints";
+import { Image } from "expo-image";
+import { cn } from "~/utils/cn";
+import { formatName } from "~/utils/stringUtils";
+import PlayerImage from "../ui/player-image";
 
 export default function ParlayCard({ initialData }: { initialData: Parlay }) {
   const searchParams = useLocalSearchParams<{ matchId: string }>();
@@ -76,7 +80,14 @@ export default function ParlayCard({ initialData }: { initialData: Parlay }) {
               </Badge>
             </View>
             <Text className="font-semibold text-muted-foreground">
-              {parlay.picks.map((pick) => pick.prop.player.name).join(", ")}
+              {parlay.picks
+                .map(
+                  (pick) =>
+                    `${formatName(pick.prop.player.name).firstName[0]}. ${
+                      formatName(pick.prop.player.name).lastName
+                    }`
+                )
+                .join(", ")}
             </Text>
           </View>
           <View className="flex flex-row items-center gap-6">
@@ -109,7 +120,22 @@ export default function ParlayCard({ initialData }: { initialData: Parlay }) {
               </Text>
             </View>
           </View>
-          {/* TODO images go under here */}
+          <View className="flex flex-row items-center relative">
+            {parlay.picks.map((pick, i) => (
+              <PlayerImage
+                image={pick.prop.player.image}
+                className={cn(
+                  "bg-card",
+                  pick.status == "hit"
+                    ? "border-success"
+                    : pick.status == "missed"
+                    ? "border-destructive"
+                    : "border-border",
+                  i !== 0 && "right-3"
+                )}
+              />
+            ))}
+          </View>
         </CardContent>
       </Card>
     </Link>

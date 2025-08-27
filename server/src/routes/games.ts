@@ -3,7 +3,7 @@ import { apiKeyMiddleware, authMiddleware } from "../middleware";
 import { logger } from "../logger";
 import { db } from "../db";
 import { game, leagueType } from "../db/schema";
-import { and, eq, gte, InferInsertModel, sql, lt } from "drizzle-orm";
+import { and, eq, gte, InferInsertModel, sql, lt, gt } from "drizzle-orm";
 import { handleError } from "../utils/handleError";
 import { createInsertSchema } from "drizzle-zod";
 import moment from "moment";
@@ -17,7 +17,9 @@ gamesRoute.get(
   authMiddleware,
   async (req, res) => {
     try {
-      const league = req.params.league as (typeof leagueType.enumValues)[number] | undefined;
+      const league = req.params.league as
+        | (typeof leagueType.enumValues)[number]
+        | undefined;
 
       if (
         league === undefined ||
@@ -39,15 +41,16 @@ gamesRoute.get(
         where: and(
           eq(game.league, league),
           gte(game.startTime, startOfDay),
-          lt(game.startTime, endOfDay),
+          gt(game.startTime, new Date().toISOString()),
+          lt(game.startTime, endOfDay)
         ),
         with: {
           homeTeam: true,
-          awayTeam: true
-        }
-      })
+          awayTeam: true,
+        },
+      });
 
-      res.json(todayGames)
+      res.json(todayGames);
     } catch (error) {
       handleError(error, res, "Games");
     }

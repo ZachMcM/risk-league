@@ -28,6 +28,12 @@ parlaysRoute.get("/parlays/:id", authMiddleware, async (req, res) => {
                     team: true,
                   },
                 },
+                game: {
+                  with: {
+                    homeTeam: true,
+                    awayTeam: true,
+                  },
+                },
               },
             },
           },

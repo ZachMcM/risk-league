@@ -28,6 +28,12 @@ picksRoute.get("/picks/:id", authMiddleware, async (req, res) => {
                 team: true,
               },
             },
+            game: {
+              with: {
+                homeTeam: true,
+                awayTeam: true
+              }
+            }
           },
         },
       },

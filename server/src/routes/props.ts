@@ -311,14 +311,14 @@ propsRoute.post("/props", apiKeyMiddleware, async (req, res) => {
   }
 });
 
-propsRoute.post("/props/league/:league", async (req, res) => {
+propsRoute.post("/props/league/:league", apiKeyOrIpAddressMiddleware, async (req, res) => {
   try {
     const ipAddress =
       req.headers["x-forwarded-for"] || req.socket.remoteAddress;
     const body = req.body;
 
     logger.info(`IP Addres: ${ipAddress}`)
-    logger.info(`Req body: ${body}`)
+    logger.info(body)
 
     res.json({ success: true })
   } catch (error) {
