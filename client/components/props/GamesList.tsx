@@ -63,7 +63,7 @@ export default function GamesList({ league }: { league: League }) {
         contentContainerStyle={{ display: "flex", gap: 8 }}
       >
         {areGamesPending ? (
-          Array(10).fill("").map(_ => <Skeleton className="rounded-2xl h-24 w-28"/>)
+          Array(10).fill("").map((_, i) => <Skeleton key={i} className="rounded-2xl h-24 w-28"/>)
         ) : (
           games?.map((game) => <GameCard key={game.gameId} game={game} />)
         )}
