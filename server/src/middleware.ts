@@ -45,7 +45,7 @@ export const apiKeyOrIpAddressMiddleware = async (
   const ipAddress = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
 
   if (
-    apiKey != process.env.API_KEY ||
+    apiKey != process.env.API_KEY &&
     ipAddress != process.env.DATA_FEEDS_PUSH_IP_ADDRESS
   ) {
     res.status(401).json({ error: "Unauthorized" });
