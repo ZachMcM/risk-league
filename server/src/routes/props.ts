@@ -318,7 +318,7 @@ propsRoute.post("/props/league/:league", apiKeyOrIpAddressMiddleware, async (req
     const body = req.body;
 
     logger.info(`IP Addres: ${ipAddress}`)
-    logger.info(body)
+    logger.info(JSON.stringify(body))
 
     res.json({ success: true })
   } catch (error) {
