@@ -3,7 +3,7 @@ import { Rank } from "./rank";
 export type User = {
   id: string;
   image?: string;
-  header?: string;
+  banner?: string;
   username: string;
   points?: number;
   rank: Rank;

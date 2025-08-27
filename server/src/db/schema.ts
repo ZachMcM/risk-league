@@ -69,7 +69,7 @@ export const user = pgTable("user", {
   username: text("username").unique(),
   displayUsername: text("display_username"),
   points: doublePrecision().default(1000).notNull(),
-  header: text(),
+  banner: text(),
 });
 
 export const session = pgTable("session", {

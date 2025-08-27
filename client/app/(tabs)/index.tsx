@@ -5,7 +5,6 @@ import { useState } from "react";
 import { View } from "react-native";
 import PlayCard from "~/components/matches/PlayCard";
 import OnboardingDialog from "~/components/onboarding/OnboardingDialog";
-import ProfileHeader from "~/components/social/ProfileHeader";
 import { Button } from "~/components/ui/button";
 import {
   DropdownMenu,
@@ -30,6 +29,7 @@ import { Ellipsis } from "~/lib/icons/Ellipsis";
 import { Trophy } from "~/lib/icons/Trophy";
 import { User } from "~/lib/icons/User";
 import { Info } from "~/lib/icons/Info"
+import ProfileBanner from "~/components/social/ProfileBanner";
 
 export default function Home() {
   const { data } = authClient.useSession();
@@ -50,10 +50,10 @@ export default function Home() {
         close={() => setOnboardingDialog(false)}
         onOpenChange={setOnboardingDialog}
       />
-      <ProfileHeader
+      <ProfileBanner
         image={data?.user.image!}
         username={data?.user.username!}
-        header={data?.user.header!}
+        header={data?.user.banner!}
       />
       <View className="flex flex-1 flex-col gap-6 pt-20">
         <View className="flex flex-row items-center justify-between">

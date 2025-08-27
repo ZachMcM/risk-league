@@ -1,14 +1,9 @@
 import { Fragment } from "react";
 import { Pressable, View } from "react-native";
-import { authClient } from "~/lib/auth-client";
 import { Image } from "~/lib/icons/Image";
 import { Text } from "../ui/text";
 
-export default function HeaderImageStep() {
-  const { data } = authClient.useSession();
-
-  async function handleImageUpload() {}
-
+export default function ProfileBannerStep() {
   return (
     <Fragment>
       <View className="flex flex-col items-center gap-2">

@@ -119,7 +119,7 @@ usersRoute.get("/users/:id/rank", authMiddleware, async (req, res) => {
         username: true,
         image: true,
         points: true,
-        header: true,
+        banner: true,
       },
     });
 
@@ -155,7 +155,7 @@ usersRoute.get("/users", authMiddleware, async (req, res) => {
         username: true,
         image: true,
         points: true,
-        header: true,
+        banner: true,
       },
       limit: 10,
     });
@@ -179,7 +179,7 @@ usersRoute.get("/users/rank", authMiddleware, async (_, res) => {
         username: true,
         image: true,
         points: true,
-        header: true,
+        banner: true,
       },
       where: eq(user.id, res.locals.userId!),
     });
@@ -218,7 +218,7 @@ usersRoute.get("/users/:id/career", authMiddleware, async (req, res) => {
         username: true,
         image: true,
         points: true,
-        header: true,
+        banner: true,
       },
       with: {
         matchUsers: {

@@ -53,7 +53,7 @@ friendshipsRoute.get("/friendships", authMiddleware, async (_, res) => {
             points: true,
             image: true,
             username: true,
-            header: true,
+            banner: true,
           },
         },
         outgoingUser: {
@@ -62,7 +62,7 @@ friendshipsRoute.get("/friendships", authMiddleware, async (_, res) => {
             points: true,
             image: true,
             username: true,
-            header: true,
+            banner: true,
           },
         },
       },

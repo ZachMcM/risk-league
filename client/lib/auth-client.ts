@@ -22,7 +22,7 @@ export const authClient = createAuthClient({
           input: false,
           required: false,
         },
-        header: {
+        banner: {
           type: "string",
           input: false,
           required: false,

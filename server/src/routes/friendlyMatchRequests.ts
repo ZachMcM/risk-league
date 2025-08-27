@@ -37,7 +37,7 @@ friendlyMatchRequestsRoute.get(
                 points: true,
                 image: true,
                 username: true,
-                header: true,
+                banner: true,
               },
             },
             incomingUser: {
@@ -46,7 +46,7 @@ friendlyMatchRequestsRoute.get(
                 points: true,
                 image: true,
                 username: true,
-                header: true,
+                banner: true,
               },
             },
           },

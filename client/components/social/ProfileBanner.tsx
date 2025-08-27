@@ -2,7 +2,7 @@ import { Image } from "expo-image";
 import { View } from "react-native";
 import ProfileImage from "../ui/profile-image";
 
-export default function ProfileHeader({
+export default function ProfileBanner({
   header,
   image,
   username,

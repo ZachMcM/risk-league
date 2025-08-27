@@ -3,12 +3,12 @@ import { useLocalSearchParams } from "expo-router";
 import { ActivityIndicator, View } from "react-native";
 import CareerInfo from "~/components/social/CareerInfo";
 import FriendshipButtons from "~/components/social/FriendshipButtons";
-import ProfileHeader from "~/components/social/ProfileHeader";
+import ProfileBanner from "~/components/social/ProfileBanner";
 import ModalContainer from "~/components/ui/modal-container";
 import RankBadge from "~/components/ui/RankBadge";
 import { ScrollContainer } from "~/components/ui/scroll-container";
 import { Text } from "~/components/ui/text";
-import { getFriendship, getUser } from "~/endpoints";
+import { getUser } from "~/endpoints";
 import { authClient } from "~/lib/auth-client";
 
 export default function User() {
@@ -29,10 +29,10 @@ export default function User() {
         ) : (
           user && (
             <View className="flex flex-col">
-              <ProfileHeader
+              <ProfileBanner
                 username={user?.username}
                 image={user?.image}
-                header={user?.header}
+                header={user?.banner}
               />
               <View className="flex flex-1 flex-col gap-12 pt-20">
                 <View className="flex flex-row items-center justify-between">
