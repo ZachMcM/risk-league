@@ -181,7 +181,7 @@ export default function CareerInfo({ userId }: { userId: string }) {
                           source={{
                             uri: career.mostBetTeam.team.image,
                           }}
-                          style={{ width: 50, height: 50 }}
+                          style={{ width: 40, height: 40 }}
                         />
                       )}
                       <Text className="text-2xl font-bold text-center">

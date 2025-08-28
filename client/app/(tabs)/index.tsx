@@ -9,7 +9,9 @@ import { Button } from "~/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
@@ -28,7 +30,7 @@ import { Cog } from "~/lib/icons/Cog";
 import { Ellipsis } from "~/lib/icons/Ellipsis";
 import { Trophy } from "~/lib/icons/Trophy";
 import { User } from "~/lib/icons/User";
-import { Info } from "~/lib/icons/Info"
+import { Info } from "~/lib/icons/Info";
 import ProfileBanner from "~/components/social/ProfileBanner";
 
 export default function Home() {
@@ -87,27 +89,29 @@ export default function Home() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-52 mt-2">
-                <DropdownMenuItem
-                  className="w-full justify-between"
-                  onPress={() => router.navigate("/help")}
-                >
-                  <View className="flex flex-row items-center gap-2">
-                    <Info className="text-foreground" size={18} />
-                    <Text>Help</Text>
-                  </View>
-                  <ChevronRight className="text-foreground" size={18} />
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  className="w-full justify-between"
-                  onPress={() => router.navigate("/career")}
-                >
-                  <View className="flex flex-row items-center gap-2">
-                    <User className="text-foreground" size={18} />
-                    <Text>Career</Text>
-                  </View>
-                  <ChevronRight className="text-foreground" size={18} />
-                </DropdownMenuItem>
+                <DropdownMenuGroup>
+                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                  <DropdownMenuItem
+                    className="w-full justify-between"
+                    onPress={() => router.navigate("/help")}
+                  >
+                    <View className="flex flex-row items-center gap-2">
+                      <Info className="text-foreground" size={16} />
+                      <Text>Help</Text>
+                    </View>
+                    <ChevronRight className="text-foreground" size={16} />
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className="w-full justify-between"
+                    onPress={() => router.navigate("/career")}
+                  >
+                    <View className="flex flex-row items-center gap-2">
+                      <User className="text-foreground" size={18} />
+                      <Text>Career</Text>
+                    </View>
+                    <ChevronRight className="text-foreground" size={16} />
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   className="w-full justify-between"

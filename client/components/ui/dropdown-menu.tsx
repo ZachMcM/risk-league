@@ -143,7 +143,7 @@ function DropdownMenuItem({
   inset?: boolean;
 }) {
   return (
-    <TextClassContext.Provider value="select-none text-sm native:text-lg text-popover-foreground web:group-focus:text-accent-foreground">
+    <TextClassContext.Provider value="select-none text-sm native:text-base text-popover-foreground web:group-focus:text-accent-foreground">
       <DropdownMenuPrimitive.Item
         className={cn(
           "relative flex flex-row web:cursor-default gap-2 items-center rounded-lg px-2 py-1.5 native:py-2 web:outline-none web:focus:bg-accent active:bg-accent web:hover:bg-accent group",

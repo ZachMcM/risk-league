@@ -123,6 +123,7 @@ export default function ParlayCard({ initialData }: { initialData: Parlay }) {
           <View className="flex flex-row items-center relative">
             {parlay.picks.map((pick, i) => (
               <PlayerImage
+                key={pick.id}
                 image={pick.prop.player.image}
                 className={cn(
                   "bg-card",

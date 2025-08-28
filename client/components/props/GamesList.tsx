@@ -54,6 +54,10 @@ export default function GamesList({ league }: { league: League }) {
     staleTime: 1440 * 60 * 1000,
   });
 
+  if (!areGamesPending && games?.length == 0) {
+    return null
+  }
+
   return (
     <View className="w-full">
       <ScrollView
