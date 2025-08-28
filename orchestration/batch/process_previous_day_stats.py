@@ -3,48 +3,11 @@ import sys
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
-from utils import data_feeds_req, server_req, setup_logger
-from extract_stats.main import extract_player_stats, extract_team_stats
-from extract_stats.main import LEAGUE_CONFIG
+from utils import data_feeds_req, setup_logger
 from constants import LEAGUES
+from shared.game_processor import process_game
 
 logger = setup_logger(__name__)
-
-
-def process_game(game, league):
-    """Process a single game for the given league."""
-    team_stats_list = []
-    for team in ["home_team", "away_team"]:
-        team_stats = game["full_box"][team].get("team_stats", {})
-        if team_stats:
-            team_stats_list.append(extract_team_stats(game, team, league))
-
-    player_stats_list, total_player_stats = extract_player_stats(game, league)
-
-    team_stats_post_data = []
-    if team_stats_list:
-        config = LEAGUE_CONFIG[league]
-        team_stats_post_data = server_req(
-            route=f"/stats/{config['sport']}/teams",
-            method="POST",
-            body=json.dumps({"teamStats": team_stats_list}),
-        ).json()
-
-    player_stats_post_data = []
-    if player_stats_list:
-        config = LEAGUE_CONFIG[league]
-        player_stats_post_data = server_req(
-            route=f"/stats/{config['sport']}/players",
-            method="POST",
-            body=json.dumps({"playerStats": player_stats_list}),
-        ).json()
-
-    logger.info(
-        f"Successfully inserted {len(team_stats_post_data)} team stats and {len(player_stats_post_data)}/{total_player_stats} player stats for game {game['game_ID']} for league {league}"
-    )
-
-    return len(team_stats_post_data), len(player_stats_post_data)
-
 
 def main():
     try:

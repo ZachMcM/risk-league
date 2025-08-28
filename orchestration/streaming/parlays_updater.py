@@ -9,30 +9,30 @@ redis_client = create_redis_client()
 PARLAYS_UPDATER_MAX_WORKERS = int(getenv_required("PARLAYS_UPDATER_MAX_WORKERS"))
 
 def handle_pick_resolved(data):
-    """Handles incoming parlay_pick_resolved messages"""
+    """Handles incoming pick_resolved messages"""
     pick_id = data.get("id")
     if not pick_id:
-        logger.error("Received parlay_pick_resolved message without id")
+        logger.error("Received pick_resolved message without id")
         return
 
     server_req(route=f"/parlays?pickId={pick_id}", method="PATCH")
 
 
-def listen_for_parlay_pick_resolved():
-    """Function that listens for a parlay_pick_resolved message on redis"""
+def listen_for_pick_resolved():
+    """Function that listens for a pick_resolved message on redis"""
     with concurrent.futures.ThreadPoolExecutor(max_workers=PARLAYS_UPDATER_MAX_WORKERS) as executor:
 
         def async_handler(data):
             executor.submit(handle_pick_resolved, data)
 
-        logger.info("Listening for parlay_pick_resolved messages...")
-        listen_for_messages(redis_client, "parlay_pick_resolved", async_handler)
+        logger.info("Listening for pick_resolved messages...")
+        listen_for_messages(redis_client, "pick_resolved", async_handler)
 
 
 def main():
-    """Main function that listens for parlay_pick_resolved messages."""
+    """Main function that listens for pick_resolved messages."""
     try:
-        listen_for_parlay_pick_resolved()
+        listen_for_pick_resolved()
     except KeyboardInterrupt:
         logger.warning("Shutting down update_parlays...")
     except Exception as e:

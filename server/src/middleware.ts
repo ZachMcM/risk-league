@@ -1,7 +1,7 @@
 import { fromNodeHeaders } from "better-auth/node";
 import { NextFunction, Request, Response } from "express";
-import { auth } from "./utils/auth";
 import multer from "multer";
+import { auth } from "./utils/auth";
 
 export const authMiddleware = async (
   req: Request,

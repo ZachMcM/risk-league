@@ -13,14 +13,11 @@ import {
   player,
   prop,
 } from "../db/schema";
-import {
-  apiKeyMiddleware,
-  apiKeyOrIpAddressMiddleware,
-  authMiddleware,
-} from "../middleware";
-import { handleError } from "../utils/handleError";
 import { logger } from "../logger";
-import { success } from "zod";
+import { apiKeyMiddleware, authMiddleware } from "../middleware";
+import { handleError } from "../utils/handleError";
+import z from "zod";
+import { redis } from "../redis";
 
 export const propsRoute = Router();
 
@@ -41,7 +38,10 @@ propsRoute.get("/props/today/players/:playerId", async (req, res) => {
       return;
     }
 
-    const startOfPreviousDay = moment().subtract(1, 'day').startOf("day").toISOString();
+    const startOfPreviousDay = moment()
+      .subtract(1, "day")
+      .startOf("day")
+      .toISOString();
     const endOfDay = moment().endOf("day").toISOString();
 
     const propsPickedAlready: number[] = [];
@@ -98,7 +98,7 @@ propsRoute.get("/props/today/players/:playerId", async (req, res) => {
         and(
           gte(game.startTime, startOfPreviousDay),
           lt(game.startTime, endOfDay),
-          gt(game.startTime, new Date().toISOString()), 
+          gt(game.startTime, new Date().toISOString()),
           eq(game.league, league),
           eq(prop.playerId, playerId),
           notInArray(prop.id, propsPickedAlready)
@@ -208,7 +208,10 @@ propsRoute.get("/props/today", authMiddleware, async (req, res) => {
       return;
     }
 
-    const startOfPreviousDay = moment().subtract(1, 'day').startOf("day").toISOString();
+    const startOfPreviousDay = moment()
+      .subtract(1, "day")
+      .startOf("day")
+      .toISOString();
     const endOfDay = moment().endOf("day").toISOString();
 
     const propsPickedAlready: number[] = [];
@@ -247,7 +250,7 @@ propsRoute.get("/props/today", authMiddleware, async (req, res) => {
         });
     }
 
-    logger.debug(`props already picked: ${propsPickedAlready}`)
+    logger.debug(`props already picked: ${propsPickedAlready}`);
 
     const availablePropIds = await db
       .select({
@@ -263,7 +266,7 @@ propsRoute.get("/props/today", authMiddleware, async (req, res) => {
           gte(game.startTime, startOfPreviousDay),
           lt(game.startTime, endOfDay),
           gt(game.startTime, new Date().toISOString()),
-          eq(game.league, league), 
+          eq(game.league, league),
           notInArray(prop.id, propsPickedAlready)
         )
       );
@@ -311,16 +314,35 @@ propsRoute.post("/props", apiKeyMiddleware, async (req, res) => {
   }
 });
 
-propsRoute.post("/props/league/:league", apiKeyOrIpAddressMiddleware, async (req, res) => {
+const livePropUpdateSchema = z.object({
+  playerId: z.number(),
+  statName: z.string(),
+  currentValue: z.number(),
+});
+
+propsRoute.patch("/props/live", apiKeyMiddleware, async (req, res) => {
   try {
-    const ipAddress =
-      req.headers["x-forwarded-for"] || req.socket.remoteAddress;
-    const body = req.body;
+    const statUpdates = req.body as z.infer<typeof livePropUpdateSchema>[];
 
-    logger.info(`IP Addres: ${ipAddress}`)
-    logger.info(JSON.stringify(body))
+    for (const entry of statUpdates) {
+      livePropUpdateSchema.parse(entry);
+    }
 
-    res.json({ success: true })
+    await Promise.all(
+      statUpdates.map(async ({ currentValue, playerId, statName }) => {
+        const updatedProp = await db
+          .update(prop)
+          .set({ currentValue })
+          .where(and(eq(prop.playerId, playerId), eq(prop.statName, statName)))
+          .returning({ id: prop.id });
+
+        for (const prop of updatedProp) {
+          redis.publish("prop_updated", JSON.stringify({ id: prop.id }));
+        }
+      })
+    );
+
+    res.json({ success: true });
   } catch (error) {
     handleError(error, res, "Props");
   }

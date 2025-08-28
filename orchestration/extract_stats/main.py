@@ -173,3 +173,4 @@ def extract_football_team_stats(game, team, league):
 def extract_football_player_stats(game, team_id, player_id, player_stats, league):
     """Direct access to football player stats extraction."""
     return extract_football_player_stats(game, team_id, player_id, player_stats, league)
+

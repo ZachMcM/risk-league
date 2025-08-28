@@ -11,6 +11,7 @@ import { teamsRoute } from "./teams";
 import { usersRoute } from "./users";
 import { statsRoute } from "./stats";
 import { leaderboardRoute } from "./leaderboard";
+import { webhooksRoute } from "./webhooks";
 
 export const routes = express.Router();
 
@@ -26,3 +27,4 @@ routes.use(teamsRoute);
 routes.use(playersRoute);
 routes.use(statsRoute);
 routes.use(leaderboardRoute)
+routes.use(webhooksRoute)
