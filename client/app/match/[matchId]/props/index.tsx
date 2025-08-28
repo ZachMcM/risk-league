@@ -26,7 +26,10 @@ export default function Props() {
   const { data: props, isPending: arePropsPending } = useQuery({
     queryKey: ["props", match?.league, data?.user.id, match?.type],
     queryFn: async () =>
-      await getTodayProps(match?.league!, match?.type == "competitive"),
+      await getTodayProps(
+        match?.league!,
+        match?.type! as "friendly" | "competitive"
+      ),
     enabled: !!match,
     staleTime: 1440 * 60 * 1000,
   });

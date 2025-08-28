@@ -34,7 +34,7 @@ export default function Player() {
     queryFn: async () =>
       await getTodayPlayerProps(
         match?.league!,
-        match?.type == "competitive",
+        match?.type as "competitive" | "friendly",
         playerId
       ),
     enabled: !!match,

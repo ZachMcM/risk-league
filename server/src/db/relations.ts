@@ -4,6 +4,9 @@ import {
   baseballTeamStats,
   basketballPlayerStats,
   basketballTeamStats,
+  dynastyLeague,
+  dynastyLeagueInvitation,
+  dynastyLeagueUser,
   footballPlayerStats,
   footballTeamStats,
   friendlyMatchRequest,
@@ -34,6 +37,13 @@ export const userRelations = relations(user, ({ many }) => ({
   incomingFriendlyMatchRequests: many(friendlyMatchRequest, {
     relationName: "incomingFriendlyMatchRequests",
   }),
+  dynastyLeagueUsers: many(dynastyLeagueUser),
+  outgoingDynastyLeagueInvitations: many(dynastyLeagueInvitation, {
+    relationName: "outgoingDynastyLeagueInvitations",
+  }),
+  incomingDynastyLeagueInvitations: many(dynastyLeagueInvitation, {
+    relationName: "incomingDynastyLeagueInvitations",
+  }),
 }));
 
 export const matchRelations = relations(match, ({ many }) => ({
@@ -50,7 +60,31 @@ export const messageRelations = relations(message, ({ one }) => ({
     fields: [message.matchId],
     references: [match.id],
   }),
+  dynastyLeague: one(dynastyLeague, {
+    fields: [message.dynastyLeagueId],
+    references: [dynastyLeague.id],
+  }),
 }));
+
+export const dynastyLeagueRelations = relations(dynastyLeague, ({ many }) => ({
+  dynastyLeagueUsers: many(dynastyLeagueUser),
+  messages: many(message),
+}));
+
+export const dynastyLeagueUserRelations = relations(
+  dynastyLeagueUser,
+  ({ one, many }) => ({
+    user: one(user, {
+      fields: [dynastyLeagueUser.userId],
+      references: [user.id],
+    }),
+    dynastyLeague: one(dynastyLeague, {
+      fields: [dynastyLeagueUser.dynastyLeagueId],
+      references: [dynastyLeague.id],
+    }),
+    parlays: many(parlay),
+  })
+);
 
 export const gameRelations = relations(game, ({ one, many }) => ({
   awayTeam: one(team, {
@@ -118,6 +152,10 @@ export const parlayRelations = relations(parlay, ({ one, many }) => ({
   matchUser: one(matchUser, {
     fields: [parlay.matchUserId],
     references: [matchUser.id],
+  }),
+  dynastyLeagueUser: one(dynastyLeagueUser, {
+    fields: [parlay.dynastyLeagueUserId],
+    references: [dynastyLeagueUser.id],
   }),
   picks: many(pick),
 }));

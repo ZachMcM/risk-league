@@ -1,7 +1,7 @@
 import { and, eq, InferInsertModel } from "drizzle-orm";
 import { Router } from "express";
 import { db } from "../db";
-import { choiceType, matchUser, parlay, pick, prop } from "../db/schema";
+import { choiceType, dynastyLeagueUser, matchUser, parlay, pick, prop } from "../db/schema";
 import { logger } from "../logger";
 import { apiKeyMiddleware, authMiddleware } from "../middleware";
 import { invalidateQueries } from "../utils/invalidateQueries";
@@ -250,6 +250,13 @@ parlaysRoute.patch("/parlays", apiKeyMiddleware, async (req, res) => {
                   userId: true,
                 },
               },
+              dynastyLeagueUser: {
+                columns: {
+                  balance: true,
+                  dynastyLeagueId: true,
+                  userId: true,
+                },
+              },
             },
           },
         },
@@ -304,25 +311,47 @@ parlaysRoute.patch("/parlays", apiKeyMiddleware, async (req, res) => {
       })
       .where(eq(parlay.id, parlayResult.id));
 
-    await db
-      .update(matchUser)
-      .set({
-        balance: (parlayResult.matchUser.balance += payout),
-      })
-      .where(eq(matchUser.id, parlayResult.matchUserId));
+    if (parlayResult.matchUser) {
+      await db
+        .update(matchUser)
+        .set({
+          balance: (parlayResult.matchUser.balance += payout),
+        })
+        .where(eq(matchUser.id, parlayResult.matchUserId!));
 
-    invalidateQueries(
-      ["parlay", parlayResult.id],
-      ["match", parlayResult.matchUser.matchId],
-      ["career", parlayResult.matchUser.userId]
-    );
+      invalidateQueries(
+        ["parlay", parlayResult.id],
+        ["match", parlayResult.matchUser.matchId],
+        ["career", parlayResult.matchUser.userId]
+      );
 
-    io.of("/realtime")
-      .to(`user:${parlayResult.matchUser.userId}`)
-      .emit("match-parlay-resolved", {
-        matchId: parlayResult.matchUser.matchId,
-        parlayId: parlayResult.id,
-      });
+      io.of("/realtime")
+        .to(`user:${parlayResult.matchUser.userId}`)
+        .emit("match-parlay-resolved", {
+          matchId: parlayResult.matchUser.matchId,
+          parlayId: parlayResult.id,
+        });
+    } else if (parlayResult.dynastyLeagueUser) {
+      await db
+        .update(dynastyLeagueUser)
+        .set({
+          balance: (parlayResult.dynastyLeagueUser.balance += payout),
+        })
+        .where(eq(dynastyLeagueUser.id, parlayResult.dynastyLeagueUserId!));
+
+      invalidateQueries(
+        ["parlay", parlayResult.id],
+        ["dynastyLeague", parlayResult.dynastyLeagueUser.dynastyLeagueId],
+        ["career", parlayResult.dynastyLeagueUser.userId]
+      );
+
+      io.of("/realtime")
+        .to(`user:${parlayResult.dynastyLeagueUser.userId}`)
+        .emit("dynasty-league-parlay-resolved", {
+          matchId: parlayResult.dynastyLeagueUser.dynastyLeagueId,
+          parlayId: parlayResult.id,
+        });
+    }
 
     res.send("Resolved parlay");
   } catch (error) {

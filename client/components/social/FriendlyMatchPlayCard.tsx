@@ -20,7 +20,7 @@ export default function FriendlyMatchPlayCard({
 
   const { data: props, isPending: arePropsPending } = useQuery({
     queryKey: ["props", league, data?.user.id, "friendly"],
-    queryFn: async () => await getTodayProps(league, false),
+    queryFn: async () => await getTodayProps(league, "friendly"),
     staleTime: 1440 * 60 * 1000,
   });
 

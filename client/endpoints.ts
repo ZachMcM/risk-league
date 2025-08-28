@@ -196,10 +196,10 @@ export async function postMessage(matchId: number, content: string) {
 
 export async function getTodayProps(
   league: League,
-  competitive: boolean
+  type: "competitive" | "friendly" | "dynasty"
 ): Promise<Prop[]> {
   const todayProps = await serverRequest({
-    endpoint: `/props/today?league=${league}&competitive=${competitive}`,
+    endpoint: `/props/today?league=${league}&type=${type}`,
     method: "GET",
   });
 
@@ -208,11 +208,11 @@ export async function getTodayProps(
 
 export async function getTodayPlayerProps(
   league: League,
-  competitive: boolean,
+  type: "competitive" | "friendly" | "dynasty",
   playerId: number
 ): Promise<TodayPlayerProps> {
   const todayPlayerProps = await serverRequest({
-    endpoint: `/props/today/players/${playerId}?league=${league}&competitive=${competitive}`,
+    endpoint: `/props/today/players/${playerId}?league=${league}&type=${type}`,
     method: "GET",
   });
   return todayPlayerProps;

@@ -44,6 +44,16 @@ export const friendlyMatchRequestStatus = pgEnum(
   ["pending", "accepted", "declined"]
 );
 
+export const dynastyLeagueInvitationStatus = pgEnum(
+  "dynasty_league_invitation_status",
+  ["pending", "accepted", "declined"]
+);
+
+export const dynastLeagueUserRoles = pgEnum("dynasty_league_user_roles", [
+  "manager",
+  "member",
+]);
+
 export const leagueType = pgEnum("league_type", [
   "MLB",
   "NBA",
@@ -124,17 +134,18 @@ export const message = pgTable(
       .notNull(),
     content: text().notNull(),
     id: serial().primaryKey().notNull(),
-    matchId: integer("match_id")
-      .notNull()
-      .references(() => match.id, { onDelete: "cascade" }),
+    matchId: integer("match_id").references(() => match.id, {
+      onDelete: "cascade",
+    }),
+    dynastyLeagueId: integer("dynasty_league_id").references(
+      () => dynastyLeague.id,
+      { onDelete: "cascade" }
+    ),
     userId: text("user_id")
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
   },
-  (table) => [
-    index("idx_message_match_id").on(table.matchId),
-    index("idx_message_created_at").on(table.createdAt),
-  ]
+  (table) => [index("idx_message_created_at").on(table.createdAt)]
 );
 
 export const pick = pgTable(
@@ -288,9 +299,13 @@ export const parlay = pgTable(
       .defaultNow()
       .notNull(),
     id: serial().primaryKey().notNull(),
-    matchUserId: integer("match_user_id")
-      .notNull()
-      .references(() => matchUser.id, { onDelete: "cascade" }),
+    matchUserId: integer("match_user_id").references(() => matchUser.id, {
+      onDelete: "cascade",
+    }),
+    dynastyLeagueUserId: integer("dynasty_league_user_id").references(
+      () => dynastyLeagueUser.id,
+      { onDelete: "cascade" }
+    ),
     resolved: boolean().default(false).notNull(),
     profit: doublePrecision().default(0).notNull(),
     type: parlayType().notNull(),
@@ -398,6 +413,76 @@ export const friendlyMatchRequest = pgTable("friendly_match_request", {
     .references(() => user.id, { onDelete: "cascade" }),
   status: friendlyMatchRequestStatus().default("pending").notNull(),
   league: leagueType().notNull(),
+});
+
+export const dynastyLeague = pgTable("dynasty_league", {
+  id: serial().primaryKey().notNull(),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+    mode: "string",
+  })
+    .defaultNow()
+    .notNull(),
+  startDate: timestamp("start_date", {
+    withTimezone: true,
+    mode: "string",
+  }).notNull(),
+  endDate: timestamp("end_date", {
+    withTimezone: true,
+    mode: "string",
+  }).notNull(),
+  resolved: boolean(),
+  league: leagueType().notNull(),
+  inviteOnly: boolean().notNull(),
+});
+
+export const dynastyLeagueUser = pgTable(
+  "dynasty_league_user",
+  {
+    id: serial().primaryKey().notNull(),
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+      mode: "string",
+    })
+      .defaultNow()
+      .notNull(),
+    balance: doublePrecision().default(200).notNull(),
+    placement: integer(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    dynastyLeagueId: integer("dynasty_league_id")
+      .notNull()
+      .references(() => dynastyLeague.id, { onDelete: "cascade" }),
+    startingBalance: doublePrecision("starting_balance").default(100).notNull(),
+    role: dynastLeagueUserRoles().notNull(),
+  },
+  (table) => [
+    index("idx_dynasty_league_user_created_at").on(table.createdAt),
+    index("idx_dynasty_league_user_dynasty_league_id").on(
+      table.dynastyLeagueId
+    ),
+  ]
+);
+
+export const dynastyLeagueInvitation = pgTable("dynasty_league_invitation", {
+  id: serial().primaryKey().notNull(),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+    mode: "string",
+  })
+    .defaultNow()
+    .notNull(),
+  status: dynastyLeagueInvitationStatus().notNull().default("pending"),
+  outgoingId: text("outgoing_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  incomingId: text("incoming_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  dynastyLeagueId: integer("dynasty_league_id")
+    .notNull()
+    .references(() => dynastyLeague.id, { onDelete: "cascade" }),
 });
 
 export const baseballPlayerStats = pgTable(
