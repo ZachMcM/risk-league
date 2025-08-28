@@ -431,9 +431,12 @@ export const dynastyLeague = pgTable("dynasty_league", {
     withTimezone: true,
     mode: "string",
   }).notNull(),
-  resolved: boolean(),
+  resolved: boolean().default(false).notNull(),
   league: leagueType().notNull(),
-  inviteOnly: boolean().notNull(),
+  startingBalance: doublePrecision("starting_balance").notNull(),
+  title: text().notNull(),
+  tags: text().array().notNull(),
+  inviteOnly: boolean("invite_only").notNull(),
 });
 
 export const dynastyLeagueUser = pgTable(

@@ -1,0 +1,1 @@
+ALTER TABLE "dynasty_league" ADD COLUMN "title" text NOT NULL;

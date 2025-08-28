@@ -1,11 +1,11 @@
 import { Tabs } from "expo-router";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import PageTitle from "~/components/ui/page-title";
 import { NAV_THEME } from "~/lib/constants";
-import { Dices } from "~/lib/icons/Dices";
-import { Home } from "~/lib/icons/Home";
-import { Info } from "~/lib/icons/Info";
 import { Contact } from "~/lib/icons/Contact";
+import { Dices } from "~/lib/icons/Dices";
+import { Gift } from "~/lib/icons/Gift";
+import { Home } from "~/lib/icons/Home";
+import { ShieldHalf } from "~/lib/icons/ShieldHalf";
 import { useColorScheme } from "~/lib/useColorScheme";
 
 export default function TabsLayout() {
@@ -22,7 +22,7 @@ export default function TabsLayout() {
           paddingTop: 6,
         },
         tabBarLabelStyle: {
-          fontSize: 12,
+          fontSize: 11,
         },
         tabBarActiveTintColor: NAV_THEME.dark.primary, // from --primary
         tabBarInactiveTintColor: isDarkColorScheme
@@ -35,7 +35,7 @@ export default function TabsLayout() {
         options={{
           title: "Home",
           headerShown: false,
-          tabBarIcon: ({ color }) => <Home color={color} />,
+          tabBarIcon: ({ color }) => <Home size={22} color={color} />,
         }}
       />
       <Tabs.Screen
@@ -43,8 +43,15 @@ export default function TabsLayout() {
         options={{
           title: "Matches",
           header: () => <PageTitle title="Matches" />,
-          tabBarIcon: ({ color }) => <Dices color={color} />,
-          href: "/(tabs)/matches",
+          tabBarIcon: ({ color }) => <Dices size={22} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="dynasty"
+        options={{
+          title: "Dynasty",
+          header: () => <PageTitle title="Dynasty" />,
+          tabBarIcon: ({ color }) => <ShieldHalf size={22} color={color} />,
         }}
       />
       <Tabs.Screen
@@ -52,7 +59,15 @@ export default function TabsLayout() {
         options={{
           title: "Social",
           header: () => <PageTitle title="Social" />,
-          tabBarIcon: ({ color }) => <Contact color={color} />,
+          tabBarIcon: ({ color }) => <Contact size={22} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="battle-pass"
+        options={{
+          title: "Battle Pass",
+          header: () => <PageTitle title="Battle Pass" />,
+          tabBarIcon: ({ color }) => <Gift size={22} color={color} />,
         }}
       />
     </Tabs>

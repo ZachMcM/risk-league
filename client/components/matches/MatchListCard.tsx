@@ -14,6 +14,7 @@ import { timeAgo } from "~/utils/dateUtils";
 import LeagueLogo from "../ui/league-logos/LeagueLogo";
 import { useQuery } from "@tanstack/react-query";
 import { getMatch } from "~/endpoints";
+import ProfileImage from "../ui/profile-image";
 
 export default function MatchListCard({ initialData }: { initialData: Match }) {
   const { data: match } = useQuery({
@@ -75,10 +76,11 @@ export default function MatchListCard({ initialData }: { initialData: Match }) {
               )}
             </View>
             <View className="flex flex-row items-center justify-between w-full">
-              <View className="flex flex-row items-center gap-1">
+              <View className="flex flex-row items-center gap-2">
                 <Text className="text-muted-foreground font-semibold text-lg">
                   vs
                 </Text>
+                <ProfileImage className="h-10 w-10" image={opponent.user.image} username={opponent.user.username}/>
                 <Text className="text-lg font-bold">
                   {opponent.user.username}
                 </Text>

@@ -1,5 +1,4 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
 import moment from "moment";
 import { Fragment, useEffect, useState } from "react";
@@ -15,7 +14,7 @@ import { Label } from "~/components/ui/label";
 import ModalContainer from "~/components/ui/modal-container";
 import PlayerImage from "~/components/ui/player-image";
 import { Text } from "~/components/ui/text";
-import { getMatch, postParlay } from "~/endpoints";
+import { getMatch, postMatchParlay } from "~/endpoints";
 import { authClient } from "~/lib/auth-client";
 import { MIN_STAKE_PCT } from "~/lib/config";
 import { CircleMinus } from "~/lib/icons/CircleMinus";
@@ -77,7 +76,7 @@ export default function FinalizeParlay() {
   const { mutate: createParlay, isPending: isCreatingParlayPending } =
     useMutation<{ id: number }, Error, void>({
       mutationFn: async () =>
-        await postParlay(matchId, {
+        await postMatchParlay(matchId, {
           type,
           stake: stake!,
           picks,

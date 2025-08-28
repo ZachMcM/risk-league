@@ -136,18 +136,18 @@ usersRoute.get("/users/:id/rank", authMiddleware, async (req, res) => {
   }
 });
 
-usersRoute.get("/users", authMiddleware, async (req, res) => {
+usersRoute.get("/users/search", authMiddleware, async (req, res) => {
   try {
-    const searchQuery = (req.query.searchQuery as string | undefined) || "";
+    const query = (req.query.query as string | undefined) || "";
 
-    if (!searchQuery) {
+    if (!query) {
       res.json([]);
       return;
     }
 
     const usersResults = await db.query.user.findMany({
       where: and(
-        ilike(user.username, `%${searchQuery}%`),
+        ilike(user.username, `%${query}%`),
         ne(user.id, res.locals.userId!)
       ),
       columns: {

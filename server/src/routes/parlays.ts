@@ -97,9 +97,13 @@ parlaysRoute.get("/parlays", authMiddleware, async (req, res) => {
   }
 });
 
-parlaysRoute.post("/parlays/:matchId", authMiddleware, async (req, res) => {
+parlaysRoute.post("/parlays/matches/:matchId", authMiddleware, async (req, res) => {
   try {
     const matchId = parseInt(req.params.matchId);
+
+    if (isNaN(matchId)) {
+      res.status(400).json({ error: "Invalid matchId "})
+    }
 
     const matchUserResult = await db.query.matchUser.findFirst({
       where: and(

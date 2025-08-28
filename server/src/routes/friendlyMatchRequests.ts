@@ -161,7 +161,7 @@ friendlyMatchRequestsRoute.patch(
             league: updatedRequest.league,
           });
 
-        res.json(updatedRequest);
+        res.json({ success: true });
         return;
       }
 
@@ -175,8 +175,6 @@ friendlyMatchRequestsRoute.patch(
       invalidateQueries(
         ["matches", updatedRequest.outgoingId, "unresolved"],
         ["matches", updatedRequest.incomingId, "unresolved"],
-        ["matches", updatedRequest.outgoingId, "resolved"],
-        ["matches", updatedRequest.incomingId, "resolved"],
         ["friendly-match-requests", updatedRequest.outgoingId],
         ["friendly-match-requests", updatedRequest.incomingId]
       );
@@ -192,7 +190,7 @@ friendlyMatchRequestsRoute.patch(
           });
       }
 
-      res.json(newMatchId);
+      res.json({ success: true });
     } catch (error) {
       handleError(error, res, "Friendly match requests route");
     }

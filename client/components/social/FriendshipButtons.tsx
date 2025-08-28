@@ -18,13 +18,13 @@ import { UserMinus } from "~/lib/icons/UserMinus";
 import { UserPlus } from "~/lib/icons/UserPlus";
 import { X } from "~/lib/icons/X";
 import { FriendlyMatchRequest } from "~/types/match";
-import { Friendship, User } from "~/types/user";
+import { User } from "~/types/user";
+import { invalidateQueries } from "~/utils/invalidateQueries";
 import { Button } from "../ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "../ui/dialog";
 import ProfileImage from "../ui/profile-image";
 import { Text } from "../ui/text";
 import FriendlyMatchPlayCard from "./FriendlyMatchPlayCard";
-import { invalidateQueries } from "~/utils/invalidateQueries";
 
 export default function FriendshipButtons({
   user,
@@ -161,10 +161,10 @@ export default function FriendshipButtons({
                 <Button
                   variant="default"
                   size="sm"
-                  className="gap-1 px-5 flex flex-row items-center rounded-full"
+                  className="flex px-4 flex-row gap-1 items-center rounded-full"
                 >
-                  <Text className="font-semibold">Play</Text>
-                  <Play className="text-primary-foreground" size={16} />
+                  <Text className="font-semibold !text-sm">Play</Text>
+                  <Play className="text-primary-foreground" size={14} />
                 </Button>
               </DialogTrigger>
               <DialogContent portalHost={portalHost} className="w-[375px]">

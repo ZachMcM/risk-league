@@ -141,9 +141,9 @@ export async function getUserRank(): Promise<{
   return user;
 }
 
-export async function getUsers(searchQuery: string): Promise<User[]> {
+export async function getUsers(query: string): Promise<User[]> {
   const users = await serverRequest({
-    endpoint: `/users?searchQuery=${searchQuery}`,
+    endpoint: `/users/search?query=${query}`,
     method: "GET",
   });
 
@@ -245,7 +245,7 @@ export async function getParlays(matchId: number): Promise<Parlay[]> {
   return parlays;
 }
 
-export async function postParlay(
+export async function postMatchParlay(
   matchId: number,
   parlay: {
     type: string;
@@ -254,7 +254,7 @@ export async function postParlay(
   }
 ): Promise<{ id: number }> {
   return await serverRequest({
-    endpoint: `/parlays/${matchId}`,
+    endpoint: `/parlays/matches/${matchId}`,
     method: "POST",
     body: JSON.stringify(parlay),
   });

@@ -26,41 +26,33 @@ function LeaderboardItem({
   };
 }) {
   return (
-    <View className="flex flex-col gap-4">
+    <View className="flex flex-row items-center justify-between">
       <View className="flex flex-row items-center gap-3">
         <Text className="font-bold text-3xl">{user.position}.</Text>
         <ProfileImage
-          className="h-14 w-14"
+          className="h-12 w-12"
           username={user.username}
           image={user.image!}
         />
-        <View className="flex flex-col gap-2 flex-1">
-          <Text className="font-bold text-lg">{user.username}</Text>
-          <View className="flex flex-row items-center justify-between flex-1">
-            <View className="flex flex-row items-center gap-2">
-              <RankBadge
-                iconClassName="h-4 w-4"
-                textClassName="text-xs"
-                gradientStyle={{
-                  paddingHorizontal: 8,
-                  gap: 4,
-                  alignSelf: "flex-start",
-                }}
-                rank={user.rank}
-                showIcon
-              />
-              {user.points && (
-                <RankText tier={user.rank.tier} className="font-bold text-sm">
-                  {user.points}
-                </RankText>
-              )}
-            </View>
-            <View className="flex flex-row items-center gap-1.5">
-              <Text className="text-muted-foreground font-semibold">Wins:</Text>
-              <Text className="font-semibold">{user.wins}</Text>
-            </View>
-          </View>
-        </View>
+        <Text className="font-bold text-lg">{user.username}</Text>
+      </View>
+      <View className="flex flex-row items-center gap-2">
+        <RankBadge
+          iconClassName="h-4 w-4"
+          textClassName="text-xs"
+          gradientStyle={{
+            paddingHorizontal: 8,
+            gap: 4,
+            alignSelf: "flex-start",
+          }}
+          rank={user.rank}
+          showIcon
+        />
+        {user.points && (
+          <RankText tier={user.rank.tier} className="font-bold text-sm">
+            {user.points}
+          </RankText>
+        )}
       </View>
     </View>
   );
