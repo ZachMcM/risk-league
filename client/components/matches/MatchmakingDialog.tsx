@@ -31,8 +31,8 @@ export default function MatchmakingDialog({
   disableTrigger?: boolean;
 }) {
   const queryClient = useQueryClient();
-  const { data } = authClient.useSession();
-  const userId = data?.user.id!;
+  const { data: currentUserData } = authClient.useSession();
+  const userId = currentUserData?.user.id!;
 
   const socketRef = useRef<ReturnType<typeof io> | null>(null);
   const [isOpen, setIsOpen] = useState(false);
@@ -73,7 +73,7 @@ export default function MatchmakingDialog({
       setLoadingMessage("Opponent found!");
       toast.success("Opponent found!");
       queryClient.invalidateQueries({
-        queryKey: ["matches", data?.user.id, "unresolved"],
+        queryKey: ["matches", currentUserData?.user.id, "unresolved"],
       });
       socket.disconnect();
       setIsOpen(false);

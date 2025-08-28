@@ -6,11 +6,11 @@ import { io } from "socket.io-client";
 import { toast } from "sonner-native";
 import { authClient } from "~/lib/auth-client";
 import { League } from "~/lib/config";
-import { Message } from "~/types/match";
 import { Card, CardContent } from "../ui/card";
 import LeagueLogo from "../ui/league-logos/LeagueLogo";
 import ProfileImage from "../ui/profile-image";
 import { Text } from "../ui/text";
+import { Message } from "~/types/message";
 
 const RealtimeContext = createContext<{ isConnected: boolean }>({
   isConnected: false,
@@ -19,26 +19,26 @@ const RealtimeContext = createContext<{ isConnected: boolean }>({
 export function RealtimeProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
 
-  const { data } = authClient.useSession();
+  const { data: currentUserData } = authClient.useSession();
 
   const [isConnected, setIsConnected] = useState(false);
   const pathname = usePathname();
 
   useEffect(() => {
-    console.log("RealtimeProvider useEffect running, user data:", data);
+    console.log("RealtimeProvider useEffect running, user data:", currentUserData);
 
-    if (!data?.user?.id) {
+    if (!currentUserData?.user?.id) {
       console.log("No user ID, returning early");
       return;
     }
 
-    console.log("Creating socket connection for user:", data.user.id);
+    console.log("Creating socket connection for user:", currentUserData.user.id);
     console.log(pathname.substring(pathname.lastIndexOf("/")));
 
     const socket = io(`${process.env.EXPO_PUBLIC_API_URL}/realtime`, {
       transports: ["websocket"],
       auth: {
-        userId: data.user.id,
+        userId: currentUserData.user.id,
       },
     });
 
@@ -198,7 +198,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
 
     socket.on("match-message-received", (message: Message) => {
       if (
-        message.userId !== data?.user.id &&
+        message.userId !== currentUserData?.user.id &&
         pathname !== `/match/${message.matchId}/messages`
       ) {
         const toastId = toast.custom(
@@ -206,7 +206,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
             className="m-3"
             href={{
               pathname: "/match/[matchId]",
-              params: { matchId: message.matchId, openSubRoute: "messages" },
+              params: { matchId: message.matchId!, openSubRoute: "messages" },
             }}
             onPress={() => {
               router.dismissAll();
@@ -328,7 +328,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
     return () => {
       socket.disconnect();
     };
-  }, [queryClient, data?.user.id]);
+  }, [queryClient, currentUserData?.user.id]);
 
   return (
     <RealtimeContext.Provider value={{ isConnected }}>

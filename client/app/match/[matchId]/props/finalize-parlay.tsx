@@ -37,10 +37,10 @@ export default function FinalizeParlay() {
     queryFn: async () => await getMatch(matchId),
   });
 
-  const { data } = authClient.useSession();
+  const { data: currentUserData } = authClient.useSession();
 
   const { balance } = match?.matchUsers.find(
-    (matchUser) => matchUser.user.id == data?.user.id!
+    (matchUser) => matchUser.user.id == currentUserData?.user.id!
   )!;
 
   const minStake = Math.round(balance * MIN_STAKE_PCT);
@@ -90,15 +90,15 @@ export default function FinalizeParlay() {
       onSuccess: () => {
         const queriesToInvalidate = [
           ["match", matchId],
-          ["parlays", matchId, data?.user.id!],
-          ["career", data?.user.id!],
+          ["parlays", matchId, currentUserData?.user.id!],
+          ["career", currentUserData?.user.id!],
         ];
 
         if (match?.type == "competitive") {
           queriesToInvalidate.push([
             "props",
             match?.league,
-            data?.user.id!,
+            currentUserData?.user.id!,
             "competitive",
           ]);
         }

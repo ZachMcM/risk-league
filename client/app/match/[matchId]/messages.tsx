@@ -13,13 +13,14 @@ import { Text } from "~/components/ui/text";
 import { getMatch, getMessages, postMessage } from "~/endpoints";
 import { authClient } from "~/lib/auth-client";
 import { SendHorizontal } from "~/lib/icons/SendHorizontal";
-import { ExtendedMatchUser, Message } from "~/types/match";
+import { ExtendedMatchUser } from "~/types/match";
+import { Message } from "~/types/message";
 
 export default function Messages() {
   const searchParams = useLocalSearchParams<{ matchId: string }>();
   const matchId = parseInt(searchParams.matchId);
 
-  const { data } = authClient.useSession();
+  const { data: currentUserData } = authClient.useSession();
 
   const { data: match } = useQuery({
     queryKey: ["match", matchId],
@@ -55,12 +56,12 @@ export default function Messages() {
             id: Math.round(Math.random() * 100),
             content,
             createdAt: new Date().toISOString(),
-            userId: data?.user.id,
+            userId: currentUserData?.user.id,
             matchId,
             user: {
-              id: data?.user.id,
-              image: data?.user.image,
-              username: data?.user.username,
+              id: currentUserData?.user.id,
+              image: currentUserData?.user.image,
+              username: currentUserData?.user.username,
             },
           },
         ],
@@ -89,7 +90,7 @@ export default function Messages() {
   };
 
   const otherMatchUser = match?.matchUsers.find(
-    (mu: ExtendedMatchUser) => mu.userId !== data?.user.id,
+    (mu: ExtendedMatchUser) => mu.userId !== currentUserData?.user.id,
   )!;
 
   return (

@@ -16,8 +16,9 @@ export function FriendlyMatchRequestCard({
 }: {
   friendlyMatchRequest: FriendlyMatchRequest;
 }) {
-  const { data } = authClient.useSession();
-  const isIncomingUser = data?.user.id == friendlyMatchRequest.incomingId;
+  const { data: currentUserData } = authClient.useSession();
+  const isIncomingUser =
+    currentUserData?.user.id == friendlyMatchRequest.incomingId;
 
   const queryClient = useQueryClient();
 
@@ -32,7 +33,7 @@ export function FriendlyMatchRequestCard({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["friendly-match-requests", data?.user.id!],
+        queryKey: ["friendly-match-requests", currentUserData?.user.id!],
       });
     },
   });
@@ -48,7 +49,7 @@ export function FriendlyMatchRequestCard({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["friendly-match-requests", data?.user.id!],
+        queryKey: ["friendly-match-requests", currentUserData?.user.id!],
       });
     },
   });
@@ -102,8 +103,8 @@ export function FriendlyMatchRequestCard({
                   ? "Declining"
                   : "Decline"
                 : isFriendlyMatchRequestDeclining
-                  ? "Canceling"
-                  : "Cancel"}
+                ? "Canceling"
+                : "Cancel"}
             </Text>
           </Button>
         </View>

@@ -1,21 +1,20 @@
+import { useQuery } from "@tanstack/react-query";
 import { Link, useLocalSearchParams } from "expo-router";
 import { View } from "react-native";
+import { getParlay } from "~/endpoints";
 import { Parlay } from "~/types/parlay";
-import { Badge } from "../ui/badge";
-import { Card, CardContent } from "../ui/card";
-import { Separator } from "../ui/separator";
-import { Text } from "../ui/text";
+import { cn } from "~/utils/cn";
 import {
   getFlexMultiplier,
   getFlexMultiplierTable,
   getPerfectPlayMultiplier,
 } from "~/utils/multiplierUtils";
-import { useQuery } from "@tanstack/react-query";
-import { getParlay } from "~/endpoints";
-import { Image } from "expo-image";
-import { cn } from "~/utils/cn";
 import { formatName } from "~/utils/stringUtils";
+import { Badge } from "../ui/badge";
+import { Card, CardContent } from "../ui/card";
 import PlayerImage from "../ui/player-image";
+import { Separator } from "../ui/separator";
+import { Text } from "../ui/text";
 
 export default function ParlayCard({ initialData }: { initialData: Parlay }) {
   const searchParams = useLocalSearchParams<{ matchId: string }>();

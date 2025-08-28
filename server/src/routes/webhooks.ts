@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { apiKeyOrIpAddressMiddleware } from "../middleware";
 import { leagueType } from "../db/schema";
+import { apiKeyOrIpAddressMiddleware } from "../middleware";
 import { redis } from "../redis";
 import { handleError } from "../utils/handleError";
 
@@ -21,6 +21,8 @@ webhooksRoute.post(
       }
 
       redis.publish("stats_updated", JSON.stringify({ league }));
+
+      res.json({ success: true })
     } catch (error) {
       handleError(error, res, "Webhooks");
     }

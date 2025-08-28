@@ -25,10 +25,10 @@ export default function PlayCard({
   const ncaabbImage = require("~/assets/images/ncaabb.jpeg");
   const ncaafbImage = require("~/assets/images/ncaafb.jpeg");
 
-  const { data } = authClient.useSession();
+  const { data: currentUserData } = authClient.useSession();
 
   const { data: props, isPending: arePropsPending } = useQuery({
-    queryKey: ["props", league, data?.user.id, "competitive"],
+    queryKey: ["props", league, currentUserData?.user.id, "competitive"],
     queryFn: async () => await getTodayProps(league, "competitive"),
     staleTime: 1440 * 60 * 1000,
   });

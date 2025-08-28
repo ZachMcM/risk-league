@@ -6,17 +6,17 @@ import { getMatches } from "~/endpoints";
 import { authClient } from "~/lib/auth-client";
 
 export default function Matches() {
-  const { data } = authClient.useSession();
+  const { data: currentUserData } = authClient.useSession();
 
   const { data: unresolvedMatches, isPending: unresolvedMatchesPending } =
     useQuery({
-      queryKey: ["matches", data?.user.id, "unresolved"],
+      queryKey: ["matches", currentUserData?.user.id, "unresolved"],
       queryFn: async () => await getMatches(false),
     });
 
   const { data: resolvedMatches, isPending: resolvedMatchesPending } = useQuery(
     {
-      queryKey: ["matches", data?.user.id, "resolved"],
+      queryKey: ["matches", currentUserData?.user.id, "resolved"],
       queryFn: async () => await getMatches(true),
     },
   );

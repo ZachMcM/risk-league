@@ -6,7 +6,8 @@ export type Parlay = {
   id: number;
   createdAt: string;
   resolved: boolean;
-  matchUserId: number;
+  matchUserId: number | null;
+  dynastyLeagueUserId: number | null
   profit: number;
   picks: Pick[];
 };

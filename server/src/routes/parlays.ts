@@ -275,7 +275,7 @@ parlaysRoute.patch("/parlays", apiKeyMiddleware, async (req, res) => {
 
     for (const currPick of parlayResult.picks) {
       if (currPick.status == "not_resolved") {
-        res.send("All picks not resolved");
+        res.json({ success: true });
         return;
       }
       if (currPick.status == "hit") {
@@ -353,7 +353,7 @@ parlaysRoute.patch("/parlays", apiKeyMiddleware, async (req, res) => {
         });
     }
 
-    res.send("Resolved parlay");
+    res.json({ success: true });
   } catch (error) {
     handleError(error, res, "Parlays route");
   }

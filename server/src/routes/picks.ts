@@ -168,7 +168,7 @@ picksRoute.patch("/picks", apiKeyMiddleware, async (req, res) => {
       invalidateQueries(["pick", pickToInvalidate.id]);
     }
 
-    res.send(`${picksToInvalidateList.length} picks updated`);
+    res.json({ success: true });
   } catch (error) {
     handleError(error, res, "Picks route");
   }

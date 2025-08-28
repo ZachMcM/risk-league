@@ -1,13 +1,13 @@
+import { FlashList } from "@shopify/flash-list";
 import { useEffect, useRef } from "react";
-import { FlatList, View } from "react-native";
+import { View } from "react-native";
 import { Text } from "~/components/ui/text";
 import { authClient } from "~/lib/auth-client";
-import { Message } from "~/types/match";
+import { Message } from "~/types/message";
 import { cn } from "~/utils/cn";
 import { timeAgo } from "~/utils/dateUtils";
-import ProfileImage from "../ui/profile-image";
-import { FlashList } from "@shopify/flash-list";
 import { GridItemWrapper } from "../ui/grid-item-wrapper";
+import ProfileImage from "../ui/profile-image";
 
 export default function MessagesList({ messages }: { messages: Message[] }) {
   const flashListRef = useRef<FlashList<Message>>(null);
@@ -58,8 +58,8 @@ export default function MessagesList({ messages }: { messages: Message[] }) {
 }
 
 export function MessageCard({ message }: { message: Message }) {
-  const { data } = authClient.useSession();
-  const isCurrentUser = message.userId == data?.user.id;
+  const { data: currentUserData } = authClient.useSession();
+  const isCurrentUser = message.userId == currentUserData?.user.id;
 
   return (
     <View

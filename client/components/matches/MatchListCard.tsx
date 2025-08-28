@@ -22,12 +22,12 @@ export default function MatchListCard({ initialData }: { initialData: Match }) {
     queryFn: async () => await getMatch(initialData.id)
   })
 
-  const { data } = authClient.useSession();
+  const { data: currentUserData } = authClient.useSession();
   const you = match.matchUsers.find(
-    (matchUser) => matchUser.user.id == data?.user.id,
+    (matchUser) => matchUser.user.id == currentUserData?.user.id,
   )!;
   const opponent = match.matchUsers.find(
-    (matchUser) => matchUser.user.id != data?.user.id,
+    (matchUser) => matchUser.user.id != currentUserData?.user.id,
   )!;
 
   const badgeVariant = getBadgeVariant(

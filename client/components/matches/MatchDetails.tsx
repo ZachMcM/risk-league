@@ -16,12 +16,12 @@ import MatchStatsDialog from "./MatchStatsDialog";
 import { MIN_PARLAYS_REQUIRED, MIN_PCT_TOTAL_STAKED } from "~/lib/config";
 
 export default function MatchDetails({ match }: { match: ExtendedMatch }) {
-  const { data } = authClient.useSession();
+  const { data: currentUserData } = authClient.useSession();
   const currentMatchUser = match.matchUsers.find(
-    (mu: ExtendedMatchUser) => mu.userId === data?.user.id,
+    (mu: ExtendedMatchUser) => mu.userId === currentUserData?.user.id,
   )!;
   const otherMatchUser = match.matchUsers.find(
-    (mu: ExtendedMatchUser) => mu.userId !== data?.user.id,
+    (mu: ExtendedMatchUser) => mu.userId !== currentUserData?.user.id,
   )!;
 
   const minTotalStaked = Math.round(

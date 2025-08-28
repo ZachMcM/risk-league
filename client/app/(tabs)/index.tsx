@@ -34,15 +34,15 @@ import { Info } from "~/lib/icons/Info";
 import ProfileBanner from "~/components/social/ProfileBanner";
 
 export default function Home() {
-  const { data } = authClient.useSession();
+  const { data: currentUserData } = authClient.useSession();
 
   const { data: userRank, isPending: isUserRankPending } = useQuery({
-    queryKey: ["user", data?.user.id, "rank"],
+    queryKey: ["user", currentUserData?.user.id, "rank"],
     queryFn: getUserRank,
   });
 
   const [onboardingDialog, setOnboardingDialog] = useState(
-    new Date().getTime() - new Date(data?.user.createdAt!).getTime() <= 6000
+    new Date().getTime() - new Date(currentUserData?.user.createdAt!).getTime() <= 6000
   );
 
   return (
@@ -53,14 +53,14 @@ export default function Home() {
         onOpenChange={setOnboardingDialog}
       />
       <ProfileBanner
-        image={data?.user.image!}
-        username={data?.user.username!}
-        header={data?.user.banner!}
+        image={currentUserData?.user.image!}
+        username={currentUserData?.user.username!}
+        header={currentUserData?.user.banner!}
       />
       <View className="flex flex-1 flex-col gap-6 pt-20">
         <View className="flex flex-row items-center justify-between">
           <View className="flex flex-col gap-4 items-start">
-            <Text className="font-bold text-2xl">{data?.user.username}</Text>
+            <Text className="font-bold text-2xl">{currentUserData?.user.username}</Text>
             {isUserRankPending ? (
               <Skeleton className="h-6 w-36 rounded-full" />
             ) : (

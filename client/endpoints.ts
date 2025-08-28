@@ -6,12 +6,12 @@ import {
   ExtendedMatch,
   FriendlyMatchRequest,
   Match,
-  Message,
 } from "./types/match";
 import { Parlay, Pick } from "./types/parlay";
 import { Game, Prop, TodayPlayerProps } from "./types/prop";
 import { Rank } from "./types/rank";
 import { Career, Friendship, User } from "./types/user";
+import { Message } from "./types/message";
 
 export type serverRequestParams = {
   endpoint: string;

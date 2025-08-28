@@ -19,11 +19,11 @@ import { cn } from "~/utils/cn";
 import { formatCompactNumber } from "~/utils/formatCompactNumber";
 
 export default function Friends() {
-  const { data } = authClient.useSession();
+  const { data: currentUserData } = authClient.useSession();
   const searchParams = useLocalSearchParams<{ tab?: string }>();
 
   const { data: friendships, isPending: areFriendshipsPending } = useQuery({
-    queryKey: ["friendships", data?.user.id!],
+    queryKey: ["friendships", currentUserData?.user.id!],
     queryFn: getFriends,
   });
 
@@ -32,14 +32,14 @@ export default function Friends() {
   );
   const friendRequests = friendships?.filter(
     (friendship) =>
-      friendship.status == "pending" && friendship.incomingId == data?.user.id!
+      friendship.status == "pending" && friendship.incomingId == currentUserData?.user.id!
   );
 
   const {
     data: friendlyMatchRequests,
     isPending: areFriendlyMatchRequestsPending,
   } = useQuery({
-    queryKey: ["friendly-match-requests", data?.user.id!],
+    queryKey: ["friendly-match-requests", currentUserData?.user.id!],
     queryFn: getFriendlyMatchRequests,
   });
 

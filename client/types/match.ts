@@ -66,19 +66,6 @@ export type Match = {
 
 export type CurrentStatus = "winning" | "losing" | "tied";
 
-export type Message = {
-  id: number;
-  createdAt: string;
-  userId: string;
-  matchId: number;
-  content: string;
-  user: {
-    id: string;
-    username: string;
-    image: string;
-  };
-};
-
 export type FriendlyMatchRequest = {
   id: number;
   league: League;

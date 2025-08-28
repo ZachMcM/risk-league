@@ -16,13 +16,13 @@ import { View } from "react-native";
 import ProfileImage from "../ui/profile-image";
 
 export default function MatchStatsDialog({ match }: { match: ExtendedMatch }) {
-  const { data } = authClient.useSession();
+  const { data: currentUserData } = authClient.useSession();
 
   const currentMatchUser = match.matchUsers.find(
-    (mu: ExtendedMatchUser) => mu.userId === data?.user.id,
+    (mu: ExtendedMatchUser) => mu.userId === currentUserData?.user.id,
   )!;
   const otherMatchUser = match.matchUsers.find(
-    (mu: ExtendedMatchUser) => mu.userId !== data?.user.id,
+    (mu: ExtendedMatchUser) => mu.userId !== currentUserData?.user.id,
   )!;
 
   return (

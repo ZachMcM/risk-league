@@ -18,7 +18,7 @@ export default function Match() {
     subRouteId?: string;
   }>();
   const matchId = parseInt(searchParams.matchId);
-  const { data } = authClient.useSession();
+  const { data: currentUserData } = authClient.useSession();
 
   const router = useRouter();
 
@@ -28,7 +28,7 @@ export default function Match() {
   });
 
   const { data: parlays, isPending: areParlaysPending } = useQuery({
-    queryKey: ["parlays", matchId, data?.user.id!],
+    queryKey: ["parlays", matchId, currentUserData?.user.id!],
     queryFn: async () => await getParlays(matchId),
   });
 

@@ -474,7 +474,7 @@ matchesRoute.patch("/matches", apiKeyMiddleware, async (req, res) => {
       }
     }
 
-    res.send(`${unResolvedMatches.length} matches ended`);
+    res.json({ success: true });
   } catch (error) {
     handleError(error, res, "Matches route");
   }

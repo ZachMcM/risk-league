@@ -16,7 +16,7 @@ export default function Props() {
     matchId: string;
   }>();
   const matchId = parseInt(searchParams.matchId);
-  const { data } = authClient.useSession();
+  const { data: currentUserData } = authClient.useSession();
 
   const { data: match } = useQuery({
     queryKey: ["match", matchId],
@@ -24,7 +24,7 @@ export default function Props() {
   });
 
   const { data: props, isPending: arePropsPending } = useQuery({
-    queryKey: ["props", match?.league, data?.user.id, match?.type],
+    queryKey: ["props", match?.league, currentUserData?.user.id, match?.type],
     queryFn: async () =>
       await getTodayProps(
         match?.league!,

@@ -6,14 +6,14 @@ import { Text } from "~/components/ui/text";
 import { authClient } from "~/lib/auth-client";
 
 export default function Career() {
-  const { data } = authClient.useSession();
+  const { data: currentUserData } = authClient.useSession();
 
   return (
     <ModalContainer>
       <ScrollContainer className="pt-10">
         <View className="flex flex-col gap-6">
           <Text className="font-bold text-4xl">Career</Text>
-          <CareerInfo userId={data?.user.id!} />
+          <CareerInfo userId={currentUserData?.user.id!} />
         </View>
       </ScrollContainer>
     </ModalContainer>
