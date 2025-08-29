@@ -119,7 +119,7 @@ export default function ParlayCard({ initialData }: { initialData: Parlay }) {
               </Text>
             </View>
           </View>
-          <View className="flex flex-row items-center relative">
+          <View className="flex flex-row items-center">
             {parlay.picks.map((pick, i) => (
               <PlayerImage
                 key={pick.id}
@@ -131,7 +131,7 @@ export default function ParlayCard({ initialData }: { initialData: Parlay }) {
                     : pick.status == "missed"
                     ? "border-destructive"
                     : "border-border",
-                  i !== 0 && "right-3"
+                  i !== 0 && "-ml-2"
                 )}
               />
             ))}
