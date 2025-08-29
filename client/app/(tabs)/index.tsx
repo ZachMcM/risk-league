@@ -1,10 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
-import { Image } from "expo-image";
 import { router } from "expo-router";
 import { useState } from "react";
 import { ScrollView, View } from "react-native";
-import PlayCard from "~/components/matches/PlayCard";
+import PlayButton from "~/components/matches/PlayButton";
 import OnboardingDialog from "~/components/onboarding/OnboardingDialog";
+import ProfileBanner from "~/components/social/ProfileBanner";
 import { Button } from "~/components/ui/button";
 import {
   DropdownMenu,
@@ -15,7 +15,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
-import ProfileImage from "~/components/ui/profile-image";
 import { Progress } from "~/components/ui/progress";
 import { RankText } from "~/components/ui/rank-text";
 import RankBadge from "~/components/ui/RankBadge";
@@ -28,10 +27,9 @@ import { LEAGUES } from "~/lib/config";
 import { ChevronRight } from "~/lib/icons/ChevronRight";
 import { Cog } from "~/lib/icons/Cog";
 import { Ellipsis } from "~/lib/icons/Ellipsis";
+import { Info } from "~/lib/icons/Info";
 import { Trophy } from "~/lib/icons/Trophy";
 import { User } from "~/lib/icons/User";
-import { Info } from "~/lib/icons/Info";
-import ProfileBanner from "~/components/social/ProfileBanner";
 
 export default function Home() {
   const { data: currentUserData } = authClient.useSession();
@@ -179,10 +177,9 @@ export default function Home() {
             }}
           >
             {LEAGUES.map((league) => (
-              <PlayCard key={league} league={league} />
+              <PlayButton key={league} league={league} />
             ))}
           </ScrollView>
-          {/* <View className="flex flex-row items-center gap-3 flex-wrap"></View> */}
         </View>
       </View>
     </ScrollContainer>
