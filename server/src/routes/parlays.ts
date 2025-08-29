@@ -79,6 +79,7 @@ parlaysRoute.get("/parlays", authMiddleware, async (req, res) => {
         ),
         with: {
           parlays: {
+            orderBy: (parlay, { desc }) => [desc(parlay.createdAt)],
             with: {
               picks: {
                 with: {
@@ -96,7 +97,6 @@ parlaysRoute.get("/parlays", authMiddleware, async (req, res) => {
             },
           },
         },
-        orderBy: asc(parlay.createdAt),
       });
 
       if (!matchUserResult) {
@@ -124,6 +124,7 @@ parlaysRoute.get("/parlays", authMiddleware, async (req, res) => {
       ),
       with: {
         parlays: {
+          orderBy: (parlay, { desc }) => [desc(parlay.createdAt)],
           with: {
             picks: {
               with: {
@@ -141,7 +142,6 @@ parlaysRoute.get("/parlays", authMiddleware, async (req, res) => {
           },
         },
       },
-      orderBy: asc(parlay.createdAt),
     });
 
     if (!dynastyLeagueUserResult) {

@@ -15,7 +15,6 @@ import { Text } from "~/components/ui/text";
 import { getFriendlyMatchRequests, getFriends, getUsers } from "~/endpoints";
 import { authClient } from "~/lib/auth-client";
 import { Search } from "~/lib/icons/Search";
-import { cn } from "~/utils/cn";
 import { formatCompactNumber } from "~/utils/formatCompactNumber";
 
 export default function Friends() {

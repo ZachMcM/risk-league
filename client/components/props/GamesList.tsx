@@ -63,7 +63,7 @@ export default function GamesList({ league }: { league: League }) {
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ display: "flex", gap: 8 }}
+        contentContainerStyle={{ display: "flex", gap: 12 }}
       >
         {areGamesPending ? (
           <ActivityIndicator className="text-foreground"/>

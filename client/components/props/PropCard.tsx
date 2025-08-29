@@ -36,24 +36,9 @@ export default function PropCard({ prop }: { prop: Prop }) {
           isPropPicked(prop.id) && "border-primary"
         )}
       >
-        <CardContent className="px-4 pt-2 pb-4 flex flex-col items-center gap-2 relative">
-          {prop.player.team.image && (
-            <Image
-              contentFit="contain"
-              source={{
-                uri: prop.player.team.image,
-              }}
-              style={{
-                width: 20,
-                height: 20,
-                position: "absolute",
-                right: 12,
-                top: 12,
-              }}
-            />
-          )}
+        <CardContent className="px-4 pt-2 pb-4 flex flex-col items-center gap-2.5">
           <View className="flex flex-col gap-1 items-center">
-            <PlayerImage image={prop.player.image} className="h-20 w-20" />
+            <PlayerImage image={prop.player.image} className="h-16 w-16" />
             <Text className="font-bold text-center">
               {formatName(prop.player.name).firstName[0]}.{" "}
               {formatName(prop.player.name).lastName}
@@ -72,12 +57,12 @@ export default function PropCard({ prop }: { prop: Prop }) {
             </Text>
           </View>
           <View className="flex flex-col items-center">
-            <Text className="font-extrabold text-2xl">{prop.line}</Text>
+            <Text className="font-bold text-2xl text-primary">{prop.line}</Text>
             <Text className="text-muted-foreground">
               {prop.statDisplayName}
             </Text>
           </View>
-          <View className="flex flex-row items-center justify-center gap-1">
+          <View className="flex flex-row items-center justify-center gap-1.5">
             {prop.choices.map((choice, i) => (
               <Button
                 onPress={() => {

@@ -172,7 +172,7 @@ export default function Home() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{
               display: "flex",
-              gap: 8,
+              gap: 12,
               paddingRight: 16,
             }}
           >

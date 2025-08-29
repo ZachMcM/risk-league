@@ -124,6 +124,8 @@ export default function PlayButton({
     }
   }
 
+  const uniqueGameIds = [...new Set(props?.map(prop => prop.game.gameId))]
+
   return (
     <Card
       className={cn(
@@ -150,48 +152,43 @@ export default function PlayButton({
             style={{ width: "100%", height: "100%" }}
           />
         </View>
-        <View className="flex flex-col gap-1 p-4 flex-1">
-          <View className="flex flex-row items-center justify-between">
+        <View className="flex flex-col items-center gap-3 p-4 flex-1">
+          <View className="flex flex-col gap-1 items-center">
             <View className="flex flex-row items-center gap-2">
               <LeagueLogo size={28} league={league} />
               <Text className="font-extrabold text-2xl uppercase">
                 {league}
               </Text>
             </View>
-            <Text className="text-muted-foreground">
-              {arePropsPending ? "..." : props?.length} Props
+            <Text className="text-muted-foreground text-center">
+              {arePropsPending ? "..." : props?.length} Props • {uniqueGameIds.length} Games
             </Text>
           </View>
-          <View className="flex flex-col gap-4">
-            <View className="flex flex-row items-center gap-2">
-              {isLoading && (
-                <ActivityIndicator className="text-muted-foreground" />
-              )}
-              <Text
-                className={cn(
-                  "text-muted-foreground",
-                  !isLoading && "opacity-0"
-                )}
-              >
-                {loadingMessage}
-              </Text>
-            </View>
-            <Button
-              disabled={arePropsPending || !props || props.length == 0}
-              onPress={handlePress}
-              className="flex flex-row items-center gap-2"
-              variant={isLoading ? "destructive" : "default"}
+          <View className="flex flex-row items-center gap-2">
+            {isLoading && (
+              <ActivityIndicator className="text-foreground" />
+            )}
+            <Text
+              className={cn("text-foreground text-sm", !isLoading && "opacity-0")}
             >
-              <Text className="font-semibold">
-                {isLoading ? "Cancel" : "Play"}
-              </Text>
-              {isLoading ? (
-                <CircleX className="text-destructive" size={16} />
-              ) : (
-                <Play className="text-foreground" size={16} />
-              )}
-            </Button>
+              {loadingMessage}
+            </Text>
           </View>
+          <Button
+            disabled={arePropsPending || !props || props.length == 0}
+            onPress={handlePress}
+            className="flex flex-row items-center gap-2 w-full"
+            variant={isLoading ? "destructive" : "default"}
+          >
+            <Text className="font-semibold">
+              {isLoading ? "Cancel" : "Play"}
+            </Text>
+            {isLoading ? (
+              <CircleX className="text-destructive" size={16} />
+            ) : (
+              <Play className="text-foreground" size={16} />
+            )}
+          </Button>
         </View>
       </CardContent>
     </Card>

@@ -159,12 +159,11 @@ export default function FriendshipButtons({
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
                 <Button
-                  variant="foreground"
                   size="sm"
                   className="flex px-4 flex-row gap-1.5 items-center rounded-full"
                 >
                   <Text className="font-semibold !text-sm">Play</Text>
-                  <Play className="text-background" size={14} />
+                  <Play className="text-primary-foreground" size={14} />
                 </Button>
               </DialogTrigger>
               <DialogContent portalHost={portalHost} className="w-[375px]">
