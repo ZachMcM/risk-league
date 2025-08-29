@@ -143,8 +143,7 @@ propsRoute.get("/props/today/players/:playerId", authMiddleware, async (req, res
       },
     });
 
-    const startOfPreviousDay = moment()
-      .subtract(1, "day")
+    const startOfDay = moment()
       .startOf("day")
       .toISOString();
     const endOfDay = moment().endOf("day").toISOString();
@@ -158,7 +157,7 @@ propsRoute.get("/props/today/players/:playerId", authMiddleware, async (req, res
       )
       .where(
         and(
-          gte(game.startTime, startOfPreviousDay),
+          gte(game.startTime, startOfDay),
           lt(game.startTime, endOfDay),
           gt(game.startTime, new Date().toISOString()),
           eq(game.league, league),
@@ -365,8 +364,7 @@ propsRoute.get("/props/today", authMiddleware, async (req, res) => {
       return;
     }
 
-    const startOfPreviousDay = moment()
-      .subtract(1, "day")
+    const startOfDay = moment()
       .startOf("day")
       .toISOString();
     const endOfDay = moment().endOf("day").toISOString();
@@ -382,7 +380,7 @@ propsRoute.get("/props/today", authMiddleware, async (req, res) => {
       )
       .where(
         and(
-          gte(game.startTime, startOfPreviousDay),
+          gte(game.startTime, startOfDay),
           lt(game.startTime, endOfDay),
           gt(game.startTime, new Date().toISOString()),
           eq(game.league, league),
