@@ -124,7 +124,7 @@ export default function PlayButton({
     }
   }
 
-  const uniqueGameIds = [...new Set(props?.map(prop => prop.game.gameId))]
+  const uniqueGameIds = [...new Set(props?.map((prop) => prop.game.gameId))];
 
   return (
     <Card
@@ -161,15 +161,17 @@ export default function PlayButton({
               </Text>
             </View>
             <Text className="text-muted-foreground text-center">
-              {arePropsPending ? "..." : props?.length} Props • {uniqueGameIds.length} Games
+              {arePropsPending ? "..." : props?.length} Props •{" "}
+              {arePropsPending ? "..." : uniqueGameIds.length} Games
             </Text>
           </View>
           <View className="flex flex-row items-center gap-2">
-            {isLoading && (
-              <ActivityIndicator className="text-foreground" />
-            )}
+            {isLoading && <ActivityIndicator className="text-foreground" />}
             <Text
-              className={cn("text-foreground text-sm", !isLoading && "opacity-0")}
+              className={cn(
+                "text-foreground text-sm",
+                !isLoading && "opacity-0"
+              )}
             >
               {loadingMessage}
             </Text>

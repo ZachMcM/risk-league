@@ -484,6 +484,13 @@
       "when": 1756417123781,
       "tag": "0068_nostalgic_phalanx",
       "breakpoints": true
+    },
+    {
+      "idx": 69,
+      "version": "7",
+      "when": 1756505337872,
+      "tag": "0069_low_logan",
+      "breakpoints": true
     }
   ]
 }

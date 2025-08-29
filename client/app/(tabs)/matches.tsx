@@ -34,98 +34,96 @@ export default function Matches() {
 
   return (
     <Container className="pt-2 pb-0 px-0">
-      <View className="flex flex-1">
-        <Tabs
-          value={matchStatus}
-          onValueChange={setMatchStatus}
-          className="flex flex-1 flex-col gap-4"
-        >
-          <TabsList className="flex-row w-full">
-            <TabsTrigger value="in-progress">
-              <Text>In Progress ({unresolvedMatches?.length ?? "..."})</Text>
-            </TabsTrigger>
-            <TabsTrigger value="completed">
-              <Text>Completed ({resolvedMatches?.length ?? "..."})</Text>
-            </TabsTrigger>
-          </TabsList>
-          <TabsContent value="in-progress" className="flex-1">
-            {unresolvedMatchesPending ? (
-              <ActivityIndicator className="text-foreground" />
-            ) : !unresolvedMatches || unresolvedMatches.length == 0 ? (
-              <View className="flex flex-col gap-4 p-4 items-center">
-                <View className="flex flex-col gap-1 items-center">
-                  <Text className="font-bold text-2xl text-center">
-                    No matches in progress
-                  </Text>
-                  <Text className="font-semibold text-muted-foreground text-center max-w-sm">
-                    You don't have any matches in progress currently
-                  </Text>
-                </View>
-                <Button
-                  size="sm"
-                  variant="foreground"
-                  onPress={() => router.navigate("/(tabs)")}
-                >
-                  <Text>Start a Match</Text>
-                </Button>
+      <Tabs
+        value={matchStatus}
+        onValueChange={setMatchStatus}
+        className="flex flex-1 flex-col gap-4"
+      >
+        <TabsList>
+          <TabsTrigger value="in-progress">
+            <Text>In Progress ({unresolvedMatches?.length})</Text>
+          </TabsTrigger>
+          <TabsTrigger value="completed">
+            <Text>Completed ({resolvedMatches?.length})</Text>
+          </TabsTrigger>
+        </TabsList>
+        <TabsContent value="in-progress" className="flex-1">
+          {unresolvedMatchesPending ? (
+            <ActivityIndicator className="text-foreground" />
+          ) : !unresolvedMatches || unresolvedMatches.length == 0 ? (
+            <View className="flex flex-col gap-4 p-4 items-center">
+              <View className="flex flex-col gap-1 items-center">
+                <Text className="font-bold text-2xl text-center">
+                  No matches in progress
+                </Text>
+                <Text className="font-semibold text-muted-foreground text-center max-w-sm">
+                  You don't have any matches in progress currently
+                </Text>
               </View>
-            ) : (
-              <FlashList
-                showsVerticalScrollIndicator={false}
-                data={unresolvedMatches}
-                contentContainerStyle={{
-                  paddingBottom: 12,
-                }}
-                estimatedItemSize={166}
-                renderItem={({ item, index }) => (
-                  <GridItemWrapper index={index} numCols={1} gap={12}>
-                    <MatchListCard initialData={item} />
-                  </GridItemWrapper>
-                )}
-                keyExtractor={(item) => item.id.toString()}
-              />
-            )}
-          </TabsContent>
-          <TabsContent value="completed" className="flex-1 p-4">
-            {resolvedMatchesPending ? (
-              <ActivityIndicator className="text-foreground" />
-            ) : !resolvedMatches || resolvedMatches.length == 0 ? (
-              <View className="flex flex-col gap-4 p-4 items-center">
-                <View className="flex flex-col gap-1 items-center">
-                  <Text className="font-bold text-2xl text-center">
-                    No completed matches
-                  </Text>
-                  <Text className="font-semibold text-muted-foreground text-center max-w-sm">
-                    You don't have any completed matches currently
-                  </Text>
-                </View>
-                <Button
-                  size="sm"
-                  variant="foreground"
-                  onPress={() => router.navigate("/(tabs)")}
-                >
-                  <Text>Start a Match</Text>
-                </Button>
+              <Button
+                size="sm"
+                variant="foreground"
+                onPress={() => router.navigate("/(tabs)")}
+              >
+                <Text>Start a Match</Text>
+              </Button>
+            </View>
+          ) : (
+            <FlashList
+              showsVerticalScrollIndicator={false}
+              data={unresolvedMatches}
+              contentContainerStyle={{
+                paddingBottom: 12,
+              }}
+              estimatedItemSize={166}
+              renderItem={({ item, index }) => (
+                <GridItemWrapper index={index} numCols={1} gap={12}>
+                  <MatchListCard initialData={item} />
+                </GridItemWrapper>
+              )}
+              keyExtractor={(item) => item.id.toString()}
+            />
+          )}
+        </TabsContent>
+        <TabsContent value="completed" className="flex-1 p-4">
+          {resolvedMatchesPending ? (
+            <ActivityIndicator className="text-foreground" />
+          ) : !resolvedMatches || resolvedMatches.length == 0 ? (
+            <View className="flex flex-col gap-4 p-4 items-center">
+              <View className="flex flex-col gap-1 items-center">
+                <Text className="font-bold text-2xl text-center">
+                  No completed matches
+                </Text>
+                <Text className="font-semibold text-muted-foreground text-center max-w-sm">
+                  You don't have any completed matches currently
+                </Text>
               </View>
-            ) : (
-              <FlashList
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={{
-                  paddingBottom: 12,
-                }}
-                estimatedItemSize={166}
-                data={resolvedMatches}
-                renderItem={({ item, index }) => (
-                  <GridItemWrapper index={index} numCols={1} gap={12}>
-                    <MatchListCard initialData={item} />
-                  </GridItemWrapper>
-                )}
-                keyExtractor={(item) => item.id.toString()}
-              />
-            )}
-          </TabsContent>
-        </Tabs>
-      </View>
+              <Button
+                size="sm"
+                variant="foreground"
+                onPress={() => router.navigate("/(tabs)")}
+              >
+                <Text>Start a Match</Text>
+              </Button>
+            </View>
+          ) : (
+            <FlashList
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{
+                paddingBottom: 12,
+              }}
+              estimatedItemSize={166}
+              data={resolvedMatches}
+              renderItem={({ item, index }) => (
+                <GridItemWrapper index={index} numCols={1} gap={12}>
+                  <MatchListCard initialData={item} />
+                </GridItemWrapper>
+              )}
+              keyExtractor={(item) => item.id.toString()}
+            />
+          )}
+        </TabsContent>
+      </Tabs>
     </Container>
   );
 }

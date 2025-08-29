@@ -37,7 +37,6 @@ export default function Friends() {
 
   const {
     data: friendlyMatchRequests,
-    isPending: areFriendlyMatchRequestsPending,
   } = useQuery({
     queryKey: ["friendly-match-requests", currentUserData?.user.id!],
     queryFn: getFriendlyMatchRequests,
@@ -77,17 +76,13 @@ export default function Friends() {
   return (
     <Container className="pt-2 pb-0 px-0">
       <View className="flex flex-col gap-4 flex-1">
-        {areFriendlyMatchRequestsPending ? (
-          <ActivityIndicator className="text-foreground" />
-        ) : (
-          friendlyMatchRequests &&
+        {friendlyMatchRequests &&
           friendlyMatchRequests.map((request) => (
             <FriendlyMatchRequestCard
               friendlyMatchRequest={request}
               key={`friendly-match-${request.id}`}
             />
-          ))
-        )}
+          ))}
         <Tabs
           value={tabsValue}
           onValueChange={setTabsValue}
@@ -108,7 +103,7 @@ export default function Friends() {
             </TabsTrigger>
             <TabsTrigger value="search">
               <Text>Search</Text>
-              <Search className="text-foreground" size={16}/>
+              <Search className="text-muted-foreground" size={16} />
             </TabsTrigger>
           </TabsList>
           <TabsContent value="search" className="flex flex-1 flex-col gap-4">

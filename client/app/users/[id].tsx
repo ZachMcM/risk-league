@@ -9,11 +9,8 @@ import RankBadge from "~/components/ui/RankBadge";
 import { ScrollContainer } from "~/components/ui/scroll-container";
 import { Text } from "~/components/ui/text";
 import { getUser } from "~/endpoints";
-import { authClient } from "~/lib/auth-client";
 
 export default function User() {
-  const { data: currUserData } = authClient.useSession();
-
   const { id } = useLocalSearchParams() as { id: string };
 
   const { data: user, isPending: isProfilePending } = useQuery({

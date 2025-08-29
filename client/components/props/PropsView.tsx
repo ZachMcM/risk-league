@@ -10,6 +10,7 @@ import { Text } from "../ui/text";
 import PropCard from "./PropCard";
 import { FlashList } from "@shopify/flash-list";
 import { GridItemWrapper } from "../ui/grid-item-wrapper";
+import GameCard from "./GameCard";
 
 export default function PropsView({
   props,
@@ -53,8 +54,25 @@ export default function PropsView({
     }
   }, [searchActivated]);
 
+  const uniqueGames = [...new Set(props?.map((prop) => prop.game.gameId))]
+    .map((gameId) =>
+      props.map((prop) => prop.game).find((game) => game.gameId == gameId)
+    )
+    .filter((game) => game !== undefined);
+
   return (
     <View className="flex flex-col gap-4 flex-1">
+      <View className="w-full">
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ display: "flex", gap: 12 }}
+        >
+          {uniqueGames.map((game) => (
+            <GameCard key={game.gameId} game={game} />
+          ))}
+        </ScrollView>
+      </View>
       {searchActivated ? (
         <View className="flex flex-row items-center gap-3 w-full py-1 h-11">
           <SearchBar

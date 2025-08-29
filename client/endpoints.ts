@@ -8,6 +8,7 @@ import { Game, Prop, TodayPlayerProps } from "./types/prop";
 import { Rank } from "./types/rank";
 import { Career, Friendship, User } from "./types/user";
 import { Message } from "./types/message";
+import { DynastyLeague, DynastyLeagueInvitation } from "./types/dynastyLeague";
 
 export type serverRequestParams = {
   endpoint: string;
@@ -171,6 +172,27 @@ export async function getMatch(id: number): Promise<ExtendedMatch> {
   });
 
   return match;
+}
+
+export async function getDynastyLeagues(
+): Promise<DynastyLeague[]> {
+  const leagues = await serverRequest({
+    endpoint: `/dynastyLeagues`,
+    method: "GET",
+  });
+
+  return leagues;
+}
+
+export async function getDynastyLeagueInvites(): Promise<
+  DynastyLeagueInvitation[]
+> {
+  const invites = await serverRequest({
+    endpoint: `/dynastyLeagues/invites`,
+    method: "GET",
+  });
+
+  return invites;
 }
 
 export async function getMessages(id: number): Promise<Message[]> {

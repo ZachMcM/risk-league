@@ -1,5 +1,6 @@
 import { Tabs } from "expo-router";
-import PageTitle from "~/components/ui/page-title";
+import DynastyHeader from "~/components/dynasty/DynastyHeader";
+import PageHeader from "~/components/ui/page-header";
 import { NAV_THEME } from "~/lib/constants";
 import { Contact } from "~/lib/icons/Contact";
 import { Dices } from "~/lib/icons/Dices";
@@ -42,7 +43,7 @@ export default function TabsLayout() {
         name="matches"
         options={{
           title: "Matches",
-          header: () => <PageTitle title="Matches" />,
+          header: () => <PageHeader title="Matches" />,
           tabBarIcon: ({ color }) => <Dices size={22} color={color} />,
         }}
       />
@@ -50,7 +51,7 @@ export default function TabsLayout() {
         name="dynasty"
         options={{
           title: "Dynasty",
-          header: () => <PageTitle title="Dynasty" />,
+          header: () => <DynastyHeader />,
           tabBarIcon: ({ color }) => <ShieldHalf size={22} color={color} />,
         }}
       />
@@ -58,7 +59,7 @@ export default function TabsLayout() {
         name="social"
         options={{
           title: "Social",
-          header: () => <PageTitle title="Social" />,
+          header: () => <PageHeader title="Social" />,
           tabBarIcon: ({ color }) => <Contact size={22} color={color} />,
         }}
       />
@@ -66,7 +67,7 @@ export default function TabsLayout() {
         name="battle-pass"
         options={{
           title: "Battle Pass",
-          header: () => <PageTitle title="Battle Pass" />,
+          header: () => <PageHeader title="Battle Pass" />,
           tabBarIcon: ({ color }) => <Gift size={22} color={color} />,
         }}
       />

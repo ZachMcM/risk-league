@@ -1,15 +1,11 @@
-import { useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import moment from "moment";
-import { ActivityIndicator, ScrollView, View } from "react-native";
-import { getTodayGames } from "~/endpoints";
-import { League } from "~/lib/config";
+import { View } from "react-native";
 import { Game } from "~/types/prop";
 import { Card, CardContent } from "../ui/card";
-import { Skeleton } from "../ui/skeleton";
 import { Text } from "../ui/text";
 
-function GameCard({ game }: { game: Game }) {
+export default function GameCard({ game }: { game: Game }) {
   return (
     <Card>
       <CardContent className="p-3 flex flex-col gap-2">
@@ -44,33 +40,5 @@ function GameCard({ game }: { game: Game }) {
         </View>
       </CardContent>
     </Card>
-  );
-}
-
-export default function GamesList({ league }: { league: League }) {
-  const { data: games, isPending: areGamesPending } = useQuery({
-    queryKey: ["games", "today", league],
-    queryFn: async () => await getTodayGames(league),
-    staleTime: 1440 * 60 * 1000,
-  });
-
-  if (!areGamesPending && games?.length == 0) {
-    return null
-  }
-
-  return (
-    <View className="w-full">
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ display: "flex", gap: 12 }}
-      >
-        {areGamesPending ? (
-          <ActivityIndicator className="text-foreground"/>
-        ) : (
-          games?.map((game) => <GameCard key={game.gameId} game={game} />)
-        )}
-      </ScrollView>
-    </View>
   );
 }
