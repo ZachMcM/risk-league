@@ -22,7 +22,7 @@ export default function Matches() {
   );
 
   return (
-    <Container className="pt-2 pb-0">
+    <Container className="pt-2 pb-0 px-0">
       {resolvedMatchesPending || unresolvedMatchesPending ? (
         <ActivityIndicator className="text-foreground p-4" />
       ) : (

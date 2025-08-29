@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { useState } from "react";
-import { View } from "react-native";
+import { ScrollView, View } from "react-native";
 import PlayCard from "~/components/matches/PlayCard";
 import OnboardingDialog from "~/components/onboarding/OnboardingDialog";
 import { Button } from "~/components/ui/button";
@@ -42,7 +42,9 @@ export default function Home() {
   });
 
   const [onboardingDialog, setOnboardingDialog] = useState(
-    new Date().getTime() - new Date(currentUserData?.user.createdAt!).getTime() <= 6000
+    new Date().getTime() -
+      new Date(currentUserData?.user.createdAt!).getTime() <=
+      6000
   );
 
   return (
@@ -60,7 +62,9 @@ export default function Home() {
       <View className="flex flex-1 flex-col gap-6 pt-20">
         <View className="flex flex-row items-center justify-between">
           <View className="flex flex-col gap-4 items-start">
-            <Text className="font-bold text-2xl">{currentUserData?.user.username}</Text>
+            <Text className="font-bold text-2xl">
+              {currentUserData?.user.username}
+            </Text>
             {isUserRankPending ? (
               <Skeleton className="h-6 w-36 rounded-full" />
             ) : (
@@ -163,13 +167,22 @@ export default function Home() {
             </View>
           )
         )}
-        <View className="flex flex-col gap-4">
+        <View className="flex flex-col gap-4 w-full">
           <Text className="text-3xl font-bold">Competitive</Text>
-          <View className="flex flex-row items-center gap-3 flex-wrap">
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{
+              display: "flex",
+              gap: 8,
+              paddingRight: 16,
+            }}
+          >
             {LEAGUES.map((league) => (
               <PlayCard key={league} league={league} />
             ))}
-          </View>
+          </ScrollView>
+          {/* <View className="flex flex-row items-center gap-3 flex-wrap"></View> */}
         </View>
       </View>
     </ScrollContainer>

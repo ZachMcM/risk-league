@@ -28,10 +28,10 @@ export default function MatchTabs({
         className="flex flex-1 flex-col gap-4"
       >
         <TabsList className="flex-row w-full">
-          <TabsTrigger value="in-progress" className="flex-1">
+          <TabsTrigger value="in-progress">
             <Text>In Progress ({unresolvedMatches.length})</Text>
           </TabsTrigger>
-          <TabsTrigger value="completed" className="flex-1">
+          <TabsTrigger value="completed">
             <Text>Completed ({resolvedMatches.length})</Text>
           </TabsTrigger>
         </TabsList>
@@ -71,7 +71,7 @@ export default function MatchTabs({
             />
           )}
         </TabsContent>
-        <TabsContent value="completed" className="flex-1">
+        <TabsContent value="completed" className="flex-1 p-4">
           {resolvedMatches.length == 0 ? (
             <View className="flex flex-col gap-4 p-4 items-center">
               <View className="flex flex-col gap-1 items-center">

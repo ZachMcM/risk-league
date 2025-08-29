@@ -1,4 +1,4 @@
-import { and, eq, InferInsertModel } from "drizzle-orm";
+import { and, asc, desc, eq, InferInsertModel } from "drizzle-orm";
 import { Router } from "express";
 import { db } from "../db";
 import {
@@ -96,6 +96,7 @@ parlaysRoute.get("/parlays", authMiddleware, async (req, res) => {
             },
           },
         },
+        orderBy: asc(parlay.createdAt),
       });
 
       if (!matchUserResult) {
@@ -140,6 +141,7 @@ parlaysRoute.get("/parlays", authMiddleware, async (req, res) => {
           },
         },
       },
+      orderBy: asc(parlay.createdAt),
     });
 
     if (!dynastyLeagueUserResult) {

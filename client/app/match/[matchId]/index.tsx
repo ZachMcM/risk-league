@@ -7,7 +7,12 @@ import ParlaysView from "~/components/parlays/ParlaysView";
 import { Button } from "~/components/ui/button";
 import { ScrollContainer } from "~/components/ui/scroll-container";
 import { Text } from "~/components/ui/text";
-import { getMatch, getParlays, getTodayProps } from "~/endpoints";
+import {
+  getMatch,
+  getParlays,
+  getTodayGames,
+  getTodayProps,
+} from "~/endpoints";
 import { authClient } from "~/lib/auth-client";
 import { Plus } from "~/lib/icons/Plus";
 
@@ -30,6 +35,23 @@ export default function Match() {
   const { data: parlays, isPending: areParlaysPending } = useQuery({
     queryKey: ["parlays", "match", matchId, currentUserData?.user.id!],
     queryFn: async () => await getParlays({ matchId }),
+  });
+
+  const queryClient = useQueryClient();
+
+  queryClient.prefetchQuery({
+    queryKey: ["props", "match", matchId, currentUserData?.user.id],
+    queryFn: async () =>
+      await getTodayProps({
+        matchId,
+      }),
+    staleTime: 1440 * 60 * 1000,
+  });
+
+  queryClient.prefetchQuery({
+    queryKey: ["games", "today", match?.league],
+    queryFn: async () => await getTodayGames(match?.league!),
+    staleTime: 1440 * 60 * 1000,
   });
 
   useEffect(() => {

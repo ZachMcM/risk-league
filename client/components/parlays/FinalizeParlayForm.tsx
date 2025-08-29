@@ -23,6 +23,7 @@ import {
   getFlexMultiplier,
   getPerfectPlayMultiplier,
 } from "~/utils/multiplierUtils";
+import { Tabs, TabsList, TabsTrigger } from "../ui/tabs";
 
 export default function FinalizeParlayForm({
   balance,
@@ -140,26 +141,16 @@ export default function FinalizeParlayForm({
             <Text>Clear all</Text>
           </Button>
         </View>
-        <View className="flex flex-row w-full">
-          <Pressable
-            onPress={() => setType("perfect")}
-            className={cn(
-              "flex flex-1 flex-row items-center justify-center border-b border-border pb-4",
-              type == "perfect" && "border-primary"
-            )}
-          >
-            <Text className="font-bold text-lg">Perfect Play</Text>
-          </Pressable>
-          <Pressable
-            onPress={() => setType("flex")}
-            className={cn(
-              "flex flex-1 flex-row items-center justify-center border-b border-border pb-4",
-              type == "flex" && "border-primary"
-            )}
-          >
-            <Text className="font-bold text-lg">Flex Play</Text>
-          </Pressable>
-        </View>
+        <Tabs value={type} onValueChange={setType}>
+          <TabsList>
+            <TabsTrigger value="perfect">
+              <Text>Perfect</Text>
+            </TabsTrigger>
+            <TabsTrigger value="flex">
+              <Text>Flex</Text>
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
         <ScrollView
           contentContainerClassName="flex-grow py-6"
           className="flex flex-1 w-full px-4"

@@ -24,7 +24,7 @@ export default function PlayCard({
   const nflImage = require("~/assets/images/nfl.jpeg");
   const ncaabbImage = require("~/assets/images/ncaabb.jpeg");
   const ncaafbImage = require("~/assets/images/ncaafb.jpeg");
-  
+
   const { data: props, isPending: arePropsPending } = useQuery({
     queryKey: ["props", league],
     queryFn: async () =>
@@ -37,13 +37,13 @@ export default function PlayCard({
   return (
     <Card
       className={cn(
-        "w-[48%] self-stretch",
+        "w-72",
         arePropsPending && "animate-pulse",
         !arePropsPending && props?.length == 0 && "opacity-60"
       )}
     >
       <CardContent className="p-0 flex-1 flex flex-col">
-        <View className={"relative overflow-hidden h-32"}>
+        <View className={"relative overflow-hidden h-36 rounded-t-2xl"}>
           <Image
             contentFit="cover"
             source={

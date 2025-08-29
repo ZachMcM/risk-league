@@ -32,7 +32,8 @@ export default function Friends() {
   );
   const friendRequests = friendships?.filter(
     (friendship) =>
-      friendship.status == "pending" && friendship.incomingId == currentUserData?.user.id!
+      friendship.status == "pending" &&
+      friendship.incomingId == currentUserData?.user.id!
   );
 
   const {
@@ -75,7 +76,7 @@ export default function Friends() {
   const [tabsValue, setTabsValue] = useState(searchParams.tab ?? "friends");
 
   return (
-    <Container className="pt-2 pb-0">
+    <Container className="pt-2 pb-0 px-0">
       <View className="flex flex-col gap-4 flex-1">
         {areFriendlyMatchRequestsPending ? (
           <ActivityIndicator className="text-foreground" />
@@ -93,32 +94,22 @@ export default function Friends() {
           onValueChange={setTabsValue}
           className="flex-col gap-4 flex-1 flex"
         >
-          <TabsList className="flex-row w-full">
-            <TabsTrigger value="friends" className="flex-1">
+          <TabsList>
+            <TabsTrigger value="friends">
               <Text>
                 Friends {friends && `(${formatCompactNumber(friends.length)})`}
               </Text>
             </TabsTrigger>
-            <TabsTrigger value="requests" className="flex-1">
+            <TabsTrigger value="requests">
               <Text>
                 Requests{" "}
                 {friendRequests &&
                   `(${formatCompactNumber(friendRequests.length)})`}
               </Text>
             </TabsTrigger>
-            <TabsTrigger
-              value="search"
-              className="flex-1 flex flex-row items-center gap-2"
-            >
+            <TabsTrigger value="search">
               <Text>Search</Text>
-              <Search
-                className={cn(
-                  tabsValue == "search"
-                    ? "text-foreground"
-                    : "text-muted-foreground"
-                )}
-                size={18}
-              />
+              <Search className="text-foreground" size={16}/>
             </TabsTrigger>
           </TabsList>
           <TabsContent value="search" className="flex flex-1 flex-col gap-4">

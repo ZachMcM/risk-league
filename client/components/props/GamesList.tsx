@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import moment from "moment";
-import { ScrollView, View } from "react-native";
+import { ActivityIndicator, ScrollView, View } from "react-native";
 import { getTodayGames } from "~/endpoints";
 import { League } from "~/lib/config";
 import { Game } from "~/types/prop";
@@ -66,7 +66,7 @@ export default function GamesList({ league }: { league: League }) {
         contentContainerStyle={{ display: "flex", gap: 8 }}
       >
         {areGamesPending ? (
-          Array(10).fill("").map((_, i) => <Skeleton key={i} className="rounded-2xl h-24 w-28"/>)
+          <ActivityIndicator className="text-foreground"/>
         ) : (
           games?.map((game) => <GameCard key={game.gameId} game={game} />)
         )}

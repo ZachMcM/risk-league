@@ -14,7 +14,7 @@ function TabsList({
   return (
     <TabsPrimitive.List
       className={cn(
-        "web:inline-flex h-10 native:h-12 items-center justify-center rounded-xl bg-muted p-1 native:px-1.5",
+        "web:inline-flex flex-row w-full h-10 items-center native:px-1.5",
         className,
       )}
       {...props}
@@ -32,15 +32,15 @@ function TabsTrigger({
   return (
     <TextClassContext.Provider
       value={cn(
-        "text-sm native:text-base font-medium text-muted-foreground web:transition-all",
+        "text-sm native:text-base font-bold text-muted-foreground web:transition-all",
         value === props.value && "text-foreground",
       )}
     >
       <TabsPrimitive.Trigger
         className={cn(
-          "inline-flex items-center justify-center web:whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium web:ring-offset-background web:transition-all web:focus-visible:outline-none web:focus-visible:ring-2 web:focus-visible:ring-ring web:focus-visible:ring-offset-2",
+          "inline-flex flex-row items-center justify-center gap-2 flex-1 web:whitespace-nowrap border-b-2 border-border pb-4",
           props.disabled && "web:pointer-events-none opacity-50",
-          props.value === value && "bg-background",
+          props.value === value && "border-primary",
           className,
         )}
         {...props}
@@ -58,7 +58,7 @@ function TabsContent({
   return (
     <TabsPrimitive.Content
       className={cn(
-        "web:ring-offset-background web:focus-visible:outline-none web:focus-visible:ring-2 web:focus-visible:ring-ring web:focus-visible:ring-offset-2",
+        "p-4 web:ring-offset-background web:focus-visible:outline-none web:focus-visible:ring-2 web:focus-visible:ring-ring web:focus-visible:ring-offset-2",
         className,
       )}
       {...props}

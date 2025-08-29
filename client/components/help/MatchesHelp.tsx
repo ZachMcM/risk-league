@@ -25,7 +25,7 @@ export default function MatchesHelp({
   handleSectionLayout: (sectionKey: string, y: number) => void;
 }) {
   return (
-    <View className="flex flex-col gap-6">
+    <View className="flex flex-col gap-4">
       <Card>
         <CardContent className="flex flex-col gap-4 p-6">
           <Text className="font-bold text-2xl">Table of Contents</Text>
@@ -83,12 +83,12 @@ export default function MatchesHelp({
         }}
       >
         <Card>
-          <CardContent className="flex flex-col gap-6 p-6">
+          <CardContent className="flex flex-col gap-4 p-6">
             <View className="flex flex-row items-center gap-2">
               <Dices className="text-primary" />
               <Text className="font-bold text-2xl">Match Overview</Text>
             </View>
-            <Text className="text-xl text-muted-foreground font-semibold">
+            <Text className="text-lg text-muted-foreground font-semibold">
               Matches are head-to-head competitions where you and an opponent
               compete to build the most profitable parlays using available props
               from live sports events.
@@ -103,7 +103,7 @@ export default function MatchesHelp({
         }}
       >
         <Card>
-          <CardContent className="flex flex-col gap-6 p-6">
+          <CardContent className="flex flex-col gap-4 p-6">
             <View className="flex flex-row items-center gap-2">
               <Play className="text-primary" />
               <Text className="font-bold text-2xl">Match Types</Text>
@@ -143,12 +143,12 @@ export default function MatchesHelp({
         }}
       >
         <Card>
-          <CardContent className="flex flex-col gap-6 p-6">
+          <CardContent className="flex flex-col gap-4 p-6">
             <View className="flex flex-row items-center gap-2">
               <Gavel className="text-primary" />
               <Text className="font-bold text-2xl">Match Guidelines</Text>
             </View>
-            <Text className="text-xl text-muted-foreground font-semibold">
+            <Text className="text-lg text-muted-foreground font-semibold">
               To incentive risk and ensure fair play, matches have guidelines
               that users must meet or they will be disqualified.
             </Text>
@@ -182,21 +182,14 @@ export default function MatchesHelp({
         }}
       >
         <Card>
-          <CardContent className="flex flex-col gap-6 p-6">
+          <CardContent className="flex flex-col gap-4 p-6">
             <View className="flex flex-row items-center gap-2">
               <Blocks className="text-primary" />
               <Text className="font-bold text-2xl">Building Parlays</Text>
             </View>
-            <Text className="text-xl text-muted-foreground font-semibold">
+            <Text className="text-lg text-muted-foreground font-semibold">
               Parlays also have some guidelines to ensure fairness.
             </Text>
-            <View className="flex flex-col gap-1">
-              <Text className="font-bold text-xl">Prop Guidelines</Text>
-              <Text className="text-muted-foreground font-semibold">
-                Once you bet on a player prop in one competitive match, you
-                cannot bet on that same prop in other matches. Bet wisely!
-              </Text>
-            </View>
             <View className="flex flex-col gap-1">
               <Text className="font-bold text-xl">Max Parlay Picks</Text>
               <Text className="text-muted-foreground font-semibold">
@@ -238,7 +231,7 @@ export default function MatchesHelp({
         }}
       >
         <Card>
-          <CardContent className="flex flex-col gap-6 p-6">
+          <CardContent className="flex flex-col gap-4 p-6">
             <View className="flex flex-row items-center gap-2">
               <Clock className="text-primary" />
               <Text className="font-bold text-2xl">Match Timeline</Text>
