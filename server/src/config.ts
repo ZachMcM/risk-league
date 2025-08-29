@@ -2,6 +2,7 @@ export const MIN_PARLAYS_REQUIRED = 2
 export const MIN_STARTING_BALANCE = 200
 export const MAX_STARTING_BALANCE = 400
 export const MIN_PCT_TOTAL_STAKED = 0.6
+export const MIN_STAKE_PCT = 0.2;
 
 export const K = 32
 

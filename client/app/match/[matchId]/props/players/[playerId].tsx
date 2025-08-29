@@ -16,28 +16,21 @@ export default function Player() {
   const matchId = parseInt(searchParams.matchId);
   const playerId = parseInt(searchParams.playerId);
 
-  const { data: match } = useQuery({
-    queryKey: ["match", matchId],
-    queryFn: async () => await getMatch(matchId),
-  });
-
   const { data: currentUserData } = authClient.useSession();
 
   const { data: props, isPending: arePropsPending } = useQuery({
     queryKey: [
       "player-props",
-      match?.type,
+      "match",
+      matchId,
       playerId,
-      match?.league,
       currentUserData?.user.id,
     ],
     queryFn: async () =>
-      await getTodayPlayerProps(
-        match?.league!,
-        match?.type as "competitive" | "friendly",
-        playerId
-      ),
-    enabled: !!match,
+      await getTodayPlayerProps({
+        playerId,
+        matchId,
+      }),
     staleTime: 1440 * 60 * 1000,
   });
 

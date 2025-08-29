@@ -24,18 +24,23 @@ export default function PlayCard({
   const nflImage = require("~/assets/images/nfl.jpeg");
   const ncaabbImage = require("~/assets/images/ncaabb.jpeg");
   const ncaafbImage = require("~/assets/images/ncaafb.jpeg");
-
-  const { data: currentUserData } = authClient.useSession();
-
+  
   const { data: props, isPending: arePropsPending } = useQuery({
-    queryKey: ["props", "competitive", league, currentUserData?.user.id],
-    queryFn: async () => await getTodayProps(league, "competitive"),
+    queryKey: ["props", league],
+    queryFn: async () =>
+      await getTodayProps({
+        league,
+      }),
     staleTime: 1440 * 60 * 1000,
   });
 
   return (
     <Card
-      className={cn("w-[48%] self-stretch", arePropsPending && "animate-pulse", (!arePropsPending && props?.length == 0 && "opacity-60"))}
+      className={cn(
+        "w-[48%] self-stretch",
+        arePropsPending && "animate-pulse",
+        !arePropsPending && props?.length == 0 && "opacity-60"
+      )}
     >
       <CardContent className="p-0 flex-1 flex flex-col">
         <View className={"relative overflow-hidden h-32"}>

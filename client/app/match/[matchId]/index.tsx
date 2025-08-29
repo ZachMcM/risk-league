@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect } from "react";
 import { ActivityIndicator, View } from "react-native";
@@ -7,7 +7,7 @@ import ParlaysView from "~/components/parlays/ParlaysView";
 import { Button } from "~/components/ui/button";
 import { ScrollContainer } from "~/components/ui/scroll-container";
 import { Text } from "~/components/ui/text";
-import { getMatch, getParlays } from "~/endpoints";
+import { getMatch, getParlays, getTodayProps } from "~/endpoints";
 import { authClient } from "~/lib/auth-client";
 import { Plus } from "~/lib/icons/Plus";
 
@@ -28,9 +28,8 @@ export default function Match() {
   });
 
   const { data: parlays, isPending: areParlaysPending } = useQuery({
-    queryKey: ["parlays", match?.type, matchId, currentUserData?.user.id!],
+    queryKey: ["parlays", "match", matchId, currentUserData?.user.id!],
     queryFn: async () => await getParlays({ matchId }),
-    enabled: !!match,
   });
 
   useEffect(() => {
@@ -78,7 +77,7 @@ export default function Match() {
                       className="flex flex-row items-center gap-2 rounded-full h-10"
                     >
                       <Plus className="text-background" size={18} />
-                      <Text>New Parlay</Text>
+                      <Text>Create Parlay</Text>
                     </Button>
                   )}
                 </View>

@@ -362,9 +362,7 @@ dynastyLeaguesRoute.get(
       const dynastyResults = await db.query.dynastyLeague.findMany({
         where: or(
           ilike(dynastyLeague.title, `%${query}%`),
-          sql`exists(select 1 from unnest(${
-            dynastyLeague.tags
-          }) as tag where tag ilike ${`%${query}%`})`
+          sql`exists(select 1 from unnest(${dynastyLeague.tags}) as tag where tag ilike ${'%' + query + '%'})`
         ),
       });
 

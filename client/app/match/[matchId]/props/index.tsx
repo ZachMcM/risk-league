@@ -18,35 +18,34 @@ export default function Props() {
   const matchId = parseInt(searchParams.matchId);
   const { data: currentUserData } = authClient.useSession();
 
-  const { data: match } = useQuery({
+  const { data: match, isPending: isMatchPending } = useQuery({
     queryKey: ["match", matchId],
     queryFn: async () => await getMatch(matchId),
   });
 
   const { data: props, isPending: arePropsPending } = useQuery({
-    queryKey: ["props", match?.type, match?.league, currentUserData?.user.id],
+    queryKey: ["props", "match", matchId, currentUserData?.user.id],
     queryFn: async () =>
-      await getTodayProps(
-        match?.league!,
-        match?.type! as "friendly" | "competitive"
-      ),
-    enabled: !!match,
+      await getTodayProps({
+        matchId,
+      }),
     staleTime: 1440 * 60 * 1000,
   });
 
   return (
     <Container className="py-0">
-      {arePropsPending ? (
-        <ActivityIndicator className="text-foreground p-4" />
-      ) : (
-        props !== undefined &&
-        match !== undefined && (
-          <View className="flex flex-col gap-4 flex-1">
-            <GamesList league={match.league} />
-            <PropsView props={props} league={match.league} />
-          </View>
-        )
-      )}
+      <View className="flex flex-col gap-4 flex-1">
+        {isMatchPending ? (
+          <ActivityIndicator className="text-foreground" />
+        ) : (
+          match && <GamesList league={match.league} />
+        )}
+        {arePropsPending || isMatchPending ? (
+          <ActivityIndicator className="text-foreground" />
+        ) : (
+          props && match && <PropsView props={props} league={match.league} />
+        )}
+      </View>
     </Container>
   );
 }

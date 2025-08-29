@@ -18,6 +18,7 @@ import {
 } from "../utils/parlayMultipliers";
 import { io } from "..";
 import { handleError } from "../utils/handleError";
+import { MIN_STAKE_PCT } from "../config";
 
 export const parlaysRoute = Router();
 
@@ -68,7 +69,7 @@ parlaysRoute.get("/parlays", authMiddleware, async (req, res) => {
 
       if (isNaN(matchId)) {
         res.status(400).json({ error: "Invalid matchId" });
-        return
+        return;
       }
 
       const matchUserResult = await db.query.matchUser.findFirst({
@@ -105,14 +106,14 @@ parlaysRoute.get("/parlays", authMiddleware, async (req, res) => {
       }
 
       res.json(matchUserResult.parlays);
-      return
+      return;
     }
 
     const dynastyLeagueId = parseInt(req.query.dynastyLeagueId as string);
 
     if (isNaN(dynastyLeagueId)) {
       res.status(400).json({ error: "Invalid dynastyLeagueId" });
-      return
+      return;
     }
 
     const dynastyLeagueUserResult = await db.query.dynastyLeagueUser.findFirst({
@@ -212,7 +213,7 @@ parlaysRoute.post("/parlays", authMiddleware, async (req, res) => {
 
     if (req.query.matchId) {
       const matchId = parseInt(req.query.matchId as string);
-      if (!matchId) {
+      if (isNaN(matchId)) {
         res.status(400).json({ error: "Invalid matchId" });
         return;
       }
@@ -236,6 +237,11 @@ parlaysRoute.post("/parlays", authMiddleware, async (req, res) => {
 
       if (matchUserResult.balance < stake) {
         res.status(409).json({ error: "Your balance is too small" });
+        return;
+      }
+
+      if (stake < matchUserResult.balance * MIN_STAKE_PCT) {
+        res.status(400).json({ error: "Your stake is too small" });
         return;
       }
 
@@ -264,30 +270,20 @@ parlaysRoute.post("/parlays", authMiddleware, async (req, res) => {
       // Send invalidation message to update client queries
       invalidateQueries(
         ["match", matchId],
-        [
-          "parlays",
-          matchUserResult.match.type,
-          matchId,
-          matchUserResult.userId,
-        ],
-        [
-          "props",
-          matchUserResult.match.type,
-          matchUserResult.match.league,
-          matchUserResult.userId,
-        ],
+        ["parlays", "match", matchId, matchUserResult.userId],
+        ["props", "match", matchUserResult.matchId, matchUserResult.userId],
         ...picks.map((pickEntry) => [
           "player-props",
-          matchUserResult.match.type,
+          "match",
+          matchUserResult.matchId,
           pickEntry.prop.playerId,
-          matchUserResult.match.league,
           matchUserResult.userId,
         ]),
         ["career", matchUserResult.userId]
       );
 
       res.json({ success: true });
-      return
+      return;
     }
     const dynastyLeagueId = parseInt(req.query.dynastyLeagueId as string);
 
@@ -301,9 +297,6 @@ parlaysRoute.post("/parlays", authMiddleware, async (req, res) => {
         eq(dynastyLeagueUser.userId, res.locals.userId!),
         eq(dynastyLeagueUser.dynastyLeagueId, dynastyLeagueId)
       ),
-      with: {
-        dynastyLeague: true,
-      },
     });
 
     if (!dynastyLeagueUserResult) {
@@ -313,6 +306,11 @@ parlaysRoute.post("/parlays", authMiddleware, async (req, res) => {
 
     if (dynastyLeagueUserResult.balance < stake) {
       res.status(409).json({ error: "Your balance is too small" });
+      return;
+    }
+
+    if (stake < dynastyLeagueUserResult.balance * MIN_STAKE_PCT) {
+      res.status(400).json({ error: "Your stake is too small" });
       return;
     }
 
@@ -350,14 +348,14 @@ parlaysRoute.post("/parlays", authMiddleware, async (req, res) => {
       [
         "props",
         "dynasty",
-        dynastyLeagueUserResult.dynastyLeague.league,
+        dynastyLeagueUserResult.dynastyLeagueId,
         dynastyLeagueUserResult.userId,
       ],
       ...picks.map((pickEntry) => [
         "player-props",
         "dynasty",
+        dynastyLeagueUserResult.dynastyLeagueId,
         pickEntry.prop.playerId,
-        dynastyLeagueUserResult.dynastyLeague.league,
         dynastyLeagueUserResult.userId,
       ]),
       ["career", dynastyLeagueUserResult.userId]
@@ -464,13 +462,20 @@ parlaysRoute.patch("/parlays", apiKeyMiddleware, async (req, res) => {
       await db
         .update(matchUser)
         .set({
-          balance: (parlayResult.matchUser.balance + payout),
+          balance: parlayResult.matchUser.balance + payout,
         })
         .where(eq(matchUser.id, parlayResult.matchUserId!));
 
       invalidateQueries(
         ["parlay", parlayResult.id],
+        [
+          "parlays",
+          "match",
+          parlayResult.matchUser.matchId,
+          parlayResult.matchUser.userId,
+        ],
         ["match", parlayResult.matchUser.matchId],
+        ["matches", parlayResult.matchUser.userId, "unresolved"],
         ["career", parlayResult.matchUser.userId]
       );
 
@@ -484,12 +489,18 @@ parlaysRoute.patch("/parlays", apiKeyMiddleware, async (req, res) => {
       await db
         .update(dynastyLeagueUser)
         .set({
-          balance: (parlayResult.dynastyLeagueUser.balance + payout),
+          balance: parlayResult.dynastyLeagueUser.balance + payout,
         })
         .where(eq(dynastyLeagueUser.id, parlayResult.dynastyLeagueUserId!));
 
       invalidateQueries(
         ["parlay", parlayResult.id],
+        [
+          "parlays",
+          "dynasty",
+          parlayResult.dynastyLeagueUser.dynastyLeagueId,
+          parlayResult.dynastyLeagueUser.userId,
+        ],
         [
           "dynastyLeague",
           parlayResult.dynastyLeagueUser.dynastyLeagueId,

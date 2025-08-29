@@ -1,7 +1,8 @@
-import { and, desc, eq, gt, gte, isNull, lt, notInArray } from "drizzle-orm";
+import { and, desc, eq, gt, gte, lt, notInArray } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { Router } from "express";
 import moment from "moment";
+import z from "zod";
 import { db } from "../db";
 import {
   baseballPlayerStats,
@@ -14,98 +15,123 @@ import {
   player,
   prop,
 } from "../db/schema";
-import { logger } from "../logger";
 import { apiKeyMiddleware, authMiddleware } from "../middleware";
-import { handleError } from "../utils/handleError";
-import z from "zod";
 import { redis } from "../redis";
+import { handleError } from "../utils/handleError";
+import { logger } from "../logger";
 
 export const propsRoute = Router();
 
-propsRoute.get("/props/today/players/:playerId", async (req, res) => {
+propsRoute.get("/props/today/players/:playerId", authMiddleware, async (req, res) => {
   try {
-    const league = req.query.league as (typeof leagueType.enumValues)[number];
-    const type = req.query.type as
-      | "competitive"
-      | "friendly"
-      | "dynasty"
-      | undefined;
     const playerId = parseInt(req.params.playerId as string);
 
-    if (
-      league === undefined ||
-      !leagueType.enumValues.includes(league as any) ||
-      isNaN(playerId) ||
-      !type ||
-      !["friendly", "dynasty", "competitive"].includes(type)
-    ) {
+    if (isNaN(playerId)) {
+      res.status(400).json({ error: "Invalid playerId" });
+      return;
+    }
+
+    if (!req.query.matchId && !req.query.dynastyLeagueId) {
       res.status(400).json({
-        error: "League, playerId, or type parameter is invalid",
+        error: "You must provide either a matchId or a dynastyLeagueId",
       });
       return;
     }
 
-    const startOfPreviousDay = moment()
-      .subtract(1, "day")
-      .startOf("day")
-      .toISOString();
-    const endOfDay = moment().endOf("day").toISOString();
-
+    let league;
     const propsPickedAlready: number[] = [];
 
-    if (type == "competitive") {
-      const todayMatches = await db.query.matchUser.findMany({
+    if (req.query.matchId) {
+      const matchId = parseInt(req.query.matchId as string);
+
+      if (isNaN(matchId)) {
+        res.status(400).json({ error: "Invalid matchId" });
+        return;
+      }
+
+      logger.debug(`matchId: ${matchId}`)
+
+      const matchUserResult = await db.query.matchUser.findFirst({
         where: and(
-          gte(matchUser.createdAt, startOfPreviousDay),
-          lt(matchUser.createdAt, endOfDay),
-          eq(matchUser.userId, res.locals.userId!)
+          eq(matchUser.userId, res.locals.userId!),
+          eq(matchUser.matchId, matchId)
         ),
-        columns: {
-          id: true,
-        },
         with: {
           parlays: {
             with: {
-              picks: true,
+              picks: {
+                columns: {
+                  propId: true,
+                },
+              },
             },
           },
           match: {
             columns: {
-              type: true,
+              league: true,
             },
           },
         },
       });
 
-      todayMatches
-        .filter((match) => match.match.type == "competitive")
-        .forEach((match) => {
-          match.parlays.forEach((parlay) => {
-            parlay.picks.forEach((pick) => {
-              propsPickedAlready.push(pick.propId);
-            });
-          });
+      if (!matchUserResult) {
+        res.status(404).json({
+          error: "No matchUser found with the provided credentials",
         });
-    } else if (type == "dynasty") {
-      const unresolvedDynasties = await db.query.dynastyLeagueUser.findMany({
-        where: and(
-          eq(dynastyLeagueUser.userId, res.locals.userId!),
-          isNull(dynastyLeagueUser.placement)
-        ),
-        with: {
-          parlays: {
-            with: {
-              picks: true,
+        return;
+      }
+
+      league = matchUserResult.match.league;
+
+      matchUserResult.parlays.forEach((parlay) => {
+        parlay.picks.forEach((pick) => {
+          propsPickedAlready.push(pick.propId);
+        });
+      });
+    } else {
+      const dynastyLeagueId = parseInt(req.query.dynastyLeagueId as string);
+
+      if (isNaN(dynastyLeagueId)) {
+        res.status(400).json({ error: "Invalid dynastyLeagueId" });
+        return;
+      }
+
+      const dynastyLeagueUserResult =
+        await db.query.dynastyLeagueUser.findFirst({
+          where: and(
+            eq(dynastyLeagueUser.userId, res.locals.userId!),
+            eq(dynastyLeagueUser.dynastyLeagueId, dynastyLeagueId)
+          ),
+          with: {
+            parlays: {
+              with: {
+                picks: {
+                  columns: {
+                    propId: true,
+                  },
+                },
+              },
+            },
+            dynastyLeague: {
+              columns: {
+                league: true,
+              },
             },
           },
-        },
-      });
+        });
 
-      unresolvedDynasties.forEach((dynasty) => {
-        dynasty.parlays.forEach((parlay) => {
-          parlay.picks.forEach((pick) => {
-            propsPickedAlready.push(pick.propId);
-          });
+      if (!dynastyLeagueUserResult) {
+        res.status(404).json({
+          error: "No dynastyLeagueUser found",
+        });
+        return;
+      }
+
+      league = dynastyLeagueUserResult.dynastyLeague.league;
+
+      dynastyLeagueUserResult.parlays.forEach((parlay) => {
+        parlay.picks.forEach((pick) => {
+          propsPickedAlready.push(pick.propId);
         });
       });
     }
@@ -116,6 +142,12 @@ propsRoute.get("/props/today/players/:playerId", async (req, res) => {
         team: true,
       },
     });
+
+    const startOfPreviousDay = moment()
+      .subtract(1, "day")
+      .startOf("day")
+      .toISOString();
+    const endOfDay = moment().endOf("day").toISOString();
 
     const availablePropIds = await db
       .select({ id: prop.id })
@@ -225,22 +257,110 @@ propsRoute.get("/props/today/players/:playerId", async (req, res) => {
 
 propsRoute.get("/props/today", authMiddleware, async (req, res) => {
   try {
-    const league = req.query.league as (typeof leagueType.enumValues)[number];
-    const competitive = req.query.competitive === "false";
-    const type = req.query.type as
-      | "competitive"
-      | "friendly"
-      | "dynasty"
-      | undefined;
+    const propsPickedAlready: number[] = [];
+    let league;
 
-    if (
-      league === undefined ||
-      !leagueType.enumValues.includes(league as any) ||
-      !type ||
-      !["friendly", "dynasty", "competitive"].includes(type)
-    ) {
+    if (req.query.matchId) {
+      const matchId = parseInt(req.query.matchId as string);
+
+      if (isNaN(matchId)) {
+        res.status(400).json({ error: "Invalid matchId" });
+        return;
+      }
+
+      const matchUserResult = await db.query.matchUser.findFirst({
+        where: and(
+          eq(matchUser.userId, res.locals.userId!),
+          eq(matchUser.matchId, matchId)
+        ),
+        with: {
+          parlays: {
+            with: {
+              picks: {
+                columns: {
+                  propId: true,
+                },
+              },
+            },
+          },
+          match: {
+            columns: {
+              league: true,
+            },
+          },
+        },
+      });
+
+      if (!matchUserResult) {
+        res.status(404).json({
+          error: "No matchUser found with the provided credentials",
+        });
+        return;
+      }
+
+      league = matchUserResult.match.league;
+
+      matchUserResult.parlays.forEach((parlay) => {
+        parlay.picks.forEach((pick) => {
+          propsPickedAlready.push(pick.propId);
+        });
+      });
+    } else if (req.query.dynastyLeagueId) {
+      const dynastyLeagueId = parseInt(req.query.dynastyLeagueId as string);
+
+      if (isNaN(dynastyLeagueId)) {
+        res.status(400).json({ error: "Invalid dynastyLeagueId" });
+        return;
+      }
+
+      const dynastyLeagueUserResult =
+        await db.query.dynastyLeagueUser.findFirst({
+          where: and(
+            eq(dynastyLeagueUser.userId, res.locals.userId!),
+            eq(dynastyLeagueUser.dynastyLeagueId, dynastyLeagueId)
+          ),
+          with: {
+            parlays: {
+              with: {
+                picks: {
+                  columns: {
+                    propId: true,
+                  },
+                },
+              },
+            },
+            dynastyLeague: {
+              columns: {
+                league: true,
+              },
+            },
+          },
+        });
+
+      if (!dynastyLeagueUserResult) {
+        res.status(404).json({
+          error: "No matchUser found with the provided credentials",
+        });
+        return;
+      }
+
+      league = dynastyLeagueUserResult.dynastyLeague.league;
+
+      dynastyLeagueUserResult.parlays.forEach((parlay) => {
+        parlay.picks.forEach((pick) => {
+          propsPickedAlready.push(pick.propId);
+        });
+      });
+    } else {
+      league = req.query.league as
+        | (typeof leagueType.enumValues)[number]
+        | undefined;
+    }
+
+    if (!league || !leagueType.enumValues.includes(league)) {
       res.status(400).json({
-        error: "League parameter is invalid",
+        error:
+          "Invalid params, no matchId, dynastLeagueId, or league was provided",
       });
       return;
     }
@@ -250,67 +370,6 @@ propsRoute.get("/props/today", authMiddleware, async (req, res) => {
       .startOf("day")
       .toISOString();
     const endOfDay = moment().endOf("day").toISOString();
-
-    const propsPickedAlready: number[] = [];
-
-    if (competitive) {
-      const todayMatches = await db.query.matchUser.findMany({
-        where: and(
-          gte(matchUser.createdAt, startOfPreviousDay),
-          lt(matchUser.createdAt, endOfDay),
-          eq(matchUser.userId, res.locals.userId!)
-        ),
-        columns: {
-          id: true,
-        },
-        with: {
-          parlays: {
-            with: {
-              picks: true,
-            },
-          },
-          match: {
-            columns: {
-              type: true,
-            },
-          },
-        },
-      });
-
-      todayMatches
-        .filter((match) => match.match.type == "competitive")
-        .forEach((match) => {
-          match.parlays.forEach((parlay) => {
-            parlay.picks.forEach((pick) => {
-              propsPickedAlready.push(pick.propId!);
-            });
-          });
-        });
-    } else if (type == "dynasty") {
-      const unresolvedDynasties = await db.query.dynastyLeagueUser.findMany({
-        where: and(
-          eq(dynastyLeagueUser.userId, res.locals.userId!),
-          isNull(dynastyLeagueUser.placement)
-        ),
-        with: {
-          parlays: {
-            with: {
-              picks: true,
-            },
-          },
-        },
-      });
-
-      unresolvedDynasties.forEach((dynasty) => {
-        dynasty.parlays.forEach((parlay) => {
-          parlay.picks.forEach((pick) => {
-            propsPickedAlready.push(pick.propId);
-          });
-        });
-      });
-    }
-
-    logger.debug(`props already picked: ${propsPickedAlready}`);
 
     const availablePropIds = await db
       .select({

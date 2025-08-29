@@ -190,25 +190,42 @@ export async function postMessage(matchId: number, content: string) {
   });
 }
 
-export async function getTodayProps(
-  league: League,
-  type: "competitive" | "friendly" | "dynasty"
-): Promise<Prop[]> {
+export async function getTodayProps({
+  league,
+  matchId,
+  dynastyLeagueId,
+}: {
+  league?: League;
+  matchId?: number;
+  dynastyLeagueId?: number;
+}): Promise<Prop[]> {
   const todayProps = await serverRequest({
-    endpoint: `/props/today?league=${league}&type=${type}`,
+    endpoint: `/props/today?${
+      matchId
+        ? `matchId=${matchId}`
+        : dynastyLeagueId
+        ? `dynastyLeagueId=${dynastyLeagueId}`
+        : `league=${league}`
+    }`,
     method: "GET",
   });
 
   return todayProps;
 }
 
-export async function getTodayPlayerProps(
-  league: League,
-  type: "competitive" | "friendly" | "dynasty",
-  playerId: number
-): Promise<TodayPlayerProps> {
+export async function getTodayPlayerProps({
+  playerId,
+  matchId,
+  dynastyLeagueId,
+}: {
+  playerId: number;
+  matchId?: number;
+  dynastyLeagueId?: number;
+}): Promise<TodayPlayerProps> {
   const todayPlayerProps = await serverRequest({
-    endpoint: `/props/today/players/${playerId}?league=${league}&type=${type}`,
+    endpoint: `/props/today/players/${playerId}?${
+      matchId ? `matchId=${matchId}` : `dynastyLeagueId=${dynastyLeagueId}`
+    }`,
     method: "GET",
   });
   return todayPlayerProps;

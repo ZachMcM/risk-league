@@ -90,6 +90,11 @@ export default function FinalizeParlayForm({
           position: "top-center",
         });
         router.dismissAll();
+        // TODO add support for navigating to dynasty home as well
+        router.navigate({
+          pathname: "/match/[matchId]",
+          params: { matchId: matchId! }
+        })
       },
     });
 
@@ -276,7 +281,11 @@ export default function FinalizeParlayForm({
                   </View>
                   <Button
                     size="sm"
-                    // TODO router.replace()
+                    // TODO add support for navigating to dynasty home as well
+                    onPress={() => router.navigate({
+                      pathname: "/match/[matchId]",
+                      params: { matchId: matchId! }
+                    })}
                     variant="foreground"
                   >
                     <Text className="font-semibold">Add Picks</Text>
