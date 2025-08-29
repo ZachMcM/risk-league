@@ -35,9 +35,7 @@ export default function Friends() {
       friendship.incomingId == currentUserData?.user.id!
   );
 
-  const {
-    data: friendlyMatchRequests,
-  } = useQuery({
+  const { data: friendlyMatchRequests } = useQuery({
     queryKey: ["friendly-match-requests", currentUserData?.user.id!],
     queryFn: getFriendlyMatchRequests,
   });
@@ -76,13 +74,15 @@ export default function Friends() {
   return (
     <Container className="pt-2 pb-0 px-0">
       <View className="flex flex-col gap-4 flex-1">
-        {friendlyMatchRequests &&
-          friendlyMatchRequests.map((request) => (
-            <FriendlyMatchRequestCard
-              friendlyMatchRequest={request}
-              key={`friendly-match-${request.id}`}
-            />
-          ))}
+        <View className="flex flex-col gap-2 px-4">
+          {friendlyMatchRequests &&
+            friendlyMatchRequests.map((request) => (
+              <FriendlyMatchRequestCard
+                friendlyMatchRequest={request}
+                key={`friendly-match-${request.id}`}
+              />
+            ))}
+        </View>
         <Tabs
           value={tabsValue}
           onValueChange={setTabsValue}

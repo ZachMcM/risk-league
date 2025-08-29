@@ -50,14 +50,14 @@ export default function FriendshipButtons({
     queryFn: async () => await getFriendship(user.id),
   });
 
-  const { mutate: sendFriendRequest } = useMutation({
+  const { mutate: sendFriendRequest, isPending: isSendingRequest } = useMutation({
     mutationFn: async () => await postFriendRequest(user.id),
     onError: (err) => {
       toast.error(err.message, {
         position: "bottom-center",
       });
     },
-    onSettled: () => {
+    onSuccess: () => {
       invalidateQueries(
         queryClient,
         ["friendships", currUserData?.user.id],
@@ -66,14 +66,14 @@ export default function FriendshipButtons({
     },
   });
 
-  const { mutate: removeFriendship } = useMutation({
+  const { mutate: removeFriendship, isPending: isRemovingFriendship } = useMutation({
     mutationFn: async () => await deleteFriendship(user.id),
     onError: (err) => {
       toast.error(err.message, {
         position: "bottom-center",
       });
     },
-    onSettled: () => {
+    onSuccess: () => {
       invalidateQueries(
         queryClient,
         ["friendships", currUserData?.user.id],
@@ -82,14 +82,14 @@ export default function FriendshipButtons({
     },
   });
 
-  const { mutate: acceptFriendRequest } = useMutation({
+  const { mutate: acceptFriendRequest, isPending: isAcceptingFriendship } = useMutation({
     mutationFn: async () => await patchFriendRequest(user.id),
     onError: (err) => {
       toast.error(err.message, {
         position: "bottom-center",
       });
     },
-    onSettled: () => {
+    onSuccess: () => {
       invalidateQueries(
         queryClient,
         ["friendships", currUserData?.user.id],
@@ -204,6 +204,7 @@ export default function FriendshipButtons({
             <Button
               variant="outline"
               size="icon"
+              disabled={isRemovingFriendship}
               onPress={() => removeFriendship()}
             >
               <UserMinus size={18} className="text-foreground" />
@@ -215,6 +216,7 @@ export default function FriendshipButtons({
             <Button
               variant="outline"
               size="icon"
+              disabled={isRemovingFriendship}
               onPress={() => removeFriendship()}
             >
               <X className="text-foreground" size={18} />
@@ -222,6 +224,7 @@ export default function FriendshipButtons({
             <Button
               variant="outline"
               size="icon"
+              disabled={isAcceptingFriendship}
               onPress={() => acceptFriendRequest()}
             >
               <Check className="text-foreground" size={18} />
@@ -237,6 +240,7 @@ export default function FriendshipButtons({
         )
       ) : (
         <Button
+          disabled={isSendingRequest}
           onPress={() => sendFriendRequest()}
           variant="outline"
           size="icon"

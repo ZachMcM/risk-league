@@ -76,6 +76,7 @@ export function FriendlyMatchRequestCard({
               size="sm"
               variant="foreground"
               className="flex flex-row items-center gap-1"
+              disabled={isFriendlyMatchRequestAccepting}
               onPress={() => acceptFriendlyMatchRequest()}
             >
               {isFriendlyMatchRequestAccepting ? (
@@ -91,11 +92,12 @@ export function FriendlyMatchRequestCard({
             variant="destructive"
             className="flex flex-row items-center gap-1"
             onPress={() => declineFriendlyMatchRequest()}
+            disabled={isFriendlyMatchRequestDeclining}
           >
             {isFriendlyMatchRequestDeclining ? (
-              <ActivityIndicator className="text-destructive-foreground" />
+              <ActivityIndicator className="text-destructive" />
             ) : (
-              <X className="text-destructive-foreground" size={18} />
+              <X className="text-destructive" size={18} />
             )}
             <Text>
               {isIncomingUser

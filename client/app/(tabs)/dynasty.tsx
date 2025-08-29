@@ -25,7 +25,7 @@ export default function Dynasty() {
     <Container className="pt-2 pb-0 px-0">
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList>
-          <TabsTrigger value="in-progress">
+          <TabsTrigger value="my-leagues">
             <Text>My Leagues ({leagues?.length})</Text>
           </TabsTrigger>
           <TabsTrigger value="invites">

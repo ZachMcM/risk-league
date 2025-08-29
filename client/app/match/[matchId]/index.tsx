@@ -10,8 +10,7 @@ import { Text } from "~/components/ui/text";
 import {
   getMatch,
   getParlays,
-  getTodayGames,
-  getTodayProps,
+  getTodayProps
 } from "~/endpoints";
 import { authClient } from "~/lib/auth-client";
 import { Plus } from "~/lib/icons/Plus";
@@ -45,13 +44,6 @@ export default function Match() {
       await getTodayProps({
         matchId,
       }),
-    staleTime: 1440 * 60 * 1000,
-  });
-
-  queryClient.prefetchQuery({
-    queryKey: ["games", "today", match?.league],
-    queryFn: async () => await getTodayGames(match?.league!),
-    staleTime: 1440 * 60 * 1000,
   });
 
   useEffect(() => {
