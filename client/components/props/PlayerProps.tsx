@@ -101,7 +101,7 @@ export default function PlayerProps({
                   <View className="flex flex-row items-center gap-3">
                     <AccordionTrigger />
                     <View className="flex flex-col">
-                      <Text className="font-bold text-xl">{prop.line}</Text>
+                      <Text className="font-bold text-2xl text-primary">{prop.line}</Text>
                       <Text className="text-muted-foreground">
                         {prop.statDisplayName}
                       </Text>
