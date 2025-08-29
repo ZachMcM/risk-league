@@ -28,7 +28,7 @@ export default function PlayCard({
   const { data: currentUserData } = authClient.useSession();
 
   const { data: props, isPending: arePropsPending } = useQuery({
-    queryKey: ["props", league, currentUserData?.user.id, "competitive"],
+    queryKey: ["props", "competitive", league, currentUserData?.user.id],
     queryFn: async () => await getTodayProps(league, "competitive"),
     staleTime: 1440 * 60 * 1000,
   });

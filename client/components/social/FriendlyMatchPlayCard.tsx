@@ -19,7 +19,7 @@ export default function FriendlyMatchPlayCard({
   const { data: currentUserData } = authClient.useSession();
 
   const { data: props, isPending: arePropsPending } = useQuery({
-    queryKey: ["props", league, currentUserData?.user.id, "friendly"],
+    queryKey: ["props", "friendly", league, currentUserData?.user.id],
     queryFn: async () => await getTodayProps(league, "friendly"),
     staleTime: 1440 * 60 * 1000,
   });

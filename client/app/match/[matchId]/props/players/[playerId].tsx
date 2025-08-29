@@ -26,10 +26,10 @@ export default function Player() {
   const { data: props, isPending: arePropsPending } = useQuery({
     queryKey: [
       "player-props",
+      match?.type,
       playerId,
       match?.league,
       currentUserData?.user.id,
-      match?.type,
     ],
     queryFn: async () =>
       await getTodayPlayerProps(
@@ -40,7 +40,7 @@ export default function Player() {
     enabled: !!match,
     staleTime: 1440 * 60 * 1000,
   });
-  
+
   return (
     <ModalContainer>
       <ScrollContainer className="pt-10">

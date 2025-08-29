@@ -1,13 +1,12 @@
+import { router, useLocalSearchParams } from "expo-router";
 import { createContext, ReactNode, useContext, useState } from "react";
 import { View } from "react-native";
-import { Prop } from "~/types/prop";
-import { Text } from "../ui/text";
-import { Button } from "../ui/button";
-import { truncate } from "lodash";
-import { router, useLocalSearchParams } from "expo-router";
-import { toast } from "sonner-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { toast } from "sonner-native";
+import { Prop } from "~/types/prop";
 import { getPerfectPlayMultiplier } from "~/utils/multiplierUtils";
+import { Button } from "../ui/button";
+import { Text } from "../ui/text";
 
 type Pick = {
   prop: Prop;

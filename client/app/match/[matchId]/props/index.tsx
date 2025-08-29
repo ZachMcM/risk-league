@@ -24,7 +24,7 @@ export default function Props() {
   });
 
   const { data: props, isPending: arePropsPending } = useQuery({
-    queryKey: ["props", match?.league, currentUserData?.user.id, match?.type],
+    queryKey: ["props", match?.type, match?.league, currentUserData?.user.id],
     queryFn: async () =>
       await getTodayProps(
         match?.league!,

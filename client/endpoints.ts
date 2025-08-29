@@ -2,11 +2,7 @@ import { authClient } from "./lib/auth-client";
 import { League } from "./lib/config";
 import * as ImagePicker from "expo-image-picker";
 import { LeaderboardPage } from "./types/leaderboard";
-import {
-  ExtendedMatch,
-  FriendlyMatchRequest,
-  Match,
-} from "./types/match";
+import { ExtendedMatch, FriendlyMatchRequest, Match } from "./types/match";
 import { Parlay, Pick } from "./types/parlay";
 import { Game, Prop, TodayPlayerProps } from "./types/prop";
 import { Rank } from "./types/rank";
@@ -236,25 +232,40 @@ export async function getPick(id: number): Promise<Pick> {
   return pick;
 }
 
-export async function getParlays(matchId: number): Promise<Parlay[]> {
+export async function getParlays({
+  dynastyLeagueId,
+  matchId,
+}: {
+  matchId?: number;
+  dynastyLeagueId?: number;
+}): Promise<Parlay[]> {
   const parlays = await serverRequest({
-    endpoint: `/parlays?matchId=${matchId}`,
+    endpoint: `/parlays?${
+      matchId ? `matchId=${matchId}` : `dynastyLeagueId=${dynastyLeagueId}`
+    }`,
     method: "GET",
   });
 
   return parlays;
 }
 
-export async function postMatchParlay(
-  matchId: number,
+export async function postParlay({
+  parlay,
+  matchId,
+  dynastyLeagueId,
+}: {
   parlay: {
     type: string;
     stake: number;
     picks: { prop: Prop; choice: string }[];
-  }
-): Promise<{ id: number }> {
+  };
+  matchId?: number;
+  dynastyLeagueId?: number;
+}): Promise<{ id: number }> {
   return await serverRequest({
-    endpoint: `/parlays/matches/${matchId}`,
+    endpoint: `/parlays?${
+      matchId ? `matchId=${matchId}` : `dynastyLeagueId=${dynastyLeagueId}`
+    }`,
     method: "POST",
     body: JSON.stringify(parlay),
   });

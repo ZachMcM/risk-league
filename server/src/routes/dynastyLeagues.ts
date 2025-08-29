@@ -107,6 +107,7 @@ dynastyLeaguesRoute.post(
 
       if (memberExists) {
         res.status(409).json({ error: "You are already a member" });
+        return;
       }
 
       const dynastyLeagueResult = await db.query.dynastyLeague.findFirst({
@@ -140,14 +141,17 @@ dynastyLeaguesRoute.post(
       await db.insert(dynastyLeagueUser).values({
         userId: res.locals.userId!,
         startingBalance: dynastyLeagueResult.startingBalance,
+        balance: dynastyLeagueResult.startingBalance,
         role: "member",
         dynastyLeagueId,
       });
 
       invalidateQueries(
         ["dynasty-leagues", res.locals.userId!, "unresolved"],
-        ["dynasty-league", "users", dynastyLeagueId]
+        ["dynasty-league", dynastyLeagueId, "users"]
       );
+
+      res.json({ success: true });
     } catch (error) {
       handleError(error, res, "Dynasty Leagues");
     }
@@ -192,7 +196,7 @@ dynastyLeaguesRoute.patch(
       invalidateQueries(
         ["dynasty-league-invitations", updatedInvite.incomingId],
         ["dynasty-leagues", updatedInvite.incomingId, "unresolved"],
-        ["dynasty-league", "users", updatedInvite.dynastyLeagueId]
+        ["dynasty-league", updatedInvite.dynastyLeagueId, "users"]
       );
 
       res.json({ success: true });
@@ -259,6 +263,7 @@ dynastyLeaguesRoute.post(
           res
             .status(401)
             .json({ error: "You are unauthorized to send invites" });
+          return;
         }
       }
 
@@ -334,25 +339,7 @@ dynastyLeaguesRoute.get(
         return;
       }
 
-      const [placeResult] = await db
-        .select({
-          place:
-            sql<number>`rank() over (order by ${dynastyLeagueUser.balance} desc)`.as(
-              "place"
-            ),
-        })
-        .from(dynastyLeagueUser)
-        .where(
-          and(
-            eq(dynastyLeagueUser.dynastyLeagueId, dynastyLeagueId),
-            eq(dynastyLeagueUser.userId, res.locals.userId!)
-          )
-        );
-
-      res.json({
-        ...dynastyLeagueUserResult,
-        currentPlace: placeResult.place,
-      });
+      res.json(dynastyLeagueUserResult);
     } catch (error) {
       handleError(error, res, "Dynasty Leagues");
     }

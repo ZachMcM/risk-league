@@ -4,7 +4,7 @@ import { useState } from "react";
 import { ActivityIndicator, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
-import MessagesList from "~/components/matches/MessagesList";
+import MessagesList from "~/components/messages/MessagesList";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import ModalContainer from "~/components/ui/modal-container";

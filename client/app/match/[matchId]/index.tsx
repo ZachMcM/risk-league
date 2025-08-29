@@ -28,8 +28,9 @@ export default function Match() {
   });
 
   const { data: parlays, isPending: areParlaysPending } = useQuery({
-    queryKey: ["parlays", matchId, currentUserData?.user.id!],
-    queryFn: async () => await getParlays(matchId),
+    queryKey: ["parlays", match?.type, matchId, currentUserData?.user.id!],
+    queryFn: async () => await getParlays({ matchId }),
+    enabled: !!match,
   });
 
   useEffect(() => {
