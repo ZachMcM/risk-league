@@ -62,7 +62,7 @@ export default function PropCard({ prop }: { prop: Prop }) {
               {prop.statDisplayName}
             </Text>
           </View>
-          <View className="flex flex-row items-center justify-center gap-1.5">
+          <View className="flex flex-row items-center justify-center gap-1">
             {prop.choices.map((choice, i) => (
               <Button
                 onPress={() => {
@@ -78,23 +78,14 @@ export default function PropCard({ prop }: { prop: Prop }) {
                   }
                 }}
                 className={cn(
-                  "h-10 flex-grow flex-1 flex-row justify-center items-center bg-foreground border border-secondary",
+                  "h-10 flex-grow flex-1 flex-row justify-center items-center bg-secondary border border-secondary",
                   getPickChoice(prop.id) == choice &&
                     "border-primary bg-primary/20"
                 )}
                 size="sm"
                 key={`${prop.id}_option_${i}`}
               >
-                <Text
-                  className={cn(
-                    "capitalize font-semibold",
-                    getPickChoice(prop.id) == choice
-                      ? "text-foreground"
-                      : "text-background"
-                  )}
-                >
-                  {choice}
-                </Text>
+                <Text className="capitalize">{choice}</Text>
               </Button>
             ))}
           </View>
