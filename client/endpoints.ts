@@ -174,8 +174,29 @@ export async function getMatch(id: number): Promise<ExtendedMatch> {
   return match;
 }
 
-export async function getDynastyLeagues(
-): Promise<DynastyLeague[]> {
+export async function postDynastyLeague(
+  dynastyLeague: Omit<
+    DynastyLeague,
+    "id" | "createdAt" | "resolved" | "userCount"
+  >
+) {
+  await serverRequest({
+    endpoint: "/dynastyLeagues",
+    method: "POST",
+    body: JSON.stringify(dynastyLeague),
+  });
+}
+
+export async function getDynastyLeague(id: number): Promise<DynastyLeague> {
+  const league = await serverRequest({
+    endpoint: `/dynastyLeagues/${id}`,
+    method: "GET"
+  })
+
+  return league
+}
+
+export async function getDynastyLeagues(): Promise<DynastyLeague[]> {
   const leagues = await serverRequest({
     endpoint: `/dynastyLeagues`,
     method: "GET",

@@ -35,7 +35,9 @@ dynastyLeaguesRoute.post(
 
       dynastyLeagueSchema.parse(body);
 
-      if (body.startDate > body.endDate) {
+      if (
+        new Date(body.startDate).getTime() > new Date(body.endDate).getTime()
+      ) {
         res.json({ error: "Invalid start and end dates" });
         return;
       }
@@ -388,16 +390,11 @@ dynastyLeaguesRoute.get(
         return;
       }
 
-      const responseData = {
-        ...dynastyLeagueUserResult,
-        dynastyLeague: {
-          ...dynastyLeagueUserResult.dynastyLeague,
-          userCount:
-            dynastyLeagueUserResult.dynastyLeague.dynastyLeagueUsers.length,
-        },
-      };
-
-      res.json(responseData);
+      res.json({
+        ...dynastyLeagueUserResult.dynastyLeague,
+        userCount:
+          dynastyLeagueUserResult.dynastyLeague.dynastyLeagueUsers.length,
+      });
     } catch (error) {
       handleError(error, res, "Dynasty Leagues");
     }

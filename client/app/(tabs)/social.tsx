@@ -88,7 +88,7 @@ export default function Friends() {
         <Tabs
           value={tabsValue}
           onValueChange={setTabsValue}
-          className="flex-col gap-4 flex-1 flex"
+          className="flex-col flex-1 flex"
         >
           <TabsList>
             <TabsTrigger value="friends">
@@ -108,18 +108,22 @@ export default function Friends() {
               <Search className="text-muted-foreground" size={16} />
             </TabsTrigger>
           </TabsList>
-          <TabsContent value="search" className="flex flex-1 flex-col gap-4">
+          <TabsContent
+            value="search"
+            className="flex flex-1 flex-col gap-4 p-4"
+          >
             <SearchBar
               value={searchQuery}
               onChangeText={(val) => {
                 setSearchQuery(val);
                 debounceRequest();
               }}
+              className="bg-input/30 rounded-full"
             />
             {isSearchPending ? (
               <ActivityIndicator className="text-foreground" />
             ) : searchResults?.length == 0 ? (
-              <View className="flex flex-col gap-4 p-4 items-center">
+              <View className="flex flex-col gap-4 items-center">
                 <View className="flex flex-col gap-1 items-center">
                   <Search size={28} className="text-muted-foreground" />
                   <Text className="font-bold text-2xl text-center">
@@ -138,7 +142,7 @@ export default function Friends() {
               <FlashList
                 data={searchResults}
                 contentContainerStyle={{
-                  paddingBottom: 12,
+                  paddingBottom: 24,
                 }}
                 estimatedItemSize={60}
                 showsVerticalScrollIndicator={false}
@@ -153,9 +157,9 @@ export default function Friends() {
           </TabsContent>
           <TabsContent value="requests" className="flex-1">
             {areFriendshipsPending ? (
-              <ActivityIndicator className="text-foreground p-4" />
+              <ActivityIndicator className="text-foreground p-8" />
             ) : !friendRequests || friendRequests.length == 0 ? (
-              <View className="flex flex-col gap-4 p-4 items-center">
+              <View className="flex flex-col gap-4 p-8 items-center">
                 <View className="flex flex-col gap-1 items-center">
                   <Text className="font-bold text-2xl text-center">
                     No Requests
@@ -168,7 +172,8 @@ export default function Friends() {
             ) : (
               <FlashList
                 contentContainerStyle={{
-                  paddingBottom: 12,
+                  paddingHorizontal: 12,
+                  paddingVertical: 16,
                 }}
                 estimatedItemSize={60}
                 showsVerticalScrollIndicator={false}
@@ -184,9 +189,9 @@ export default function Friends() {
           </TabsContent>
           <TabsContent value="friends" className="flex-1">
             {areFriendshipsPending ? (
-              <ActivityIndicator className="text-foreground" />
+              <ActivityIndicator className="text-foreground p-8" />
             ) : !friends || friends.length == 0 ? (
-              <View className="flex flex-col gap-4 p-4 items-center">
+              <View className="flex flex-col gap-4 p-8 items-center">
                 <View className="flex flex-col gap-4 items-center">
                   <View className="flex flex-col gap-1 items-center">
                     <Text className="font-bold text-2xl text-center">
@@ -209,7 +214,8 @@ export default function Friends() {
               <FlashList
                 data={friends}
                 contentContainerStyle={{
-                  paddingBottom: 12,
+                  paddingHorizontal: 12,
+                  paddingVertical: 16,
                 }}
                 estimatedItemSize={60}
                 showsVerticalScrollIndicator={false}

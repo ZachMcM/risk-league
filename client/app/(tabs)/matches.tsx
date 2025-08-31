@@ -37,7 +37,7 @@ export default function Matches() {
       <Tabs
         value={matchStatus}
         onValueChange={setMatchStatus}
-        className="flex flex-1 flex-col gap-4"
+        className="flex flex-1 flex-col"
       >
         <TabsList>
           <TabsTrigger value="in-progress">
@@ -49,9 +49,9 @@ export default function Matches() {
         </TabsList>
         <TabsContent value="in-progress" className="flex-1">
           {unresolvedMatchesPending ? (
-            <ActivityIndicator className="text-foreground" />
+            <ActivityIndicator className="text-foreground p-8" />
           ) : !unresolvedMatches || unresolvedMatches.length == 0 ? (
-            <View className="flex flex-col gap-4 p-4 items-center">
+            <View className="flex flex-col gap-4 p-8 items-center">
               <View className="flex flex-col gap-1 items-center">
                 <Text className="font-bold text-2xl text-center">
                   No matches in progress
@@ -73,11 +73,12 @@ export default function Matches() {
               showsVerticalScrollIndicator={false}
               data={unresolvedMatches}
               contentContainerStyle={{
-                paddingBottom: 12,
+                paddingHorizontal: 12,
+                paddingVertical: 16
               }}
               estimatedItemSize={166}
               renderItem={({ item, index }) => (
-                <GridItemWrapper index={index} numCols={1} gap={12}>
+                <GridItemWrapper index={index} numCols={1} gap={16}>
                   <MatchListCard initialData={item} />
                 </GridItemWrapper>
               )}
@@ -85,11 +86,11 @@ export default function Matches() {
             />
           )}
         </TabsContent>
-        <TabsContent value="completed" className="flex-1 p-4">
+        <TabsContent value="completed" className="flex-1">
           {resolvedMatchesPending ? (
-            <ActivityIndicator className="text-foreground" />
+            <ActivityIndicator className="text-foreground p-8" />
           ) : !resolvedMatches || resolvedMatches.length == 0 ? (
-            <View className="flex flex-col gap-4 p-4 items-center">
+            <View className="flex flex-col gap-4 p-8 items-center">
               <View className="flex flex-col gap-1 items-center">
                 <Text className="font-bold text-2xl text-center">
                   No completed matches
@@ -110,12 +111,13 @@ export default function Matches() {
             <FlashList
               showsVerticalScrollIndicator={false}
               contentContainerStyle={{
-                paddingBottom: 12,
+                paddingHorizontal: 12,
+                paddingVertical: 16
               }}
               estimatedItemSize={166}
               data={resolvedMatches}
               renderItem={({ item, index }) => (
-                <GridItemWrapper index={index} numCols={1} gap={12}>
+                <GridItemWrapper index={index} numCols={1} gap={16}>
                   <MatchListCard initialData={item} />
                 </GridItemWrapper>
               )}

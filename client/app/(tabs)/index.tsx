@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { useState } from "react";
 import { ScrollView, View } from "react-native";
+import CompetitiveMatchLeagues from "~/components/matches/CompetitiveMatchLeagues";
 import PlayButton from "~/components/matches/PlayButton";
 import OnboardingDialog from "~/components/onboarding/OnboardingDialog";
 import ProfileBanner from "~/components/social/ProfileBanner";
@@ -165,22 +166,7 @@ export default function Home() {
             </View>
           )
         )}
-        <View className="flex flex-col gap-4 w-full">
-          <Text className="text-3xl font-bold">Competitive</Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{
-              display: "flex",
-              gap: 12,
-              paddingRight: 16,
-            }}
-          >
-            {LEAGUES.map((league) => (
-              <PlayButton key={league} league={league} />
-            ))}
-          </ScrollView>
-        </View>
+        <CompetitiveMatchLeagues/>
       </View>
     </ScrollContainer>
   );

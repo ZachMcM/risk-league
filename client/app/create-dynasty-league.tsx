@@ -1,11 +1,20 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
+import { router } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { Pressable, ScrollView, TextInput, View } from "react-native";
+import {
+  ActivityIndicator,
+  Pressable,
+  ScrollView,
+  TextInput,
+  View,
+} from "react-native";
 import { FakeCurrencyInput } from "react-native-currency-input";
 import DateTimePicker, {
   useDefaultClassNames,
 } from "react-native-ui-datepicker";
+import { toast } from "sonner-native";
 import z from "zod";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
@@ -21,9 +30,11 @@ import {
 import { ScrollContainer } from "~/components/ui/scroll-container";
 import { Switch } from "~/components/ui/switch";
 import { Text } from "~/components/ui/text";
+import { postDynastyLeague } from "~/endpoints";
 import { LEAGUES } from "~/lib/config";
 import { ChevronDown } from "~/lib/icons/ChevronDown";
 import { CircleX } from "~/lib/icons/CircleX";
+import { DynastyLeague } from "~/types/dynastyLeague";
 import { cn } from "~/utils/cn";
 
 const dynastyLeagueSchema = z.object({
@@ -54,6 +65,8 @@ export default function CreateDynastyLeague() {
     resolver: zodResolver(dynastyLeagueSchema),
     defaultValues: {
       tags: [],
+      startingBalance: 100,
+      inviteOnly: false
     },
   });
 
@@ -81,7 +94,40 @@ export default function CreateDynastyLeague() {
 
   const defaultClassNames = useDefaultClassNames();
 
-  function onSubmit() {}
+  const { mutate: createLeague, isPending: isCreatingLeaguePending } =
+    useMutation({
+      mutationFn: async (
+        league: Omit<
+          DynastyLeague,
+          "id" | "createdAt" | "resolved" | "userCount"
+        >
+      ) => await postDynastyLeague(league),
+      onSuccess: () => {
+        toast.success("Successfully created league")
+        router.dismissAll()
+        // TODO navigate to actual dynasty page
+        router.navigate("/(tabs)/dynasty")
+      }
+    });
+
+  function onSubmit({
+    dates,
+    startingBalance,
+    title,
+    tags,
+    inviteOnly,
+    league,
+  }: FormValues) {
+    createLeague({
+      startingBalance,
+      title,
+      tags,
+      inviteOnly,
+      league,
+      startDate: dates.startDate.toISOString(),
+      endDate: dates.endDate.toISOString(),
+    });
+  }
 
   return (
     <ModalContainer>
@@ -126,7 +172,7 @@ export default function CreateDynastyLeague() {
                   value={value}
                   onChangeValue={onChange}
                   prefix="$"
-                  placeholder="$20.00"
+                  placeholder="$100.00"
                   delimiter=","
                   separator="."
                   precision={2}
@@ -226,7 +272,6 @@ export default function CreateDynastyLeague() {
                     />
                   </PopoverContent>
                 </Popover>
-
                 {error && (
                   <Text className="text-destructive">{error.message}</Text>
                 )}
@@ -320,8 +365,16 @@ export default function CreateDynastyLeague() {
             )}
             name="inviteOnly"
           />
-          <Button variant="foreground" onPress={handleSubmit(onSubmit)}>
+          <Button
+            disabled={isCreatingLeaguePending}
+            variant="foreground"
+            className="flex flex-row items-center gap-2"
+            onPress={handleSubmit(onSubmit)}
+          >
             <Text>Submit</Text>
+            {isCreatingLeaguePending && (
+              <ActivityIndicator className="text-background" />
+            )}
           </Button>
         </View>
       </ScrollContainer>
