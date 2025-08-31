@@ -160,7 +160,7 @@ export default function FriendshipButtons({
               <DialogTrigger asChild>
                 <Button
                   size="sm"
-                  className="flex px-4 flex-row gap-1.5 items-center rounded-full"
+                  className="flex flex-row gap-1.5"
                 >
                   <Text className="font-semibold !text-sm">Play</Text>
                   <Play className="text-primary-foreground" size={14} />

@@ -57,7 +57,7 @@ export default function PropCard({ prop }: { prop: Prop }) {
             </Text>
           </View>
           <View className="flex flex-col items-center">
-            <Text className="font-bold text-2xl text-primary">{prop.line}</Text>
+            <Text className="font-bold text-2xl">{prop.line}</Text>
             <Text className="text-muted-foreground">
               {prop.statDisplayName}
             </Text>
@@ -78,14 +78,23 @@ export default function PropCard({ prop }: { prop: Prop }) {
                   }
                 }}
                 className={cn(
-                  "h-10 flex-grow flex-1 flex-row justify-center items-center bg-secondary border border-secondary",
+                  "h-10 flex-grow flex-1 flex-row justify-center items-center bg-foreground border border-secondary",
                   getPickChoice(prop.id) == choice &&
                     "border-primary bg-primary/20"
                 )}
                 size="sm"
                 key={`${prop.id}_option_${i}`}
               >
-                <Text className="capitalize font-semibold">{choice}</Text>
+                <Text
+                  className={cn(
+                    "capitalize font-semibold",
+                    getPickChoice(prop.id) == choice
+                      ? "text-foreground"
+                      : "text-background"
+                  )}
+                >
+                  {choice}
+                </Text>
               </Button>
             ))}
           </View>

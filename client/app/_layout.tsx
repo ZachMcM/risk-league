@@ -144,6 +144,13 @@ export function RootNavigatior() {
           name="help"
           options={{ headerShown: false, presentation: "modal" }}
         />
+        <Stack.Screen
+          name="create-dynasty-league"
+          options={{
+            headerShown: false,
+            presentation: "modal",
+          }}
+        />
       </Stack.Protected>
       <Stack.Protected guard={currentUserData == null}>
         <Stack.Screen name="index" options={{ headerShown: false }} />

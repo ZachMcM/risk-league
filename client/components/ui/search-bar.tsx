@@ -8,7 +8,7 @@ export function SearchBar({
   placeholderClassName,
   ...props
 }: TextInputProps & {
-  ref?: React.RefObject<TextInput>;
+  ref?: React.RefObject<TextInput | null>;
 }) {
   return (
     <View

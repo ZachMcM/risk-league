@@ -17,13 +17,13 @@ export default function DynastyHeader() {
     >
       <Text className="font-bold text-4xl">Dynasty</Text>
       <Button
-        // TODO onPress
+        onPress={() => router.navigate("/create-dynasty-league")}
         variant="foreground"
         size="sm"
         className="flex flex-row items-center gap-2 rounded-full h-10"
       >
         <Plus className="text-background" size={18} />
-        <Text>Create League</Text>
+        <Text>Create</Text>
       </Button>
     </View>
   );

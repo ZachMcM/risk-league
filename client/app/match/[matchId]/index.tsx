@@ -67,7 +67,7 @@ export default function Match() {
   }, [searchParams.openSubRoute, searchParams.matchId, router]);
 
   return (
-    <ScrollContainer className="pt-2">
+    <ScrollContainer className="pt-4">
       <View className="flex-1">
         {isMatchPending ? (
           <ActivityIndicator className="text-foreground p-4" />

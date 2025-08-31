@@ -2,7 +2,7 @@ import json
 import sys
 import traceback
 from datetime import datetime
-from time import time
+from time import time, sleep
 from zoneinfo import ZoneInfo
 
 import numpy
@@ -175,7 +175,8 @@ def main() -> None:
                             logger.info(
                                 f"Generated prop for {player['name']} - {config.display_name}: {prop_line}"
                             )
-
+                    sleep(0.5)
+                    
         end = time()
         logger.info(
             f"Script finished executing in {end - start:.2f} seconds. A total of {total_props_generated} props were generated"

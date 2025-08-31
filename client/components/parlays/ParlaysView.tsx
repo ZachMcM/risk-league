@@ -72,7 +72,6 @@ export default function ParlaysView({ parlays }: { parlays: Parlay[] }) {
       {searchActivated ? (
         <View className="flex flex-row items-center gap-3 w-full py-1 h-11">
           <SearchBar
-            // @ts-ignore
             ref={searchBarRef}
             value={searchContent}
             onChangeText={setSearchContent}

@@ -33,7 +33,7 @@ export default function Matches() {
   );
 
   return (
-    <Container className="pt-2 pb-0 px-0">
+    <Container className="pt-4 pb-0 px-0">
       <Tabs
         value={matchStatus}
         onValueChange={setMatchStatus}

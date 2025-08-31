@@ -22,8 +22,12 @@ export default function Dynasty() {
   const [tab, setTab] = useState(areLeaguesPending ? "my-leagues" : "discover");
 
   return (
-    <Container className="pt-2 pb-0 px-0">
-      <Tabs value={tab} onValueChange={setTab}>
+    <Container className="pt-4 pb-0 px-0">
+      <Tabs
+        className="flex flex-1 flex-col gap-4"
+        value={tab}
+        onValueChange={setTab}
+      >
         <TabsList>
           <TabsTrigger value="my-leagues">
             <Text>My Leagues ({leagues?.length})</Text>

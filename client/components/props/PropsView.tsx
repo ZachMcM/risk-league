@@ -62,21 +62,22 @@ export default function PropsView({
 
   return (
     <View className="flex flex-col gap-4 flex-1">
-      <View className="w-full">
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ display: "flex", gap: 12 }}
-        >
-          {uniqueGames.map((game) => (
-            <GameCard key={game.gameId} game={game} />
-          ))}
-        </ScrollView>
-      </View>
+      {uniqueGames.length !== 0 && (
+        <View className="w-full">
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ display: "flex", gap: 12 }}
+          >
+            {uniqueGames.map((game) => (
+              <GameCard key={game.gameId} game={game} />
+            ))}
+          </ScrollView>
+        </View>
+      )}
       {searchActivated ? (
         <View className="flex flex-row items-center gap-3 w-full py-1 h-11">
           <SearchBar
-            // @ts-ignore
             ref={searchBarRef}
             value={searchContent}
             onChangeText={setSearchContent}

@@ -2,7 +2,7 @@ import json
 import sys
 import traceback
 from datetime import datetime
-from time import time
+from time import time, sleep
 from zoneinfo import ZoneInfo
 
 import numpy
@@ -211,10 +211,8 @@ def main():
                                 logger.info(
                                     f"Generated prop for {player['name']} - {config.display_name}: {prop_line}"
                                 )
-                            else:
-                                logger.info(
-                                    f"Prop line is 0 for {player['name']} - {player['position']} for {stat}"
-                                )
+
+                        sleep(0.5)
 
             logger.info(f"{league_props_generated} props generated for {league}")
 
