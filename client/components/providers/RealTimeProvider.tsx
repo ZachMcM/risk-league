@@ -72,7 +72,9 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
             }}
             className="m-3"
             onPress={() => {
-              router.dismissAll();
+              if (router.canDismiss()) {
+                router.dismissAll();
+              }
               toast.dismiss(toastId);
             }}
           >
@@ -112,7 +114,9 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
             }}
             className="m-3"
             onPress={() => {
-              router.dismissAll();
+              if (router.canDismiss()) {
+                router.dismissAll();
+              }
               toast.dismiss(toastId);
             }}
           >
@@ -150,7 +154,9 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
             }}
             className="m-3"
             onPress={() => {
-              router.dismissAll();
+              if (router.canDismiss()) {
+                router.dismissAll();
+              }
               toast.dismiss(toastId);
             }}
           >
@@ -183,7 +189,9 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
             }}
             className="m-3"
             onPress={() => {
-              router.dismissAll();
+              if (router.canDismiss()) {
+                router.dismissAll();
+              }
               toast.dismiss(toastId);
             }}
           >
@@ -218,7 +226,9 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
             }}
             className="m-3"
             onPress={() => {
-              router.dismissAll();
+              if (router.canDismiss()) {
+                router.dismissAll();
+              }
               toast.dismiss(toastId);
             }}
           >
@@ -255,7 +265,9 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
               params: { matchId: message.matchId!, openSubRoute: "messages" },
             }}
             onPress={() => {
-              router.dismissAll();
+              if (router.canDismiss()) {
+                router.dismissAll();
+              }
               toast.dismiss(toastId);
             }}
           >
@@ -287,7 +299,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
     socket.on("dynasty-league-message-received", (message: Message) => {
       if (
         message.userId !== currentUserData?.user.id &&
-        pathname !== `/dynastyLeagues/${message.dynastyLeagueId}/messages`
+        pathname !== `/dynastyLeague/${message.dynastyLeagueId}/messages`
       ) {
         const toastId = toast.custom(
           <Link
@@ -300,7 +312,9 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
               },
             }}
             onPress={() => {
-              router.dismissAll();
+              if (router.canDismiss()) {
+                router.dismissAll();
+              }
               toast.dismiss(toastId);
             }}
           >
@@ -346,7 +360,9 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
               href="/(tabs)/social"
               className="m-3"
               onPress={() => {
-                router.dismissAll();
+                if (router.canDismiss()) {
+                  router.dismissAll();
+                }
                 toast.dismiss(toastId);
               }}
             >
@@ -408,7 +424,9 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
     socket.on(
       "friendly-match-request-accepted",
       ({ matchId }: { matchId: number }) => {
-        router.dismissAll();
+        if (router.canDismiss()) {
+          router.dismissAll();
+        }
         router.navigate({
           pathname: "/match/[matchId]",
           params: { matchId },

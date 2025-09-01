@@ -27,6 +27,7 @@ import {
   getFlexMultiplier,
   getPerfectPlayMultiplier,
 } from "../utils/parlayMultipliers";
+import { logger } from "../logger";
 
 export const dynastyLeaguesRoute = Router();
 
@@ -100,6 +101,7 @@ dynastyLeaguesRoute.get(
               dynastyLeagueUsers: {
                 columns: {
                   id: true,
+                  userId: true,
                 },
               },
             },
@@ -163,6 +165,8 @@ dynastyLeaguesRoute.post(
         return;
       }
 
+      logger.debug(dynastyLeagueId);
+
       const dynastyLeagueResult = await db.query.dynastyLeague.findFirst({
         where: and(
           eq(dynastyLeague.id, dynastyLeagueId),
@@ -172,12 +176,14 @@ dynastyLeaguesRoute.post(
           dynastyLeagueUsers: {
             columns: {
               id: true,
+              userId: true,
             },
           },
         },
       });
 
       if (!dynastyLeagueResult) {
+        logger.debug("HEre");
         res
           .status(404)
           .json({ error: "No Dynasty League with that id exists" });
@@ -253,6 +259,7 @@ dynastyLeaguesRoute.patch(
       invalidateQueries(
         ["dynasty-league-invitations", updatedInvite.incomingId],
         ["dynasty-leagues", updatedInvite.incomingId],
+        ["dynasty-league", updatedInvite.dynastyLeagueId],
         ["dynasty-league", updatedInvite.dynastyLeagueId, "users"]
       );
 
@@ -495,6 +502,55 @@ dynastyLeaguesRoute.post(
 );
 
 dynastyLeaguesRoute.get(
+  "/dynastyLeagues/search",
+  authMiddleware,
+  async (req, res) => {
+    try {
+      const query = (req.query.query as string | undefined) || "";
+
+      if (!query || query.trim().length == 0) {
+        res.json([]);
+
+        return;
+      }
+
+      const leagues = ["MLB", "NBA", "NFL", "NCAAFB", "NCAABB"] as const;
+      const matchingLeagues = leagues.filter((league) =>
+        league.toLowerCase().includes(query.toLowerCase())
+      );
+
+      const dynastyResults = await db.query.dynastyLeague.findMany({
+        where: and(
+          or(
+            ilike(dynastyLeague.title, `%${query}%`),
+            sql`exists(select 1 from unnest(${
+              dynastyLeague.tags
+            }) as tag where tag ilike ${`%${query}%`})`,
+            ...matchingLeagues.map((league) => eq(dynastyLeague.league, league))
+          ),
+          eq(dynastyLeague.resolved, false),
+          eq(dynastyLeague.inviteOnly, false)
+        ),
+        with: {
+          dynastyLeagueUsers: {
+            columns: { id: true, userId: true },
+          },
+        },
+      });
+
+      const resultsWithCount = dynastyResults.map((league) => ({
+        ...league,
+        userCount: league.dynastyLeagueUsers.length,
+      }));
+
+      res.json(resultsWithCount);
+    } catch (error) {
+      handleError(error, res, "Dynasty Leagues");
+    }
+  }
+);
+
+dynastyLeaguesRoute.get(
   "/dynastyLeagues/:id",
   authMiddleware,
   async (req, res) => {
@@ -509,7 +565,7 @@ dynastyLeaguesRoute.get(
         where: and(eq(dynastyLeague.id, dynastyLeagueId)),
         with: {
           dynastyLeagueUsers: {
-            columns: { id: true },
+            columns: { id: true, userId: true },
           },
         },
       });
@@ -529,49 +585,6 @@ dynastyLeaguesRoute.get(
   }
 );
 
-dynastyLeaguesRoute.get(
-  "/dynastyLeagues/search",
-  authMiddleware,
-  async (req, res) => {
-    try {
-      const query = (req.query.query as string | undefined) || "";
-
-      if (!query) {
-        res.json([]);
-
-        return;
-      }
-
-      const dynastyResults = await db.query.dynastyLeague.findMany({
-        where: and(
-          or(
-            ilike(dynastyLeague.title, `%${query}%`),
-            sql`exists(select 1 from unnest(${
-              dynastyLeague.tags
-            }) as tag where tag ilike ${"%" + query + "%"})`
-          ),
-          eq(dynastyLeague.resolved, false)
-        ),
-        with: {
-          dynastyLeagueUsers: {
-            columns: { id: true },
-          },
-        },
-      });
-
-      const resultsWithCount = dynastyResults.map((league) => ({
-        ...league,
-        userCount: league.dynastyLeagueUsers.length,
-        dynastyLeagueUsers: undefined,
-      }));
-
-      res.json(resultsWithCount);
-    } catch (error) {
-      handleError(error, res, "Dynasty Leagues");
-    }
-  }
-);
-
 dynastyLeaguesRoute.get("/dynastyLeagues", authMiddleware, async (req, res) => {
   try {
     const dynastyLeagueUserResults = await db.query.dynastyLeagueUser.findMany({
@@ -580,7 +593,7 @@ dynastyLeaguesRoute.get("/dynastyLeagues", authMiddleware, async (req, res) => {
         dynastyLeague: {
           with: {
             dynastyLeagueUsers: {
-              columns: { id: true, role: true },
+              columns: { id: true, role: true, userId: true },
             },
           },
         },

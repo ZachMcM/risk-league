@@ -231,6 +231,24 @@ export async function getDynastyLeagueInvites(): Promise<
   return invites;
 }
 
+export async function searchDynastyLeagues(
+  query: string
+): Promise<DynastyLeague[]> {
+  const dynastyLeagues = await serverRequest({
+    endpoint: `/dynastyLeagues/search?query=${query}`,
+    method: "GET",
+  });
+
+  return dynastyLeagues;
+}
+
+export async function patchDynastyLeagueJoin(id: number) {
+  await serverRequest({
+    endpoint: `/dynastyLeagues/${id}/join`,
+    method: "POST",
+  });
+}
+
 export async function getMessages({
   matchId,
   dynastyLeagueId,

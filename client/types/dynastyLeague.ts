@@ -13,6 +13,7 @@ export type DynastyLeague = {
   tags: string[];
   inviteOnly: boolean;
   userCount: number;
+  dynastyLeagueUsers: { userId: string }[];
 };
 
 export type DynastyLeagueUser = {

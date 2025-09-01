@@ -68,7 +68,7 @@ export default function Match() {
         <ActivityIndicator className="text-foreground p-4" />
       ) : (
         match && (
-          <View className="flex flex-1 flex-col gap-6">
+          <View className="flex flex-1 flex-col gap-8">
             <MatchDetails match={match} />
             <View className="flex flex-col gap-4">
               <View className="flex flex-row items-end justify-between">

@@ -1,17 +1,10 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import {
-  AlertTriangle,
-  MessageCircle,
-  Plus,
-  Trophy,
-} from "lucide-react-native";
+import { MessageCircle, Plus, Trophy, Users } from "lucide-react-native";
 import { useEffect } from "react";
 import { ActivityIndicator, View } from "react-native";
-import { toast } from "sonner-native";
 import DynastyLeagueDetails from "~/components/dynasty/DynastyLeagueDetails";
 import ParlaysView from "~/components/parlays/ParlaysView";
-import { Alert, AlertTitle } from "~/components/ui/alert";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Icon } from "~/components/ui/icon";
@@ -25,7 +18,6 @@ import {
   getTodayProps,
 } from "~/endpoints";
 import { authClient } from "~/lib/auth-client";
-import { MIN_PARLAYS_REQUIRED, MIN_PCT_TOTAL_STAKED } from "~/lib/config";
 
 export default function DynastyLeague() {
   const searchParams = useLocalSearchParams<{
@@ -101,27 +93,30 @@ export default function DynastyLeague() {
         <ActivityIndicator className="text-foreground" />
       ) : (
         dynastyLeague && (
-          <View className="flex flex-1 flex-col gap-6">
-            <View className="flex flex-row items-center justify-between gap-4">
-              <View className="flex flex-col gap-2 max-w-xs">
-                <View className="flex flex-row items-center gap-2">
-                  <LeagueLogo league={dynastyLeague.league} size={28} />
-                  <Text className="text-xl uppercase font-bold">
-                    {dynastyLeague.league}
+          <View className="flex flex-1 flex-col gap-8">
+            <View className="flex flex-row items-start justify-between gap-4">
+              <View className="flex flex-col gap-3">
+                <View className="flex flex-col gap-1">
+                  <View className="flex flex-row items-center gap-2">
+                    <LeagueLogo league={dynastyLeague.league} size={28} />
+                    <Text className="text-xl uppercase font-bold">
+                      {dynastyLeague.league}
+                    </Text>
+                  </View>
+                  <Text className="text-4xl font-bold">
+                    {dynastyLeague.title}
                   </Text>
                 </View>
-                <Text className="text-4xl font-bold">
-                  {dynastyLeague.title}
-                </Text>
-                <View className="flex flex-row items-center gap-4">
-                  <View className="flex flex-row items-center gap-2 flex-wrap">
-                    {dynastyLeague.tags.map((tag, i) => (
-                      <Badge variant="foreground" key={i}>
-                        <Text>{tag}</Text>
-                      </Badge>
-                    ))}
-                  </View>
-                </View>
+                {areUsersPending ? (
+                  <ActivityIndicator className="text-foreground" />
+                ) : (
+                  dynastyLeagueUsers && (
+                    <DynastyLeagueDetails
+                      dynastyLeague={dynastyLeague}
+                      dynastyLeagueUsers={dynastyLeagueUsers}
+                    />
+                  )
+                )}
               </View>
               <View className="flex flex-row items-center gap-2">
                 <Button
@@ -130,12 +125,12 @@ export default function DynastyLeague() {
                   variant="outline"
                   onPress={() =>
                     router.navigate({
-                      pathname: "/dynastyLeague/[dynastyLeagueId]/messages",
+                      pathname: "/dynastyLeague/[dynastyLeagueId]/users",
                       params: { dynastyLeagueId: dynastyLeagueId },
                     })
                   }
                 >
-                  <Icon as={Trophy} size={16} className="text-foreground" />
+                  <Icon as={Users} size={16} className="text-foreground" />
                 </Button>
                 <Button
                   className="h-10 w-10"
@@ -156,16 +151,6 @@ export default function DynastyLeague() {
                 </Button>
               </View>
             </View>
-            {areUsersPending ? (
-              <ActivityIndicator className="text-foreground" />
-            ) : (
-              dynastyLeagueUsers && (
-                <DynastyLeagueDetails
-                  dynastyLeague={dynastyLeague}
-                  dynastyLeagueUsers={dynastyLeagueUsers}
-                />
-              )
-            )}
             <View className="flex flex-col gap-4">
               <View className="flex flex-row items-end justify-between">
                 <Text className="font-bold text-2xl">Parlays</Text>

@@ -47,7 +47,7 @@ export default function Friends() {
     refetch: reSearch,
     isPending: isSearchPending,
   } = useQuery({
-    queryKey: ["search"],
+    queryKey: ["search-users"],
     queryFn: async () => await getUsers(searchQuery),
   });
 

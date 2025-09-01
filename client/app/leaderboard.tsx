@@ -1,8 +1,10 @@
 import { FlashList } from "@shopify/flash-list";
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "expo-router";
 import { useState } from "react";
 import { ActivityIndicator, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { GridItemWrapper } from "~/components/ui/grid-item-wrapper";
 import ModalContainer from "~/components/ui/modal-container";
@@ -26,35 +28,44 @@ function LeaderboardItem({
   };
 }) {
   return (
-    <View className="flex flex-row items-center justify-between">
-      <View className="flex flex-row items-center gap-3">
-        <Text className="font-bold text-3xl">{user.position}.</Text>
-        <ProfileImage
-          className="h-12 w-12"
-          username={user.username}
-          image={user.image!}
-        />
-        <Text className="font-bold text-lg">{user.username}</Text>
+    <Link
+      href={{
+        pathname: "/users/[id]",
+        params: { id: user.id },
+      }}
+    >
+      <View className="flex flex-row items-center justify-between">
+        <View className="flex flex-row items-center gap-3">
+          <Badge>
+            <Text className="text-lg">#{user.position}.</Text>
+          </Badge>
+          <ProfileImage
+            className="h-12 w-12"
+            username={user.username}
+            image={user.image!}
+          />
+          <Text className="font-bold text-lg">{user.username}</Text>
+        </View>
+        <View className="flex flex-row items-center gap-2">
+          <RankBadge
+            iconClassName="h-4 w-4"
+            textClassName="text-xs"
+            gradientStyle={{
+              paddingHorizontal: 8,
+              gap: 4,
+              alignSelf: "flex-start",
+            }}
+            rank={user.rank}
+            showIcon
+          />
+          {user.points && (
+            <RankText tier={user.rank.tier} className="font-bold text-sm">
+              {user.points}
+            </RankText>
+          )}
+        </View>
       </View>
-      <View className="flex flex-row items-center gap-2">
-        <RankBadge
-          iconClassName="h-4 w-4"
-          textClassName="text-xs"
-          gradientStyle={{
-            paddingHorizontal: 8,
-            gap: 4,
-            alignSelf: "flex-start",
-          }}
-          rank={user.rank}
-          showIcon
-        />
-        {user.points && (
-          <RankText tier={user.rank.tier} className="font-bold text-sm">
-            {user.points}
-          </RankText>
-        )}
-      </View>
-    </View>
+    </Link>
   );
 }
 

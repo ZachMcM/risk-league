@@ -1,9 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { useState } from "react";
-import { ScrollView, View } from "react-native";
+import { View } from "react-native";
 import CompetitiveMatchLeagues from "~/components/matches/CompetitiveMatchLeagues";
-import PlayButton from "~/components/matches/PlayButton";
 import OnboardingDialog from "~/components/onboarding/OnboardingDialog";
 import ProfileBanner from "~/components/social/ProfileBanner";
 import { Button } from "~/components/ui/button";
@@ -24,7 +23,6 @@ import { Skeleton } from "~/components/ui/skeleton";
 import { Text } from "~/components/ui/text";
 import { getUserRank } from "~/endpoints";
 import { authClient } from "~/lib/auth-client";
-import { LEAGUES } from "~/lib/config";
 import { ChevronRight } from "~/lib/icons/ChevronRight";
 import { Cog } from "~/lib/icons/Cog";
 import { Ellipsis } from "~/lib/icons/Ellipsis";
