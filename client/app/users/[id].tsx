@@ -9,6 +9,7 @@ import RankBadge from "~/components/ui/RankBadge";
 import { ScrollContainer } from "~/components/ui/scroll-container";
 import { Text } from "~/components/ui/text";
 import { getUser } from "~/endpoints";
+import { authClient } from "~/lib/auth-client";
 
 export default function User() {
   const { id } = useLocalSearchParams() as { id: string };
@@ -17,6 +18,8 @@ export default function User() {
     queryKey: ["user", id],
     queryFn: async () => await getUser(id),
   });
+
+  const { data: currentUserData } = authClient.useSession();
 
   return (
     <ModalContainer>
@@ -37,10 +40,12 @@ export default function User() {
                     <Text className="font-bold text-2xl">{user.username}</Text>
                     <RankBadge showIcon rank={user.rank} />
                   </View>
-                  <FriendshipButtons
-                    portalHost="inside-modal-page"
-                    user={user}
-                  />
+                  {user.id !== currentUserData?.user.id && (
+                    <FriendshipButtons
+                      portalHost="inside-modal-page"
+                      user={user}
+                    />
+                  )}
                 </View>
                 <View className="flex flex-col gap-6">
                   <Text className="font-bold text-3xl">Career</Text>

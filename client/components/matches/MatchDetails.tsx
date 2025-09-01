@@ -88,7 +88,7 @@ export default function MatchDetails({ match }: { match: ExtendedMatch }) {
   }, [match]);
 
   return (
-    <View className="flex flex-col gap-6">
+    <View className="flex flex-col gap-8">
       <View className="flex w-full flex-row items-center justify-between">
         <View className="flex flex-row items-center gap-2.5">
           <ProfileImage
@@ -103,8 +103,8 @@ export default function MatchDetails({ match }: { match: ExtendedMatch }) {
             <Text className="font-semibold text-muted-foreground">You</Text>
           </View>
         </View>
-        <Badge>
-          <Text className="text-sm">vs</Text>
+        <Badge className="" variant={badgeVariant}>
+          <Text className="capitalize">{badgeText}</Text>
         </Badge>
         <View className="flex flex-row items-center gap-2.5">
           <View className="flex flex-col items-end">
@@ -123,14 +123,11 @@ export default function MatchDetails({ match }: { match: ExtendedMatch }) {
         </View>
       </View>
       <View className="flex flex-row items-center justify-between">
-        <Badge className="px-3.5" variant={badgeVariant}>
-          <Text className="text-base capitalize">{badgeText}</Text>
-        </Badge>
         <View className="flex flex-row items-center gap-2">
           <MatchStatsDialog match={match} />
           <Button
-            className="h-10 w-10"
-            size="icon"
+            className="flex h-9 flex-row items-center gap-2"
+            size="sm"
             variant="outline"
             onPress={() =>
               router.navigate({
@@ -139,6 +136,7 @@ export default function MatchDetails({ match }: { match: ExtendedMatch }) {
               })
             }
           >
+            <Text className="text-sm">Messages</Text>
             <MessageCircle size={16} className="text-foreground" />
           </Button>
         </View>

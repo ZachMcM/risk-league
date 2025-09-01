@@ -69,14 +69,6 @@ export const messageRelations = relations(message, ({ one }) => ({
 export const dynastyLeagueInvitationRelations = relations(
   dynastyLeagueInvitation,
   ({ one }) => ({
-    incomingUser: one(user, {
-      fields: [dynastyLeagueInvitation.incomingId],
-      references: [user.id],
-    }),
-    outgoingUser: one(user, {
-      fields: [dynastyLeagueInvitation.outgoingId],
-      references: [user.id],
-    }),
     dynastyLeague: one(dynastyLeague, {
       fields: [dynastyLeagueInvitation.dynastyLeagueId],
       references: [dynastyLeague.id],

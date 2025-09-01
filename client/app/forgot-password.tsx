@@ -95,7 +95,7 @@ export default function SignIn() {
             className="flex-row gap-2 items-center"
           >
             <Text className="font-bold">Forgot Password</Text>
-            {isPending && <ActivityIndicator className="text-foreground" />}
+            {isPending && <ActivityIndicator className="text-primary-foreground" />}
           </Button>
         </View>
         <Pressable

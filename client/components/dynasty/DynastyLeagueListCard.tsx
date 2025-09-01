@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { router } from "expo-router";
-import { Calendar, LockIcon, Users } from "lucide-react-native";
+import { ArrowRight, Calendar, LockIcon, Users } from "lucide-react-native";
 import moment from "moment";
 import { ActivityIndicator, Pressable, View } from "react-native";
 import { getDynastyLeague, patchDynastyLeagueJoin } from "~/endpoints";
@@ -27,7 +27,8 @@ export default function DynastyLeagueListCard({
   });
 
   const { mutate: joinLeague, isPending: isJoiningLeague } = useMutation({
-    mutationFn: async () => await patchDynastyLeagueJoin(league.id),
+    mutationFn: async () =>
+      await patchDynastyLeagueJoin({ dynastyLeagueId: league.id }),
     onSuccess: () => {
       toast.success(`Joined ${league.title}`);
       router.navigate({
@@ -36,8 +37,8 @@ export default function DynastyLeagueListCard({
       });
     },
     onError: (error) => {
-      toast.error(error.message)
-    }
+      toast.error(error.message);
+    },
   });
 
   const { data: currentUserData } = authClient.useSession();
@@ -95,13 +96,15 @@ export default function DynastyLeagueListCard({
             </View>
             <Badge>
               <Text className="text-sm">
-                {league.resolved ? "Completed" : "Active"}
+                {new Date().toISOString() < league.endDate
+                  ? "Active"
+                  : "Completed"}
               </Text>
             </Badge>
           </View>
           <View className="flex flex-row items-center gap-2">
             <Icon as={Calendar} className="text-muted-foreground" size={16} />
-            <Text className="text-muted-foreground text-lg">
+            <Text className="text-muted-foreground">
               {moment(league.startDate).format("M/D/Y")} -{" "}
               {moment(league.endDate).format("M/D/Y")}
             </Text>
@@ -114,19 +117,28 @@ export default function DynastyLeagueListCard({
                 {league.userCount} User{league.userCount != 1 && "s"}
               </Text>
             </View>
-            {!isMember && !league.inviteOnly && (
-              <Button
-                onPress={() => joinLeague()}
-                disabled={isJoiningLeague}
-                className="flex flex-row items-center gap-2"
-                size="sm"
-              >
-                <Text>Join</Text>
-                {isJoiningLeague && (
-                  <ActivityIndicator className="text-foreground" />
-                )}
-              </Button>
-            )}
+            {!isMember &&
+              !league.inviteOnly &&
+              new Date().toISOString() < league.endDate && (
+                <Button
+                  onPress={() => joinLeague()}
+                  disabled={isJoiningLeague}
+                  className="flex flex-row items-center gap-1"
+                  size="sm"
+                  variant="foreground"
+                >
+                  <Text>Join</Text>
+                  {isJoiningLeague ? (
+                    <ActivityIndicator className="text-background" />
+                  ) : (
+                    <Icon
+                      size={16}
+                      as={ArrowRight}
+                      className="text-background"
+                    />
+                  )}
+                </Button>
+              )}
           </View>
         </CardContent>
       </Card>

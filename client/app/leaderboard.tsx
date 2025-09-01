@@ -36,9 +36,7 @@ function LeaderboardItem({
     >
       <View className="flex flex-row items-center justify-between">
         <View className="flex flex-row items-center gap-3">
-          <Badge>
-            <Text className="text-lg">#{user.position}.</Text>
-          </Badge>
+          <Text className="text-3xl font-bold">{user.position}.</Text>
           <ProfileImage
             className="h-12 w-12"
             username={user.username}

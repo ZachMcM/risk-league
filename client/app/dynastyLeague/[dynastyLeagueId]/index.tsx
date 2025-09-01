@@ -94,83 +94,85 @@ export default function DynastyLeague() {
       ) : (
         dynastyLeague && (
           <View className="flex flex-1 flex-col gap-8">
-            <View className="flex flex-row items-start justify-between gap-4">
-              <View className="flex flex-col gap-3">
-                <View className="flex flex-col gap-1">
-                  <View className="flex flex-row items-center gap-2">
-                    <LeagueLogo league={dynastyLeague.league} size={28} />
-                    <Text className="text-xl uppercase font-bold">
-                      {dynastyLeague.league}
-                    </Text>
-                  </View>
-                  <Text className="text-4xl font-bold">
-                    {dynastyLeague.title}
+            <View className="flex flex-col gap-3">
+              <View className="flex flex-col gap-1">
+                <View className="flex flex-row items-center gap-2">
+                  <LeagueLogo league={dynastyLeague.league} size={28} />
+                  <Text className="text-xl uppercase font-bold">
+                    {dynastyLeague.league}
                   </Text>
                 </View>
-                {areUsersPending ? (
-                  <ActivityIndicator className="text-foreground" />
-                ) : (
-                  dynastyLeagueUsers && (
-                    <DynastyLeagueDetails
-                      dynastyLeague={dynastyLeague}
-                      dynastyLeagueUsers={dynastyLeagueUsers}
-                    />
-                  )
-                )}
+                <Text className="text-4xl font-bold">
+                  {dynastyLeague.title}
+                </Text>
               </View>
-              <View className="flex flex-row items-center gap-2">
-                <Button
-                  className="h-10 w-10"
-                  size="icon"
-                  variant="outline"
-                  onPress={() =>
-                    router.navigate({
-                      pathname: "/dynastyLeague/[dynastyLeagueId]/users",
-                      params: { dynastyLeagueId: dynastyLeagueId },
-                    })
-                  }
-                >
-                  <Icon as={Users} size={16} className="text-foreground" />
-                </Button>
-                <Button
-                  className="h-10 w-10"
-                  size="icon"
-                  variant="outline"
-                  onPress={() =>
-                    router.navigate({
-                      pathname: "/dynastyLeague/[dynastyLeagueId]/messages",
-                      params: { dynastyLeagueId: dynastyLeagueId },
-                    })
-                  }
-                >
-                  <Icon
-                    as={MessageCircle}
-                    size={16}
-                    className="text-foreground"
+              {areUsersPending ? (
+                <ActivityIndicator className="text-foreground" />
+              ) : (
+                dynastyLeagueUsers && (
+                  <DynastyLeagueDetails
+                    dynastyLeague={dynastyLeague}
+                    dynastyLeagueUsers={dynastyLeagueUsers}
                   />
-                </Button>
-              </View>
+                )
+              )}
+            </View>
+            <View className="flex flex-row items-center gap-2">
+              <Button
+                className="flex h-9 flex-row items-center gap-2"
+                size="sm"
+                variant="outline"
+                onPress={() =>
+                  router.navigate({
+                    pathname: "/dynastyLeague/[dynastyLeagueId]/users",
+                    params: { dynastyLeagueId: dynastyLeagueId },
+                  })
+                }
+              >
+                <Text>Users</Text>
+                <Icon as={Users} size={16} className="text-foreground" />
+              </Button>
+              <Button
+                className="flex h-9 flex-row items-center gap-2"
+                size="sm"
+                variant="outline"
+                onPress={() =>
+                  router.navigate({
+                    pathname: "/dynastyLeague/[dynastyLeagueId]/messages",
+                    params: { dynastyLeagueId: dynastyLeagueId },
+                  })
+                }
+              >
+                <Text>Messages</Text>
+                <Icon
+                  as={MessageCircle}
+                  size={16}
+                  className="text-foreground"
+                />
+              </Button>
             </View>
             <View className="flex flex-col gap-4">
               <View className="flex flex-row items-end justify-between">
                 <Text className="font-bold text-2xl">Parlays</Text>
-                {!dynastyLeague.resolved && (
-                  <Button
-                    onPress={() =>
-                      router.navigate({
-                        pathname: "/dynastyLeague/[dynastyLeagueId]/props",
-                        params: { dynastyLeagueId },
-                      })
-                    }
-                    variant="foreground"
-                    size="sm"
-                    className="flex flex-row items-center gap-2 rounded-full h-10"
-                  >
-                    <Icon as={Plus} className="text-background" size={18} />
-                    <Text>Create Parlay</Text>
-                  </Button>
-                )}
+                {new Date().toISOString() < dynastyLeague.endDate &&
+                  new Date().toISOString() > dynastyLeague.startDate && (
+                    <Button
+                      onPress={() =>
+                        router.navigate({
+                          pathname: "/dynastyLeague/[dynastyLeagueId]/props",
+                          params: { dynastyLeagueId },
+                        })
+                      }
+                      variant="foreground"
+                      size="sm"
+                      className="flex flex-row items-center gap-2 rounded-full h-10"
+                    >
+                      <Icon as={Plus} className="text-background" size={18} />
+                      <Text>Create Parlay</Text>
+                    </Button>
+                  )}
               </View>
+              {/* TODO create end start count down component */}
               {areParlaysPending ? (
                 <ActivityIndicator className="text-foreground p-4" />
               ) : (

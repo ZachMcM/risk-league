@@ -1,6 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { router } from "expo-router";
+import { Plus } from "lucide-react-native";
 import { useEffect, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import {
@@ -18,6 +19,7 @@ import { toast } from "sonner-native";
 import z from "zod";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
+import { Icon } from "~/components/ui/icon";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import LeagueLogo from "~/components/ui/league-logos/LeagueLogo";
@@ -40,9 +42,7 @@ import { cn } from "~/utils/cn";
 const dynastyLeagueSchema = z.object({
   dates: z
     .object({
-      startDate: z
-        .date()
-        .min(new Date(), { message: "Start date cannot be in the past" }),
+      startDate: z.date(),
       endDate: z.date(),
     })
     .refine((data) => data.endDate > data.startDate, {
@@ -102,13 +102,18 @@ export default function CreateDynastyLeague() {
       mutationFn: async (
         league: Omit<
           DynastyLeague,
-          "id" | "createdAt" | "resolved" | "userCount"
+          "id" | "createdAt" | "resolved" | "userCount" | "dynastyLeagueUsers"
         >
       ) => await postDynastyLeague(league),
-      onSuccess: () => {
+      onSuccess: (data) => {
         toast.success("Successfully created league");
-        router.dismissAll();
-        router.navigate("/(tabs)/dynasty");
+        if (router.canDismiss()) {
+          router.dismissAll();
+        }
+        router.navigate({
+          pathname: "/dynastyLeague/[dynastyLeagueId]",
+          params: { dynastyLeagueId: data.id }
+        });
       },
     });
 
@@ -325,7 +330,13 @@ export default function CreateDynastyLeague() {
                       className={cn(error && "border-destructive")}
                     />
                   </View>
-                  <Button size="sm" onPress={addTag}>
+                  <Button
+                    size="sm"
+                    variant="foreground"
+                    className="flex flex-row items-center gap-1"
+                    onPress={addTag}
+                  >
+                    <Icon as={Plus} size={18} className="text-background" />
                     <Text>Add Tag</Text>
                   </Button>
                 </View>
@@ -369,13 +380,12 @@ export default function CreateDynastyLeague() {
           />
           <Button
             disabled={isCreatingLeaguePending}
-            variant="foreground"
             className="flex flex-row items-center gap-2"
             onPress={handleSubmit(onSubmit)}
           >
             <Text>Submit</Text>
             {isCreatingLeaguePending && (
-              <ActivityIndicator className="text-background" />
+              <ActivityIndicator className="text-primary-foreground" />
             )}
           </Button>
         </View>

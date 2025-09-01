@@ -1,0 +1,1 @@
+ALTER TABLE "dynasty_league_invitation" ALTER COLUMN "id" SET DATA TYPE text;

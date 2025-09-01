@@ -14,22 +14,32 @@ import {
 import { authClient } from "~/lib/auth-client";
 import { View } from "react-native";
 import ProfileImage from "../ui/profile-image";
+import { Icon } from "../ui/icon";
 
 export default function MatchStatsDialog({ match }: { match: ExtendedMatch }) {
   const { data: currentUserData } = authClient.useSession();
 
   const currentMatchUser = match.matchUsers.find(
-    (mu: ExtendedMatchUser) => mu.userId === currentUserData?.user.id,
+    (mu: ExtendedMatchUser) => mu.userId === currentUserData?.user.id
   )!;
   const otherMatchUser = match.matchUsers.find(
-    (mu: ExtendedMatchUser) => mu.userId !== currentUserData?.user.id,
+    (mu: ExtendedMatchUser) => mu.userId !== currentUserData?.user.id
   )!;
 
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button className="h-10 w-10" size="icon" variant="outline">
-          <ChartColumnIncreasing size={16} className="text-foreground" />
+        <Button
+          className="flex h-9 flex-row items-center gap-2"
+          size="sm"
+          variant="outline"
+        >
+          <Text className="text-sm">Stats</Text>
+          <Icon
+            as={ChartColumnIncreasing}
+            size={16}
+            className="text-foreground"
+          />
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-lg w-[95vw] p-4">
@@ -71,7 +81,7 @@ export default function MatchStatsDialog({ match }: { match: ExtendedMatch }) {
                       : `${Math.round(
                           (currentMatchUser.parlaysWon /
                             currentMatchUser.totalParlays) *
-                            100,
+                            100
                         )}%`}
                   </Text>
                 </TableCell>
@@ -82,7 +92,7 @@ export default function MatchStatsDialog({ match }: { match: ExtendedMatch }) {
                       : `${Math.round(
                           (otherMatchUser.parlaysWon /
                             otherMatchUser.totalParlays) *
-                            100,
+                            100
                         )}%`}
                   </Text>
                 </TableCell>

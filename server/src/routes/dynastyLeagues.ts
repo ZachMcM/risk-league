@@ -2,32 +2,30 @@ import {
   and,
   desc,
   eq,
+  gt,
   ilike,
   InferInsertModel,
-  isNotNull,
-  isNull,
+  lt,
   or,
   sql,
 } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { Router } from "express";
+import { io } from "..";
 import { db } from "../db";
 import {
   dynastyLeague,
   dynastyLeagueInvitation,
-  dynastyLeagueInvitationStatus,
   dynastyLeagueUser,
   message,
 } from "../db/schema";
 import { authMiddleware } from "../middleware";
 import { handleError } from "../utils/handleError";
 import { invalidateQueries } from "../utils/invalidateQueries";
-import { io } from "..";
 import {
   getFlexMultiplier,
   getPerfectPlayMultiplier,
 } from "../utils/parlayMultipliers";
-import { logger } from "../logger";
 
 export const dynastyLeaguesRoute = Router();
 
@@ -70,7 +68,7 @@ dynastyLeaguesRoute.post(
 
       await db.insert(dynastyLeagueUser).values({
         userId: res.locals.userId!,
-        role: "manager",
+        role: "owner",
         startingBalance: body.startingBalance,
         balance: body.startingBalance,
         dynastyLeagueId: newDynastyLeague.id,
@@ -78,63 +76,63 @@ dynastyLeaguesRoute.post(
 
       invalidateQueries(["dynasty-leagues", res.locals.userId!]);
 
-      res.json({ dynastyLeagueId: newDynastyLeague.id });
+      res.json({ id: newDynastyLeague.id });
     } catch (error) {
       handleError(error, res, "Dynasty Leagues");
     }
   }
 );
 
-dynastyLeaguesRoute.get(
-  "/dynastyLeagues/invites",
+dynastyLeaguesRoute.post(
+  "/dynastyLeagues/:id/invite",
   authMiddleware,
-  async (_, res) => {
+  async (req, res) => {
     try {
-      const invites = await db.query.dynastyLeagueInvitation.findMany({
+      const dynastyLeagueId = parseInt(req.params.id);
+
+      if (isNaN(dynastyLeagueId)) {
+        res.status(400).json({ error: "Invalid dynastyLeagueId" });
+        return;
+      }
+
+      const dynastyLeagueResult = await db.query.dynastyLeague.findFirst({
         where: and(
-          eq(dynastyLeagueInvitation.incomingId, res.locals.userId!),
-          eq(dynastyLeagueInvitation.status, "pending")
+          eq(dynastyLeague.id, dynastyLeagueId),
+          gt(dynastyLeague.endDate, new Date().toISOString())
         ),
-        with: {
-          dynastyLeague: {
-            with: {
-              dynastyLeagueUsers: {
-                columns: {
-                  id: true,
-                  userId: true,
-                },
-              },
-            },
-          },
-          incomingUser: {
-            columns: {
-              id: true,
-              username: true,
-              image: true,
-              banner: true,
-            },
-          },
-          outgoingUser: {
-            columns: {
-              id: true,
-              username: true,
-              image: true,
-              points: true,
-              banner: true,
-            },
-          },
-        },
       });
 
-      res.json(
-        invites.map((invite) => ({
-          ...invite,
-          dynastyLeague: {
-            ...invite.dynastyLeague,
-            userCount: invite.dynastyLeague.dynastyLeagueUsers.length,
-          },
-        }))
-      );
+      if (!dynastyLeagueResult) {
+        res.status(409).json({ error: "No available dynastyLeague found" });
+        return;
+      }
+
+      const admin = await db.query.dynastyLeagueUser.findFirst({
+        where: and(
+          or(
+            eq(dynastyLeagueUser.role, "manager"),
+            eq(dynastyLeagueUser.role, "owner")
+          ),
+          eq(dynastyLeagueUser.userId, res.locals.userId!),
+          eq(dynastyLeagueUser.dynastyLeagueId, dynastyLeagueId)
+        ),
+      });
+
+      if (!admin) {
+        res.status(401).json({
+          error: "You do not have invite permissions for this league",
+        });
+        return;
+      }
+
+      const [newInvite] = await db
+        .insert(dynastyLeagueInvitation)
+        .values({
+          dynastyLeagueId,
+        })
+        .returning({ id: dynastyLeagueInvitation.id });
+
+      res.json(newInvite);
     } catch (error) {
       handleError(error, res, "Dynasty Leagues");
     }
@@ -153,24 +151,10 @@ dynastyLeaguesRoute.post(
         return;
       }
 
-      const memberExists = await db.query.dynastyLeagueUser.findFirst({
-        where: and(
-          eq(dynastyLeagueUser.userId, res.locals.userId!),
-          eq(dynastyLeagueUser.dynastyLeagueId, dynastyLeagueId)
-        ),
-      });
-
-      if (memberExists) {
-        res.status(409).json({ error: "You are already a member" });
-        return;
-      }
-
-      logger.debug(dynastyLeagueId);
-
       const dynastyLeagueResult = await db.query.dynastyLeague.findFirst({
         where: and(
           eq(dynastyLeague.id, dynastyLeagueId),
-          eq(dynastyLeague.resolved, false)
+          gt(dynastyLeague.endDate, new Date().toISOString())
         ),
         with: {
           dynastyLeagueUsers: {
@@ -183,10 +167,19 @@ dynastyLeaguesRoute.post(
       });
 
       if (!dynastyLeagueResult) {
-        logger.debug("HEre");
-        res
-          .status(404)
-          .json({ error: "No Dynasty League with that id exists" });
+        res.status(409).json({ error: "No available dynastyLeague found" });
+        return;
+      }
+
+      const memberExists = await db.query.dynastyLeagueUser.findFirst({
+        where: and(
+          eq(dynastyLeagueUser.userId, res.locals.userId!),
+          eq(dynastyLeagueUser.dynastyLeagueId, dynastyLeagueId)
+        ),
+      });
+
+      if (memberExists) {
+        res.status(409).json({ error: "You are already a member" });
         return;
       }
 
@@ -196,8 +189,21 @@ dynastyLeaguesRoute.post(
       }
 
       if (dynastyLeagueResult.inviteOnly) {
-        res.status(409).json({ error: "League is invite only" });
-        return;
+        if (req.query.inviteId) {
+          const invite = await db.query.dynastyLeagueInvitation.findFirst({
+            where: and(
+              eq(dynastyLeagueInvitation.id, req.query.inviteId as string),
+              eq(dynastyLeagueInvitation.dynastyLeagueId, dynastyLeagueId)
+            ),
+          });
+
+          if (!invite) {
+            res.status(409).json({
+              error: "You do not have the permissions to join this league",
+            });
+            return;
+          }
+        }
       }
 
       await db.insert(dynastyLeagueUser).values({
@@ -221,46 +227,71 @@ dynastyLeaguesRoute.post(
   }
 );
 
-dynastyLeaguesRoute.patch(
-  "/dynastyLeagues/invite/:id",
+dynastyLeaguesRoute.delete(
+  "/dynastyLeagues/:dynastyLeagueId/users/:userId/kick",
   authMiddleware,
   async (req, res) => {
     try {
-      const inviteId = parseInt(req.params.id);
-
-      if (isNaN(inviteId)) {
-        res.status(400).json({ error: "Invalid inviteId" });
+      const dynastyLeagueId = parseInt(req.params.dynastyLeagueId);
+      if (isNaN(dynastyLeagueId)) {
+        res.status(400).json({ error: "Invalid dynastyLeagueId" });
         return;
       }
 
-      const newStatus = req.body.newStatus as
-        | (typeof dynastyLeagueInvitationStatus.enumValues)[number]
-        | undefined;
+      const dynastyLeagueResult = await db.query.dynastyLeague.findFirst({
+        where: and(
+          eq(dynastyLeague.id, dynastyLeagueId),
+          gt(dynastyLeague.endDate, new Date().toISOString())
+        ),
+      });
 
-      if (
-        !newStatus ||
-        !dynastyLeagueInvitationStatus.enumValues.includes(newStatus)
-      ) {
-        res.status(400).json({ error: "Invalid newStatus" });
+      if (!dynastyLeagueResult) {
+        res.status(409).json({ error: "No available dynastyLeague found" });
         return;
       }
 
-      const [updatedInvite] = await db
-        .update(dynastyLeagueInvitation)
-        .set({
-          status: newStatus,
-        })
-        .returning({
-          outgoingId: dynastyLeagueInvitation.outgoingId,
-          incomingId: dynastyLeagueInvitation.incomingId,
-          dynastyLeagueId: dynastyLeagueInvitation.dynastyLeagueId,
-        });
+      const admin = await db.query.dynastyLeagueUser.findFirst({
+        where: and(
+          or(
+            eq(dynastyLeagueUser.role, "manager"),
+            eq(dynastyLeagueUser.role, "owner")
+          ),
+          eq(dynastyLeagueUser.userId, res.locals.userId!),
+          eq(dynastyLeagueUser.dynastyLeagueId, dynastyLeagueId)
+        ),
+      });
+
+      if (!admin) {
+        res
+          .status(401)
+          .json({ error: "You do not have the permissions to kick this user" });
+        return;
+      }
+
+      const userId = req.params.userId;
+
+      const [deletedUser] = await db
+        .delete(dynastyLeagueUser)
+        .where(
+          and(
+            eq(dynastyLeagueUser.role, "member"),
+            eq(dynastyLeagueUser.userId, userId),
+            eq(dynastyLeagueUser.dynastyLeagueId, dynastyLeagueId)
+          )
+        )
+        .returning({ id: dynastyLeagueUser.userId });
+
+      if (!deletedUser) {
+        res
+          .status(401)
+          .json({ error: "You do not have the permissions to kick this user" });
+        return;
+      }
 
       invalidateQueries(
-        ["dynasty-league-invitations", updatedInvite.incomingId],
-        ["dynasty-leagues", updatedInvite.incomingId],
-        ["dynasty-league", updatedInvite.dynastyLeagueId],
-        ["dynasty-league", updatedInvite.dynastyLeagueId, "users"]
+        ["dynasty-leagues", userId],
+        ["dynasty-league", dynastyLeagueId, "users"],
+        ["dynasty-league", dynastyLeagueId]
       );
 
       res.json({ success: true });
@@ -270,73 +301,148 @@ dynastyLeaguesRoute.patch(
   }
 );
 
-const dynastyLeagueInvitationSchema = createInsertSchema(
-  dynastyLeagueInvitation
-);
-
-dynastyLeaguesRoute.post(
-  "/dynastyLeagues/invite",
+dynastyLeaguesRoute.patch(
+  "/dynastyLeagues/:dynastyLeagueId/users/:userId/promote",
   authMiddleware,
   async (req, res) => {
     try {
-      const body = req.body as InferInsertModel<typeof dynastyLeagueInvitation>;
-
-      dynastyLeagueInvitationSchema.parse(body);
-
-      if (body.outgoingId != res.locals.userId) {
-        res.status(401).json({ error: "You cannot send an invitation" });
+      const dynastyLeagueId = parseInt(req.params.dynastyLeagueId);
+      if (isNaN(dynastyLeagueId)) {
+        res.status(400).json({ error: "Invalid dynastyLeagueId" });
         return;
       }
 
       const dynastyLeagueResult = await db.query.dynastyLeague.findFirst({
         where: and(
-          eq(dynastyLeague.id, body.dynastyLeagueId),
-          eq(dynastyLeague.resolved, false)
+          eq(dynastyLeague.id, dynastyLeagueId),
+          gt(dynastyLeague.endDate, new Date().toISOString())
         ),
       });
 
       if (!dynastyLeagueResult) {
+        res.status(409).json({ error: "No available dynastyLeague found" });
+        return;
+      }
+
+      const admin = await db.query.dynastyLeagueUser.findFirst({
+        where: and(
+          or(
+            eq(dynastyLeagueUser.role, "manager"),
+            eq(dynastyLeagueUser.role, "owner")
+          ),
+          eq(dynastyLeagueUser.userId, res.locals.userId!),
+          eq(dynastyLeagueUser.dynastyLeagueId, dynastyLeagueId)
+        ),
+      });
+
+      if (!admin) {
+        res
+          .status(401)
+          .json({ error: "You do not have the permissions to kick this user" });
+        return;
+      }
+
+      const userId = req.params.userId;
+
+      const [promotedUser] = await db
+        .update(dynastyLeagueUser)
+        .set({
+          role: "manager",
+        })
+        .where(
+          and(
+            eq(dynastyLeagueUser.role, "member"),
+            eq(dynastyLeagueUser.userId, userId),
+            eq(dynastyLeagueUser.dynastyLeagueId, dynastyLeagueId)
+          )
+        )
+        .returning({ id: dynastyLeagueUser.userId });
+
+      if (!promotedUser) {
+        res
+          .status(401)
+          .json({ error: "You do not have the permissions to kick this user" });
+        return;
+      }
+
+      invalidateQueries(
+        ["dynasty-leagues", userId],
+        ["dynasty-league", dynastyLeagueId, "users"],
+        ["dynasty-league", dynastyLeagueId]
+      );
+
+      res.json({ success: true });
+    } catch (error) {
+      handleError(error, res, "Dynasty Leagues");
+    }
+  }
+);
+
+dynastyLeaguesRoute.patch(
+  "/dynastyLeagues/:dynastyLeagueId/users/:userId/demote",
+  authMiddleware,
+  async (req, res) => {
+    try {
+      const dynastyLeagueId = parseInt(req.params.dynastyLeagueId);
+      if (isNaN(dynastyLeagueId)) {
         res.status(400).json({ error: "Invalid dynastyLeagueId" });
         return;
       }
 
-      const existingInvite = await db.query.dynastyLeagueInvitation.findFirst({
+      const dynastyLeagueResult = await db.query.dynastyLeague.findFirst({
         where: and(
-          eq(dynastyLeagueInvitation.outgoingId, body.outgoingId),
-          eq(dynastyLeagueInvitation.incomingId, body.incomingId),
-          or(
-            eq(dynastyLeagueInvitation.status, "accepted"),
-            eq(dynastyLeagueInvitation.status, "pending")
-          )
+          eq(dynastyLeague.id, dynastyLeagueId),
+          gt(dynastyLeague.endDate, new Date().toISOString())
         ),
       });
 
-      if (existingInvite) {
-        res.status(409).json({ error: "You already sent an invitation" });
+      if (!dynastyLeagueResult) {
+        res.status(409).json({ error: "No available dynastyLeague found" });
         return;
       }
 
-      if (dynastyLeagueResult.inviteOnly) {
-        const dynastyLeagueUserResult =
-          await db.query.dynastyLeagueUser.findFirst({
-            where: and(
-              eq(dynastyLeagueUser.dynastyLeagueId, body.dynastyLeagueId),
-              eq(dynastyLeagueUser.userId, res.locals.userId!),
-              eq(dynastyLeagueUser.role, "manager")
-            ),
-          });
+      const owner = await db.query.dynastyLeagueUser.findFirst({
+        where: and(
+          eq(dynastyLeagueUser.role, "owner"),
+          eq(dynastyLeagueUser.userId, res.locals.userId!),
+          eq(dynastyLeagueUser.dynastyLeagueId, dynastyLeagueId)
+        ),
+      });
 
-        if (!dynastyLeagueUserResult) {
-          res
-            .status(401)
-            .json({ error: "You are unauthorized to send invites" });
-          return;
-        }
+      if (!owner) {
+        res
+          .status(401)
+          .json({ error: "You do not have the permissions to kick this user" });
+        return;
       }
 
-      await db.insert(dynastyLeagueInvitation).values(body);
+      const userId = req.params.userId;
 
-      invalidateQueries(["dynasty-league-invitations", body.incomingId]);
+      const [demotedUser] = await db
+        .update(dynastyLeagueUser)
+        .set({
+          role: "member",
+        })
+        .where(
+          and(
+            eq(dynastyLeagueUser.userId, userId),
+            eq(dynastyLeagueUser.dynastyLeagueId, dynastyLeagueId)
+          )
+        )
+        .returning({ id: dynastyLeagueUser.userId });
+
+      if (!demotedUser) {
+        res
+          .status(401)
+          .json({ error: "You do not have the permissions to kick this user" });
+        return;
+      }
+
+      invalidateQueries(
+        ["dynasty-leagues", userId],
+        ["dynasty-league", dynastyLeagueId, "users"],
+        ["dynasty-league", dynastyLeagueId]
+      );
 
       res.json({ success: true });
     } catch (error) {
@@ -528,7 +634,7 @@ dynastyLeaguesRoute.get(
             }) as tag where tag ilike ${`%${query}%`})`,
             ...matchingLeagues.map((league) => eq(dynastyLeague.league, league))
           ),
-          eq(dynastyLeague.resolved, false),
+          gt(dynastyLeague.endDate, new Date().toISOString()),
           eq(dynastyLeague.inviteOnly, false)
         ),
         with: {

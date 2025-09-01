@@ -44,12 +44,8 @@ export const friendlyMatchRequestStatus = pgEnum(
   ["pending", "accepted", "declined"]
 );
 
-export const dynastyLeagueInvitationStatus = pgEnum(
-  "dynasty_league_invitation_status",
-  ["pending", "accepted", "declined"]
-);
-
 export const dynastLeagueUserRoles = pgEnum("dynasty_league_user_roles", [
+  "owner",
   "manager",
   "member",
 ]);
@@ -431,7 +427,6 @@ export const dynastyLeague = pgTable("dynasty_league", {
     withTimezone: true,
     mode: "string",
   }).notNull(),
-  resolved: boolean().default(false).notNull(),
   league: leagueType().notNull(),
   startingBalance: doublePrecision("starting_balance").notNull(),
   title: text().notNull(),
@@ -469,20 +464,15 @@ export const dynastyLeagueUser = pgTable(
 );
 
 export const dynastyLeagueInvitation = pgTable("dynasty_league_invitation", {
-  id: serial().primaryKey().notNull(),
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
   createdAt: timestamp("created_at", {
     withTimezone: true,
     mode: "string",
   })
     .defaultNow()
     .notNull(),
-  status: dynastyLeagueInvitationStatus().notNull().default("pending"),
-  outgoingId: text("outgoing_id")
-    .notNull()
-    .references(() => user.id, { onDelete: "cascade" }),
-  incomingId: text("incoming_id")
-    .notNull()
-    .references(() => user.id, { onDelete: "cascade" }),
   dynastyLeagueId: integer("dynasty_league_id")
     .notNull()
     .references(() => dynastyLeague.id, { onDelete: "cascade" }),

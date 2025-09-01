@@ -491,6 +491,27 @@
       "when": 1756505337872,
       "tag": "0069_low_logan",
       "breakpoints": true
+    },
+    {
+      "idx": 70,
+      "version": "7",
+      "when": 1756757720908,
+      "tag": "0070_perfect_zarek",
+      "breakpoints": true
+    },
+    {
+      "idx": 71,
+      "version": "7",
+      "when": 1756761570844,
+      "tag": "0071_good_liz_osborn",
+      "breakpoints": true
+    },
+    {
+      "idx": 72,
+      "version": "7",
+      "when": 1756763499286,
+      "tag": "0072_yellow_shen",
+      "breakpoints": true
     }
   ]
 }

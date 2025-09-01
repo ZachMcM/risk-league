@@ -1,8 +1,9 @@
-import { and, asc, desc, eq, InferInsertModel } from "drizzle-orm";
+import { and, asc, desc, eq, gt, InferInsertModel, lt } from "drizzle-orm";
 import { Router } from "express";
 import { db } from "../db";
 import {
   choiceType,
+  dynastyLeague,
   dynastyLeagueUser,
   matchUser,
   parlay,
@@ -24,7 +25,7 @@ export const parlaysRoute = Router();
 
 parlaysRoute.get("/parlays/:id", authMiddleware, async (req, res) => {
   try {
-    logger.debug("This route is called")
+    logger.debug("This route is called");
     const parlayResult = await db.query.parlay.findFirst({
       where: eq(parlay.id, parseInt(req.params.id)),
       with: {
@@ -244,7 +245,11 @@ parlaysRoute.post("/parlays", authMiddleware, async (req, res) => {
       }
 
       if (stake < Math.floor(matchUserResult.balance * MIN_STAKE_PCT)) {
-        res.status(400).json({ error: `Your stake is too small, must be at least ${matchUserResult.balance * MIN_STAKE_PCT}` });
+        res.status(400).json({
+          error: `Your stake is too small, must be at least ${
+            matchUserResult.balance * MIN_STAKE_PCT
+          }`,
+        });
         return;
       }
 
@@ -292,6 +297,19 @@ parlaysRoute.post("/parlays", authMiddleware, async (req, res) => {
 
     if (isNaN(dynastyLeagueId)) {
       res.status(400).json({ error: "Invalid dynastyLeagueId" });
+      return;
+    }
+
+    const dynastyLeagueResult = await db.query.dynastyLeague.findFirst({
+      where: and(
+        eq(dynastyLeague.id, dynastyLeagueId),
+        lt(dynastyLeague.startDate, new Date().toISOString()),
+        gt(dynastyLeague.endDate, new Date().toISOString())
+      ),
+    });
+
+    if (!dynastyLeagueResult) {
+      res.status(409).json({ error: "No valid dynasty league found" });
       return;
     }
 

@@ -1,18 +1,15 @@
+import * as ImagePicker from "expo-image-picker";
 import { authClient } from "./lib/auth-client";
 import { League } from "./lib/config";
-import * as ImagePicker from "expo-image-picker";
+import { DynastyLeague, DynastyLeagueUser } from "./types/dynastyLeague";
 import { LeaderboardPage } from "./types/leaderboard";
 import { ExtendedMatch, FriendlyMatchRequest, Match } from "./types/match";
+import { Message } from "./types/message";
 import { Parlay, Pick } from "./types/parlay";
 import { Game, Prop, TodayPlayerProps } from "./types/prop";
 import { Rank } from "./types/rank";
 import { Career, Friendship, User } from "./types/user";
-import { Message } from "./types/message";
-import {
-  DynastyLeague,
-  DynastyLeagueInvitation,
-  DynastyLeagueUser,
-} from "./types/dynastyLeague";
+import { logger } from "react-native-reanimated/lib/typescript/logger";
 
 export type serverRequestParams = {
   endpoint: string;
@@ -181,14 +178,16 @@ export async function getMatch(id: number): Promise<ExtendedMatch> {
 export async function postDynastyLeague(
   dynastyLeague: Omit<
     DynastyLeague,
-    "id" | "createdAt" | "resolved" | "userCount"
+    "id" | "createdAt" | "resolved" | "userCount" | "dynastyLeagueUsers"
   >
 ) {
-  await serverRequest({
+  const newLeague: { id: number } = await serverRequest({
     endpoint: "/dynastyLeagues",
     method: "POST",
     body: JSON.stringify(dynastyLeague),
   });
+
+  return newLeague
 }
 
 export async function getDynastyLeague(id: number): Promise<DynastyLeague> {
@@ -220,17 +219,6 @@ export async function getDynastyLeagueUsers(
   return users;
 }
 
-export async function getDynastyLeagueInvites(): Promise<
-  DynastyLeagueInvitation[]
-> {
-  const invites = await serverRequest({
-    endpoint: `/dynastyLeagues/invites`,
-    method: "GET",
-  });
-
-  return invites;
-}
-
 export async function searchDynastyLeagues(
   query: string
 ): Promise<DynastyLeague[]> {
@@ -242,10 +230,59 @@ export async function searchDynastyLeagues(
   return dynastyLeagues;
 }
 
-export async function patchDynastyLeagueJoin(id: number) {
+export async function patchDynastyLeagueJoin({
+  dynastyLeagueId,
+  inviteId,
+}: {
+  dynastyLeagueId: number;
+  inviteId?: number;
+}) {
   await serverRequest({
-    endpoint: `/dynastyLeagues/${id}/join`,
+    endpoint: `/dynastyLeagues/${dynastyLeagueId}/join${
+      inviteId ? `?inviteId=${inviteId}` : ""
+    }`,
     method: "POST",
+  });
+}
+
+export async function postDynastLeagueInvite(id: number) {
+  const newInvite: { id: string } = await serverRequest({
+    endpoint: `/dynastyLeagues/${id}/invite`,
+    method: "POST",
+  });
+
+  console.log(newInvite)
+
+  return newInvite;
+}
+
+export async function patchDynastyLeagueDemoteUser(
+  dynastyLeagueId: number,
+  userId: string
+) {
+  await serverRequest({
+    endpoint: `/dynastyLeagues/${dynastyLeagueId}/users/${userId}/demote`,
+    method: "PATCH",
+  });
+}
+
+export async function patchDynastyLeaguePromoteUser(
+  dynastyLeagueId: number,
+  userId: string
+) {
+  await serverRequest({
+    endpoint: `/dynastyLeagues/${dynastyLeagueId}/users/${userId}/promote`,
+    method: "PATCH",
+  });
+}
+
+export async function patchDynastyLeagueKickUser(
+  dynastyLeagueId: number,
+  userId: string
+) {
+  await serverRequest({
+    endpoint: `/dynastyLeagues/${dynastyLeagueId}/users/${userId}/kick`,
+    method: "DELETE",
   });
 }
 
