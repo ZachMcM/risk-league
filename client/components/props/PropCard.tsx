@@ -58,7 +58,7 @@ export default function PropCard({ prop }: { prop: Prop }) {
           </View>
           <View className="flex flex-col items-center">
             <Text className="font-bold text-2xl">{prop.line}</Text>
-            <Text className="text-muted-foreground">
+            <Text className="text-muted-foreground text-center">
               {prop.statDisplayName}
             </Text>
           </View>

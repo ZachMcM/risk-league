@@ -89,8 +89,10 @@ export function useCreateParlay() {
 
 export function CreateParlayFooter() {
   const { picks } = useCreateParlay();
-  const searchParams = useLocalSearchParams<{ matchId: string }>();
-  const matchId = parseInt(searchParams.matchId);
+  const searchParams = useLocalSearchParams<{
+    matchId?: string;
+    dynastyLeagueId?: string;
+  }>();
   const insets = useSafeAreaInsets();
 
   if (picks.length == 0) {
@@ -110,12 +112,19 @@ export function CreateParlayFooter() {
       <Button
         variant="foreground"
         className="flex flex-row items-center gap-3 rounded-full"
-        onPress={() =>
-          router.navigate({
-            pathname: "/match/[matchId]/props/finalize-parlay",
-            params: { matchId },
-          })
-        }
+        onPress={() => {
+          if (searchParams.matchId) {
+            router.navigate({
+              pathname: "/match/[matchId]/props/finalize-parlay",
+              params: { matchId: parseInt(searchParams.matchId) },
+            });
+          } else {
+            router.navigate({
+              pathname: "/dynastyLeague/[dynastyLeagueId]/props/finalize-parlay",
+              params: { dynastyLeagueId: parseInt(searchParams.dynastyLeagueId!) },
+            });
+          }
+        }}
       >
         <Text>View Entries</Text>
         <View className="h-8 w-8 rounded-full bg-background flex flex-row justify-center items-center">

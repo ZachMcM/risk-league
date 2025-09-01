@@ -17,10 +17,16 @@ import {
   dynastyLeagueInvitation,
   dynastyLeagueInvitationStatus,
   dynastyLeagueUser,
+  message,
 } from "../db/schema";
 import { authMiddleware } from "../middleware";
 import { handleError } from "../utils/handleError";
 import { invalidateQueries } from "../utils/invalidateQueries";
+import { io } from "..";
+import {
+  getFlexMultiplier,
+  getPerfectPlayMultiplier,
+} from "../utils/parlayMultipliers";
 
 export const dynastyLeaguesRoute = Router();
 
@@ -38,12 +44,21 @@ dynastyLeaguesRoute.post(
       if (
         new Date(body.startDate).getTime() > new Date(body.endDate).getTime()
       ) {
-        res.json({ error: "Invalid start and end dates" });
+        res.status(400).json({ error: "Invalid start and end dates" });
         return;
       }
 
       if (body.startingBalance < 100) {
-        res.json({ error: "Invalid starting balance, must be at least $100" });
+        res
+          .status(400)
+          .json({ error: "Invalid starting balance, must be at least $100" });
+        return;
+      }
+
+      if (body.title.length > 16 || body.title.length < 1) {
+        res.status(400).json({
+          error: "Invalid title, must be between 1 and 16 characters inclusive",
+        });
         return;
       }
 
@@ -62,7 +77,7 @@ dynastyLeaguesRoute.post(
 
       invalidateQueries(["dynasty-leagues", res.locals.userId!]);
 
-      res.json({ success: true });
+      res.json({ dynastyLeagueId: newDynastyLeague.id });
     } catch (error) {
       handleError(error, res, "Dynasty Leagues");
     }
@@ -346,11 +361,133 @@ dynastyLeaguesRoute.get(
                 username: true,
               },
             },
+            parlays: {
+              with: {
+                picks: true,
+              },
+            },
           },
           orderBy: desc(dynastyLeagueUser.balance),
         });
 
-      res.json(dynastyLeagueUsersResult);
+      const extendedLeagueUsers = dynastyLeagueUsersResult.map((du) => ({
+        ...du,
+        totalStaked: du.parlays.reduce((accum, curr) => accum + curr.stake, 0),
+        totalParlays: du.parlays.length,
+        parlaysWon: du.parlays.filter(
+          (parlay) => parlay.profit && parlay.profit > 0
+        ).length,
+        parlaysLost: du.parlays.filter(
+          (parlay) => parlay.profit && parlay.profit < 0
+        ).length,
+        parlaysInProgress: du.parlays.filter((parlay) => !parlay.resolved)
+          .length,
+        payoutPotential: du.parlays
+          .filter((parlay) => !parlay.resolved)
+          .reduce(
+            (accum, curr) =>
+              accum +
+              curr.stake *
+                (curr.type == "flex"
+                  ? getFlexMultiplier(curr.picks.length, curr.picks.length)
+                  : getPerfectPlayMultiplier(curr.picks.length)),
+            0
+          ),
+      }));
+
+      res.json(extendedLeagueUsers);
+    } catch (error) {
+      handleError(error, res, "Dynasty Leagues");
+    }
+  }
+);
+
+dynastyLeaguesRoute.get(
+  "/dynastyLeagues/:id/messages",
+  authMiddleware,
+  async (req, res) => {
+    try {
+      const dynastyLeagueId = req.params.id;
+
+      const messages = await db.query.message.findMany({
+        where: eq(message.dynastyLeagueId, parseInt(dynastyLeagueId)),
+        with: {
+          user: {
+            columns: {
+              id: true,
+              image: true,
+              username: true,
+            },
+          },
+        },
+        orderBy: message.createdAt,
+      });
+
+      res.json(messages);
+    } catch (error) {
+      handleError(error, res, "Dynasty Leagues");
+    }
+  }
+);
+
+dynastyLeaguesRoute.post(
+  "/dynastyLeagues/:id/messages",
+  authMiddleware,
+  async (req, res) => {
+    try {
+      const { content } = req.body as {
+        content: string | undefined;
+      };
+
+      if (content == undefined) {
+        res
+          .status(400)
+          .json({ error: "Invalid request body, missing message content" });
+        return;
+      }
+
+      const [newMessage] = await db
+        .insert(message)
+        .values({
+          userId: res.locals.userId!,
+          content,
+          dynastyLeagueId: parseInt(req.params.id),
+        })
+        .returning({ id: message.id });
+
+      invalidateQueries([
+        "dynasty-league",
+        parseInt(req.params.id),
+        "messages",
+      ]);
+
+      const messageWithUser = await db.query.message.findFirst({
+        where: eq(message.id, newMessage.id),
+        with: {
+          user: {
+            columns: {
+              id: true,
+              username: true,
+              image: true,
+            },
+          },
+        },
+      });
+
+      const dynastyLeagueUsers = await db.query.dynastyLeagueUser.findMany({
+        where: eq(dynastyLeagueUser.dynastyLeagueId, parseInt(req.params.id)),
+        columns: {
+          userId: true,
+        },
+      });
+
+      for (const user of dynastyLeagueUsers) {
+        io.of("/realtime")
+          .to(`user:${user.userId}`)
+          .emit("dynasty-league-message-received", messageWithUser);
+      }
+
+      res.json(newMessage.id);
     } catch (error) {
       handleError(error, res, "Dynasty Leagues");
     }
@@ -368,32 +505,23 @@ dynastyLeaguesRoute.get(
         return;
       }
 
-      const dynastyLeagueUserResult =
-        await db.query.dynastyLeagueUser.findFirst({
-          where: and(
-            eq(dynastyLeagueUser.userId, res.locals.userId!),
-            eq(dynastyLeagueUser.dynastyLeagueId, dynastyLeagueId)
-          ),
-          with: {
-            dynastyLeague: {
-              with: {
-                dynastyLeagueUsers: {
-                  columns: { id: true },
-                },
-              },
-            },
+      const dynastyLeagueResult = await db.query.dynastyLeague.findFirst({
+        where: and(eq(dynastyLeague.id, dynastyLeagueId)),
+        with: {
+          dynastyLeagueUsers: {
+            columns: { id: true },
           },
-        });
+        },
+      });
 
-      if (!dynastyLeagueUserResult) {
+      if (!dynastyLeagueResult) {
         res.status(404).json({ error: "Dynasty league user not found" });
         return;
       }
 
       res.json({
-        ...dynastyLeagueUserResult.dynastyLeague,
-        userCount:
-          dynastyLeagueUserResult.dynastyLeague.dynastyLeagueUsers.length,
+        ...dynastyLeagueResult,
+        userCount: dynastyLeagueResult.dynastyLeagueUsers.length,
       });
     } catch (error) {
       handleError(error, res, "Dynasty Leagues");

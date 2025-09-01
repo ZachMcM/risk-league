@@ -49,7 +49,10 @@ const dynastyLeagueSchema = z.object({
       message: "End date must be after start date",
       path: ["endDate"],
     }),
-  title: z.string(),
+  title: z
+    .string()
+    .min(1, { message: "Title is required" })
+    .max(16, { message: "Title cannot be more than 16 characters" }),
   tags: z.array(z.string()),
   inviteOnly: z.boolean(),
   league: z.enum(LEAGUES),
@@ -66,7 +69,7 @@ export default function CreateDynastyLeague() {
     defaultValues: {
       tags: [],
       startingBalance: 100,
-      inviteOnly: false
+      inviteOnly: false,
     },
   });
 
@@ -103,11 +106,10 @@ export default function CreateDynastyLeague() {
         >
       ) => await postDynastyLeague(league),
       onSuccess: () => {
-        toast.success("Successfully created league")
-        router.dismissAll()
-        // TODO navigate to actual dynasty page
-        router.navigate("/(tabs)/dynasty")
-      }
+        toast.success("Successfully created league");
+        router.dismissAll();
+        router.navigate("/(tabs)/dynasty");
+      },
     });
 
   function onSubmit({

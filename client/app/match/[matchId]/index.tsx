@@ -7,11 +7,7 @@ import ParlaysView from "~/components/parlays/ParlaysView";
 import { Button } from "~/components/ui/button";
 import { ScrollContainer } from "~/components/ui/scroll-container";
 import { Text } from "~/components/ui/text";
-import {
-  getMatch,
-  getParlays,
-  getTodayProps
-} from "~/endpoints";
+import { getMatch, getParlays, getTodayProps } from "~/endpoints";
 import { authClient } from "~/lib/auth-client";
 import { Plus } from "~/lib/icons/Plus";
 
@@ -68,43 +64,41 @@ export default function Match() {
 
   return (
     <ScrollContainer className="pt-4">
-      <View className="flex-1">
-        {isMatchPending ? (
-          <ActivityIndicator className="text-foreground p-4" />
-        ) : (
-          match && (
-            <View className="flex flex-1 flex-col gap-6">
-              <MatchDetails match={match} />
-              <View className="flex flex-col gap-4">
-                <View className="flex flex-row items-end justify-between">
-                  <Text className="font-bold text-2xl">Parlays</Text>
-                  {!match.resolved && (
-                    <Button
-                      onPress={() =>
-                        router.navigate({
-                          pathname: "/match/[matchId]/props",
-                          params: { matchId },
-                        })
-                      }
-                      variant="foreground"
-                      size="sm"
-                      className="flex flex-row items-center gap-2 rounded-full h-10"
-                    >
-                      <Plus className="text-background" size={18} />
-                      <Text>Create Parlay</Text>
-                    </Button>
-                  )}
-                </View>
-                {areParlaysPending ? (
-                  <ActivityIndicator className="text-foreground p-4" />
-                ) : (
-                  parlays && <ParlaysView parlays={parlays} />
+      {isMatchPending ? (
+        <ActivityIndicator className="text-foreground p-4" />
+      ) : (
+        match && (
+          <View className="flex flex-1 flex-col gap-6">
+            <MatchDetails match={match} />
+            <View className="flex flex-col gap-4">
+              <View className="flex flex-row items-end justify-between">
+                <Text className="font-bold text-2xl">Parlays</Text>
+                {!match.resolved && (
+                  <Button
+                    onPress={() =>
+                      router.navigate({
+                        pathname: "/match/[matchId]/props",
+                        params: { matchId },
+                      })
+                    }
+                    variant="foreground"
+                    size="sm"
+                    className="flex flex-row items-center gap-2 rounded-full h-10"
+                  >
+                    <Plus className="text-background" size={18} />
+                    <Text>Create Parlay</Text>
+                  </Button>
                 )}
               </View>
+              {areParlaysPending ? (
+                <ActivityIndicator className="text-foreground p-4" />
+              ) : (
+                parlays && <ParlaysView parlays={parlays} />
+              )}
             </View>
-          )
-        )}
-      </View>
+          </View>
+        )
+      )}
     </ScrollContainer>
   );
 }

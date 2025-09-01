@@ -151,6 +151,7 @@ export function RootNavigatior() {
             presentation: "modal",
           }}
         />
+        <Stack.Screen name="dynastyLeague" options={{ headerShown: false }} />
       </Stack.Protected>
       <Stack.Protected guard={currentUserData == null}>
         <Stack.Screen name="index" options={{ headerShown: false }} />

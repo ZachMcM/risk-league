@@ -7,49 +7,48 @@ import { toast } from "sonner-native";
 import MessagesList from "~/components/messages/MessagesList";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
+import LeagueLogo from "~/components/ui/league-logos/LeagueLogo";
 import ModalContainer from "~/components/ui/modal-container";
-import ProfileImage from "~/components/ui/profile-image";
 import { Text } from "~/components/ui/text";
-import { getMatch, getMessages, postMessage } from "~/endpoints";
+import { getDynastyLeague, getMessages, postMessage } from "~/endpoints";
 import { authClient } from "~/lib/auth-client";
 import { SendHorizontal } from "~/lib/icons/SendHorizontal";
-import { ExtendedMatchUser } from "~/types/match";
 import { Message } from "~/types/message";
 
 export default function Messages() {
-  const searchParams = useLocalSearchParams<{ matchId: string }>();
-  const matchId = parseInt(searchParams.matchId);
+  const searchParams = useLocalSearchParams<{ dynastyLeagueId: string }>();
+  const dynastyLeagueId = parseInt(searchParams.dynastyLeagueId);
 
   const { data: currentUserData } = authClient.useSession();
 
-  const { data: match } = useQuery({
-    queryKey: ["match", matchId],
-    queryFn: async () => await getMatch(matchId),
+  const { data: dynastyLeague, isPending: isDynastyLeaguePending } = useQuery({
+    queryKey: ["dynasty-league", dynastyLeagueId],
+    queryFn: async () => await getDynastyLeague(dynastyLeagueId),
   });
 
   const { data: messages, isPending: areMessagesPending } = useQuery({
-    queryKey: ["match", matchId, "messages"],
-    queryFn: async () => await getMessages({ matchId }),
+    queryKey: ["dynasty-league", dynastyLeagueId, "messages"],
+    queryFn: async () => await getMessages({ dynastyLeagueId }),
   });
 
   const queryClient = useQueryClient();
 
   const { mutate: sendMessage } = useMutation({
     mutationFn: async ({ content }: { content: string }) =>
-      postMessage({ content, matchId }),
+      postMessage({ content, dynastyLeagueId }),
     onMutate: async ({ content }) => {
       await queryClient.cancelQueries({
-        queryKey: ["match", matchId, "messages"],
+        queryKey: ["dynasty-league", dynastyLeagueId, "messages"],
       });
 
       const previousMessages = queryClient.getQueryData([
-        "match",
-        matchId,
+        "dynasty-league",
+        dynastyLeagueId,
         "messages",
       ]);
 
       queryClient.setQueryData(
-        ["match", matchId, "messages"],
+        ["dynasty-league", dynastyLeagueId, "messages"],
         (old: Message[]) => [
           ...(old || []),
           {
@@ -57,7 +56,7 @@ export default function Messages() {
             content,
             createdAt: new Date().toISOString(),
             userId: currentUserData?.user.id,
-            matchId,
+            dynastyLeagueId,
             user: {
               id: currentUserData?.user.id,
               image: currentUserData?.user.image,
@@ -73,7 +72,7 @@ export default function Messages() {
       console.log(err);
       toast.error("There was an error sending your message");
       queryClient.setQueryData(
-        ["match", matchId, "messages"],
+        ["dynasty-league", dynastyLeagueId, "messages"],
         context?.previousMessages
       );
     },
@@ -89,14 +88,10 @@ export default function Messages() {
     }
   };
 
-  const otherMatchUser = match?.matchUsers.find(
-    (mu: ExtendedMatchUser) => mu.userId !== currentUserData?.user.id
-  )!;
-
   return (
     <ModalContainer>
       <View className="flex flex-1">
-        {areMessagesPending ? (
+        {areMessagesPending || isDynastyLeaguePending ? (
           <ActivityIndicator className="text-foreground" />
         ) : (
           messages &&
@@ -104,13 +99,9 @@ export default function Messages() {
             <View className="flex flex-col gap-4 px-4 py-8 items-center">
               <View className="flex flex-col gap-4 items-center">
                 <View className="flex flex-col gap-1 items-center">
-                  <ProfileImage
-                    className="h-20 w-20"
-                    username={otherMatchUser.user.username}
-                    image={otherMatchUser.user.username}
-                  />
-                  <Text className="font-bold text-xl text-center">
-                    {otherMatchUser.user.username}
+                  <LeagueLogo size={48} league={dynastyLeague?.league!}/>
+                  <Text className="font-bold text-xl text-center max-w-xs">
+                    {dynastyLeague?.title} Dynasty League Chat
                   </Text>
                 </View>
               </View>
@@ -131,7 +122,7 @@ export default function Messages() {
             value={inputValue}
             onChangeText={setInputValue}
             onSubmitEditing={handleSendMessage}
-            editable={!areMessagesPending && !match?.resolved}
+            editable={!areMessagesPending && !dynastyLeague?.resolved}
             placeholder={
               !areMessagesPending ? "Type a message..." : "Loading..."
             }

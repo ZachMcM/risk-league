@@ -10,7 +10,7 @@ export default function PlayerImage({
   className?: string
 }) {
   return (
-    <View className={cn("border-2 border-transparent rounded-full overflow-hidden w-14 h-14 bg-input/30", className)}>
+    <View className={cn("border-2 border-border rounded-full overflow-hidden w-14 h-14 bg-secondary", className)}>
       <Image
         contentFit="cover"
         style={{ width: "100%", height: "100%" }}

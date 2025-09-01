@@ -25,14 +25,20 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
   useEffect(() => {
-    console.log("RealtimeProvider useEffect running, user data:", currentUserData);
+    console.log(
+      "RealtimeProvider useEffect running, user data:",
+      currentUserData
+    );
 
     if (!currentUserData?.user?.id) {
       console.log("No user ID, returning early");
       return;
     }
 
-    console.log("Creating socket connection for user:", currentUserData.user.id);
+    console.log(
+      "Creating socket connection for user:",
+      currentUserData.user.id
+    );
     console.log(pathname.substring(pathname.lastIndexOf("/")));
 
     const socket = io(`${process.env.EXPO_PUBLIC_API_URL}/realtime`, {
@@ -63,6 +69,46 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
             href={{
               pathname: "/match/[matchId]",
               params: { matchId, openSubRoute: "parlay", subRouteId: parlayId },
+            }}
+            className="m-3"
+            onPress={() => {
+              router.dismissAll();
+              toast.dismiss(toastId);
+            }}
+          >
+            <Card>
+              <CardContent className="w-full flex flex-col px-4 py-3">
+                <Text className="font-bold">
+                  One of your match parlays finished!
+                </Text>
+                <Text className="text-muted-foreground font-semibold">
+                  Click here to view the results!
+                </Text>
+              </CardContent>
+            </Card>
+          </Link>
+        );
+      }
+    );
+
+    socket.on(
+      "dynasty-league-parlay-resolved",
+      ({
+        dynastyLeagueId,
+        parlayId,
+      }: {
+        dynastyLeagueId: number;
+        parlayId: number;
+      }) => {
+        const toastId = toast.custom(
+          <Link
+            href={{
+              pathname: "/dynastyLeague/[dynastyLeagueId]",
+              params: {
+                dynastyLeagueId,
+                openSubRoute: "parlay",
+                subRouteId: parlayId,
+              },
             }}
             className="m-3"
             onPress={() => {
@@ -207,6 +253,51 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
             href={{
               pathname: "/match/[matchId]",
               params: { matchId: message.matchId!, openSubRoute: "messages" },
+            }}
+            onPress={() => {
+              router.dismissAll();
+              toast.dismiss(toastId);
+            }}
+          >
+            <Card>
+              <CardContent className="w-full flex flex-row gap-3 items-center px-4 py-3">
+                <ProfileImage
+                  className="h-12 w-12"
+                  image={message.user.image}
+                  username={message.user.username}
+                />
+                <View className="flex flex-col flex-1">
+                  <Text className="font-bold text-lg">
+                    {message.user.username}
+                  </Text>
+                  <Text
+                    className="text-muted-foreground font-semibold"
+                    numberOfLines={2}
+                  >
+                    {message.content}
+                  </Text>
+                </View>
+              </CardContent>
+            </Card>
+          </Link>
+        );
+      }
+    });
+
+    socket.on("dynasty-league-message-received", (message: Message) => {
+      if (
+        message.userId !== currentUserData?.user.id &&
+        pathname !== `/dynastyLeagues/${message.dynastyLeagueId}/messages`
+      ) {
+        const toastId = toast.custom(
+          <Link
+            className="m-3"
+            href={{
+              pathname: "/dynastyLeague/[dynastyLeagueId]",
+              params: {
+                dynastyLeagueId: message.dynastyLeagueId!,
+                openSubRoute: "messages",
+              },
             }}
             onPress={() => {
               router.dismissAll();

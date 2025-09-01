@@ -103,11 +103,9 @@ export default function MatchDetails({ match }: { match: ExtendedMatch }) {
             <Text className="font-semibold text-muted-foreground">You</Text>
           </View>
         </View>
-        <View className="flex flex-col gap-2 items-center">
-          <View className="px-1.5 py-0.5 flex justify-center items-center rounded-full bg-primary">
-            <Text className="font-semibold">vs</Text>
-          </View>
-        </View>
+        <Badge>
+          <Text className="text-sm">vs</Text>
+        </Badge>
         <View className="flex flex-row items-center gap-2.5">
           <View className="flex flex-col items-end">
             <Text className="font-bold text-2xl">

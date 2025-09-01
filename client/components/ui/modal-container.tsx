@@ -3,7 +3,7 @@ import { View } from "react-native";
 import { PortalHost } from "@rn-primitives/portal";
 import { Container } from "./container";
 
-export default function ModalContainer({ children }: { children: ReactNode }) {
+export default function ModalContainer({ children }: { children?: ReactNode }) {
   return (
     <Fragment>
       <Container className="p-0 flex flex-col gap-2 flex-1">

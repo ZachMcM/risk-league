@@ -8,7 +8,11 @@ import { Game, Prop, TodayPlayerProps } from "./types/prop";
 import { Rank } from "./types/rank";
 import { Career, Friendship, User } from "./types/user";
 import { Message } from "./types/message";
-import { DynastyLeague, DynastyLeagueInvitation } from "./types/dynastyLeague";
+import {
+  DynastyLeague,
+  DynastyLeagueInvitation,
+  DynastyLeagueUser,
+} from "./types/dynastyLeague";
 
 export type serverRequestParams = {
   endpoint: string;
@@ -190,10 +194,10 @@ export async function postDynastyLeague(
 export async function getDynastyLeague(id: number): Promise<DynastyLeague> {
   const league = await serverRequest({
     endpoint: `/dynastyLeagues/${id}`,
-    method: "GET"
-  })
+    method: "GET",
+  });
 
-  return league
+  return league;
 }
 
 export async function getDynastyLeagues(): Promise<DynastyLeague[]> {
@@ -203,6 +207,17 @@ export async function getDynastyLeagues(): Promise<DynastyLeague[]> {
   });
 
   return leagues;
+}
+
+export async function getDynastyLeagueUsers(
+  id: number
+): Promise<DynastyLeagueUser[]> {
+  const users = await serverRequest({
+    endpoint: `/dynastyLeagues/${id}/users`,
+    method: "GET",
+  });
+
+  return users;
 }
 
 export async function getDynastyLeagueInvites(): Promise<
@@ -216,18 +231,36 @@ export async function getDynastyLeagueInvites(): Promise<
   return invites;
 }
 
-export async function getMessages(id: number): Promise<Message[]> {
+export async function getMessages({
+  matchId,
+  dynastyLeagueId,
+}: {
+  matchId?: number;
+  dynastyLeagueId?: number;
+}): Promise<Message[]> {
   const messages = await serverRequest({
-    endpoint: `/matches/${id}/messages`,
+    endpoint: `/${matchId ? "matches" : "dynastyLeagues"}/${
+      matchId ?? dynastyLeagueId
+    }/messages`,
     method: "GET",
   });
 
   return messages;
 }
 
-export async function postMessage(matchId: number, content: string) {
+export async function postMessage({
+  matchId,
+  dynastyLeagueId,
+  content,
+}: {
+  matchId?: number;
+  dynastyLeagueId?: number;
+  content: string;
+}) {
   await serverRequest({
-    endpoint: `/matches/${matchId}/messages`,
+    endpoint: `/${matchId ? "matches" : "dynastyLeagues"}/${
+      matchId ?? dynastyLeagueId
+    }/messages`,
     method: "POST",
     body: JSON.stringify({ content }),
   });

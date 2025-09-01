@@ -1,5 +1,5 @@
 import { Stack } from "expo-router";
-import MatchHeader from "~/components/matches/MatchHeader";
+import DynastyLeagueHeader from "~/components/dynasty/DynastyLeagueHeader";
 
 export default function Layout() {
   return (
@@ -7,7 +7,7 @@ export default function Layout() {
       <Stack.Screen
         name="index"
         options={{
-          header: () => <MatchHeader />,
+          header: () => <DynastyLeagueHeader />,
         }}
       />
       <Stack.Screen
@@ -23,6 +23,10 @@ export default function Layout() {
           headerShown: false,
           presentation: "modal",
         }}
+      />
+      <Stack.Screen
+        name="users"
+        options={{ headerShown: false, presentation: "modal" }}
       />
       <Stack.Screen
         name="props"

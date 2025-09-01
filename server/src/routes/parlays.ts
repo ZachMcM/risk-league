@@ -24,6 +24,7 @@ export const parlaysRoute = Router();
 
 parlaysRoute.get("/parlays/:id", authMiddleware, async (req, res) => {
   try {
+    logger.debug("This route is called")
     const parlayResult = await db.query.parlay.findFirst({
       where: eq(parlay.id, parseInt(req.params.id)),
       with: {
@@ -242,8 +243,8 @@ parlaysRoute.post("/parlays", authMiddleware, async (req, res) => {
         return;
       }
 
-      if (stake < matchUserResult.balance * MIN_STAKE_PCT) {
-        res.status(400).json({ error: "Your stake is too small" });
+      if (stake < Math.floor(matchUserResult.balance * MIN_STAKE_PCT)) {
+        res.status(400).json({ error: `Your stake is too small, must be at least ${matchUserResult.balance * MIN_STAKE_PCT}` });
         return;
       }
 
@@ -343,19 +344,19 @@ parlaysRoute.post("/parlays", authMiddleware, async (req, res) => {
       ["dynasty-league", dynastyLeagueUserResult.dynastyLeagueId, "users"],
       [
         "parlays",
-        "dynasty",
+        "dynasty-league",
         dynastyLeagueUserResult.dynastyLeagueId,
         dynastyLeagueUserResult.userId,
       ],
       [
         "props",
-        "dynasty",
+        "dynasty-league",
         dynastyLeagueUserResult.dynastyLeagueId,
         dynastyLeagueUserResult.userId,
       ],
       ...picks.map((pickEntry) => [
         "player-props",
-        "dynasty",
+        "dynasty-league",
         dynastyLeagueUserResult.dynastyLeagueId,
         pickEntry.prop.playerId,
         dynastyLeagueUserResult.userId,
@@ -499,12 +500,12 @@ parlaysRoute.patch("/parlays", apiKeyMiddleware, async (req, res) => {
         ["parlay", parlayResult.id],
         [
           "parlays",
-          "dynasty",
+          "dynasty-league",
           parlayResult.dynastyLeagueUser.dynastyLeagueId,
           parlayResult.dynastyLeagueUser.userId,
         ],
         [
-          "dynastyLeague",
+          "dynasty-league",
           parlayResult.dynastyLeagueUser.dynastyLeagueId,
           "users",
         ],
@@ -514,7 +515,7 @@ parlaysRoute.patch("/parlays", apiKeyMiddleware, async (req, res) => {
       io.of("/realtime")
         .to(`user:${parlayResult.dynastyLeagueUser.userId}`)
         .emit("dynasty-league-parlay-resolved", {
-          matchId: parlayResult.dynastyLeagueUser.dynastyLeagueId,
+          dynastyLeagueId: parlayResult.dynastyLeagueUser.dynastyLeagueId,
           parlayId: parlayResult.id,
         });
     }

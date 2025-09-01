@@ -125,7 +125,6 @@ export default function ParlayCard({ initialData }: { initialData: Parlay }) {
                 key={pick.id}
                 image={pick.prop.player.image}
                 className={cn(
-                  "bg-card",
                   pick.status == "hit"
                     ? "border-success"
                     : pick.status == "missed"
