@@ -4,6 +4,7 @@ import { MessageCircle, Plus, Trophy, Users } from "lucide-react-native";
 import { useEffect } from "react";
 import { ActivityIndicator, View } from "react-native";
 import DynastyLeagueDetails from "~/components/dynasty/DynastyLeagueDetails";
+import DynastyLeagueCountdown from "~/components/dynasty/DynastyLeagueCountdown";
 import ParlaysView from "~/components/parlays/ParlaysView";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
@@ -151,6 +152,10 @@ export default function DynastyLeague() {
                 />
               </Button>
             </View>
+            <DynastyLeagueCountdown
+              startDate={dynastyLeague.startDate}
+              endDate={dynastyLeague.endDate}
+            />
             <View className="flex flex-col gap-4">
               <View className="flex flex-row items-end justify-between">
                 <Text className="font-bold text-2xl">Parlays</Text>
@@ -172,7 +177,6 @@ export default function DynastyLeague() {
                     </Button>
                   )}
               </View>
-              {/* TODO create end start count down component */}
               {areParlaysPending ? (
                 <ActivityIndicator className="text-foreground p-4" />
               ) : (

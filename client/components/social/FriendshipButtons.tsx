@@ -50,53 +50,56 @@ export default function FriendshipButtons({
     queryFn: async () => await getFriendship(user.id),
   });
 
-  const { mutate: sendFriendRequest, isPending: isSendingRequest } = useMutation({
-    mutationFn: async () => await postFriendRequest(user.id),
-    onError: (err) => {
-      toast.error(err.message, {
-        position: "bottom-center",
-      });
-    },
-    onSuccess: () => {
-      invalidateQueries(
-        queryClient,
-        ["friendships", currUserData?.user.id],
-        ["friendship", currUserData?.user.id, user.id]
-      );
-    },
-  });
+  const { mutate: sendFriendRequest, isPending: isSendingRequest } =
+    useMutation({
+      mutationFn: async () => await postFriendRequest(user.id),
+      onError: (err) => {
+        toast.error(err.message, {
+          position: "bottom-center",
+        });
+      },
+      onSuccess: () => {
+        invalidateQueries(
+          queryClient,
+          ["friendships", currUserData?.user.id],
+          ["friendship", currUserData?.user.id, user.id]
+        );
+      },
+    });
 
-  const { mutate: removeFriendship, isPending: isRemovingFriendship } = useMutation({
-    mutationFn: async () => await deleteFriendship(user.id),
-    onError: (err) => {
-      toast.error(err.message, {
-        position: "bottom-center",
-      });
-    },
-    onSuccess: () => {
-      invalidateQueries(
-        queryClient,
-        ["friendships", currUserData?.user.id],
-        ["friendship", currUserData?.user.id, user.id]
-      );
-    },
-  });
+  const { mutate: removeFriendship, isPending: isRemovingFriendship } =
+    useMutation({
+      mutationFn: async () => await deleteFriendship(user.id),
+      onError: (err) => {
+        toast.error(err.message, {
+          position: "bottom-center",
+        });
+      },
+      onSuccess: () => {
+        invalidateQueries(
+          queryClient,
+          ["friendships", currUserData?.user.id],
+          ["friendship", currUserData?.user.id, user.id]
+        );
+      },
+    });
 
-  const { mutate: acceptFriendRequest, isPending: isAcceptingFriendship } = useMutation({
-    mutationFn: async () => await patchFriendRequest(user.id),
-    onError: (err) => {
-      toast.error(err.message, {
-        position: "bottom-center",
-      });
-    },
-    onSuccess: () => {
-      invalidateQueries(
-        queryClient,
-        ["friendships", currUserData?.user.id],
-        ["friendship", currUserData?.user.id, user.id]
-      );
-    },
-  });
+  const { mutate: acceptFriendRequest, isPending: isAcceptingFriendship } =
+    useMutation({
+      mutationFn: async () => await patchFriendRequest(user.id),
+      onError: (err) => {
+        toast.error(err.message, {
+          position: "bottom-center",
+        });
+      },
+      onSuccess: () => {
+        invalidateQueries(
+          queryClient,
+          ["friendships", currUserData?.user.id],
+          ["friendship", currUserData?.user.id, user.id]
+        );
+      },
+    });
 
   const { mutate: sendFriendlyMatchRequest } = useMutation({
     mutationFn: async ({
@@ -159,11 +162,12 @@ export default function FriendshipButtons({
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
                 <Button
+                  variant="foreground"
                   size="sm"
-                  className="flex flex-row gap-1.5 bg-primary/20 border-2 border-primary"
+                  className="flex flex-row items-center gap-1 rounded-full"
                 >
-                  <Text className="font-semibold !text-sm">Play</Text>
-                  <Play className="text-primary-foreground" size={14} />
+                  <Text>Start Match</Text>
+                  <Play className="text-background" size={16} />
                 </Button>
               </DialogTrigger>
               <DialogContent portalHost={portalHost} className="w-[375px]">
