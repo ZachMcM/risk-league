@@ -519,6 +519,27 @@
       "when": 1756768543080,
       "tag": "0073_fantastic_darkhawk",
       "breakpoints": true
+    },
+    {
+      "idx": 74,
+      "version": "7",
+      "when": 1756847441126,
+      "tag": "0074_medical_fenris",
+      "breakpoints": true
+    },
+    {
+      "idx": 75,
+      "version": "7",
+      "when": 1756847847093,
+      "tag": "0075_bizarre_valkyrie",
+      "breakpoints": true
+    },
+    {
+      "idx": 76,
+      "version": "7",
+      "when": 1756848075885,
+      "tag": "0076_moaning_firelord",
+      "breakpoints": true
     }
   ]
 }

@@ -1,6 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
-import { ArrowRight, Calendar, LockIcon, Users } from "lucide-react-native";
+import {
+  ArrowRight,
+  Calendar,
+  Info,
+  LockIcon,
+  Users,
+} from "lucide-react-native";
 import moment from "moment";
 import { ActivityIndicator, Pressable, View } from "react-native";
 import { getDynastyLeague, patchDynastyLeagueJoin } from "~/endpoints";
@@ -15,6 +21,7 @@ import { Separator } from "../ui/separator";
 import { Text } from "../ui/text";
 import { toast } from "sonner-native";
 import { invalidateQueries } from "~/utils/invalidateQueries";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 
 export default function DynastyLeagueListCard({
   initialData,
@@ -92,7 +99,24 @@ export default function DynastyLeagueListCard({
                     </Text>
                   </View>
                 </View>
-                <Text className="font-bold text-2xl">{league.title}</Text>
+                <View className="flex flex-row items-center gap-2">
+                  {league.adminCup && (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Pressable>
+                          <Icon as={Info} size={18} />
+                        </Pressable>
+                      </TooltipTrigger>
+                      <TooltipContent className="mx-2">
+                        <Text>
+                          Admin Cups are leagues ran by the Risk League team,
+                          with cash prizes for winners!
+                        </Text>
+                      </TooltipContent>
+                    </Tooltip>
+                  )}
+                  <Text className="font-bold text-2xl">{league.title}</Text>
+                </View>
               </View>
               <View className="flex flex-row items-center gap-2 flex-wrap">
                 {league.tags.map((tag, i) => (
@@ -128,7 +152,7 @@ export default function DynastyLeagueListCard({
             {!isMember &&
               !league.inviteOnly &&
               new Date().toISOString() < league.endDate &&
-              league.dynastyLeagueUsers.length < 50 && (
+              league.dynastyLeagueUsers.length < league.maxUsers && (
                 <Button
                   onPress={() => joinLeague()}
                   disabled={isJoiningLeague}

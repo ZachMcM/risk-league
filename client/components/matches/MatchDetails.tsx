@@ -120,7 +120,7 @@ export default function MatchDetails({ match }: { match: ExtendedMatch }) {
           </View>
         </View>
         <Badge className="self-start" variant={badgeVariant}>
-          <Text className="capitalize">{badgeText}</Text>
+          <Text className="capitalize text-sm">{badgeText}</Text>
         </Badge>
       </View>
       <View className="flex flex-row items-center justify-between">

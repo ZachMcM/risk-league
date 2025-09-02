@@ -1,10 +1,11 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { MessageCircle, Plus, Users } from "lucide-react-native";
+import { Banknote, Landmark, MessageCircle, Plus, Users } from "lucide-react-native";
 import { ActivityIndicator, View } from "react-native";
 import DynastyLeagueCountdown from "~/components/dynasty/DynastyLeagueCountdown";
 import DynastyLeagueDetails from "~/components/dynasty/DynastyLeagueDetails";
 import ParlaysView from "~/components/parlays/ParlaysView";
+import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Icon } from "~/components/ui/icon";
 import LeagueLogo from "~/components/ui/league-logos/LeagueLogo";
@@ -94,6 +95,16 @@ export default function DynastyLeague() {
                 )
               )}
             </View>
+            {dynastyLeague.cashPrize && (
+              <View className="flex flex-row gap-2 items-center justify-center">
+                <Text className="font-bold text-lg">
+                   Cash Prize:
+                </Text>
+                <Badge variant="success">
+                  <Text className="text-base">${dynastyLeague.cashPrize.toFixed(2)}</Text>
+                </Badge>
+              </View>
+            )}
             <View className="flex flex-row items-center gap-2">
               <Button
                 className="flex h-9 flex-row items-center gap-2"

@@ -6,7 +6,7 @@ import {
   ilike,
   InferInsertModel,
   or,
-  sql
+  sql,
 } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { Router } from "express";
@@ -179,7 +179,10 @@ dynastyLeaguesRoute.post(
         return;
       }
 
-      if (dynastyLeagueResult.dynastyLeagueUsers.length == 50) {
+      if (
+        dynastyLeagueResult.dynastyLeagueUsers.length ==
+        dynastyLeagueResult.maxUsers
+      ) {
         res.status(409).json({ error: "League is already full" });
         return;
       }
@@ -726,7 +729,19 @@ dynastyLeaguesRoute.get(
       const query = (req.query.query as string | undefined) || "";
 
       if (!query || query.trim().length == 0) {
-        res.json([]);
+        const adminLeagues = await db.query.dynastyLeague.findMany({
+          where: and(
+            eq(dynastyLeague.adminCup, true),
+            gt(dynastyLeague.endDate, new Date().toISOString())
+          ),
+          with: {
+            dynastyLeagueUsers: {
+              columns: { id: true, userId: true },
+            },
+          },
+        });
+
+        res.json(adminLeagues);
 
         return;
       }
@@ -815,6 +830,7 @@ dynastyLeaguesRoute.get("/dynastyLeagues", authMiddleware, async (_, res) => {
           },
         },
       },
+      orderBy: desc(dynastyLeague.createdAt),
     });
 
     const formattedDynastyLeagues = dynastyLeagueUserResults
@@ -822,11 +838,6 @@ dynastyLeaguesRoute.get("/dynastyLeagues", authMiddleware, async (_, res) => {
         ...dynastyLeague,
         userCount: dynastyLeague.dynastyLeagueUsers.length,
       }))
-      .sort(
-        (a, b) =>
-          new Date(b.createdAt.replace("+00", "+00:00")).getTime() -
-          new Date(a.createdAt.replace("+00", "+00:00")).getTime()
-      );
 
     res.json(formattedDynastyLeagues);
   } catch (error) {

@@ -433,7 +433,10 @@ export const dynastyLeague = pgTable("dynasty_league", {
   tags: text().array().notNull(),
   inviteOnly: boolean("invite_only").notNull(),
   minTotalStaked: doublePrecision("min_total_staked").default(0).notNull(),
-  minParlays: integer("min_parlays").default(0).notNull()
+  minParlays: integer("min_parlays").default(0).notNull(),
+  maxUsers: integer("max_users").default(50).notNull(),
+  adminCup: boolean("admin_cup").notNull().default(false),
+  cashPrize: doublePrecision("cash_prize")
 });
 
 export const dynastyLeagueUser = pgTable(
