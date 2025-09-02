@@ -76,7 +76,7 @@ def handle_stats_updated(data):
 
 def listen_for_stats_updated():
     """Function that listens for a prop updated message on the redis server"""
-    with concurrent.futures.ThreadPoolExecutor(
+    with concurrent.futures.ProcessPoolExecutor(
         max_workers=STATS_UPDATER_MAX_WORKERS
     ) as executor:
 

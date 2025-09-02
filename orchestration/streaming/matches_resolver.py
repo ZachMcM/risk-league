@@ -1,7 +1,7 @@
 from utils import setup_logger
 import signal
 import sys
-from concurrent.futures import ThreadPoolExecutor
+import concurrent.futures
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from constants import LEAGUES
@@ -35,7 +35,7 @@ def resolve_matches():
     Function checks if all the games for each sport today are finalized.
     If not return out. If so we find every match created today and resolves it.
     """
-    with ThreadPoolExecutor(max_workers=len(LEAGUES)) as executor:
+    with concurrent.futures.ProcessPoolExecutor(max_workers=len(LEAGUES)) as executor:
         # Submit all league processing tasks
         {executor.submit(process_league, league): league for league in LEAGUES}
 

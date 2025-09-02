@@ -20,7 +20,7 @@ def handle_pick_resolved(data):
 
 def listen_for_pick_resolved():
     """Function that listens for a pick_resolved message on redis"""
-    with concurrent.futures.ThreadPoolExecutor(max_workers=PARLAYS_UPDATER_MAX_WORKERS) as executor:
+    with concurrent.futures.ProcessPoolExecutor(max_workers=PARLAYS_UPDATER_MAX_WORKERS) as executor:
 
         def async_handler(data):
             executor.submit(handle_pick_resolved, data)

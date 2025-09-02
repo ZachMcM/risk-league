@@ -20,7 +20,7 @@ def handle_prop_updated(data):
 
 def listen_for_prop_updated():
     """Function that listens for a prop updated message on the redis server"""
-    with concurrent.futures.ThreadPoolExecutor(max_workers=PICKS_UPDATER_MAX_WORKERS) as executor:
+    with concurrent.futures.ProcessPoolExecutor(max_workers=PICKS_UPDATER_MAX_WORKERS) as executor:
 
         def async_handler(data):
             executor.submit(handle_prop_updated, data)
