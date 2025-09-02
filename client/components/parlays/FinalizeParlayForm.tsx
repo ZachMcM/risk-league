@@ -67,7 +67,7 @@ export default function FinalizeParlayForm({
   }, [formError, stake]);
 
   const { mutate: createParlay, isPending: isCreatingParlayPending } =
-    useMutation<{ id: number }, Error, void>({
+    useMutation({
       mutationFn: async () => {
         const parlay = {
           type,
@@ -86,19 +86,27 @@ export default function FinalizeParlayForm({
           position: "bottom-center",
         });
       },
-      onSuccess: () => {
+      onSuccess: ({ parlayId }) => {
         toast.success("Parlay Successfully created", {
           position: "top-center",
         });
-        router.dismissAll();
-        // TODO add support for navigating to dynasty home as well
+        if (router.canDismiss()) {
+          router.dismissAll();
+        }
         if (router.canGoBack()) {
           router.back();
         } else {
-          router.replace({
-            pathname: "/match/[matchId]",
-            params: { matchId: matchId! },
-          });
+          if (matchId) {
+            router.navigate({
+              pathname: "/match/[matchId]/parlays/[parlayId]",
+              params: { matchId: matchId, parlayId },
+            });
+          } else {
+            router.navigate({
+              pathname: "/dynastyLeague/[dynastyLeagueId]/parlays/[parlayId]",
+              params: { dynastyLeagueId: dynastyLeagueId!, parlayId },
+            });
+          }
         }
       },
     });
@@ -276,13 +284,19 @@ export default function FinalizeParlayForm({
                   </View>
                   <Button
                     size="sm"
-                    // TODO add support for navigating to dynasty home as well
-                    onPress={() =>
-                      router.navigate({
-                        pathname: "/match/[matchId]",
-                        params: { matchId: matchId! },
-                      })
-                    }
+                    onPress={() => {
+                      if (matchId) {
+                        router.navigate({
+                          pathname: "/match/[matchId]",
+                          params: { matchId: matchId },
+                        });
+                      } else {
+                        router.navigate({
+                          pathname: "/dynastyLeague/[dynastyLeagueId]",
+                          params: { dynastyLeagueId: dynastyLeagueId! },
+                        });
+                      }
+                    }}
                     variant="foreground"
                   >
                     <Text className="font-semibold">Add Picks</Text>

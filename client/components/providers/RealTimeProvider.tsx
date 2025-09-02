@@ -78,7 +78,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
               toast.dismiss(toastId);
             }}
           >
-            <Card>
+            <Card className="border-0">
               <CardContent className="w-full flex flex-col px-4 py-3">
                 <Text className="font-bold">
                   One of your match parlays finished!
@@ -120,7 +120,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
               toast.dismiss(toastId);
             }}
           >
-            <Card>
+            <Card className="border-0">
               <CardContent className="w-full flex flex-col px-4 py-3">
                 <Text className="font-bold">
                   One of your match parlays finished!
@@ -160,7 +160,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
               toast.dismiss(toastId);
             }}
           >
-            <Card>
+            <Card className="border-0">
               <CardContent className="w-full flex flex-row gap-4 items-center px-4 py-3">
                 <LeagueLogo league={league} size={32} />
                 <View className="flex flex-col flex-1">
@@ -195,7 +195,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
               toast.dismiss(toastId);
             }}
           >
-            <Card>
+            <Card className="border-0">
               <CardContent className="w-full flex flex-row gap-3 items-center px-4 py-3">
                 <ProfileImage
                   className="h-12 w-12"
@@ -232,7 +232,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
               toast.dismiss(toastId);
             }}
           >
-            <Card>
+            <Card className="border-0">
               <CardContent className="w-full flex flex-row gap-3 items-center px-4 py-3">
                 <ProfileImage
                   className="h-12 w-12"
@@ -271,7 +271,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
               toast.dismiss(toastId);
             }}
           >
-            <Card>
+            <Card className="border-0">
               <CardContent className="w-full flex flex-row gap-3 items-center px-4 py-3">
                 <ProfileImage
                   className="h-12 w-12"
@@ -318,7 +318,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
               toast.dismiss(toastId);
             }}
           >
-            <Card>
+            <Card className="border-0">
               <CardContent className="w-full flex flex-row gap-3 items-center px-4 py-3">
                 <ProfileImage
                   className="h-12 w-12"
@@ -366,7 +366,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
                 toast.dismiss(toastId);
               }}
             >
-              <Card>
+              <Card className="border-0">
                 <CardContent className="w-full flex flex-row gap-3 items-center px-4 py-3">
                   <ProfileImage
                     className="h-12 w-12"

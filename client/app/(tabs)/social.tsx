@@ -73,7 +73,7 @@ export default function Friends() {
 
   return (
     <Container className="pt-4 pb-0 px-0">
-      <View className="flex flex-col gap-4 flex-1">
+      <View className="flex flex-col gap-8 flex-1">
         {friendlyMatchRequests?.length !== 0 && (
           <View className="flex flex-col gap-2 px-4">
             {friendlyMatchRequests &&

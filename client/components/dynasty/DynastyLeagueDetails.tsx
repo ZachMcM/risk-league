@@ -1,14 +1,13 @@
+import { AlertTriangle } from "lucide-react-native";
 import { useEffect } from "react";
+import { View } from "react-native";
 import { toast } from "sonner-native";
 import { authClient } from "~/lib/auth-client";
-import { MIN_PARLAYS_REQUIRED, MIN_PCT_TOTAL_STAKED } from "~/lib/config";
 import { DynastyLeague, DynastyLeagueUser } from "~/types/dynastyLeague";
 import { Alert, AlertTitle } from "../ui/alert";
-import { Icon } from "../ui/icon";
-import { AlertTriangle } from "lucide-react-native";
-import { View } from "react-native";
-import { Text } from "../ui/text";
 import { Badge } from "../ui/badge";
+import { Icon } from "../ui/icon";
+import { Text } from "../ui/text";
 
 export default function DynastyLeagueDetails({
   dynastyLeagueUsers,
@@ -24,22 +23,20 @@ export default function DynastyLeagueDetails({
   )!;
   const currentDynastyLeagueUser = dynastyLeagueUsers?.at(currentUserIndex!)!;
 
-  const minTotalStaked = Math.round(
-    MIN_PCT_TOTAL_STAKED * currentDynastyLeagueUser.startingBalance
-  );
-
   useEffect(() => {
     let stakeToast: string | number | undefined;
     let parlaysToast: string | number | undefined;
 
-    if (!dynastyLeague.resolved) {
-      if (currentDynastyLeagueUser.totalStaked < minTotalStaked) {
+    if (new Date().toISOString() < dynastyLeague.endDate) {
+      if (currentDynastyLeagueUser.totalStaked < dynastyLeague.minTotalStaked) {
         stakeToast = toast.custom(
           <Alert variant="destructive">
             <Icon as={AlertTriangle} className="text-destructive" size={20} />
             <AlertTitle className="text-foreground">
               You need to stake $
-              {minTotalStaked - currentDynastyLeagueUser.totalStaked} more!
+              {dynastyLeague.minTotalStaked -
+                currentDynastyLeagueUser.totalStaked}{" "}
+              more!
             </AlertTitle>
           </Alert>,
           {
@@ -48,15 +45,16 @@ export default function DynastyLeagueDetails({
           }
         );
       }
-      if (currentDynastyLeagueUser.totalParlays < MIN_PARLAYS_REQUIRED) {
+      if (currentDynastyLeagueUser.totalParlays < dynastyLeague.minParlays) {
         parlaysToast = toast.custom(
           <Alert variant="destructive">
             <AlertTriangle className="text-destructive" size={20} />
             <AlertTitle className="text-foreground">
               You need to create{" "}
-              {MIN_PARLAYS_REQUIRED - currentDynastyLeagueUser.totalParlays}{" "}
+              {dynastyLeague.minParlays - currentDynastyLeagueUser.totalParlays}{" "}
               more parlay
-              {MIN_PARLAYS_REQUIRED - currentDynastyLeagueUser.totalParlays >
+              {dynastyLeague.minParlays -
+                currentDynastyLeagueUser.totalParlays >
                 1 && "s"}
               !
             </AlertTitle>
@@ -87,12 +85,16 @@ export default function DynastyLeagueDetails({
           ${currentDynastyLeagueUser.balance}
         </Text>
       </View>
-      <View className="flex flex-row items-center gap-1">
-        <Text className="text-xl font-semibold">Ranking:</Text>
-        <Badge variant={currentUserIndex + 1 == 1 ? "success" : "default"}>
-          <Text className="text-base">#{currentUserIndex + 1}</Text>
-        </Badge>
-      </View>
+      {currentDynastyLeagueUser.rank && (
+        <View className="flex flex-row items-center gap-1">
+          <Text className="text-xl font-semibold">Ranking:</Text>
+          <Badge
+            variant={currentDynastyLeagueUser.rank == 1 ? "success" : "default"}
+          >
+            <Text className="text-base">#{currentDynastyLeagueUser.rank}</Text>
+          </Badge>
+        </View>
+      )}
     </View>
   );
 }

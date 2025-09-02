@@ -187,7 +187,21 @@ export async function postDynastyLeague(
     body: JSON.stringify(dynastyLeague),
   });
 
-  return newLeague
+  return newLeague;
+}
+
+export async function patchDynastyLeagueUsersBonus({
+  dynastyLeagueId,
+  bonusValue,
+}: {
+  dynastyLeagueId: number;
+  bonusValue: number;
+}) {
+  await serverRequest({
+    endpoint: `/dynastyLeagues/${dynastyLeagueId}/users/bonus`,
+    method: "PATCH",
+    body: JSON.stringify({ bonusValue }),
+  });
 }
 
 export async function getDynastyLeague(id: number): Promise<DynastyLeague> {
@@ -235,7 +249,7 @@ export async function patchDynastyLeagueJoin({
   inviteId,
 }: {
   dynastyLeagueId: number;
-  inviteId?: number;
+  inviteId?: string;
 }) {
   await serverRequest({
     endpoint: `/dynastyLeagues/${dynastyLeagueId}/join${
@@ -251,7 +265,7 @@ export async function postDynastLeagueInvite(id: number) {
     method: "POST",
   });
 
-  console.log(newInvite)
+  console.log(newInvite);
 
   return newInvite;
 }
@@ -409,14 +423,16 @@ export async function postParlay({
   };
   matchId?: number;
   dynastyLeagueId?: number;
-}): Promise<{ id: number }> {
-  return await serverRequest({
+}) {
+  const newParlay: { parlayId: number } = await serverRequest({
     endpoint: `/parlays?${
       matchId ? `matchId=${matchId}` : `dynastyLeagueId=${dynastyLeagueId}`
     }`,
     method: "POST",
     body: JSON.stringify(parlay),
   });
+
+  return newParlay;
 }
 
 export async function getFriendship(

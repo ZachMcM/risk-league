@@ -119,7 +119,8 @@ export default function DynastyLeagueListCard({
             </View>
             {!isMember &&
               !league.inviteOnly &&
-              new Date().toISOString() < league.endDate && (
+              new Date().toISOString() < league.endDate &&
+              league.dynastyLeagueUsers.length < 50 && (
                 <Button
                   onPress={() => joinLeague()}
                   disabled={isJoiningLeague}

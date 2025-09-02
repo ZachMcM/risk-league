@@ -17,8 +17,10 @@ import { Separator } from "../ui/separator";
 import { Text } from "../ui/text";
 
 export default function ParlayCard({ initialData }: { initialData: Parlay }) {
-  const searchParams = useLocalSearchParams<{ matchId: string }>();
-  const matchId = parseInt(searchParams.matchId);
+  const searchParams = useLocalSearchParams<{
+    matchId?: string;
+    dynastyLeagueId?: string;
+  }>();
 
   const { data: parlay } = useQuery({
     initialData,
@@ -29,8 +31,14 @@ export default function ParlayCard({ initialData }: { initialData: Parlay }) {
   return (
     <Link
       href={{
-        pathname: "/match/[matchId]/parlays/[parlayId]",
-        params: { matchId, parlayId: parlay.id },
+        pathname: searchParams.matchId
+          ? "/match/[matchId]/parlays/[parlayId]"
+          : "/dynastyLeague/[dynastyLeagueId]/parlays/[parlayId]",
+        params: {
+          matchId: searchParams.matchId!,
+          parlayId: parlay.id,
+          dynastyLeagueId: searchParams.dynastyLeagueId!,
+        },
       }}
     >
       <Card className="w-full">
@@ -120,20 +128,27 @@ export default function ParlayCard({ initialData }: { initialData: Parlay }) {
             </View>
           </View>
           <View className="flex flex-row items-center">
-            {parlay.picks.map((pick, i) => (
-              <PlayerImage
-                key={pick.id}
-                image={pick.prop.player.image}
-                className={cn(
-                  pick.status == "hit"
-                    ? "border-success"
-                    : pick.status == "missed"
-                    ? "border-destructive"
-                    : "border-border",
-                  i !== 0 && "-ml-2"
-                )}
-              />
-            ))}
+            {parlay.picks
+              .filter(
+                (pick, index, picks) =>
+                  picks.findIndex(
+                    (p) => p.prop.player.playerId === pick.prop.player.playerId
+                  ) === index
+              )
+              .map((pick, i) => (
+                <PlayerImage
+                  key={pick.prop.player.playerId}
+                  image={pick.prop.player.image}
+                  className={cn(
+                    pick.status == "hit"
+                      ? "border-success"
+                      : pick.status == "missed"
+                      ? "border-destructive"
+                      : "border-border",
+                    i !== 0 && "-ml-2"
+                  )}
+                />
+              ))}
           </View>
         </CardContent>
       </Card>

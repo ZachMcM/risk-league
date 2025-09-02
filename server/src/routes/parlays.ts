@@ -290,7 +290,7 @@ parlaysRoute.post("/parlays", authMiddleware, async (req, res) => {
         ["career", matchUserResult.userId]
       );
 
-      res.json({ success: true });
+      res.json({ parlayId: parlayResult.id });
       return;
     }
     const dynastyLeagueId = parseInt(req.query.dynastyLeagueId as string);
@@ -382,7 +382,7 @@ parlaysRoute.post("/parlays", authMiddleware, async (req, res) => {
       ["career", dynastyLeagueUserResult.userId]
     );
 
-    res.json({ success: true });
+    res.json({ parlayId: parlayResult.id });
   } catch (error: any) {
     logger.error(
       "Parlays route error:",

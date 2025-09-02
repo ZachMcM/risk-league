@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { router } from "expo-router";
-import { Plus } from "lucide-react-native";
+import { Info, Plus } from "lucide-react-native";
 import { useEffect, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import {
@@ -32,6 +32,11 @@ import {
 import { ScrollContainer } from "~/components/ui/scroll-container";
 import { Switch } from "~/components/ui/switch";
 import { Text } from "~/components/ui/text";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "~/components/ui/tooltip";
 import { postDynastyLeague } from "~/endpoints";
 import { LEAGUES } from "~/lib/config";
 import { ChevronDown } from "~/lib/icons/ChevronDown";
@@ -59,6 +64,12 @@ const dynastyLeagueSchema = z.object({
   startingBalance: z
     .number()
     .min(100, { message: "Starting balance must be at least $100" }),
+  minParlays: z
+    .number()
+    .min(0, { message: "Minimum parlays cannot be negative" }),
+  minTotalStaked: z
+    .number()
+    .min(0, { message: "Minimum total staked cannot be negative" }),
 });
 
 type FormValues = z.infer<typeof dynastyLeagueSchema>;
@@ -69,6 +80,8 @@ export default function CreateDynastyLeague() {
     defaultValues: {
       tags: [],
       startingBalance: 100,
+      minParlays: 0,
+      minTotalStaked: 0,
       inviteOnly: false,
     },
   });
@@ -112,27 +125,16 @@ export default function CreateDynastyLeague() {
         }
         router.navigate({
           pathname: "/dynastyLeague/[dynastyLeagueId]",
-          params: { dynastyLeagueId: data.id }
+          params: { dynastyLeagueId: data.id },
         });
       },
     });
 
-  function onSubmit({
-    dates,
-    startingBalance,
-    title,
-    tags,
-    inviteOnly,
-    league,
-  }: FormValues) {
+  function onSubmit(values: FormValues) {
     createLeague({
-      startingBalance,
-      title,
-      tags,
-      inviteOnly,
-      league,
-      startDate: dates.startDate.toISOString(),
-      endDate: dates.endDate.toISOString(),
+      ...values,
+      startDate: values.dates.startDate.toISOString(),
+      endDate: values.dates.endDate.toISOString(),
     });
   }
 
@@ -169,34 +171,130 @@ export default function CreateDynastyLeague() {
             )}
             name="title"
           />
+          <View className="flex flex-row items-center gap-8">
+            <Controller
+              control={control}
+              rules={{ required: true }}
+              render={({
+                field: { onChange, value },
+                fieldState: { error },
+              }) => (
+                <View className="flex flex-col items-start gap-2">
+                  <Label>Starting Balance</Label>
+                  <FakeCurrencyInput
+                    value={value}
+                    onChangeValue={onChange}
+                    prefix="$"
+                    placeholder="$100.00"
+                    delimiter=","
+                    separator="."
+                    precision={2}
+                    style={{
+                      color: "hsl(223.8136 0.0004% 98.0256%)",
+                      fontWeight: 500,
+                    }}
+                    caretColor="hsl(324.9505 80.8% 50.9804%)"
+                    placeholderTextColor="hsl(223.8136 0% 63.0163%)"
+                    keyboardType="decimal-pad"
+                  />
+                  {error && (
+                    <Text className="text-destructive">{error.message}</Text>
+                  )}
+                </View>
+              )}
+              name="startingBalance"
+            />
+            <Controller
+              control={control}
+              rules={{ required: true }}
+              render={({
+                field: { onChange, value },
+                fieldState: { error },
+              }) => (
+                <View className="flex flex-col items-start gap-2">
+                  <View className="flex flex-row items-center gap-1">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Pressable>
+                          <Icon
+                            as={Info}
+                            className="text-foreground"
+                            size={14}
+                          />
+                        </Pressable>
+                      </TooltipTrigger>
+                      <TooltipContent
+                        side="top"
+                        portalHost="inside-modal-page"
+                        className="w-96 mx-2"
+                      >
+                        <Text>
+                          Users must spend this amount to be on the leaderboard
+                        </Text>
+                      </TooltipContent>
+                    </Tooltip>
+                    <Label>Minimum Total Staked</Label>
+                  </View>
+                  <FakeCurrencyInput
+                    value={value}
+                    onChangeValue={onChange}
+                    prefix="$"
+                    placeholder="$100.00"
+                    delimiter=","
+                    separator="."
+                    precision={2}
+                    style={{
+                      color: "hsl(223.8136 0.0004% 98.0256%)",
+                      fontWeight: 500,
+                    }}
+                    caretColor="hsl(324.9505 80.8% 50.9804%)"
+                    placeholderTextColor="hsl(223.8136 0% 63.0163%)"
+                    keyboardType="decimal-pad"
+                  />
+                  {error && (
+                    <Text className="text-destructive">{error.message}</Text>
+                  )}
+                </View>
+              )}
+              name="minTotalStaked"
+            />
+          </View>
           <Controller
             control={control}
             rules={{ required: true }}
             render={({ field: { onChange, value }, fieldState: { error } }) => (
-              <View className="flex flex-col items-start gap-2">
-                <Label>Starting Balance</Label>
-                <FakeCurrencyInput
-                  value={value}
-                  onChangeValue={onChange}
-                  prefix="$"
-                  placeholder="$100.00"
-                  delimiter=","
-                  separator="."
-                  precision={2}
-                  style={{
-                    color: "hsl(223.8136 0.0004% 98.0256%)",
-                    fontWeight: 500,
-                  }}
-                  caretColor="hsl(324.9505 80.8% 50.9804%)"
-                  placeholderTextColor="hsl(223.8136 0% 63.0163%)"
-                  keyboardType="decimal-pad"
+              <View className="flex flex-col gap-2">
+                <View className="flex flex-row items-center gap-1">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Pressable>
+                        <Icon as={Info} className="text-foreground" size={14} />
+                      </Pressable>
+                    </TooltipTrigger>
+                    <TooltipContent
+                      side="top"
+                      portalHost="inside-modal-page"
+                      className="w-96 mx-2"
+                    >
+                      <Text>
+                        Users must create this many parlays to be on the leaderboard
+                      </Text>
+                    </TooltipContent>
+                  </Tooltip>
+                  <Label>Minimum Parlays</Label>
+                </View>
+                <Input
+                  value={value.toString()}
+                  onChange={onChange}
+                  keyboardType="number-pad"
+                  placeholder="0"
                 />
                 {error && (
                   <Text className="text-destructive">{error.message}</Text>
                 )}
               </View>
             )}
-            name="startingBalance"
+            name="minParlays"
           />
           <Controller
             control={control}

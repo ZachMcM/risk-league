@@ -512,6 +512,13 @@
       "when": 1756763499286,
       "tag": "0072_yellow_shen",
       "breakpoints": true
+    },
+    {
+      "idx": 73,
+      "version": "7",
+      "when": 1756768543080,
+      "tag": "0073_fantastic_darkhawk",
+      "breakpoints": true
     }
   ]
 }

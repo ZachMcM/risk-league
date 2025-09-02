@@ -151,6 +151,12 @@ export function RootNavigatior() {
             presentation: "modal",
           }}
         />
+        <Stack.Screen
+          name="join-dynasty-league/[dynastyLeagueId]"
+          options={{
+            headerShown: false
+          }}
+        />
         <Stack.Screen name="dynastyLeague" options={{ headerShown: false }} />
       </Stack.Protected>
       <Stack.Protected guard={currentUserData == null}>

@@ -13,10 +13,13 @@ export type DynastyLeague = {
   inviteOnly: boolean;
   userCount: number;
   dynastyLeagueUsers: { userId: string }[];
+  minTotalStaked: number,
+  minParlays: number
 };
 
 export type DynastyLeagueUser = {
   id: number;
+  rank: number | null;
   createdAt: string;
   balance: number;
   userId: string;

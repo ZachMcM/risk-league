@@ -227,6 +227,81 @@ dynastyLeaguesRoute.post(
   }
 );
 
+dynastyLeaguesRoute.patch(
+  "/dynastyLeagues/:id/users/bonus",
+  authMiddleware,
+  async (req, res) => {
+    try {
+      const dynastyLeagueId = parseInt(req.params.id);
+
+      if (isNaN(dynastyLeagueId)) {
+        res.status(400).json({ error: "Invalid dynastyLeagueId" });
+        return;
+      }
+
+      const dynastyLeagueResult = await db.query.dynastyLeague.findFirst({
+        where: and(
+          eq(dynastyLeague.id, dynastyLeagueId),
+          gt(dynastyLeague.endDate, new Date().toISOString())
+        ),
+        with: {
+          dynastyLeagueUsers: {
+            columns: {
+              id: true,
+              userId: true,
+            },
+          },
+        },
+      });
+
+      if (!dynastyLeagueResult) {
+        res.status(409).json({ error: "No available dynastyLeague found" });
+        return;
+      }
+
+      const isOwner = await db.query.dynastyLeagueUser.findFirst({
+        where: and(
+          eq(dynastyLeagueUser.userId, res.locals.userId!),
+          eq(dynastyLeagueUser.role, "owner"),
+          eq(dynastyLeagueUser.dynastyLeagueId, dynastyLeagueId)
+        ),
+      });
+
+      if (!isOwner) {
+        res.status(401).json({ error: "Only league owners can add bonuses" });
+        return;
+      }
+
+      const bonusValue = req.body.bonusValue as number | undefined;
+
+      if (bonusValue == undefined || bonusValue <= 0) {
+        res
+          .status(400)
+          .json({ error: "Bonus value must be a positive number" });
+        return;
+      }
+
+      // Update all users' balances in the league
+      await db
+        .update(dynastyLeagueUser)
+        .set({
+          balance: sql`balance + ${bonusValue}`,
+        })
+        .where(eq(dynastyLeagueUser.dynastyLeagueId, dynastyLeagueId));
+
+      // Invalidate relevant queries
+      invalidateQueries(
+        ["dynasty-league", dynastyLeagueId, "users"],
+        ["dynasty-league", dynastyLeagueId]
+      );
+
+      res.json({ success: true });
+    } catch (error) {
+      handleError(error, res, "Dynasty Leagues");
+    }
+  }
+);
+
 dynastyLeaguesRoute.delete(
   "/dynastyLeagues/:dynastyLeagueId/users/:userId/kick",
   authMiddleware,
@@ -462,6 +537,15 @@ dynastyLeaguesRoute.get(
         return;
       }
 
+      const dynastyLeagueResult = await db.query.dynastyLeague.findFirst({
+        where: eq(dynastyLeague.id, dynastyLeagueId),
+      });
+
+      if (!dynastyLeagueResult) {
+        res.status(404).json({ error: "No dynasty league found" });
+        return;
+      }
+
       const dynastyLeagueUsersResult =
         await db.query.dynastyLeagueUser.findMany({
           where: eq(dynastyLeagueUser.dynastyLeagueId, dynastyLeagueId),
@@ -483,32 +567,63 @@ dynastyLeaguesRoute.get(
           orderBy: desc(dynastyLeagueUser.balance),
         });
 
-      const extendedLeagueUsers = dynastyLeagueUsersResult.map((du) => ({
-        ...du,
-        totalStaked: du.parlays.reduce((accum, curr) => accum + curr.stake, 0),
-        totalParlays: du.parlays.length,
-        parlaysWon: du.parlays.filter(
-          (parlay) => parlay.profit && parlay.profit > 0
-        ).length,
-        parlaysLost: du.parlays.filter(
-          (parlay) => parlay.profit && parlay.profit < 0
-        ).length,
-        parlaysInProgress: du.parlays.filter((parlay) => !parlay.resolved)
-          .length,
-        payoutPotential: du.parlays
-          .filter((parlay) => !parlay.resolved)
-          .reduce(
-            (accum, curr) =>
-              accum +
-              curr.stake *
-                (curr.type == "flex"
-                  ? getFlexMultiplier(curr.picks.length, curr.picks.length)
-                  : getPerfectPlayMultiplier(curr.picks.length)),
-            0
-          ),
-      }));
+      const extendedLeagueUsers = dynastyLeagueUsersResult.map((du, index) => {
+        const totalStaked = du.parlays.reduce(
+          (accum, curr) => accum + curr.stake,
+          0
+        );
+        const totalParlays = du.parlays.length;
 
-      res.json(extendedLeagueUsers);
+        return {
+          ...du,
+          totalStaked,
+          totalParlays,
+          parlaysWon: du.parlays.filter(
+            (parlay) => parlay.profit && parlay.profit > 0
+          ).length,
+          parlaysLost: du.parlays.filter(
+            (parlay) => parlay.profit && parlay.profit < 0
+          ).length,
+          parlaysInProgress: du.parlays.filter((parlay) => !parlay.resolved)
+            .length,
+          payoutPotential: du.parlays
+            .filter((parlay) => !parlay.resolved)
+            .reduce(
+              (accum, curr) =>
+                accum +
+                curr.stake *
+                  (curr.type == "flex"
+                    ? getFlexMultiplier(curr.picks.length, curr.picks.length)
+                    : getPerfectPlayMultiplier(curr.picks.length)),
+              0
+            ),
+        };
+      });
+
+      const sortedExtendedLeagueUsers = extendedLeagueUsers
+        .sort((a, b) => {
+          const balanceA =
+            a.totalParlays >= dynastyLeagueResult.minParlays &&
+            a.totalStaked >= dynastyLeagueResult.minTotalStaked
+              ? a.balance
+              : Infinity;
+          const balanceB =
+            b.totalParlays >= dynastyLeagueResult.minParlays &&
+            b.totalStaked >= dynastyLeagueResult.minTotalStaked
+              ? b.balance
+              : Infinity;
+          return balanceA - balanceB;
+        })
+        .map((du, index) => ({
+          ...du,
+          rank:
+            du.totalParlays >= dynastyLeagueResult.minParlays &&
+            du.totalStaked >= dynastyLeagueResult.minTotalStaked
+              ? index + 1
+              : null,
+        }));
+
+      res.json(sortedExtendedLeagueUsers);
     } catch (error) {
       handleError(error, res, "Dynasty Leagues");
     }

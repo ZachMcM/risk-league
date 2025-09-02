@@ -1,5 +1,12 @@
-import ModalContainer from "~/components/ui/modal-container";
+import { useLocalSearchParams } from "expo-router";
+import ParlayPage from "~/components/parlays/ParlayPage";
 
-export default function Parlays() {
-  return <ModalContainer></ModalContainer>
+export default function Parlay() {
+  const searchParams = useLocalSearchParams<{
+    parlayId: string;
+  }>();
+
+  const parlayId = parseInt(searchParams.parlayId);
+
+  return <ParlayPage parlayId={parlayId} />;
 }

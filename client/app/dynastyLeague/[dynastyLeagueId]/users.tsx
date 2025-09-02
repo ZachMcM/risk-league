@@ -3,17 +3,14 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { Link, useLocalSearchParams } from "expo-router";
 import {
   ArrowDown,
-  ArrowLeft,
   ArrowUp,
-  CircleX,
   CornerUpLeft,
-  Crown,
   EllipsisVertical,
-  Mail,
-  ShareIcon,
+  ShareIcon
 } from "lucide-react-native";
 import { ActivityIndicator, Share, View } from "react-native";
 import { toast } from "sonner-native";
+import BonusUsersDialog from "~/components/dynasty/BonusUsersDialog";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import {
@@ -43,12 +40,10 @@ import { DynastyLeague, DynastyLeagueUser } from "~/types/dynastyLeague";
 function UserItem({
   dynastyLeagueUser,
   dynastyLeague,
-  index,
   currentUserRole,
 }: {
   dynastyLeague: DynastyLeague;
   dynastyLeagueUser: DynastyLeagueUser;
-  index: number;
   currentUserRole: "member" | "manager" | "owner";
 }) {
   const { data: currentUserData } = authClient.useSession();
@@ -96,7 +91,11 @@ function UserItem({
     >
       <View className="flex flex-row items-center justify-between w-full">
         <View className="flex flex-row items-center gap-3">
-          <Text className="text-3xl font-bold">{index + 1}.</Text>
+          {dynastyLeagueUser.rank && (
+            <Text className="text-3xl font-bold">
+              {dynastyLeagueUser.rank}.
+            </Text>
+          )}
           <ProfileImage
             className="h-12 w-12"
             username={dynastyLeagueUser.user.username}
@@ -223,7 +222,7 @@ export default function Users() {
     mutationFn: async () => {
       const newInvite = await postDynastLeagueInvite(dynastyLeagueId);
       const result = await Share.share({
-        message: `riskleague://dynastyLeagues/join/${newInvite.id}`,
+        message: `riskleague://join-dynasty-league/${dynastyLeagueId}?inviteId=${newInvite.id}`,
       });
       if (result.action === Share.dismissedAction) {
         return;
@@ -264,23 +263,27 @@ export default function Users() {
           {areUsersPending || isDynastyLeaguePending ? (
             <ActivityIndicator className="text-muted-foreground p-4" />
           ) : dynastyLeagueUsers && dynastyLeague ? (
-            <FlashList
-              estimatedItemSize={60}
-              showsVerticalScrollIndicator={false}
-              data={dynastyLeagueUsers}
-              renderItem={({ item, index }) => (
-                <GridItemWrapper index={index} gap={20} numCols={1}>
-                  <UserItem
-                    dynastyLeague={dynastyLeague}
-                    currentUserRole={currentUserRole}
-                    index={index}
-                    dynastyLeagueUser={item}
-                  />
-                </GridItemWrapper>
+            <View className="flex flex-1 flex-col gap-4">
+              <FlashList
+                estimatedItemSize={60}
+                showsVerticalScrollIndicator={false}
+                data={dynastyLeagueUsers}
+                renderItem={({ item, index }) => (
+                  <GridItemWrapper index={index} gap={20} numCols={1}>
+                    <UserItem
+                      dynastyLeague={dynastyLeague}
+                      currentUserRole={currentUserRole}
+                      dynastyLeagueUser={item}
+                    />
+                  </GridItemWrapper>
+                )}
+                keyExtractor={(item) => `${item.id}`}
+                contentContainerStyle={{ paddingBottom: 20 }}
+              />
+              {new Date().toISOString() < dynastyLeague.endDate && (
+                <BonusUsersDialog dynastyLeagueId={dynastyLeagueId} />
               )}
-              keyExtractor={(item) => `${item.id}`}
-              contentContainerStyle={{ paddingBottom: 20 }}
-            />
+            </View>
           ) : (
             <View className="flex items-center justify-center flex-1">
               <Text className="text-muted-foreground text-center">
