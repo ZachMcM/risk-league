@@ -1,13 +1,12 @@
+import { useQuery } from "@tanstack/react-query";
 import { Pressable, View } from "react-native";
+import { getTodayProps } from "~/endpoints";
 import { League } from "~/lib/config";
+import { Play } from "~/lib/icons/Play";
 import { Card, CardContent } from "../ui/card";
 import LeagueLogo from "../ui/league-logos/LeagueLogo";
-import { Text } from "../ui/text";
-import { Play } from "~/lib/icons/Play";
-import { useQuery } from "@tanstack/react-query";
-import { getTodayProps } from "~/endpoints";
-import { authClient } from "~/lib/auth-client";
 import { Skeleton } from "../ui/skeleton";
+import { Text } from "../ui/text";
 
 export default function FriendlyMatchPlayCard({
   league,
@@ -21,6 +20,8 @@ export default function FriendlyMatchPlayCard({
     queryFn: async () => await getTodayProps({ league }),
     staleTime: 1440 * 60 * 1000,
   });
+
+  const uniqueGameIds = [...new Set(props?.map((prop) => prop.game.gameId))];
 
   return arePropsPending ? (
     <Skeleton className="w-[48%] self-stretch h-40" />
@@ -36,6 +37,10 @@ export default function FriendlyMatchPlayCard({
             <LeagueLogo size={42} league={league} />
             <Text className="font-bold text-2xl text-center uppercase">
               {league}
+            </Text>
+            <Text className="text-muted-foreground text-center">
+              {arePropsPending ? "..." : props?.length} Props •{" "}
+              {arePropsPending ? "..." : uniqueGameIds.length} Games
             </Text>
             <View className="rounded-full bg-primary h-9 w-9 flex items-center justify-center">
               <Play className="text-foreground" size={14} />

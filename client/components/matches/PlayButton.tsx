@@ -126,10 +126,6 @@ export default function PlayButton({
 
   const uniqueGameIds = [...new Set(props?.map((prop) => prop.game.gameId))];
 
-  // if (!isLoading && (!props || props.length == 0)) {
-  //   return null
-  // }
-
   return (
     <Card
       className={cn(

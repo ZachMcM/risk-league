@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Fragment, useState } from "react";
+import { Fragment } from "react";
 import { ActivityIndicator, View } from "react-native";
 import { toast } from "sonner-native";
 import {
@@ -7,24 +7,18 @@ import {
   getFriendship,
   getUser,
   patchFriendRequest,
-  postFriendlyMatchRequest,
-  postFriendRequest,
+  postFriendRequest
 } from "~/endpoints";
 import { authClient } from "~/lib/auth-client";
-import { League, LEAGUES } from "~/lib/config";
 import { Check } from "~/lib/icons/Check";
-import { Play } from "~/lib/icons/Play";
 import { UserMinus } from "~/lib/icons/UserMinus";
 import { UserPlus } from "~/lib/icons/UserPlus";
 import { X } from "~/lib/icons/X";
-import { FriendlyMatchRequest } from "~/types/match";
 import { User } from "~/types/user";
 import { invalidateQueries } from "~/utils/invalidateQueries";
 import { Button } from "../ui/button";
-import { Dialog, DialogContent, DialogTrigger } from "../ui/dialog";
-import ProfileImage from "../ui/profile-image";
 import { Text } from "../ui/text";
-import FriendlyMatchPlayCard from "./FriendlyMatchPlayCard";
+import FriendlyMatchDialog from "./FriendlyMatchDialog";
 
 export default function FriendshipButtons({
   user,
@@ -34,8 +28,6 @@ export default function FriendshipButtons({
   portalHost?: string;
 }) {
   const queryClient = useQueryClient();
-
-  const [dialogOpen, setDialogOpen] = useState(false);
 
   const { data: currUserData } = authClient.useSession();
 
@@ -101,57 +93,6 @@ export default function FriendshipButtons({
       },
     });
 
-  const { mutate: sendFriendlyMatchRequest } = useMutation({
-    mutationFn: async ({
-      incomingId,
-      league,
-    }: {
-      incomingId: string;
-      league: League;
-    }) => {
-      await postFriendlyMatchRequest(incomingId, league);
-    },
-    onMutate: async ({ league, incomingId }) => {
-      await queryClient.cancelQueries({
-        queryKey: ["friendly-match-requests", currUserData?.user.id!],
-      });
-
-      const previousRequests = queryClient.getQueryData([
-        "friendly-match-requests",
-        currUserData?.user.id!,
-      ]);
-
-      queryClient.setQueryData(
-        ["friendly-match-requests", currUserData?.user.id!],
-        (old: FriendlyMatchRequest[]) => [
-          ...(old || []),
-          {
-            id: Math.round(Math.random() * 100),
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-            incomingId,
-            league,
-            outgoingId: currUserData?.user.id!,
-            friend: user,
-            status: "pending",
-          },
-        ]
-      );
-
-      setDialogOpen(false);
-
-      return { previousRequests };
-    },
-    onError: (err, _, context) => {
-      console.log(err);
-      toast.error("There was an error sending your friendly match request");
-      queryClient.setQueryData(
-        ["friendly-match-requests", currUserData?.user.id!],
-        context?.previousRequests
-      );
-    },
-  });
-
   return (
     <Fragment>
       {isfriendshipPending ? (
@@ -159,52 +100,7 @@ export default function FriendshipButtons({
       ) : friendship ? (
         friendship.status == "accepted" ? (
           <View className="flex flex-row items-center gap-2">
-            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-              <DialogTrigger asChild>
-                <Button
-                  variant="foreground"
-                  size="sm"
-                  className="flex flex-row items-center gap-1 rounded-full"
-                >
-                  <Text>Start Match</Text>
-                  <Play className="text-background" size={16} />
-                </Button>
-              </DialogTrigger>
-              <DialogContent portalHost={portalHost} className="w-[375px]">
-                <View className="flex flex-col gap-6">
-                  <View className="flex flex-row items-center gap-3">
-                    <ProfileImage
-                      className="h-12 w-12"
-                      username={userProfile.username}
-                      image={userProfile.image!}
-                    />
-                    <View className="flex flex-col">
-                      <Text className="font-bold text-lg">
-                        {userProfile.username}
-                      </Text>
-                      <Text className="text-muted-foreground">
-                        Request to play a friendly match!
-                      </Text>
-                    </View>
-                  </View>
-                  <Text className="font-bold text-xl">Choose a League</Text>
-                  <View className="flex flex-row items-center gap-3 flex-wrap">
-                    {LEAGUES.map((league) => (
-                      <FriendlyMatchPlayCard
-                        key={league}
-                        league={league}
-                        callbackFn={() =>
-                          sendFriendlyMatchRequest({
-                            league,
-                            incomingId: user.id,
-                          })
-                        }
-                      />
-                    ))}
-                  </View>
-                </View>
-              </DialogContent>
-            </Dialog>
+            <FriendlyMatchDialog user={userProfile} portalHost={portalHost} />
             <Button
               variant="outline"
               size="icon"
