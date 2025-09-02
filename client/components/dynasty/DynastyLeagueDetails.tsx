@@ -88,11 +88,9 @@ export default function DynastyLeagueDetails({
       {currentDynastyLeagueUser.rank && (
         <View className="flex flex-row items-center gap-1">
           <Text className="text-xl font-semibold">Ranking:</Text>
-          <Badge
-            variant={currentDynastyLeagueUser.rank == 1 ? "success" : "default"}
-          >
-            <Text className="text-base">#{currentDynastyLeagueUser.rank}</Text>
-          </Badge>
+          <Text className="text-primary font-bold text-xl">
+            #{currentDynastyLeagueUser.rank}
+          </Text>
         </View>
       )}
     </View>

@@ -5,9 +5,8 @@ import {
   gt,
   ilike,
   InferInsertModel,
-  lt,
   or,
-  sql,
+  sql
 } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { Router } from "express";
@@ -73,9 +72,6 @@ dynastyLeaguesRoute.post(
         balance: body.startingBalance,
         dynastyLeagueId: newDynastyLeague.id,
       });
-
-      invalidateQueries(["dynasty-leagues", res.locals.userId!]);
-
       res.json({ id: newDynastyLeague.id });
     } catch (error) {
       handleError(error, res, "Dynasty Leagues");
@@ -821,12 +817,16 @@ dynastyLeaguesRoute.get("/dynastyLeagues", authMiddleware, async (_, res) => {
       },
     });
 
-    const formattedDynastyLeagues = dynastyLeagueUserResults.map(
-      ({ dynastyLeague }) => ({
+    const formattedDynastyLeagues = dynastyLeagueUserResults
+      .map(({ dynastyLeague }) => ({
         ...dynastyLeague,
         userCount: dynastyLeague.dynastyLeagueUsers.length,
-      })
-    );
+      }))
+      .sort(
+        (a, b) =>
+          new Date(b.createdAt.replace("+00", "+00:00")).getTime() -
+          new Date(a.createdAt.replace("+00", "+00:00")).getTime()
+      );
 
     res.json(formattedDynastyLeagues);
   } catch (error) {

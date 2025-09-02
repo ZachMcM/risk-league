@@ -1,11 +1,11 @@
 import { QueryClient, QueryKey } from "@tanstack/react-query";
 
-export function invalidateQueries(
+export async function invalidateQueries(
   queryClient: QueryClient,
   ...keys: QueryKey[]
 ) {
   for (const key of keys) {
-    queryClient.invalidateQueries({
+    await queryClient.invalidateQueries({
       queryKey: key,
     });
   }

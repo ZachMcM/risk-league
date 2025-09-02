@@ -102,11 +102,11 @@ export default function DynastyLeagueCountdown({
   const getStatusText = () => {
     switch (status) {
       case "upcoming":
-        return "League starts in";
+        return "Betting starts in";
       case "active":
-        return "League ends in";
+        return "Betting ends in";
       case "ended":
-        return "League ended";
+        return "Betting ended";
     }
   };
 

@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { ArrowRight, Calendar, LockIcon, Users } from "lucide-react-native";
 import moment from "moment";
@@ -14,6 +14,7 @@ import LeagueLogo from "../ui/league-logos/LeagueLogo";
 import { Separator } from "../ui/separator";
 import { Text } from "../ui/text";
 import { toast } from "sonner-native";
+import { invalidateQueries } from "~/utils/invalidateQueries";
 
 export default function DynastyLeagueListCard({
   initialData,
@@ -26,10 +27,19 @@ export default function DynastyLeagueListCard({
     initialData,
   });
 
+  const queryClient = useQueryClient();
+  const { data: currentUserData } = authClient.useSession();
+
   const { mutate: joinLeague, isPending: isJoiningLeague } = useMutation({
     mutationFn: async () =>
       await patchDynastyLeagueJoin({ dynastyLeagueId: league.id }),
-    onSuccess: () => {
+    onSuccess: async () => {
+      await invalidateQueries(
+        queryClient,
+        ["dynasty-leagues", currentUserData?.user.id!],
+        ["dynasty-league", league.id],
+        ["dynasty-league", league.id, "users"]
+      );
       toast.success(`Joined ${league.title}`);
       router.navigate({
         pathname: "/dynastyLeague/[dynastyLeagueId]",
@@ -41,10 +51,8 @@ export default function DynastyLeagueListCard({
     },
   });
 
-  const { data: currentUserData } = authClient.useSession();
-
   const isMember =
-    league.dynastyLeagueUsers.find(
+    league.dynastyLeagueUsers?.find(
       (du) => du.userId == currentUserData?.user.id!
     ) !== undefined;
 

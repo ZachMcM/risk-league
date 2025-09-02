@@ -92,11 +92,14 @@ export default function Dynasty() {
                 paddingVertical: 16,
               }}
               estimatedItemSize={166}
-              renderItem={({ item, index }) => (
-                <GridItemWrapper index={index} numCols={1} gap={16}>
-                  <DynastyLeagueListCard initialData={item} />
-                </GridItemWrapper>
-              )}
+              renderItem={({ item, index }) => {
+                console.log(`Rendering item at index ${index}:`, item ? `${item.title} (ID: ${item.id})` : 'undefined');
+                return (
+                  <GridItemWrapper index={index} numCols={1} gap={16}>
+                    <DynastyLeagueListCard initialData={item} />
+                  </GridItemWrapper>
+                );
+              }}
               keyExtractor={(item) => item.id.toString()}
             />
           )}

@@ -18,26 +18,25 @@ import { MIN_PARLAYS_REQUIRED, MIN_PCT_TOTAL_STAKED } from "~/lib/config";
 export default function MatchDetails({ match }: { match: ExtendedMatch }) {
   const { data: currentUserData } = authClient.useSession();
   const currentMatchUser = match.matchUsers.find(
-    (mu: ExtendedMatchUser) => mu.userId === currentUserData?.user.id,
+    (mu: ExtendedMatchUser) => mu.userId === currentUserData?.user.id
   )!;
   const otherMatchUser = match.matchUsers.find(
-    (mu: ExtendedMatchUser) => mu.userId !== currentUserData?.user.id,
+    (mu: ExtendedMatchUser) => mu.userId !== currentUserData?.user.id
   )!;
 
   const minTotalStaked = Math.round(
-    MIN_PCT_TOTAL_STAKED *
-      currentMatchUser.startingBalance,
+    MIN_PCT_TOTAL_STAKED * currentMatchUser.startingBalance
   );
 
   const badgeVariant = getBadgeVariant(
     currentMatchUser.status,
     currentMatchUser.balance,
-    otherMatchUser.balance,
+    otherMatchUser.balance
   );
   const badgeText = getBadgeText(
     currentMatchUser.status,
     currentMatchUser.balance,
-    otherMatchUser.balance,
+    otherMatchUser.balance
   );
 
   useEffect(() => {
@@ -56,7 +55,7 @@ export default function MatchDetails({ match }: { match: ExtendedMatch }) {
           {
             duration: Infinity,
             position: "bottom-center",
-          },
+          }
         );
       }
       if (currentMatchUser.totalParlays < MIN_PARLAYS_REQUIRED) {
@@ -64,15 +63,15 @@ export default function MatchDetails({ match }: { match: ExtendedMatch }) {
           <Alert variant="destructive">
             <AlertTriangle className="text-destructive" size={20} />
             <AlertTitle className="text-foreground">
-              You need to create {MIN_PARLAYS_REQUIRED - currentMatchUser.totalParlays}{" "}
-              more parlay
+              You need to create{" "}
+              {MIN_PARLAYS_REQUIRED - currentMatchUser.totalParlays} more parlay
               {MIN_PARLAYS_REQUIRED - currentMatchUser.totalParlays > 1 && "s"}!
             </AlertTitle>
           </Alert>,
           {
             duration: Infinity,
             position: "bottom-center",
-          },
+          }
         );
       }
     }
@@ -89,38 +88,40 @@ export default function MatchDetails({ match }: { match: ExtendedMatch }) {
 
   return (
     <View className="flex flex-col gap-8">
-      <View className="flex w-full flex-row items-center justify-between">
-        <View className="flex flex-row items-center gap-2.5">
-          <ProfileImage
-            image={currentMatchUser.user.image}
-            username={currentMatchUser.user.username}
-            className="h-14 w-14"
-          />
-          <View className="flex flex-col">
-            <Text className="font-bold text-2xl">
-              ${currentMatchUser.balance.toFixed(2)}
-            </Text>
-            <Text className="font-semibold text-muted-foreground">You</Text>
+      <View className="flex flex-col gap-4">
+        <View className="flex w-full flex-row items-center justify-between">
+          <View className="flex flex-row items-center gap-2.5">
+            <ProfileImage
+              image={currentMatchUser.user.image}
+              username={currentMatchUser.user.username}
+              className="h-14 w-14"
+            />
+            <View className="flex flex-col">
+              <Text className="font-bold text-2xl">
+                ${currentMatchUser.balance.toFixed(2)}
+              </Text>
+              <Text className="font-semibold text-muted-foreground">You</Text>
+            </View>
+          </View>
+          <View className="flex flex-row items-center gap-2.5">
+            <View className="flex flex-col items-end">
+              <Text className="font-bold text-2xl">
+                ${otherMatchUser.balance.toFixed(2)}
+              </Text>
+              <Text className="font-semibold text-muted-foreground">
+                {otherMatchUser.user.username}
+              </Text>
+            </View>
+            <ProfileImage
+              image={otherMatchUser.user.image}
+              username={otherMatchUser.user.username}
+              className="h-14 w-14"
+            />
           </View>
         </View>
-        <Badge className="" variant={badgeVariant}>
+        <Badge className="self-start" variant={badgeVariant}>
           <Text className="capitalize">{badgeText}</Text>
         </Badge>
-        <View className="flex flex-row items-center gap-2.5">
-          <View className="flex flex-col items-end">
-            <Text className="font-bold text-2xl">
-              ${otherMatchUser.balance.toFixed(2)}
-            </Text>
-            <Text className="font-semibold text-muted-foreground">
-              {otherMatchUser.user.username}
-            </Text>
-          </View>
-          <ProfileImage
-            image={otherMatchUser.user.image}
-            username={otherMatchUser.user.username}
-            className="h-14 w-14"
-          />
-        </View>
       </View>
       <View className="flex flex-row items-center justify-between">
         <View className="flex flex-row items-center gap-2">

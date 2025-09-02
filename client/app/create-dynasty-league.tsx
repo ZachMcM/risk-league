@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { Info, Plus } from "lucide-react-native";
 import { useEffect, useRef, useState } from "react";
@@ -38,11 +38,13 @@ import {
   TooltipTrigger,
 } from "~/components/ui/tooltip";
 import { postDynastyLeague } from "~/endpoints";
+import { authClient } from "~/lib/auth-client";
 import { LEAGUES } from "~/lib/config";
 import { ChevronDown } from "~/lib/icons/ChevronDown";
 import { CircleX } from "~/lib/icons/CircleX";
 import { DynastyLeague } from "~/types/dynastyLeague";
 import { cn } from "~/utils/cn";
+import { invalidateQueries } from "~/utils/invalidateQueries";
 
 const dynastyLeagueSchema = z.object({
   dates: z
@@ -75,6 +77,8 @@ const dynastyLeagueSchema = z.object({
 type FormValues = z.infer<typeof dynastyLeagueSchema>;
 
 export default function CreateDynastyLeague() {
+  const queryClient = useQueryClient();
+  const { data: currentUserData } = authClient.useSession();
   const { control, handleSubmit, setValue, watch } = useForm<FormValues>({
     resolver: zodResolver(dynastyLeagueSchema),
     defaultValues: {
@@ -118,7 +122,15 @@ export default function CreateDynastyLeague() {
           "id" | "createdAt" | "resolved" | "userCount" | "dynastyLeagueUsers"
         >
       ) => await postDynastyLeague(league),
-      onSuccess: (data) => {
+      onSuccess: async (data) => {
+        console.log("Finished creating league");
+
+        // Invalidate cache before navigation to avoid race conditions
+        await invalidateQueries(queryClient, [
+          "dynasty-leagues",
+          currentUserData?.user.id!,
+        ]);
+
         toast.success("Successfully created league");
         if (router.canDismiss()) {
           router.dismissAll();
@@ -387,38 +399,42 @@ export default function CreateDynastyLeague() {
             )}
             name="dates"
           />
-          <View className="flex flex-col gap-2">
-            <Label>League</Label>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{
-                display: "flex",
-                gap: 8,
-                paddingRight: 16,
-              }}
-            >
-              {LEAGUES.map((league) => (
-                <Pressable
-                  onPress={() => setValue("league", league)}
-                  key={league}
-                  className={cn(
-                    "flex flex-row items-center gap-2 border-2 border-border/80 shadow-sm bg-secondary py-1.5 px-4 rounded-xl",
-                    formValues.league == league &&
-                      "bg-primary/20 border-primary"
-                  )}
+          <Controller
+            control={control}
+            rules={{ required: true }}
+            render={({ field: { onChange, value }, fieldState: { error } }) => (
+              <View className="flex flex-col gap-2">
+                <Label>League</Label>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{
+                    display: "flex",
+                    gap: 8,
+                    paddingRight: 16,
+                  }}
                 >
-                  <LeagueLogo size={22} league={league} />
-                  <Text className="font-bold uppercase">{league}</Text>
-                </Pressable>
-              ))}
-              {control.getFieldState("league").error && (
-                <Text className="text-destructive">
-                  {control.getFieldState("league").error?.message}
-                </Text>
-              )}
-            </ScrollView>
-          </View>
+                  {LEAGUES.map((league) => (
+                    <Pressable
+                      onPress={() => onChange(league)}
+                      key={league}
+                      className={cn(
+                        "flex flex-row items-center gap-2 border-2 border-border/80 shadow-sm bg-secondary py-1.5 px-4 rounded-xl",
+                        value === league && "bg-primary/20 border-primary"
+                      )}
+                    >
+                      <LeagueLogo size={22} league={league} />
+                      <Text className="font-bold uppercase">{league}</Text>
+                    </Pressable>
+                  ))}
+                </ScrollView>
+                {error && (
+                  <Text className="text-destructive">{error.message}</Text>
+                )}
+              </View>
+            )}
+            name="league"
+          />
           <Controller
             control={control}
             rules={{ required: true }}

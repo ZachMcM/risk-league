@@ -48,6 +48,8 @@ function UserItem({
 }) {
   const { data: currentUserData } = authClient.useSession();
 
+  console.log(currentUserRole)
+
   const { mutate: promoteUser, isPending: isPromotingUser } = useMutation({
     mutationFn: async () =>
       await patchDynastyLeaguePromoteUser(
@@ -117,7 +119,7 @@ function UserItem({
         </View>
         {currentUserData?.user.id !== dynastyLeagueUser.userId &&
           currentUserRole !== "member" &&
-          new Date().toString() < dynastyLeague.endDate && (
+          (new Date()).toISOString() < dynastyLeague.endDate && dynastyLeagueUser.role !== "owner" && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon">

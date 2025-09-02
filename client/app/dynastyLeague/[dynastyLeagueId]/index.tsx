@@ -1,12 +1,10 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { MessageCircle, Plus, Trophy, Users } from "lucide-react-native";
-import { useEffect } from "react";
+import { MessageCircle, Plus, Users } from "lucide-react-native";
 import { ActivityIndicator, View } from "react-native";
-import DynastyLeagueDetails from "~/components/dynasty/DynastyLeagueDetails";
 import DynastyLeagueCountdown from "~/components/dynasty/DynastyLeagueCountdown";
+import DynastyLeagueDetails from "~/components/dynasty/DynastyLeagueDetails";
 import ParlaysView from "~/components/parlays/ParlaysView";
-import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Icon } from "~/components/ui/icon";
 import LeagueLogo from "~/components/ui/league-logos/LeagueLogo";
@@ -46,8 +44,6 @@ export default function DynastyLeague() {
     queryFn: async () => await getParlays({ dynastyLeagueId }),
   });
 
-  console.log(parlays);
-
   const queryClient = useQueryClient();
 
   queryClient.prefetchQuery({
@@ -62,26 +58,6 @@ export default function DynastyLeague() {
         dynastyLeagueId,
       }),
   });
-
-  useEffect(() => {
-    if (searchParams.openSubRoute === "messages") {
-      router.navigate({
-        pathname: "/dynastyLeague/[dynastyLeagueId]/messages",
-        params: { dynastyLeagueId: searchParams.dynastyLeagueId },
-      });
-    } else if (
-      searchParams.openSubRoute == "parlays" &&
-      searchParams.subRouteId
-    ) {
-      router.navigate({
-        pathname: "/dynastyLeague/[dynastyLeagueId]/parlays/[parlayId]",
-        params: {
-          dynastyLeagueId: searchParams.dynastyLeagueId,
-          parlayId: searchParams.subRouteId,
-        },
-      });
-    }
-  }, [searchParams.openSubRoute, searchParams.dynastyLeagueId, router]);
 
   const { data: dynastyLeagueUsers, isPending: areUsersPending } = useQuery({
     queryKey: ["dynasty-league", dynastyLeagueId, "users"],

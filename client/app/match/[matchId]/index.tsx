@@ -1,6 +1,5 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect } from "react";
 import { ActivityIndicator, View } from "react-native";
 import MatchDetails from "~/components/matches/MatchDetails";
 import ParlaysView from "~/components/parlays/ParlaysView";
@@ -41,26 +40,6 @@ export default function Match() {
         matchId,
       }),
   });
-
-  useEffect(() => {
-    if (searchParams.openSubRoute === "messages") {
-      router.navigate({
-        pathname: "/match/[matchId]/messages",
-        params: { matchId: searchParams.matchId },
-      });
-    } else if (
-      searchParams.openSubRoute == "parlays" &&
-      searchParams.subRouteId
-    ) {
-      router.navigate({
-        pathname: "/match/[matchId]/parlays/[parlayId]",
-        params: {
-          matchId: searchParams.matchId,
-          parlayId: searchParams.subRouteId,
-        },
-      });
-    }
-  }, [searchParams.openSubRoute, searchParams.matchId, router]);
 
   return (
     <ScrollContainer className="pt-4">
