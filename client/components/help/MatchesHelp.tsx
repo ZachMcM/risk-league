@@ -14,8 +14,10 @@ import {
   MIN_PARLAYS_REQUIRED,
   MIN_PCT_TOTAL_STAKED,
   MIN_STAKE_PCT,
+  ranksList,
 } from "~/lib/config";
 import { Separator } from "~/components/ui/separator";
+import RankIcon from "../ui/rank-icon";
 
 export default function MatchesHelp({
   scrollToSection,
@@ -28,8 +30,18 @@ export default function MatchesHelp({
     <View className="flex flex-col gap-4">
       <Card>
         <CardContent className="flex flex-col gap-4 p-6">
-          <Text className="font-bold text-2xl">Table of Contents</Text>
+          <Text className="font-bold text-xl">Table of Contents</Text>
           <View className="flex flex-col gap-2">
+            <Pressable
+              onPress={() => scrollToSection("ranks")}
+              className="flex flex-row items-center gap-2 p-2 rounded-lg active:bg-muted"
+            >
+              <Dices className="text-primary" size={20} />
+              <Text className="font-semibold text-primary">
+                Competitive Ranks
+              </Text>
+            </Pressable>
+            <Separator />
             <Pressable
               onPress={() => scrollToSection("overview")}
               className="flex flex-row items-center gap-2 p-2 rounded-lg active:bg-muted"
@@ -79,6 +91,39 @@ export default function MatchesHelp({
       <View
         onLayout={(event) => {
           const { y } = event.nativeEvent.layout;
+          handleSectionLayout("ranks", y);
+        }}
+      >
+        <Card>
+          <CardContent className="flex flex-col gap-4 p-6">
+            <View className="flex flex-row items-center gap-2">
+              <Dices className="text-primary" />
+              <Text className="font-bold text-xl">Competitive Ranks</Text>
+            </View>
+            <Text className="text-muted-foreground font-semibold">
+              There are 6 competitive rank tiers. Rookie, Pro, All Star,
+              Superstar, Elite, and Legend.
+            </Text>
+            <Text className="text-muted-foreground font-semibold">
+              Each rank except for Legend has 3 level, I, II, and III. Once a
+              user has hit legend they are ranked by pure points.
+            </Text>
+            <View className="flex flex-row items-center gap-3 w-full flex-wrap">
+              {ranksList.map((rank) => (
+                <View className="flex flex-col gap-1 items-center">
+                  <RankIcon rank={rank} size={56} />
+                  <Text className="text-sm font-bold">
+                    {rank.tier} {rank.level}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          </CardContent>
+        </Card>
+      </View>
+      <View
+        onLayout={(event) => {
+          const { y } = event.nativeEvent.layout;
           handleSectionLayout("overview", y);
         }}
       >
@@ -86,9 +131,9 @@ export default function MatchesHelp({
           <CardContent className="flex flex-col gap-4 p-6">
             <View className="flex flex-row items-center gap-2">
               <Dices className="text-primary" />
-              <Text className="font-bold text-2xl">Match Overview</Text>
+              <Text className="font-bold text-xl">Match Overview</Text>
             </View>
-            <Text className="text-lg text-muted-foreground font-semibold">
+            <Text className="text-muted-foreground font-semibold">
               Matches are head-to-head competitions where you and an opponent
               compete to build the most profitable parlays using available props
               from live sports events.
@@ -106,7 +151,7 @@ export default function MatchesHelp({
           <CardContent className="flex flex-col gap-4 p-6">
             <View className="flex flex-row items-center gap-2">
               <Play className="text-primary" />
-              <Text className="font-bold text-2xl">Match Types</Text>
+              <Text className="font-bold text-xl">Match Types</Text>
             </View>
             <View className="flex flex-col gap-1">
               <Text className="font-bold text-xl">Leagues</Text>
@@ -146,9 +191,9 @@ export default function MatchesHelp({
           <CardContent className="flex flex-col gap-4 p-6">
             <View className="flex flex-row items-center gap-2">
               <Gavel className="text-primary" />
-              <Text className="font-bold text-2xl">Match Guidelines</Text>
+              <Text className="font-bold text-xl">Match Guidelines</Text>
             </View>
-            <Text className="text-lg text-muted-foreground font-semibold">
+            <Text className="text-muted-foreground font-semibold">
               To incentive risk and ensure fair play, matches have guidelines
               that users must meet or they will be disqualified.
             </Text>
@@ -185,9 +230,9 @@ export default function MatchesHelp({
           <CardContent className="flex flex-col gap-4 p-6">
             <View className="flex flex-row items-center gap-2">
               <Blocks className="text-primary" />
-              <Text className="font-bold text-2xl">Building Parlays</Text>
+              <Text className="font-bold text-xl">Building Parlays</Text>
             </View>
-            <Text className="text-lg text-muted-foreground font-semibold">
+            <Text className="text-muted-foreground font-semibold">
               Parlays also have some guidelines to ensure fairness.
             </Text>
             <View className="flex flex-col gap-1">
@@ -234,7 +279,7 @@ export default function MatchesHelp({
           <CardContent className="flex flex-col gap-4 p-6">
             <View className="flex flex-row items-center gap-2">
               <Clock className="text-primary" />
-              <Text className="font-bold text-2xl">Match Timeline</Text>
+              <Text className="font-bold text-xl">Match Timeline</Text>
             </View>
             <View className="flex flex-col gap-1">
               <Text className="font-bold text-xl">Match Endings</Text>

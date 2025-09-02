@@ -1,10 +1,9 @@
-import { View } from "react-native";
-import { Dimensions, ScrollView } from "react-native";
-import { useRef, useEffect } from "react";
-import RankBadge from "../ui/RankBadge";
-import { Rank } from "~/types/rank";
+import { Circle } from "@shopify/react-native-skia";
+import { useEffect, useRef } from "react";
+import { Dimensions, ScrollView, View } from "react-native";
 import { CartesianChart, Line } from "victory-native";
-import { Circle, useFont } from "@shopify/react-native-skia";
+import { Rank } from "~/types/rank";
+import RankIcon from "../ui/rank-icon";
 
 export default function RankGraph({
   pointsTimeline,
@@ -112,21 +111,11 @@ export default function RankGraph({
               <View
                 style={{
                   position: "absolute",
-                  left: peakX - 36,
-                  top: peakY - 48,
+                  left: peakX - 18,
+                  top: peakY - 64,
                 }}
               >
-                <RankBadge
-                  showIcon
-                  iconClassName="h-4 w-4"
-                  textClassName="text-xs"
-                  gradientStyle={{
-                    paddingHorizontal: 8,
-                    gap: 4,
-                    alignSelf: "flex-start",
-                  }}
-                  rank={peakRank}
-                />
+                <RankIcon rank={peakRank} />
               </View>
               {currentIndex >= 0 &&
                 currentIndex !== peakIndex &&
@@ -146,21 +135,11 @@ export default function RankGraph({
                     <View
                       style={{
                         position: "absolute",
-                        left: currentX - 36,
-                        top: currentY - 48,
+                        left: currentX - 18,
+                        top: currentY - 64,
                       }}
                     >
-                      <RankBadge
-                        showIcon
-                        iconClassName="h-4 w-4"
-                        textClassName="text-xs"
-                        gradientStyle={{
-                          paddingHorizontal: 8,
-                          gap: 4,
-                          alignSelf: "flex-start",
-                        }}
-                        rank={currentRank}
-                      />
+                      <RankIcon rank={peakRank} />
                     </View>
                   );
                 })()}

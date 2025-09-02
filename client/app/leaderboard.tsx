@@ -4,13 +4,11 @@ import { Link } from "expo-router";
 import { useState } from "react";
 import { ActivityIndicator, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { GridItemWrapper } from "~/components/ui/grid-item-wrapper";
 import ModalContainer from "~/components/ui/modal-container";
 import ProfileImage from "~/components/ui/profile-image";
-import { RankText } from "~/components/ui/rank-text";
-import RankBadge from "~/components/ui/RankBadge";
+import RankIcon from "~/components/ui/rank-icon";
 import { Text } from "~/components/ui/text";
 import { getLeaderboardPage } from "~/endpoints";
 import { ChevronLeft } from "~/lib/icons/ChevronLeft";
@@ -34,7 +32,7 @@ function LeaderboardItem({
         params: { id: user.id },
       }}
     >
-      <View className="flex flex-row items-center justify-between">
+      <View className="flex flex-row items-center justify-between w-full">
         <View className="flex flex-row items-center gap-3">
           <Text className="text-3xl font-bold">{user.position}.</Text>
           <ProfileImage
@@ -45,22 +43,7 @@ function LeaderboardItem({
           <Text className="font-bold text-lg">{user.username}</Text>
         </View>
         <View className="flex flex-row items-center gap-2">
-          <RankBadge
-            iconClassName="h-4 w-4"
-            textClassName="text-xs"
-            gradientStyle={{
-              paddingHorizontal: 8,
-              gap: 4,
-              alignSelf: "flex-start",
-            }}
-            rank={user.rank}
-            showIcon
-          />
-          {user.points && (
-            <RankText tier={user.rank.tier} className="font-bold text-sm">
-              {user.points}
-            </RankText>
-          )}
+          <RankIcon size={56} rank={user.rank}/>
         </View>
       </View>
     </Link>

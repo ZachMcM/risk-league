@@ -1,20 +1,20 @@
+import { useQuery } from "@tanstack/react-query";
 import { Link } from "expo-router";
 import { View } from "react-native";
+import { getMatch } from "~/endpoints";
 import { authClient } from "~/lib/auth-client";
 import { TrendingDown } from "~/lib/icons/TrendingDown";
 import { TrendingUp } from "~/lib/icons/TrendingUp";
 import { Match } from "~/types/match";
 import { getBadgeText, getBadgeVariant } from "~/utils/badgeUtils";
+import { timeAgo } from "~/utils/dateUtils";
 import { Badge } from "../ui/badge";
 import { Card, CardContent } from "../ui/card";
-import RankBadge from "../ui/RankBadge";
+import LeagueLogo from "../ui/league-logos/LeagueLogo";
+import ProfileImage from "../ui/profile-image";
+import RankIcon from "../ui/rank-icon";
 import { Separator } from "../ui/separator";
 import { Text } from "../ui/text";
-import { timeAgo } from "~/utils/dateUtils";
-import LeagueLogo from "../ui/league-logos/LeagueLogo";
-import { useQuery } from "@tanstack/react-query";
-import { getMatch } from "~/endpoints";
-import ProfileImage from "../ui/profile-image";
 
 export default function MatchListCard({ initialData }: { initialData: Match }) {
   const { data: match } = useQuery({
@@ -63,14 +63,7 @@ export default function MatchListCard({ initialData }: { initialData: Match }) {
                 </Text>
               </View>
               {match.type == "competitive" && (
-                <RankBadge
-                  showIcon
-                  iconClassName="h-4 w-4"
-                  textClassName="text-sm"
-                  gradientStyle={{
-                    paddingHorizontal: 10,
-                    gap: 4,
-                  }}
+                <RankIcon
                   rank={you.rankSnapshot}
                 />
               )}

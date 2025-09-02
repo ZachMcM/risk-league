@@ -33,7 +33,29 @@
     "plugins": [
       ["expo-router"],
       ["expo-font", {}],
-      ["expo-asset", {}],
+      [
+        "expo-asset",
+        {
+          "assets": [
+            "./assets/images/ranks/Rookie_1.png",
+            "./assets/images/ranks/Rookie_2.png",
+            "./assets/images/ranks/Rookie_3.png",
+            "./assets/images/ranks/Pro_1.png",
+            "./assets/images/ranks/Pro_2.png",
+            "./assets/images/ranks/Pro_3.png",
+            "./assets/images/ranks/All_Star_1.png",
+            "./assets/images/ranks/All_Star_2.png",
+            "./assets/images/ranks/All_Star_3.png",
+            "./assets/images/ranks/Superstar_1.png",
+            "./assets/images/ranks/Superstar_2.png",
+            "./assets/images/ranks/Superstar_3.png",
+            "./assets/images/ranks/Elite_1.png",
+            "./assets/images/ranks/Elite_2.png",
+            "./assets/images/ranks/Elite_3.png",
+            "./assets/images/ranks/Legend.png"
+          ]
+        }
+      ],
       [
         "expo-image-picker",
         {

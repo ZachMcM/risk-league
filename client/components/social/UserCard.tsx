@@ -3,16 +3,12 @@ import { router } from "expo-router";
 import { Pressable, View } from "react-native";
 import { getUser } from "~/endpoints";
 import { User } from "~/types/user";
-import RankBadge from "../ui/RankBadge";
 import ProfileImage from "../ui/profile-image";
+import RankIcon from "../ui/rank-icon";
 import { Text } from "../ui/text";
 import FriendshipButtons from "./FriendshipButtons";
 
-export function UserCard({
-  user,
-}: {
-  user: User;
-}) {
+export function UserCard({ user }: { user: User }) {
   const { data: userProfile } = useQuery({
     queryKey: ["user", user.id],
     queryFn: async () => await getUser(user.id),
@@ -35,19 +31,9 @@ export function UserCard({
           username={userProfile.username}
           image={userProfile.image!}
         />
-        <View className="flex flex-col gap-2">
+        <View className="flex flex-row items-center">
+          <RankIcon rank={userProfile.rank} />
           <Text className="font-bold text-lg">{userProfile.username}</Text>
-          <RankBadge
-            iconClassName="h-4 w-4"
-            textClassName="text-xs"
-            gradientStyle={{
-              paddingHorizontal: 8,
-              gap: 4,
-              alignSelf: "flex-start",
-            }}
-            rank={userProfile.rank}
-            showIcon
-          />
         </View>
       </View>
       <FriendshipButtons user={user} />

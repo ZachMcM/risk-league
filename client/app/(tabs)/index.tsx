@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { router } from "expo-router";
+import { BadgeInfoIcon } from "lucide-react-native";
 import { useState } from "react";
 import { View } from "react-native";
 import CompetitiveMatchLeagues from "~/components/matches/CompetitiveMatchLeagues";
@@ -15,9 +16,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
+import { Icon } from "~/components/ui/icon";
 import { Progress } from "~/components/ui/progress";
-import { RankText } from "~/components/ui/rank-text";
-import RankBadge from "~/components/ui/RankBadge";
+import RankIcon from "~/components/ui/rank-icon";
 import { ScrollContainer } from "~/components/ui/scroll-container";
 import { Skeleton } from "~/components/ui/skeleton";
 import { Text } from "~/components/ui/text";
@@ -58,22 +59,11 @@ export default function Home() {
       />
       <View className="flex flex-1 flex-col gap-6 pt-20">
         <View className="flex flex-row items-center justify-between">
-          <View className="flex flex-col gap-4 items-start">
+          <View className="flex flex-row items-center">
+            {userRank?.rank && <RankIcon size={64} rank={userRank.rank} />}
             <Text className="font-bold text-2xl">
               {currentUserData?.user.username}
             </Text>
-            {isUserRankPending ? (
-              <Skeleton className="h-6 w-36 rounded-full" />
-            ) : (
-              userRank && (
-                <View className="flex flex-row items-center gap-2">
-                  <RankBadge showIcon rank={userRank.rank} />
-                  <RankText tier={userRank.rank.tier} className="font-bold">
-                    {userRank.points}
-                  </RankText>
-                </View>
-              )
-            )}
           </View>
           <View className="flex flex-row items-center gap-2">
             <Button
@@ -97,7 +87,7 @@ export default function Home() {
                     onPress={() => router.navigate("/help")}
                   >
                     <View className="flex flex-row items-center gap-2">
-                      <Info className="text-foreground" size={16} />
+                      <Icon as={BadgeInfoIcon} className="text-foreground" size={16} />
                       <Text>Help</Text>
                     </View>
                     <ChevronRight className="text-foreground" size={16} />
@@ -151,12 +141,7 @@ export default function Home() {
                 <Text className="font-semibold text-muted-foreground flex-1 text-left">
                   0%
                 </Text>
-                <RankText
-                  tier={userRank.rank.tier}
-                  className="flex-1 text-center"
-                >
-                  {userRank.nextRank.tier} {userRank.nextRank.level}
-                </RankText>
+                <RankIcon rank={userRank.nextRank} />
                 <Text className="font-semibold text-muted-foreground flex-1 text-right">
                   100%
                 </Text>
@@ -164,7 +149,7 @@ export default function Home() {
             </View>
           )
         )}
-        <CompetitiveMatchLeagues/>
+        <CompetitiveMatchLeagues />
       </View>
     </ScrollContainer>
   );

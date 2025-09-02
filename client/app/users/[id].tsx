@@ -5,7 +5,7 @@ import CareerInfo from "~/components/social/CareerInfo";
 import FriendshipButtons from "~/components/social/FriendshipButtons";
 import ProfileBanner from "~/components/social/ProfileBanner";
 import ModalContainer from "~/components/ui/modal-container";
-import RankBadge from "~/components/ui/RankBadge";
+import RankIcon from "~/components/ui/rank-icon";
 import { ScrollContainer } from "~/components/ui/scroll-container";
 import { Text } from "~/components/ui/text";
 import { getUser } from "~/endpoints";
@@ -36,9 +36,11 @@ export default function User() {
               />
               <View className="flex flex-1 flex-col gap-12 pt-20">
                 <View className="flex flex-row items-center justify-between">
-                  <View className="flex flex-col gap-4 items-start">
-                    <Text className="font-bold text-2xl">{user.username}</Text>
-                    <RankBadge showIcon rank={user.rank} />
+                  <View className="flex flex-row items-center">
+                    <RankIcon size={64} rank={user.rank} />
+                    <Text className="font-bold text-2xl">
+                      {currentUserData?.user.username}
+                    </Text>
                   </View>
                   {user.id !== currentUserData?.user.id && (
                     <FriendshipButtons

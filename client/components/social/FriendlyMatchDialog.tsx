@@ -143,7 +143,7 @@ export default function FriendlyMatchDialog({
           className="flex flex-row items-center gap-2 rounded-full"
         >
           <Icon as={LandPlot} className="text-background" size={16} />
-          <Text>Start Match</Text>
+          <Text>Play</Text>
         </Button>
       </DialogTrigger>
       <DialogContent portalHost={portalHost} className="w-[375px]">

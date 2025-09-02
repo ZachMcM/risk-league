@@ -15,7 +15,7 @@ export default function NbaLogo({
   ...props
 }: NbaLogoProps) {
   return (
-    <View className={cn("", className)} {...props}>
+    <View className={cn(className)} {...props}>
       <Image
         source={nbaLogo}
         style={{ width: size, height: size }}
