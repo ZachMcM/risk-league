@@ -6,6 +6,7 @@ import MatchesHelp from "~/components/help/MatchesHelp";
 import ModalContainer from "~/components/ui/modal-container";
 import { ScrollContainer } from "~/components/ui/scroll-container";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
+import DynastyHelp from "~/components/help/DynastyHelp";
 
 export default function Help() {
   const scrollViewRef = useRef<ScrollView>(null);
@@ -31,7 +32,11 @@ export default function Help() {
       <ScrollContainer className="pt-10 px-0" ref={scrollViewRef}>
         <View className="flex flex-col gap-4">
           <Text className="font-bold text-4xl pb-4 px-4">Help</Text>
-          <Tabs value={tab} onValueChange={setTab} className="flex flex-col gap-4">
+          <Tabs
+            value={tab}
+            onValueChange={setTab}
+            className="flex flex-col gap-4"
+          >
             <TabsList>
               <TabsTrigger value="matches">
                 <Text>Matches</Text>
@@ -40,8 +45,14 @@ export default function Help() {
                 <Text>Dynasty</Text>
               </TabsTrigger>
             </TabsList>
-            <TabsContent value="matches">
+            <TabsContent value="matches" className="px-4 pt-4">
               <MatchesHelp
+                handleSectionLayout={handleSectionLayout}
+                scrollToSection={scrollToSection}
+              />
+            </TabsContent>
+            <TabsContent value="dynasty" className="px-4 pt-4">
+              <DynastyHelp
                 handleSectionLayout={handleSectionLayout}
                 scrollToSection={scrollToSection}
               />
