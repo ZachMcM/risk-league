@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
 import moment from "moment";
 import { Fragment, useEffect, useState } from "react";
@@ -15,6 +15,7 @@ import ModalContainer from "~/components/ui/modal-container";
 import PlayerImage from "~/components/ui/player-image";
 import { Text } from "~/components/ui/text";
 import { postParlay } from "~/endpoints";
+import { authClient } from "~/lib/auth-client";
 import { MIN_STAKE_PCT } from "~/lib/config";
 import { CircleMinus } from "~/lib/icons/CircleMinus";
 import { Prop } from "~/types/prop";
@@ -23,6 +24,7 @@ import {
   getFlexMultiplier,
   getPerfectPlayMultiplier,
 } from "~/utils/multiplierUtils";
+import { invalidateQueries } from "~/utils/invalidateQueries";
 import { Tabs, TabsList, TabsTrigger } from "../ui/tabs";
 
 export default function FinalizeParlayForm({
@@ -34,6 +36,8 @@ export default function FinalizeParlayForm({
   matchId?: number;
   dynastyLeagueId?: number;
 }) {
+  const queryClient = useQueryClient();
+  const { data: currentUserData } = authClient.useSession();
   const { picks, clearParlay } = useCreateParlay();
 
   const minStake = Math.round(balance * MIN_STAKE_PCT);
@@ -86,7 +90,24 @@ export default function FinalizeParlayForm({
           position: "bottom-center",
         });
       },
-      onSuccess: ({ parlayId }) => {
+      onSuccess: async ({ parlayId }) => {
+        // Invalidate relevant caches before navigation to avoid race conditions
+        if (matchId) {
+          await invalidateQueries(
+            queryClient,
+            ["match", matchId],
+            ["parlays", "match", matchId, currentUserData?.user.id],
+            ["matches", currentUserData?.user.id, "unresolved"]
+          );
+        } else if (dynastyLeagueId) {
+          await invalidateQueries(
+            queryClient,
+            ["dynasty-league", dynastyLeagueId, "users"],
+            ["parlays", "dynasty-league", dynastyLeagueId, currentUserData?.user.id],
+            ["dynasty-league", dynastyLeagueId]
+          );
+        }
+        
         toast.success("Parlay Successfully created", {
           position: "top-center",
         });

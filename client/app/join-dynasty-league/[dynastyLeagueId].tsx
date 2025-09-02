@@ -1,11 +1,15 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect } from "react";
 import { ActivityIndicator, View } from "react-native";
 import { toast } from "sonner-native";
 import { patchDynastyLeagueJoin } from "~/endpoints";
+import { authClient } from "~/lib/auth-client";
+import { invalidateQueries } from "~/utils/invalidateQueries";
 
 export default function JoinDynastyLeague() {
+  const queryClient = useQueryClient();
+  const { data: currentUserData } = authClient.useSession();
   const searchParams = useLocalSearchParams<{
     inviteId?: string;
     dynastyLeagueId?: string;
@@ -21,11 +25,21 @@ export default function JoinDynastyLeague() {
         dynastyLeagueId: parseInt(searchParams.dynastyLeagueId!),
         inviteId: searchParams.inviteId!,
       }),
-    onSuccess: () => {
+    onSuccess: async () => {
+      const dynastyLeagueId = parseInt(searchParams.dynastyLeagueId!);
+      
+      // Invalidate cache before navigation to avoid race conditions
+      await invalidateQueries(
+        queryClient,
+        ["dynasty-leagues", currentUserData?.user.id!],
+        ["dynasty-league", dynastyLeagueId],
+        ["dynasty-league", dynastyLeagueId, "users"]
+      );
+      
       toast.success("Successfully joined the league");
       router.navigate({
         pathname: "/dynastyLeague/[dynastyLeagueId]",
-        params: { dynastyLeagueId: parseInt(searchParams.dynastyLeagueId!) },
+        params: { dynastyLeagueId },
       });
     },
     onError: (error) => {
