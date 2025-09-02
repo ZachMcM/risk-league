@@ -57,14 +57,14 @@ const dynastyLeagueSchema = z.object({
   title: z
     .string()
     .min(1, { message: "Title is required" })
-    .max(16, { message: "Title cannot be more than 16 characters" }),
+    .max(32, { message: "Title cannot be more than 16 characters" }),
   tags: z.array(z.string()),
   inviteOnly: z.boolean(),
   league: z.enum(LEAGUES),
   startingBalance: z
     .number()
     .min(100, { message: "Starting balance must be at least $100" }),
-  minParlays: z
+  minParlays: z.coerce
     .number()
     .min(0, { message: "Minimum parlays cannot be negative" }),
   minTotalStaked: z
@@ -277,7 +277,8 @@ export default function CreateDynastyLeague() {
                       className="w-96 mx-2"
                     >
                       <Text>
-                        Users must create this many parlays to be on the leaderboard
+                        Users must create this many parlays to be on the
+                        leaderboard
                       </Text>
                     </TooltipContent>
                   </Tooltip>
@@ -285,7 +286,9 @@ export default function CreateDynastyLeague() {
                 </View>
                 <Input
                   value={value.toString()}
-                  onChange={onChange}
+                  onChangeText={(text) =>
+                    onChange(text === "" ? 0 : parseInt(text) || 0)
+                  }
                   keyboardType="number-pad"
                   placeholder="0"
                 />
@@ -409,6 +412,11 @@ export default function CreateDynastyLeague() {
                   <Text className="font-bold uppercase">{league}</Text>
                 </Pressable>
               ))}
+              {control.getFieldState("league").error && (
+                <Text className="text-destructive">
+                  {control.getFieldState("league").error?.message}
+                </Text>
+              )}
             </ScrollView>
           </View>
           <Controller

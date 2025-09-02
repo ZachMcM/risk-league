@@ -29,9 +29,6 @@ export default function DynastyLeagueCountdown({
     "upcoming"
   );
 
-  // Debug logging
-  console.log("DynastyLeagueCountdown props:", { startDate, endDate });
-
   // Helper function to parse date strings that might have incomplete timezone format
   const parseDate = (dateString: string) => {
     // Fix timezone format if needed: "+00" -> "+00:00"

@@ -54,9 +54,9 @@ dynastyLeaguesRoute.post(
         return;
       }
 
-      if (body.title.length > 16 || body.title.length < 1) {
+      if (body.title.length > 32 || body.title.length < 1) {
         res.status(400).json({
-          error: "Invalid title, must be between 1 and 16 characters inclusive",
+          error: "Invalid title, must be between 1 and 32 characters inclusive",
         });
         return;
       }
@@ -806,7 +806,7 @@ dynastyLeaguesRoute.get(
   }
 );
 
-dynastyLeaguesRoute.get("/dynastyLeagues", authMiddleware, async (req, res) => {
+dynastyLeaguesRoute.get("/dynastyLeagues", authMiddleware, async (_, res) => {
   try {
     const dynastyLeagueUserResults = await db.query.dynastyLeagueUser.findMany({
       where: eq(dynastyLeagueUser.userId, res.locals.userId!),
