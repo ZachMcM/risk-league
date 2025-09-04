@@ -87,7 +87,11 @@ export default function Home() {
                     onPress={() => router.navigate("/help")}
                   >
                     <View className="flex flex-row items-center gap-2">
-                      <Icon as={BadgeInfoIcon} className="text-foreground" size={16} />
+                      <Icon
+                        as={BadgeInfoIcon}
+                        className="text-foreground"
+                        size={16}
+                      />
                       <Text>Help</Text>
                     </View>
                     <ChevronRight className="text-foreground" size={16} />
