@@ -36,8 +36,8 @@ export default function User() {
               />
               <View className="flex flex-1 flex-col gap-12 pt-20">
                 <View className="flex flex-row items-center justify-between">
-                  <View className="flex flex-row items-center">
-                    <RankIcon size={64} rank={user.rank} />
+                  <View className="flex flex-row items-center gap-3">
+                    <RankIcon rank={user.rank} />
                     <Text className="font-bold text-2xl">
                       {currentUserData?.user.username}
                     </Text>

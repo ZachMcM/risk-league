@@ -108,9 +108,9 @@ export default function MatchesHelp({
               Each rank except for Legend has 3 level, I, II, and III. Once a
               user has hit legend they are ranked by pure points.
             </Text>
-            <View className="flex flex-row items-center gap-3 w-full flex-wrap">
+            <View className="flex flex-row items-center gap-4 w-full flex-wrap">
               {ranksList.map((rank) => (
-                <View className="flex flex-col gap-1 items-center">
+                <View key={`${rank.tier}-${rank.level}`} className="flex flex-col gap-1 items-center">
                   <RankIcon rank={rank} size={56} />
                   <Text className="text-sm font-bold">
                     {rank.tier} {rank.level}

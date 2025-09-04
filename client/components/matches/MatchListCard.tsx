@@ -64,6 +64,7 @@ export default function MatchListCard({ initialData }: { initialData: Match }) {
               </View>
               {match.type == "competitive" && (
                 <RankIcon
+                  size={28}
                   rank={you.rankSnapshot}
                 />
               )}

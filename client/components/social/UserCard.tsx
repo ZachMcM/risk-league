@@ -31,8 +31,8 @@ export function UserCard({ user }: { user: User }) {
           username={userProfile.username}
           image={userProfile.image!}
         />
-        <View className="flex flex-row items-center">
-          <RankIcon rank={userProfile.rank} />
+        <View className="flex flex-row items-center gap-2">
+          <RankIcon rank={userProfile.rank} size={28} />
           <Text className="font-bold text-lg">{userProfile.username}</Text>
         </View>
       </View>

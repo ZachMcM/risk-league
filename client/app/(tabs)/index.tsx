@@ -59,8 +59,8 @@ export default function Home() {
       />
       <View className="flex flex-1 flex-col gap-6 pt-20">
         <View className="flex flex-row items-center justify-between">
-          <View className="flex flex-row items-center">
-            {userRank?.rank && <RankIcon size={64} rank={userRank.rank} />}
+          <View className="flex flex-row items-center gap-3">
+            {userRank?.rank && <RankIcon rank={userRank.rank} />}
             <Text className="font-bold text-2xl">
               {currentUserData?.user.username}
             </Text>

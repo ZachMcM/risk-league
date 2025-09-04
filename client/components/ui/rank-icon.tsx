@@ -6,7 +6,7 @@ import { cn } from "~/utils/cn";
 export default function RankIcon({
   rank,
   className,
-  size = 48,
+  size = 32,
 }: {
   rank: Omit<Rank, "minPoints" | "maxPoints">;
   className?: string;

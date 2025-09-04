@@ -43,7 +43,7 @@ function LeaderboardItem({
           <Text className="font-bold text-lg">{user.username}</Text>
         </View>
         <View className="flex flex-row items-center gap-2">
-          <RankIcon size={56} rank={user.rank}/>
+          <RankIcon size={48} rank={user.rank}/>
         </View>
       </View>
     </Link>

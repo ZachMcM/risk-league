@@ -111,8 +111,8 @@ export default function RankGraph({
               <View
                 style={{
                   position: "absolute",
-                  left: peakX - 18,
-                  top: peakY - 64,
+                  left: peakX - 8,
+                  top: peakY - 56,
                 }}
               >
                 <RankIcon rank={peakRank} />
@@ -135,8 +135,8 @@ export default function RankGraph({
                     <View
                       style={{
                         position: "absolute",
-                        left: currentX - 18,
-                        top: currentY - 64,
+                        left: currentX - 8,
+                        top: currentY - 56,
                       }}
                     >
                       <RankIcon rank={peakRank} />
