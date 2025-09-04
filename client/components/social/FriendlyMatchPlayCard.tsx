@@ -39,8 +39,7 @@ export default function FriendlyMatchPlayCard({
               {league}
             </Text>
             <Text className="text-muted-foreground text-center">
-              {arePropsPending ? "..." : props?.length} Props •{" "}
-              {arePropsPending ? "..." : uniqueGameIds.length} Games
+              {arePropsPending ? "..." : props?.length} Props
             </Text>
             <View className="rounded-full bg-primary h-9 w-9 flex items-center justify-center">
               <Play className="text-foreground" size={14} />

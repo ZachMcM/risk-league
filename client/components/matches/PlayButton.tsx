@@ -153,28 +153,28 @@ export default function PlayButton({
           />
         </View>
         <View className="flex flex-col items-center gap-3 p-4 flex-1">
-          <View className="flex flex-col gap-1 items-center">
+          <View className="flex flex-col gap-3 items-center">
             <View className="flex flex-row items-center gap-2">
               <LeagueLogo size={28} league={league} />
               <Text className="font-extrabold text-2xl uppercase">
                 {league}
               </Text>
             </View>
-            <Text className="text-muted-foreground text-center">
-              {arePropsPending ? "..." : props?.length} Props •{" "}
-              {arePropsPending ? "..." : uniqueGameIds.length} Games
-            </Text>
-          </View>
-          <View className="flex flex-row items-center gap-2">
-            {isLoading && <ActivityIndicator className="text-foreground" />}
-            <Text
-              className={cn(
-                "text-foreground text-sm",
-                !isLoading && "opacity-0"
-              )}
-            >
-              {loadingMessage}
-            </Text>
+            {isLoading && (
+              <ActivityIndicator className="text-muted-foreground" />
+            )}
+            {isLoading ? (
+              <View className="flex flex-row items-center justify-center gap-2 max-w-xs">
+                <Text className="text-muted-foreground">
+                  {progress}% {loadingMessage}
+                </Text>
+              </View>
+            ) : (
+              <Text className="text-muted-foreground text-center">
+                {arePropsPending ? "..." : props?.length} Props •{" "}
+                {arePropsPending ? "..." : uniqueGameIds.length} Games
+              </Text>
+            )}
           </View>
           <Button
             disabled={arePropsPending || !props || props.length == 0}
