@@ -64,9 +64,11 @@ def handle_stats_updated(data):
                             "playerId": player_id,
                             "statName": stat_name,
                             "currentValue": stat_value,
+                            "league": league,
                         }
                     )
 
+    logger.info("Updating props...")
     server_req(
         route=f"/props/live",
         method="PATCH",
