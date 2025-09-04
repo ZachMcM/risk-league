@@ -12,22 +12,22 @@ export default function RankIcon({
   className?: string;
   size?: number;
 }) {
-  const rookieOne = require("~/assets/images/ranks/Rookie_1.png");
-  const rookieTwo = require("~/assets/images/ranks/Rookie_2.png");
-  const rookieThree = require("~/assets/images/ranks/Rookie_3.png");
-  const proOne = require("~/assets/images/ranks/Pro_1.png");
-  const proTwo = require("~/assets/images/ranks/Pro_2.png");
-  const proThree = require("~/assets/images/ranks/Pro_3.png");
-  const allStarOne = require("~/assets/images/ranks/All_Star_1.png");
-  const allStarTwo = require("~/assets/images/ranks/All_Star_2.png");
-  const allStarThree = require("~/assets/images/ranks/All_Star_3.png");
-  const superstarOne = require("~/assets/images/ranks/Superstar_1.png");
-  const superstarTwo = require("~/assets/images/ranks/Superstar_2.png");
-  const superstarThree = require("~/assets/images/ranks/Superstar_1.png");
-  const eliteOne = require("~/assets/images/ranks/Elite_1.png");
-  const eliteTwo = require("~/assets/images/ranks/Elite_2.png");
-  const eliteThree = require("~/assets/images/ranks/Elite_3.png");
-  const legend = require("~/assets/images/ranks/Legend.png");
+  const rookieOne = require("~/assets/images/ranks/Rookie_1.svg");
+  const rookieTwo = require("~/assets/images/ranks/Rookie_2.svg");
+  const rookieThree = require("~/assets/images/ranks/Rookie_3.svg");
+  const proOne = require("~/assets/images/ranks/Pro_1.svg");
+  const proTwo = require("~/assets/images/ranks/Pro_2.svg");
+  const proThree = require("~/assets/images/ranks/Pro_3.svg");
+  const allStarOne = require("~/assets/images/ranks/All_Star_1.svg");
+  const allStarTwo = require("~/assets/images/ranks/All_Star_2.svg");
+  const allStarThree = require("~/assets/images/ranks/All_Star_3.svg");
+  const superstarOne = require("~/assets/images/ranks/Superstar_1.svg");
+  const superstarTwo = require("~/assets/images/ranks/Superstar_2.svg");
+  const superstarThree = require("~/assets/images/ranks/Superstar_1.svg");
+  const eliteOne = require("~/assets/images/ranks/Elite_1.svg");
+  const eliteTwo = require("~/assets/images/ranks/Elite_2.svg");
+  const eliteThree = require("~/assets/images/ranks/Elite_3.svg");
+  const legend = require("~/assets/images/ranks/Legend.svg");
 
   const rankImage = () => {
     if (rank.tier == "Rookie") {

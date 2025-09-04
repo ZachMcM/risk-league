@@ -540,6 +540,13 @@
       "when": 1756848075885,
       "tag": "0076_moaning_firelord",
       "breakpoints": true
+    },
+    {
+      "idx": 77,
+      "version": "7",
+      "when": 1756956188078,
+      "tag": "0077_glamorous_warpath",
+      "breakpoints": true
     }
   ]
 }

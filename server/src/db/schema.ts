@@ -183,7 +183,7 @@ export const team = pgTable(
     conference: text(),
     image: text(),
     color: text(),
-    alternateColor: text(),
+    alternateColor: text("alternate_color"),
   },
   (table) => [primaryKey({ columns: [table.teamId, table.league] })]
 );

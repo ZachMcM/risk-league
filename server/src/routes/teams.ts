@@ -31,6 +31,16 @@ teamsRoute.post("/teams", apiKeyMiddleware, async (req, res) => {
     const result = await db
       .insert(team)
       .values(teamsToInsert)
+      .onConflictDoUpdate({
+        target: [team.teamId, team.league],
+        set: {
+          conference: sql`EXCLUDED.conference`,
+          abbreviation: sql`EXCLUDED.abbreviation`,
+          location: sql`EXCLUDED.location`,
+          mascot: sql`EXCLUDED.mascot`,
+          arena: sql`EXCLUDED.arena`,
+        },
+      })
       .returning({ id: team.teamId });
 
     logger.info(`Successfully inserted ${result.length} teams(s)`);
