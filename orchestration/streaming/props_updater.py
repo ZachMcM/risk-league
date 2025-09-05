@@ -46,6 +46,7 @@ def handle_stats_updated(data):
 
     feed_req = data_feeds_req(f"/live/{today_str}/{league}")
     if feed_req.status_code == 304:
+        logger.info("No games currently")
         return
 
     feed_data = feed_req.json()
@@ -56,6 +57,7 @@ def handle_stats_updated(data):
         player_stats_list, _ = extract_player_stats(game, league)
 
         for player_stats in player_stats_list:
+            logger.info(f"Extracting stats for {player_stats['player_id']}")
             player_id = player_stats["playerId"]
             for stat_name, stat_value in player_stats.items():
                 if stat_name in LEAGUE_VALID_STATS[league]:
@@ -67,8 +69,8 @@ def handle_stats_updated(data):
                             "league": league,
                         }
                     )
+                
 
-    logger.info("Updating props...")
     server_req(
         route=f"/props/live",
         method="PATCH",
