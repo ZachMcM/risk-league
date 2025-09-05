@@ -423,7 +423,13 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
 
     socket.on(
       "friendly-match-request-accepted",
-      ({ matchId }: { matchId: number }) => {
+      async ({ matchId }: { matchId: number }) => {
+        await queryClient.invalidateQueries({
+          queryKey: ["matches", currentUserData?.user.id, "unresolved"],
+        });
+        await queryClient.invalidateQueries({
+          queryKey: ["match", matchId],
+        });
         if (router.canDismiss()) {
           router.dismissAll();
         }

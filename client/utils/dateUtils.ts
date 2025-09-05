@@ -21,3 +21,7 @@ export function formatDate(date: Date | string): string {
       : date;
   return format(parsedDate, "MM/dd/yyyy");
 }
+
+export function sqlToJsDate(date: string) {
+  return new Date(date.replace(" ", "T").replace("+00", "Z"));
+}

@@ -1,14 +1,18 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { useEffect } from "react";
 import { ActivityIndicator, View } from "react-native";
+import { useInterstitialAd } from "react-native-google-mobile-ads";
 import MatchDetails from "~/components/matches/MatchDetails";
 import ParlaysView from "~/components/parlays/ParlaysView";
 import { Button } from "~/components/ui/button";
 import { ScrollContainer } from "~/components/ui/scroll-container";
 import { Text } from "~/components/ui/text";
 import { getMatch, getParlays, getTodayProps } from "~/endpoints";
+import { interstitialAdUnitId } from "~/lib/ads";
 import { authClient } from "~/lib/auth-client";
 import { Plus } from "~/lib/icons/Plus";
+import { sqlToJsDate } from "~/utils/dateUtils";
 
 export default function Match() {
   const searchParams = useLocalSearchParams<{
@@ -40,6 +44,26 @@ export default function Match() {
         matchId,
       }),
   });
+
+  const {
+    isLoaded: isAdLoaded,
+    load: loadAd,
+    show: showAd,
+  } = useInterstitialAd(interstitialAdUnitId);
+
+  useEffect(() => {
+    loadAd();
+  }, [loadAd]);
+
+  useEffect(() => {
+    if (
+      isAdLoaded &&
+      match &&
+      new Date().getTime() - sqlToJsDate(match.createdAt).getTime() <= 60000
+    ) {
+      showAd();
+    }
+  }, [isAdLoaded, match]);
 
   return (
     <ScrollContainer className="pt-4">

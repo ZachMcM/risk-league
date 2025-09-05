@@ -21,8 +21,6 @@ export default function FriendlyMatchPlayCard({
     staleTime: 1440 * 60 * 1000,
   });
 
-  const uniqueGameIds = [...new Set(props?.map((prop) => prop.game.gameId))];
-
   return arePropsPending ? (
     <Skeleton className="w-[48%] self-stretch h-40" />
   ) : (

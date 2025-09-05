@@ -1,6 +1,6 @@
 import { Image } from "expo-image";
 import moment from "moment";
-import { View } from "react-native";
+import { Pressable, View } from "react-native";
 import { TodayPlayerProps } from "~/types/prop";
 import { cn } from "~/utils/cn";
 import { formatName } from "~/utils/stringUtils";
@@ -16,14 +16,28 @@ import { Button } from "../ui/button";
 import { Card, CardContent } from "../ui/card";
 import PlayerImage from "../ui/player-image";
 import { Text } from "../ui/text";
+import { router, useLocalSearchParams } from "expo-router";
+import { Icon } from "../ui/icon";
+import { ArrowRight } from "lucide-react-native";
 
 export default function PlayerProps({
   playerProps,
 }: {
   playerProps: TodayPlayerProps;
 }) {
-  const { isPropPicked, addPick, removePick, updatePick, getPickChoice } =
-    useCreateParlay();
+  const {
+    isPropPicked,
+    addPick,
+    removePick,
+    updatePick,
+    getPickChoice,
+    picks,
+  } = useCreateParlay();
+
+  const searchParams = useLocalSearchParams<{
+    matchId?: string;
+    dynastyLeagueId?: string;
+  }>();
 
   return (
     <View className="flex flex-col gap-4 flex-1">
@@ -137,85 +151,83 @@ export default function PlayerProps({
                     ))}
                   </View>
                 </View>
-                <AccordionContent>
-                  <View className="flex flex-col gap-3 mt-6">
-                    <View className="flex flex-row justify-between items-center relative">
-                      <View className="absolute inset-0 h-24 pointer-events-none">
-                        <View
-                          className="absolute w-full flex flex-row"
-                          style={{
-                            top: `${
-                              100 -
-                              (prop.line /
-                                Math.max(
-                                  ...prop.previousResults.map((r) => r.value),
-                                  prop.line
-                                )) *
-                                100
-                            }%`,
-                          }}
-                        >
-                          {Array.from({ length: 72 }, (_, i) => (
-                            <View
-                              key={i}
-                              className="h-px bg-muted-foreground opacity-60 flex-1 mr-1 z-10"
-                              style={{ marginRight: i % 2 === 0 ? 4 : 0 }}
-                            />
-                          ))}
-                        </View>
-                        <View className="absolute bottom-0 w-full h-px bg-muted-foreground opacity-40" />
-                      </View>
-                      {prop.previousResults.map((result, index) => {
-                        const isAboveLine = result.value > prop.line;
-                        const maxValue = Math.max(
-                          ...prop.previousResults.map((r) => r.value),
-                          prop.line
-                        );
-                        const height = (result.value / maxValue) * 100;
-                        const gameDate = moment(result.time).format("M/D/YY");
-
-                        return (
+                <AccordionContent className="flex flex-1 flex-col gap-3 mt-6">
+                  <View className="flex flex-row justify-between items-center relative">
+                    <View className="absolute inset-0 h-24 pointer-events-none">
+                      <View
+                        className="absolute w-full flex flex-row"
+                        style={{
+                          top: `${
+                            100 -
+                            (prop.line /
+                              Math.max(
+                                ...prop.previousResults.map((r) => r.value),
+                                prop.line
+                              )) *
+                              100
+                          }%`,
+                        }}
+                      >
+                        {Array.from({ length: 72 }, (_, i) => (
                           <View
-                            key={index}
-                            className="flex flex-col items-center gap-2 flex-1"
-                          >
-                            <View className="flex flex-col items-center justify-end h-24 relative">
-                              <View
-                                className={cn(
-                                  "w-8 rounded-t-md z-50",
-                                  height !== 0 && "border",
-                                  isAboveLine
-                                    ? "bg-green-950 border-green-700"
-                                    : "bg-red-950 border-red-700"
-                                )}
-                                style={{ height: `${height}%` }}
-                              />
-                            </View>
-                            <View className="flex flex-col">
-                              <Text className="text-lg font-semibold text-center">
-                                {result.value}
-                              </Text>
-                              <Text className="!text-sm text-muted-foreground text-center">
-                                {gameDate}
-                              </Text>
-                            </View>
+                            key={i}
+                            className="h-px bg-muted-foreground opacity-60 flex-1 mr-1 z-10"
+                            style={{ marginRight: i % 2 === 0 ? 4 : 0 }}
+                          />
+                        ))}
+                      </View>
+                      <View className="absolute bottom-0 w-full h-px bg-muted-foreground opacity-40" />
+                    </View>
+                    {prop.previousResults.map((result, index) => {
+                      const isAboveLine = result.value > prop.line;
+                      const maxValue = Math.max(
+                        ...prop.previousResults.map((r) => r.value),
+                        prop.line
+                      );
+                      const height = (result.value / maxValue) * 100;
+                      const gameDate = moment(result.time).format("M/D/YY");
+
+                      return (
+                        <View
+                          key={index}
+                          className="flex flex-col items-center gap-2 flex-1"
+                        >
+                          <View className="flex flex-col items-center justify-end h-24 relative">
+                            <View
+                              className={cn(
+                                "w-8 rounded-t-md z-50",
+                                height !== 0 && "border",
+                                isAboveLine
+                                  ? "bg-green-950 border-green-700"
+                                  : "bg-red-950 border-red-700"
+                              )}
+                              style={{ height: `${height}%` }}
+                            />
                           </View>
-                        );
-                      })}
-                    </View>
-                    <View className="flex flex-row items-center justify-center gap-1">
-                      <Text className="text-sm text-muted-foreground">
-                        {prop.previousResults.length > 0
-                          ? (
-                              prop.previousResults.reduce(
-                                (sum, r) => sum + r.value,
-                                0
-                              ) / prop.previousResults.length
-                            ).toFixed(1)
-                          : "0.0"}{" "}
-                        avg last {prop.previousResults.length}
-                      </Text>
-                    </View>
+                          <View className="flex flex-col">
+                            <Text className="text-lg font-semibold text-center">
+                              {result.value}
+                            </Text>
+                            <Text className="!text-sm text-muted-foreground text-center">
+                              {gameDate}
+                            </Text>
+                          </View>
+                        </View>
+                      );
+                    })}
+                  </View>
+                  <View className="flex flex-row items-center justify-center gap-1">
+                    <Text className="text-sm text-muted-foreground">
+                      {prop.previousResults.length > 0
+                        ? (
+                            prop.previousResults.reduce(
+                              (sum, r) => sum + r.value,
+                              0
+                            ) / prop.previousResults.length
+                          ).toFixed(1)
+                        : "0.0"}{" "}
+                      avg last {prop.previousResults.length}
+                    </Text>
                   </View>
                 </AccordionContent>
               </CardContent>
@@ -223,6 +235,29 @@ export default function PlayerProps({
           </AccordionItem>
         ))}
       </Accordion>
+      <Pressable
+        className="flex flex-row items-center gap-2 rounded-full self-end"
+        onPress={() => {
+          router.dismiss();
+          if (searchParams.matchId) {
+            router.navigate({
+              pathname: "/match/[matchId]/props/finalize-parlay",
+              params: { matchId: parseInt(searchParams.matchId) },
+            });
+          } else {
+            router.navigate({
+              pathname:
+                "/dynastyLeague/[dynastyLeagueId]/props/finalize-parlay",
+              params: {
+                dynastyLeagueId: parseInt(searchParams.dynastyLeagueId!),
+              },
+            });
+          }
+        }}
+      >
+        <Text>View Entries</Text>
+        <Icon as={ArrowRight} className="text-foreground" size={16} />
+      </Pressable>
     </View>
   );
 }

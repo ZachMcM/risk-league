@@ -1,6 +1,10 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Banknote, Landmark, MessageCircle, Plus, Users } from "lucide-react-native";
+import {
+  MessageCircle,
+  Plus,
+  Users
+} from "lucide-react-native";
 import { ActivityIndicator, View } from "react-native";
 import DynastyLeagueCountdown from "~/components/dynasty/DynastyLeagueCountdown";
 import DynastyLeagueDetails from "~/components/dynasty/DynastyLeagueDetails";
@@ -97,11 +101,11 @@ export default function DynastyLeague() {
             </View>
             {dynastyLeague.cashPrize && (
               <View className="flex flex-row gap-2 items-center justify-center">
-                <Text className="font-bold text-lg">
-                   Cash Prize:
-                </Text>
+                <Text className="font-bold text-lg">Cash Prize:</Text>
                 <Badge variant="success">
-                  <Text className="text-base">${dynastyLeague.cashPrize.toFixed(2)}</Text>
+                  <Text className="text-base">
+                    ${dynastyLeague.cashPrize.toFixed(2)}
+                  </Text>
                 </Badge>
               </View>
             )}

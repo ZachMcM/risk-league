@@ -20,11 +20,11 @@ import { MIN_STAKE_PCT } from "~/lib/config";
 import { CircleMinus } from "~/lib/icons/CircleMinus";
 import { Prop } from "~/types/prop";
 import { cn } from "~/utils/cn";
+import { invalidateQueries } from "~/utils/invalidateQueries";
 import {
   getFlexMultiplier,
   getPerfectPlayMultiplier,
 } from "~/utils/multiplierUtils";
-import { invalidateQueries } from "~/utils/invalidateQueries";
 import { Tabs, TabsList, TabsTrigger } from "../ui/tabs";
 
 export default function FinalizeParlayForm({
@@ -70,6 +70,7 @@ export default function FinalizeParlayForm({
     }
   }, [formError, stake]);
 
+
   const { mutate: createParlay, isPending: isCreatingParlayPending } =
     useMutation({
       mutationFn: async () => {
@@ -103,11 +104,17 @@ export default function FinalizeParlayForm({
           await invalidateQueries(
             queryClient,
             ["dynasty-league", dynastyLeagueId, "users"],
-            ["parlays", "dynasty-league", dynastyLeagueId, currentUserData?.user.id],
+            [
+              "parlays",
+              "dynasty-league",
+              dynastyLeagueId,
+              currentUserData?.user.id,
+            ],
             ["dynasty-league", dynastyLeagueId]
           );
         }
-        
+
+
         toast.success("Parlay Successfully created", {
           position: "top-center",
         });
@@ -119,12 +126,12 @@ export default function FinalizeParlayForm({
         } else {
           if (matchId) {
             router.navigate({
-              pathname: "/match/[matchId]/parlays/[parlayId]",
+              pathname: "/match/[matchId]",
               params: { matchId: matchId, parlayId },
             });
           } else {
             router.navigate({
-              pathname: "/dynastyLeague/[dynastyLeagueId]/parlays/[parlayId]",
+              pathname: "/dynastyLeague/[dynastyLeagueId]",
               params: { dynastyLeagueId: dynastyLeagueId!, parlayId },
             });
           }
@@ -306,14 +313,17 @@ export default function FinalizeParlayForm({
                   <Button
                     size="sm"
                     onPress={() => {
+                      if (router.canDismiss()) {
+                        router.dismissAll()
+                      }
                       if (matchId) {
                         router.navigate({
-                          pathname: "/match/[matchId]",
+                          pathname: "/match/[matchId]/props",
                           params: { matchId: matchId },
                         });
                       } else {
                         router.navigate({
-                          pathname: "/dynastyLeague/[dynastyLeagueId]",
+                          pathname: "/dynastyLeague/[dynastyLeagueId]/props",
                           params: { dynastyLeagueId: dynastyLeagueId! },
                         });
                       }

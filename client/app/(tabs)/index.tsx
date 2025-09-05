@@ -40,10 +40,9 @@ export default function Home() {
   });
 
   const [onboardingDialog, setOnboardingDialog] = useState(
-    // new Date().getTime() -
-    //   new Date(currentUserData?.user.createdAt!).getTime() <=
-    //   6000
-    true
+    new Date().getTime() -
+      new Date(currentUserData?.user.createdAt!).getTime() <=
+      60000
   );
 
   return (
@@ -154,7 +153,7 @@ export default function Home() {
             </View>
           )
         )}
-        <BannerAdWrapper/>
+        <BannerAdWrapper />
         <CompetitiveMatchLeagues />
       </View>
     </ScrollContainer>

@@ -1,13 +1,15 @@
 import { AlertTriangle } from "lucide-react-native";
 import { useEffect } from "react";
 import { View } from "react-native";
+import { useInterstitialAd } from "react-native-google-mobile-ads";
 import { toast } from "sonner-native";
+import { interstitialAdUnitId } from "~/lib/ads";
 import { authClient } from "~/lib/auth-client";
 import { DynastyLeague, DynastyLeagueUser } from "~/types/dynastyLeague";
 import { Alert, AlertTitle } from "../ui/alert";
-import { Badge } from "../ui/badge";
 import { Icon } from "../ui/icon";
 import { Text } from "../ui/text";
+import { sqlToJsDate } from "~/utils/dateUtils";
 
 export default function DynastyLeagueDetails({
   dynastyLeagueUsers,
@@ -76,6 +78,28 @@ export default function DynastyLeagueDetails({
       }
     };
   }, [dynastyLeague, dynastyLeagueUsers]);
+
+  const {
+    isLoaded: isAdLoaded,
+    load: loadAd,
+    show: showAd,
+  } = useInterstitialAd(interstitialAdUnitId);
+
+  useEffect(() => {
+    loadAd();
+  }, [loadAd]);
+
+  useEffect(() => {
+    if (
+      currentDynastyLeagueUser &&
+      isAdLoaded &&
+      new Date().getTime() -
+        sqlToJsDate(currentDynastyLeagueUser.createdAt).getTime() <=
+        60000
+    ) {
+      showAd();
+    }
+  }, [isAdLoaded, currentDynastyLeagueUser]);
 
   return (
     <View className="flex flex-row items-center gap-3">

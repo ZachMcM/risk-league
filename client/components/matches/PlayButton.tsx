@@ -81,14 +81,17 @@ export default function PlayButton({
       console.log("Connected to matchmaking namespace")
     );
 
-    socket.on("match-found", ({ matchId }: { matchId: string }) => {
+    socket.on("match-found", async ({ matchId }: { matchId: string }) => {
       console.log(`Found match id: ${matchId}`);
       clearInterval(interval);
       setProgress(100);
       setLoadingMessage("Opponent found!");
       toast.success("Opponent found!");
-      queryClient.invalidateQueries({
+      await queryClient.invalidateQueries({
         queryKey: ["matches", currentUserData?.user.id, "unresolved"],
+      });
+      await queryClient.invalidateQueries({
+        queryKey: ["match", matchId],
       });
       socket.disconnect();
       setIsLoading(false);

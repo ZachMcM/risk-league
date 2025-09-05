@@ -1,9 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link, useLocalSearchParams } from "expo-router";
+import { useEffect } from "react";
 import { View } from "react-native";
+import { useInterstitialAd } from "react-native-google-mobile-ads";
 import { getParlay } from "~/endpoints";
+import { interstitialAdUnitId } from "~/lib/ads";
 import { Parlay } from "~/types/parlay";
 import { cn } from "~/utils/cn";
+import { sqlToJsDate } from "~/utils/dateUtils";
 import {
   getFlexMultiplier,
   getFlexMultiplierTable,
@@ -27,6 +31,25 @@ export default function ParlayCard({ initialData }: { initialData: Parlay }) {
     queryKey: ["parlay", initialData.id],
     queryFn: async () => await getParlay(initialData.id),
   });
+
+  const {
+    isLoaded: isAdLoaded,
+    load: loadAd,
+    show: showAd,
+  } = useInterstitialAd(interstitialAdUnitId);
+
+  useEffect(() => {
+    loadAd();
+  }, [loadAd]);
+
+  useEffect(() => {
+    if (
+      isAdLoaded &&
+      new Date().getTime() - sqlToJsDate(parlay.createdAt).getTime() <= 60000
+    ) {
+      showAd();
+    }
+  }, [isAdLoaded, parlay]);
 
   return (
     <Link
