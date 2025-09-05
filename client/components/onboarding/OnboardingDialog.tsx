@@ -6,7 +6,6 @@ import { Dialog, DialogContent } from "../ui/dialog";
 import { Progress } from "../ui/progress";
 import { Text } from "../ui/text";
 import HowToPlayStep from "./HowToPlayStep";
-import ProfileImageStep from "./ProfileImageStep";
 import WelcomeStep from "./WelcomeStep";
 
 export default function OnboardingDialog({
@@ -21,7 +20,6 @@ export default function OnboardingDialog({
   const [step, setStep] = useState(0);
   const steps = [
     <WelcomeStep />,
-    <ProfileImageStep />,
     <HowToPlayStep close={close} />,
   ];
 

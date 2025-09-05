@@ -27,7 +27,7 @@ export default function CompetitiveMatchLeagues() {
   const sortedLeagues = leagueQueries.data?.map(item => item.league) || LEAGUES;
 
   return (
-    <View className="flex flex-col gap-4 w-full">
+    <View className="flex flex-1 flex-col gap-4 w-full">
       <Text className="text-3xl font-bold">Competitive</Text>
       <ScrollView
         horizontal

@@ -3,10 +3,6 @@ import { router } from "expo-router";
 import { BadgeInfoIcon } from "lucide-react-native";
 import { useState } from "react";
 import { View } from "react-native";
-import {
-  BannerAd,
-  BannerAdSize
-} from "react-native-google-mobile-ads";
 import BannerAdWrapper from "~/components/ad-wrappers/Banner";
 import CompetitiveMatchLeagues from "~/components/matches/CompetitiveMatchLeagues";
 import OnboardingDialog from "~/components/onboarding/OnboardingDialog";
@@ -28,7 +24,6 @@ import { ScrollContainer } from "~/components/ui/scroll-container";
 import { Skeleton } from "~/components/ui/skeleton";
 import { Text } from "~/components/ui/text";
 import { getUserRank } from "~/endpoints";
-import { adaptiveBannerUnitId } from "~/lib/ads";
 import { authClient } from "~/lib/auth-client";
 import { ChevronRight } from "~/lib/icons/ChevronRight";
 import { Cog } from "~/lib/icons/Cog";
@@ -45,9 +40,10 @@ export default function Home() {
   });
 
   const [onboardingDialog, setOnboardingDialog] = useState(
-    new Date().getTime() -
-      new Date(currentUserData?.user.createdAt!).getTime() <=
-      6000
+    // new Date().getTime() -
+    //   new Date(currentUserData?.user.createdAt!).getTime() <=
+    //   6000
+    true
   );
 
   return (
@@ -158,9 +154,9 @@ export default function Home() {
             </View>
           )
         )}
+        <BannerAdWrapper/>
         <CompetitiveMatchLeagues />
       </View>
-      {/* <BannerAdWrapper/> */}
     </ScrollContainer>
   );
 }

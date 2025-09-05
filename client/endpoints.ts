@@ -69,21 +69,23 @@ export async function getUser(id: string): Promise<User> {
 
 export async function patchUserImage(
   userId: string,
-  asset: ImagePicker.ImagePickerAsset
+  image: string
 ) {
-  const formData = new FormData();
-
-  // In React Native, append the image with uri, type, and name
-  formData.append("image", {
-    uri: asset.uri,
-    type: asset.mimeType || "image/jpeg",
-    name: asset.fileName || "image.jpg",
-  } as any);
-
   return await serverRequest({
     endpoint: `/users/${userId}/image`,
     method: "PATCH",
-    formData,
+    body: JSON.stringify({ image })
+  });
+}
+
+export async function patchUserBanner(
+  userId: string,
+  banner: string
+) {
+  return await serverRequest({
+    endpoint: `/users/${userId}/banner`,
+    method: "PATCH",
+    body: JSON.stringify({ banner })
   });
 }
 

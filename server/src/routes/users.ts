@@ -1,11 +1,9 @@
-import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { and, eq, ilike, ne } from "drizzle-orm";
 import { Router } from "express";
+import z from "zod";
 import { db } from "../db";
 import { leagueType, user } from "../db/schema";
-import { logger } from "../logger";
-import { authMiddleware, upload } from "../middleware";
-import { r2 } from "../r2";
+import { authMiddleware } from "../middleware";
 import { ranks } from "../types/ranks";
 import { calculateProgression } from "../utils/calculateProgression";
 import { findNextRank } from "../utils/findNextRank";
@@ -15,98 +13,65 @@ import { handleError } from "../utils/handleError";
 
 export const usersRoute = Router();
 
-usersRoute.patch(
-  "/users/:id/image",
-  authMiddleware,
-  upload.single("image"),
-  async (req, res) => {
-    try {
-      const userId = req.params.id;
-      const file = req.file;
+const imageSchema = z.object({
+  image: z.url(),
+});
 
-      if (!file) {
-        res.status(400).json({ error: "No image file provided" });
-        return;
-      }
+usersRoute.patch("/users/:id/image", authMiddleware, async (req, res) => {
+  try {
+    const userId = req.params.id;
+    imageSchema.parse(req.body);
+    const { image } = req.body as z.infer<typeof imageSchema>;
 
-      const fileName = `profile/${userId}-${Date.now()}.${file.originalname
-        .split(".")
-        .pop()}`;
+    await db.update(user).set({ image }).where(eq(user.id, userId));
 
-      await r2.send(
-        new PutObjectCommand({
-          Bucket: process.env.R2_BUCKET_NAME!,
-          Key: fileName,
-          Body: file.buffer,
-          ContentType: file.mimetype,
-        })
-      );
-
-      const imageUrl = `${process.env.R2_PUBLIC_URL}/${fileName}`;
-      logger.debug(imageUrl);
-
-      await db.update(user).set({ image: imageUrl }).where(eq(user.id, userId));
-
-      res.json(imageUrl);
-    } catch (error) {
-      handleError(error, res, "Users");
-    }
+    res.json({ success: true });
+  } catch (error) {
+    handleError(error, res, "Users");
   }
-);
+});
 
-usersRoute.put(
-  "/users/:id",
-  authMiddleware,
-  upload.single("image"),
-  async (req, res) => {
-    try {
-      const userId = req.params.id;
-      const file = req.file;
-      const username = req.body.username as string | undefined;
-      const name = req.body.name as string | undefined;
+const bannerSchema = z.object({
+  banner: z.url(),
+});
 
-      if (!name) {
-        res.status(400).json({ error: "No name provided" });
-        return;
-      }
+usersRoute.patch("/users/:id/banner", authMiddleware, async (req, res) => {
+  try {
+    const userId = req.params.id;
+    imageSchema.parse(req.body);
+    const { banner } = req.body as z.infer<typeof bannerSchema>;
 
-      if (!username) {
-        res.status(400).json({ error: "No username provided" });
-        return;
-      }
+    await db.update(user).set({ banner }).where(eq(user.id, userId));
 
-      let imageUrl: string | undefined | null;
-
-      if (file) {
-        const fileName = `profile/${userId}-${Date.now()}.${file.originalname
-          .split(".")
-          .pop()}`;
-
-        await r2.send(
-          new PutObjectCommand({
-            Bucket: process.env.R2_BUCKET_NAME!,
-            Key: fileName,
-            Body: file.buffer,
-            ContentType: file.mimetype,
-          })
-        );
-
-        imageUrl = `${process.env.R2_PUBLIC_URL}/${fileName}`;
-      }
-
-      await db
-        .update(user)
-        .set(
-          imageUrl ? { image: imageUrl, username, name } : { username, name }
-        )
-        .where(eq(user.id, userId));
-
-      res.json({ success: true });
-    } catch (error) {
-      handleError(error, res, "Users");
-    }
+    res.json({ success: true });
+  } catch (error) {
+    handleError(error, res, "Users");
   }
-);
+});
+
+usersRoute.put("/users/:id", authMiddleware, async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const username = req.body.username as string | undefined;
+    const name = req.body.name as string | undefined;
+
+    if (!name) {
+      res.status(400).json({ error: "No name provided" });
+      return;
+    }
+
+    if (!username) {
+      res.status(400).json({ error: "No username provided" });
+      return;
+    }
+
+    await db.update(user).set({ username, name }).where(eq(user.id, userId));
+
+    res.json({ success: true });
+  } catch (error) {
+    handleError(error, res, "Users");
+  }
+});
 
 usersRoute.get("/users/:id/rank", authMiddleware, async (req, res) => {
   try {
