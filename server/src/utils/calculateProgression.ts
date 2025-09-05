@@ -12,6 +12,6 @@ export function calculateProgression(points: number) {
   return Math.round(
     ((points - currentRank.minPoints) /
       (nextRank.minPoints - currentRank.minPoints)) *
-      100,
+      100
   );
 }

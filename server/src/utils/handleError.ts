@@ -4,12 +4,12 @@ import { logger } from "../logger";
 export function handleError(
   error: unknown,
   res: Response,
-  routeName: string = "Route",
+  routeName: string = "Route"
 ): void {
   logger.error(
     `${routeName} error:`,
     error instanceof Error ? error.message : String(error),
-    error instanceof Error ? error.stack : "",
+    error instanceof Error ? error.stack : ""
   );
 
   res.status(500).json({

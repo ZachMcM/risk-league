@@ -3,7 +3,7 @@ import { findRank } from "./findRank";
 
 export function calculateProgressionDelta(
   pointsSnapshot: number,
-  pointsDelta: number,
+  pointsDelta: number
 ) {
   const oldRank = findRank(pointsSnapshot);
   const newRank = findRank(pointsSnapshot + pointsDelta);

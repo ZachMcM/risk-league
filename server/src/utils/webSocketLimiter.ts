@@ -8,7 +8,7 @@ export class WebSocketRateLimiter {
   constructor(
     maxMessages: number = 5,
     windowMs: number = 1000,
-    keyPrefix: string = "ws_rate_limit",
+    keyPrefix: string = "ws_rate_limit"
   ) {
     this.maxMessages = maxMessages;
     this.windowMs = windowMs;
@@ -16,7 +16,7 @@ export class WebSocketRateLimiter {
   }
 
   async checkLimit(
-    identifier: string,
+    identifier: string
   ): Promise<{ allowed: boolean; retryAfter?: number }> {
     const key = `${this.keyPrefix}:${identifier}`;
     const now = Date.now();
