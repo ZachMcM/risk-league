@@ -4,6 +4,7 @@ import { useLocalSearchParams } from "expo-router";
 import { debounce } from "lodash";
 import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
+import BannerAdWrapper from "~/components/ad-wrappers/Banner";
 import { FriendlyMatchRequestCard } from "~/components/social/FriendlyMatchRequestCard";
 import { UserCard } from "~/components/social/UserCard";
 import { Button } from "~/components/ui/button";
@@ -140,6 +141,11 @@ export default function Friends() {
               </View>
             ) : (
               <FlashList
+                ListHeaderComponent={
+                  <GridItemWrapper index={0} numCols={1} gap={16}>
+                    <BannerAdWrapper />
+                  </GridItemWrapper>
+                }
                 data={searchResults}
                 contentContainerStyle={{
                   paddingBottom: 24,
@@ -171,6 +177,11 @@ export default function Friends() {
               </View>
             ) : (
               <FlashList
+                ListHeaderComponent={
+                  <GridItemWrapper index={0} numCols={1} gap={16}>
+                    <BannerAdWrapper />
+                  </GridItemWrapper>
+                }
                 contentContainerStyle={{
                   paddingHorizontal: 12,
                   paddingVertical: 16,
@@ -212,6 +223,11 @@ export default function Friends() {
               </View>
             ) : (
               <FlashList
+                ListHeaderComponent={
+                  <GridItemWrapper index={0} numCols={1} gap={16}>
+                    <BannerAdWrapper />
+                  </GridItemWrapper>
+                }
                 data={friends}
                 contentContainerStyle={{
                   paddingHorizontal: 12,

@@ -3,6 +3,11 @@ import { router } from "expo-router";
 import { BadgeInfoIcon } from "lucide-react-native";
 import { useState } from "react";
 import { View } from "react-native";
+import {
+  BannerAd,
+  BannerAdSize
+} from "react-native-google-mobile-ads";
+import BannerAdWrapper from "~/components/ad-wrappers/Banner";
 import CompetitiveMatchLeagues from "~/components/matches/CompetitiveMatchLeagues";
 import OnboardingDialog from "~/components/onboarding/OnboardingDialog";
 import ProfileBanner from "~/components/social/ProfileBanner";
@@ -23,11 +28,11 @@ import { ScrollContainer } from "~/components/ui/scroll-container";
 import { Skeleton } from "~/components/ui/skeleton";
 import { Text } from "~/components/ui/text";
 import { getUserRank } from "~/endpoints";
+import { adaptiveBannerUnitId } from "~/lib/ads";
 import { authClient } from "~/lib/auth-client";
 import { ChevronRight } from "~/lib/icons/ChevronRight";
 import { Cog } from "~/lib/icons/Cog";
 import { Ellipsis } from "~/lib/icons/Ellipsis";
-import { Info } from "~/lib/icons/Info";
 import { Trophy } from "~/lib/icons/Trophy";
 import { User } from "~/lib/icons/User";
 
@@ -155,6 +160,7 @@ export default function Home() {
         )}
         <CompetitiveMatchLeagues />
       </View>
+      {/* <BannerAdWrapper/> */}
     </ScrollContainer>
   );
 }

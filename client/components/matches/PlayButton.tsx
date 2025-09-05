@@ -152,7 +152,7 @@ export default function PlayButton({
             style={{ width: "100%", height: "100%" }}
           />
         </View>
-        <View className="flex flex-col items-center gap-3 p-4 flex-1">
+        <View className="flex flex-col items-center gap-4 p-4 flex-1">
           <View className="flex flex-col gap-3 items-center">
             <View className="flex flex-row items-center gap-2">
               <LeagueLogo size={28} league={league} />

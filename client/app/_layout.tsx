@@ -30,6 +30,7 @@ import { setAndroidNavigationBar } from "~/lib/android-navigation-bar";
 import { authClient } from "~/lib/auth-client";
 import { NAV_THEME } from "~/lib/constants";
 import { useColorScheme } from "~/lib/useColorScheme";
+import mobileAds from "react-native-google-mobile-ads";
 
 onlineManager.setEventListener((setOnline) => {
   return NetInfo.addEventListener((state) => {
@@ -69,6 +70,11 @@ export default function RootLayout() {
   }
 
   useEffect(() => {
+    mobileAds()
+      .initialize()
+      .then((_) => {
+        // Initialization complete!
+      });
     const subscription = AppState.addEventListener("change", onAppStateChange);
 
     return () => subscription.remove();
@@ -154,7 +160,7 @@ export function RootNavigatior() {
         <Stack.Screen
           name="join-dynasty-league/[dynastyLeagueId]"
           options={{
-            headerShown: false
+            headerShown: false,
           }}
         />
         <Stack.Screen name="dynastyLeague" options={{ headerShown: false }} />

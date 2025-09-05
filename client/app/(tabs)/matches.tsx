@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { useState } from "react";
 import { ActivityIndicator, View } from "react-native";
+import BannerAdWrapper from "~/components/ad-wrappers/Banner";
 import MatchListCard from "~/components/matches/MatchListCard";
 import { Button } from "~/components/ui/button";
 import { Container } from "~/components/ui/container";
@@ -74,7 +75,7 @@ export default function Matches() {
               data={unresolvedMatches}
               contentContainerStyle={{
                 paddingHorizontal: 12,
-                paddingVertical: 16
+                paddingVertical: 16,
               }}
               estimatedItemSize={166}
               renderItem={({ item, index }) => (
@@ -83,6 +84,11 @@ export default function Matches() {
                 </GridItemWrapper>
               )}
               keyExtractor={(item) => item.id.toString()}
+              ListHeaderComponent={
+                <GridItemWrapper index={0} numCols={1} gap={16}>
+                  <BannerAdWrapper />
+                </GridItemWrapper>
+              }
             />
           )}
         </TabsContent>
@@ -112,7 +118,7 @@ export default function Matches() {
               showsVerticalScrollIndicator={false}
               contentContainerStyle={{
                 paddingHorizontal: 12,
-                paddingVertical: 16
+                paddingVertical: 16,
               }}
               estimatedItemSize={166}
               data={resolvedMatches}
@@ -122,6 +128,11 @@ export default function Matches() {
                 </GridItemWrapper>
               )}
               keyExtractor={(item) => item.id.toString()}
+              ListHeaderComponent={
+                <GridItemWrapper index={0} numCols={1} gap={16}>
+                  <BannerAdWrapper />
+                </GridItemWrapper>
+              }
             />
           )}
         </TabsContent>

@@ -11,7 +11,7 @@ import { useColorScheme } from "~/lib/useColorScheme";
 
 export default function TabsLayout() {
   const { isDarkColorScheme } = useColorScheme();
-
+  
   return (
     <Tabs
       screenOptions={{

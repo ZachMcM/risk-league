@@ -4,6 +4,7 @@ import { debounce } from "lodash";
 import { Search } from "lucide-react-native";
 import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
+import BannerAdWrapper from "~/components/ad-wrappers/Banner";
 import DynastyLeagueListCard from "~/components/dynasty/DynastyLeagueListCard";
 import { Container } from "~/components/ui/container";
 import { GridItemWrapper } from "~/components/ui/grid-item-wrapper";
@@ -11,10 +12,7 @@ import { Icon } from "~/components/ui/icon";
 import { SearchBar } from "~/components/ui/search-bar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { Text } from "~/components/ui/text";
-import {
-  getDynastyLeagues,
-  searchDynastyLeagues,
-} from "~/endpoints";
+import { getDynastyLeagues, searchDynastyLeagues } from "~/endpoints";
 import { authClient } from "~/lib/auth-client";
 
 export default function Dynasty() {
@@ -54,9 +52,9 @@ export default function Dynasty() {
 
   useEffect(() => {
     return () => {
-      setSearchQuery("")
-    }
-  }, [])
+      setSearchQuery("");
+    };
+  }, []);
 
   return (
     <Container className="pt-4 pb-0 px-0">
@@ -93,7 +91,10 @@ export default function Dynasty() {
               }}
               estimatedItemSize={166}
               renderItem={({ item, index }) => {
-                console.log(`Rendering item at index ${index}:`, item ? `${item.title} (ID: ${item.id})` : 'undefined');
+                console.log(
+                  `Rendering item at index ${index}:`,
+                  item ? `${item.title} (ID: ${item.id})` : "undefined"
+                );
                 return (
                   <GridItemWrapper index={index} numCols={1} gap={16}>
                     <DynastyLeagueListCard initialData={item} />
@@ -101,6 +102,11 @@ export default function Dynasty() {
                 );
               }}
               keyExtractor={(item) => item.id.toString()}
+              ListHeaderComponent={
+                <GridItemWrapper index={0} numCols={1} gap={16}>
+                  <BannerAdWrapper />
+                </GridItemWrapper>
+              }
             />
           )}
         </TabsContent>
@@ -148,6 +154,11 @@ export default function Dynasty() {
                 </GridItemWrapper>
               )}
               keyExtractor={(item) => `search-${item.id}`}
+              ListHeaderComponent={
+                <GridItemWrapper index={0} numCols={1} gap={16}>
+                  <BannerAdWrapper />
+                </GridItemWrapper>
+              }
             />
           )}
         </TabsContent>

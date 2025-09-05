@@ -26,3 +26,6 @@ tempCodeRunnerFile.py
 
 # redis
 dump.rdb
+
+/client/ios/
+/client/android/
