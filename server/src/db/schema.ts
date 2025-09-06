@@ -58,6 +58,8 @@ export const leagueType = pgEnum("league_type", [
   "NCAABB",
 ]);
 
+export const cosmeticType = pgEnum("cosmetic_type", ["banner", "image"]);
+
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
@@ -120,6 +122,26 @@ export const verification = pgTable("verification", {
   updatedAt: timestamp("updated_at").$defaultFn(
     () => /* @__PURE__ */ new Date()
   ),
+});
+
+export const cosmetic = pgTable("cosmetic", {
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
+    .defaultNow()
+    .notNull(),
+  id: serial().primaryKey().notNull(),
+  type: cosmeticType().notNull(),
+  title: text().notNull(),
+  url: text().notNull(),
+  isDefault: boolean("is_default").notNull()
+});
+
+export const userCosmetic = pgTable("user_cosmetic", {
+  acquiredAt: timestamp("created_at", { withTimezone: true, mode: "string" })
+    .defaultNow()
+    .notNull(),
+  id: serial().primaryKey().notNull(),
+  userId: text("user_id").references(() => user.id, { onDelete: "cascade" }),
+  cosmeticId: integer("cosmetic_id").references(() => cosmetic.id, { onDelete: "cascade" })
 });
 
 export const message = pgTable(
@@ -436,7 +458,7 @@ export const dynastyLeague = pgTable("dynasty_league", {
   minParlays: integer("min_parlays").default(0).notNull(),
   maxUsers: integer("max_users").default(50).notNull(),
   adminCup: boolean("admin_cup").notNull().default(false),
-  cashPrize: doublePrecision("cash_prize")
+  cashPrize: doublePrecision("cash_prize"),
 });
 
 export const dynastyLeagueUser = pgTable(

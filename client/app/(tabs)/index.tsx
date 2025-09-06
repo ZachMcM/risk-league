@@ -56,6 +56,7 @@ export default function Home() {
         image={currentUserData?.user.image!}
         username={currentUserData?.user.username!}
         header={currentUserData?.user.banner!}
+        userId={currentUserData?.user.id!}
       />
       <View className="flex flex-1 flex-col gap-6 pt-20">
         <View className="flex flex-row items-center justify-between">

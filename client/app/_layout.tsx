@@ -164,6 +164,14 @@ export function RootNavigatior() {
           }}
         />
         <Stack.Screen name="dynastyLeague" options={{ headerShown: false }} />
+        <Stack.Screen
+          name="banner-locker"
+          options={{ headerShown: false, presentation: "modal" }}
+        />
+        <Stack.Screen
+          name="image-locker"
+          options={{ headerShown: false, presentation: "modal" }}
+        />
       </Stack.Protected>
       <Stack.Protected guard={currentUserData == null}>
         <Stack.Screen name="index" options={{ headerShown: false }} />

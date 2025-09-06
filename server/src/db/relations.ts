@@ -4,6 +4,7 @@ import {
   baseballTeamStats,
   basketballPlayerStats,
   basketballTeamStats,
+  cosmetic,
   dynastyLeague,
   dynastyLeagueInvitation,
   dynastyLeagueUser,
@@ -21,6 +22,7 @@ import {
   prop,
   team,
   user,
+  userCosmetic,
 } from "./schema";
 
 export const userRelations = relations(user, ({ many }) => ({
@@ -43,6 +45,20 @@ export const userRelations = relations(user, ({ many }) => ({
   }),
   incomingDynastyLeagueInvitations: many(dynastyLeagueInvitation, {
     relationName: "incomingDynastyLeagueInvitations",
+  }),
+  userCosmetics: many(userCosmetic, {
+    relationName: "userCosmetics",
+  }),
+}));
+
+export const userCosmeticRelations = relations(userCosmetic, ({ one }) => ({
+  user: one(user, {
+    fields: [userCosmetic.userId],
+    references: [user.id],
+  }),
+  cosmetic: one(cosmetic, {
+    fields: [userCosmetic.cosmeticId],
+    references: [cosmetic.id],
   }),
 }));
 

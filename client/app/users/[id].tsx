@@ -33,6 +33,7 @@ export default function User() {
                 username={user?.username}
                 image={user?.image}
                 header={user?.banner}
+                userId={user.id}
               />
               <View className="flex flex-1 flex-col gap-12 pt-20">
                 <View className="flex flex-row items-center justify-between">

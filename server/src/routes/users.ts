@@ -1,8 +1,13 @@
 import { and, eq, ilike, ne } from "drizzle-orm";
 import { Router } from "express";
-import z from "zod";
 import { db } from "../db";
-import { leagueType, user } from "../db/schema";
+import {
+  cosmetic,
+  cosmeticType,
+  leagueType,
+  user,
+  userCosmetic,
+} from "../db/schema";
 import { authMiddleware } from "../middleware";
 import { ranks } from "../types/ranks";
 import { calculateProgression } from "../utils/calculateProgression";
@@ -10,68 +15,84 @@ import { findNextRank } from "../utils/findNextRank";
 import { findRank } from "../utils/findRank";
 import { getMaxKey } from "../utils/getMaxKey";
 import { handleError } from "../utils/handleError";
+import { invalidateQueries } from "../utils/invalidateQueries";
 
 export const usersRoute = Router();
 
-const imageSchema = z.object({
-  image: z.url(),
-});
-
-usersRoute.patch("/users/:id/image", authMiddleware, async (req, res) => {
+usersRoute.patch("/users/banner", authMiddleware, async (req, res) => {
   try {
-    const userId = req.params.id;
-    imageSchema.parse(req.body);
-    const { image } = req.body as z.infer<typeof imageSchema>;
-
-    await db.update(user).set({ image }).where(eq(user.id, userId));
-
-    res.json({ success: true });
-  } catch (error) {
-    handleError(error, res, "Users");
-  }
-});
-
-const bannerSchema = z.object({
-  banner: z.url(),
-});
-
-usersRoute.patch("/users/:id/banner", authMiddleware, async (req, res) => {
-  try {
-    const userId = req.params.id;
-    imageSchema.parse(req.body);
-    const { banner } = req.body as z.infer<typeof bannerSchema>;
+    const userId = res.locals.userId!;
+    console.log(req.body);
+    if (!req.body.banner) {
+      res.status(400).json({ error: "Missing banner" });
+      return;
+    }
+    const { banner } = req.body;
 
     await db.update(user).set({ banner }).where(eq(user.id, userId));
 
-    res.json({ success: true });
-  } catch (error) {
-    handleError(error, res, "Users");
-  }
-});
-
-usersRoute.put("/users/:id", authMiddleware, async (req, res) => {
-  try {
-    const userId = req.params.id;
-    const username = req.body.username as string | undefined;
-    const name = req.body.name as string | undefined;
-
-    if (!name) {
-      res.status(400).json({ error: "No name provided" });
-      return;
-    }
-
-    if (!username) {
-      res.status(400).json({ error: "No username provided" });
-      return;
-    }
-
-    await db.update(user).set({ username, name }).where(eq(user.id, userId));
+    invalidateQueries(["user", res.locals.userId!]);
 
     res.json({ success: true });
   } catch (error) {
     handleError(error, res, "Users");
   }
 });
+
+usersRoute.get(
+  "/users/cosmetics/:cosmetic",
+  authMiddleware,
+  async (req, res) => {
+    try {
+      const id = res.locals.userId!;
+      const cosmeticTypeVal = req.params.cosmetic as
+        | (typeof cosmeticType.enumValues)[number]
+        | undefined;
+
+      if (
+        cosmeticTypeVal == undefined ||
+        !cosmeticType.enumValues.includes(cosmeticTypeVal)
+      ) {
+        res.status(400).json({ error: "Invalid cosmetic parameter" });
+        return;
+      }
+
+      const allCosmetics: {
+        id: number;
+        type: "banner" | "image";
+        title: string;
+        url: string;
+      }[] = [];
+
+      const defaultCosmetics = await db.query.cosmetic.findMany({
+        where: and(
+          eq(cosmetic.type, cosmeticTypeVal),
+          eq(cosmetic.isDefault, true)
+        ),
+      });
+      allCosmetics.push(...defaultCosmetics);
+
+      const achievedCosmetics = await db
+        .select({
+          id: cosmetic.id,
+          type: cosmetic.type,
+          title: cosmetic.title,
+          url: cosmetic.url,
+        })
+        .from(userCosmetic)
+        .innerJoin(cosmetic, eq(userCosmetic.cosmeticId, cosmetic.id))
+        .where(
+          and(eq(userCosmetic.userId, id), eq(cosmetic.type, cosmeticTypeVal))
+        );
+
+      allCosmetics.push(...achievedCosmetics);
+
+      res.json(allCosmetics);
+    } catch (error) {
+      handleError(error, res, "Users");
+    }
+  }
+);
 
 usersRoute.get("/users/:id/rank", authMiddleware, async (req, res) => {
   try {

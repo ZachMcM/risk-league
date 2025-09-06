@@ -3,15 +3,12 @@ import moment from "moment";
 import { Pressable, View } from "react-native";
 import { Prop } from "~/types/prop";
 import { cn } from "~/utils/cn";
+import { formatName } from "~/utils/stringUtils";
 import { useCreateParlay } from "../providers/CreateParlayProvider";
 import { Button } from "../ui/button";
 import { Card, CardContent } from "../ui/card";
-import { Text } from "../ui/text";
-import { formatName } from "~/utils/stringUtils";
-import { Image } from "expo-image";
-import { LinearGradient } from "expo-linear-gradient";
 import PlayerImage from "../ui/player-image";
-import { Separator } from "../ui/separator";
+import { Text } from "../ui/text";
 
 export default function PropCard({ prop }: { prop: Prop }) {
   const searchParams = useLocalSearchParams() as { matchId: string };

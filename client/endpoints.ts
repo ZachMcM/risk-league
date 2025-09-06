@@ -8,7 +8,7 @@ import { Message } from "./types/message";
 import { Parlay, Pick } from "./types/parlay";
 import { Game, Prop, TodayPlayerProps } from "./types/prop";
 import { Rank } from "./types/rank";
-import { Career, Friendship, User } from "./types/user";
+import { Career, Cosmetic, Friendship, User } from "./types/user";
 import { logger } from "react-native-reanimated/lib/typescript/logger";
 
 export type serverRequestParams = {
@@ -67,54 +67,11 @@ export async function getUser(id: string): Promise<User> {
   return user;
 }
 
-export async function patchUserImage(
-  userId: string,
-  image: string
-) {
+export async function patchUserBanner(banner: string) {
   return await serverRequest({
-    endpoint: `/users/${userId}/image`,
+    endpoint: `/users/banner`,
     method: "PATCH",
-    body: JSON.stringify({ image })
-  });
-}
-
-export async function patchUserBanner(
-  userId: string,
-  banner: string
-) {
-  return await serverRequest({
-    endpoint: `/users/${userId}/banner`,
-    method: "PATCH",
-    body: JSON.stringify({ banner })
-  });
-}
-
-export async function updateUserProfile(
-  userId: string,
-  data: {
-    username: string;
-    name: string;
-    image: ImagePicker.ImagePickerAsset | null;
-  }
-) {
-  const formData = new FormData();
-
-  // Add text fields
-  formData.append("username", data.username);
-  formData.append("name", data.name);
-
-  if (data.image) {
-    formData.append("image", {
-      uri: data.image.uri,
-      type: data.image.mimeType || "image/jpeg",
-      name: data.image.fileName || "image.jpg",
-    } as any);
-  }
-
-  return await serverRequest({
-    endpoint: `/users/${userId}`,
-    method: "PUT",
-    formData,
+    body: JSON.stringify({ banner }),
   });
 }
 
@@ -139,6 +96,17 @@ export async function getUserRank(): Promise<{
   });
 
   return user;
+}
+
+export async function getUserCosmetics(
+  cosmeticType: "banner" | "image"
+): Promise<Cosmetic[]> {
+  const cosmetics = await serverRequest({
+    endpoint: `/users/cosmetics/${cosmeticType}`,
+    method: "GET",
+  });
+
+  return cosmetics;
 }
 
 export async function getUsers(query: string): Promise<User[]> {
