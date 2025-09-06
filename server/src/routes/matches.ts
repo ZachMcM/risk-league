@@ -1,14 +1,19 @@
-import { and, desc, eq, inArray, ne } from "drizzle-orm";
+import { and, desc, eq, inArray, lte, gte, ne } from "drizzle-orm";
 import { Router } from "express";
 import { io } from "..";
 import { db } from "../db";
 import {
+  battlePass,
+  battlePassTier,
+  cosmetic,
   leagueType,
   match,
   matchStatus,
   matchUser,
   message,
   user,
+  userBattlePassProgress,
+  userCosmetic,
 } from "../db/schema";
 import { logger } from "../logger";
 import { apiKeyMiddleware, authMiddleware } from "../middleware";
@@ -294,6 +299,160 @@ function recalculatePoints(currentPoints: number[], winner: number | null) {
   return [Math.round(R_prime_A), Math.round(R_prime_B)];
 }
 
+async function updateBattlePassXp(
+  userId: string,
+  parlayCount: number,
+  totalStaked: number,
+  matchStatus: string,
+) {
+  try {
+    // Get active battle passes
+    const now = new Date();
+    const activeBattlePasses = await db.query.battlePass.findMany({
+      where: and(
+        eq(battlePass.isActive, true),
+        lte(battlePass.startDate, now),
+        gte(battlePass.endDate, now)
+      ),
+      with: {
+        tiers: {
+          with: {
+            cosmetic: true,
+          },
+          orderBy: battlePassTier.tier,
+        },
+      },
+    });
+
+    if (activeBattlePasses.length === 0) {
+      return; // No active battle passes
+    }
+
+    // Calculate XP gained
+    const baseXp = 50;
+    const parlayBonus = parlayCount * 10;
+    const stakingBonus = Math.floor(totalStaked / 10);
+
+    let multiplier = 1.0;
+    if (matchStatus === "win") {
+      multiplier = 1.5;
+    } else if (matchStatus === "draw") {
+      multiplier = 1.2;
+    } else if (matchStatus === "loss") {
+      multiplier = 1.0;
+    } else if (matchStatus === "disqualified") {
+      multiplier = 0.5;
+    }
+
+    const totalXp = Math.floor((baseXp + parlayBonus + stakingBonus) * multiplier);
+    const xpGained = Math.max(25, totalXp);
+
+    // Process each active battle pass
+    for (const activeBattlePass of activeBattlePasses) {
+      // Get or create user progress
+      let userProgress = await db.query.userBattlePassProgress.findFirst({
+        where: and(
+          eq(userBattlePassProgress.userId, userId),
+          eq(userBattlePassProgress.battlePassId, activeBattlePass.id)
+        ),
+      });
+
+      if (!userProgress) {
+        // Create new progress record
+        const [newProgress] = await db
+          .insert(userBattlePassProgress)
+          .values({
+            userId,
+            battlePassId: activeBattlePass.id,
+            currentXp: 0,
+            currentTier: 0,
+          })
+          .returning();
+        userProgress = newProgress;
+      }
+
+      const newXp = (userProgress.currentXp || 0) + xpGained;
+      let newTier = userProgress.currentTier || 0;
+      const newCosmeticsUnlocked: any[] = [];
+
+      // Check for tier progression
+      const nextTiers = activeBattlePass.tiers.filter(
+        (tier) => tier.tier > (userProgress!.currentTier || 0) && tier.xpRequired <= newXp
+      );
+
+      if (nextTiers.length > 0) {
+        // User has progressed tiers
+        const highestTier = nextTiers[nextTiers.length - 1];
+        newTier = highestTier.tier;
+
+        // Award cosmetics for all tiers reached
+        for (const tier of nextTiers) {
+          if (tier.cosmeticId) {
+            // Check if user already has this cosmetic
+            const existingCosmetic = await db.query.userCosmetic.findFirst({
+              where: and(
+                eq(userCosmetic.userId, userId),
+                eq(userCosmetic.cosmeticId, tier.cosmeticId)
+              ),
+            });
+
+            if (!existingCosmetic) {
+              await db.insert(userCosmetic).values({
+                userId,
+                cosmeticId: tier.cosmeticId,
+              });
+              
+              newCosmeticsUnlocked.push(tier.cosmetic);
+            }
+          }
+        }
+      }
+
+      // Update user progress
+      await db
+        .update(userBattlePassProgress)
+        .set({
+          currentXp: newXp,
+          currentTier: newTier,
+        })
+        .where(eq(userBattlePassProgress.id, userProgress.id));
+
+      // Send real-time notifications
+      io.of("/realtime").to(`user:${userId}`).emit("battle-pass-xp-gained", {
+        battlePassId: activeBattlePass.id,
+        xpGained,
+        newXp,
+        previousTier: userProgress.currentTier,
+        newTier,
+      });
+
+      if (newTier > (userProgress.currentTier || 0)) {
+        io.of("/realtime").to(`user:${userId}`).emit("battle-pass-tier-up", {
+          battlePassId: activeBattlePass.id,
+          newTier,
+          previousTier: userProgress.currentTier || 0,
+        });
+      }
+
+      if (newCosmeticsUnlocked.length > 0) {
+        io.of("/realtime").to(`user:${userId}`).emit("battle-pass-cosmetic-unlocked", {
+          battlePassId: activeBattlePass.id,
+          cosmetics: newCosmeticsUnlocked,
+          tier: newTier,
+        });
+      }
+
+      // Invalidate queries
+      invalidateQueries(
+        ["battle-pass", "progress", userId],
+        ["user", userId, "cosmetics"]
+      );
+    }
+  } catch (error) {
+    logger.error("Battle pass XP update error:", error);
+  }
+}
+
 matchesRoute.patch("/matches", apiKeyMiddleware, async (req, res) => {
   try {
     const league = req.query.league as
@@ -450,6 +609,21 @@ matchesRoute.patch("/matches", apiKeyMiddleware, async (req, res) => {
             .where(eq(user.id, matchUser2.userId));
         }
       }
+
+      // Update battle pass XP for both users
+      await updateBattlePassXp(
+        matchUser1.userId,
+        matchUser1.parlays.length,
+        matchUser1TotalStaked,
+        matchUser1Status
+      );
+      
+      await updateBattlePassXp(
+        matchUser2.userId,
+        matchUser2.parlays.length,
+        matchUser2TotalStaked,
+        matchUser2Status
+      );
 
       invalidateQueries(
         ["match", matchToEnd.id],

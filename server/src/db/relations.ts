@@ -4,6 +4,8 @@ import {
   baseballTeamStats,
   basketballPlayerStats,
   basketballTeamStats,
+  battlePass,
+  battlePassTier,
   cosmetic,
   dynastyLeague,
   dynastyLeagueInvitation,
@@ -22,6 +24,7 @@ import {
   prop,
   team,
   user,
+  userBattlePassProgress,
   userCosmetic,
 } from "./schema";
 
@@ -61,6 +64,36 @@ export const userCosmeticRelations = relations(userCosmetic, ({ one }) => ({
     references: [cosmetic.id],
   }),
 }));
+
+export const battlePassRelations = relations(battlePass, ({ many }) => ({
+  tiers: many(battlePassTier),
+  usersProgress: many(userBattlePassProgress),
+}));
+
+export const battlePassTierRelations = relations(battlePassTier, ({ one }) => ({
+  cosmetic: one(cosmetic, {
+    fields: [battlePassTier.cosmeticId],
+    references: [cosmetic.id],
+  }),
+  battlePass: one(battlePass, {
+    fields: [battlePassTier.battlePassId],
+    references: [battlePass.id],
+  }),
+}));
+
+export const userBattlePassProgressRelations = relations(
+  userBattlePassProgress,
+  ({ one }) => ({
+    user: one(user, {
+      fields: [userBattlePassProgress.userId],
+      references: [user.id],
+    }),
+    battlePass: one(battlePass, {
+      fields: [userBattlePassProgress.battlePassId],
+      references: [battlePass.id],
+    }),
+  })
+);
 
 export const matchRelations = relations(match, ({ many }) => ({
   matchUsers: many(matchUser),
@@ -109,6 +142,7 @@ export const dynastyLeagueUserRelations = relations(
       references: [dynastyLeague.id],
     }),
     parlays: many(parlay),
+    battlePassProgressions: many(userBattlePassProgress),
   })
 );
 

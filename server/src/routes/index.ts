@@ -1,4 +1,5 @@
 import express from "express";
+import { battlePassRoute } from "./battlePass";
 import { friendlyMatchRequestsRoute } from "./friendlyMatchRequests";
 import { friendshipsRoute } from "./friendships";
 import { gamesRoute } from "./games";
@@ -27,6 +28,7 @@ routes.use(gamesRoute);
 routes.use(teamsRoute);
 routes.use(playersRoute);
 routes.use(statsRoute);
-routes.use(leaderboardRoute)
-routes.use(webhooksRoute)
-routes.use(dynastyLeaguesRoute)
+routes.use(leaderboardRoute);
+routes.use(webhooksRoute);
+routes.use(dynastyLeaguesRoute);
+routes.use(battlePassRoute);

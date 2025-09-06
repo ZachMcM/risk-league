@@ -440,6 +440,130 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
       }
     );
 
+    socket.on(
+      "battle-pass-xp-gained",
+      ({
+        battlePassId,
+        xpGained,
+        newXp,
+        previousTier,
+        newTier,
+      }: {
+        battlePassId: number;
+        xpGained: number;
+        newXp: number;
+        previousTier: number;
+        newTier: number;
+      }) => {
+        const toastId = toast.custom(
+          <Link
+            href="/(tabs)/battle-pass"
+            className="m-3"
+            onPress={() => {
+              if (router.canDismiss()) {
+                router.dismissAll();
+              }
+              toast.dismiss(toastId);
+            }}
+          >
+            <Card className="border-0">
+              <CardContent className="w-full flex flex-col px-4 py-3">
+                <Text className="font-bold">
+                  +{xpGained} XP Earned!
+                </Text>
+                <Text className="text-muted-foreground font-semibold">
+                  Battle Pass XP: {newXp}
+                  {newTier > previousTier && ` • Tier ${newTier}!`}
+                </Text>
+              </CardContent>
+            </Card>
+          </Link>
+        );
+      }
+    );
+
+    socket.on(
+      "battle-pass-tier-up",
+      ({
+        battlePassId,
+        newTier,
+        previousTier,
+      }: {
+        battlePassId: number;
+        newTier: number;
+        previousTier: number;
+      }) => {
+        const toastId = toast.custom(
+          <Link
+            href="/(tabs)/battle-pass"
+            className="m-3"
+            onPress={() => {
+              if (router.canDismiss()) {
+                router.dismissAll();
+              }
+              toast.dismiss(toastId);
+            }}
+          >
+            <Card className="border-0">
+              <CardContent className="w-full flex flex-col px-4 py-3">
+                <Text className="font-bold">
+                  Tier Up!
+                </Text>
+                <Text className="text-muted-foreground font-semibold">
+                  You've reached Tier {newTier}!
+                </Text>
+              </CardContent>
+            </Card>
+          </Link>,
+          {
+            duration: 5000,
+          }
+        );
+      }
+    );
+
+    socket.on(
+      "battle-pass-cosmetic-unlocked",
+      ({
+        battlePassId,
+        cosmetics,
+        tier,
+      }: {
+        battlePassId: number;
+        cosmetics: Array<{ id: number; title: string; type: string }>;
+        tier: number;
+      }) => {
+        const toastId = toast.custom(
+          <Link
+            href="/(tabs)/battle-pass"
+            className="m-3"
+            onPress={() => {
+              if (router.canDismiss()) {
+                router.dismissAll();
+              }
+              toast.dismiss(toastId);
+            }}
+          >
+            <Card className="border-0">
+              <CardContent className="w-full flex flex-col px-4 py-3">
+                <Text className="font-bold">
+                  New Reward Unlocked!
+                </Text>
+                <Text className="text-muted-foreground font-semibold">
+                  {cosmetics.length > 1
+                    ? `${cosmetics.length} new cosmetics unlocked!`
+                    : `${cosmetics[0]?.title} unlocked!`}
+                </Text>
+              </CardContent>
+            </Card>
+          </Link>,
+          {
+            duration: 6000,
+          }
+        );
+      }
+    );
+
     return () => {
       socket.disconnect();
     };

@@ -132,7 +132,7 @@ export const cosmetic = pgTable("cosmetic", {
   type: cosmeticType().notNull(),
   title: text().notNull(),
   url: text().notNull(),
-  isDefault: boolean("is_default").notNull()
+  isDefault: boolean("is_default").notNull(),
 });
 
 export const userCosmetic = pgTable("user_cosmetic", {
@@ -141,7 +141,9 @@ export const userCosmetic = pgTable("user_cosmetic", {
     .notNull(),
   id: serial().primaryKey().notNull(),
   userId: text("user_id").references(() => user.id, { onDelete: "cascade" }),
-  cosmeticId: integer("cosmetic_id").references(() => cosmetic.id, { onDelete: "cascade" })
+  cosmeticId: integer("cosmetic_id").references(() => cosmetic.id, {
+    onDelete: "cascade",
+  }),
 });
 
 export const message = pgTable(
@@ -382,6 +384,33 @@ export const match = pgTable(
     index("idx_match_league").on(table.league),
   ]
 );
+
+export const battlePass = pgTable("battle_pass", {
+  id: serial().primaryKey(),
+  name: text().notNull(),
+  startDate: timestamp().notNull(),
+  endDate: timestamp().notNull(),
+  maxTier: integer().notNull(),
+  isActive: boolean().default(false),
+  createdAt: timestamp().defaultNow(),
+});
+
+export const battlePassTier = pgTable("battle_pass_tier", {
+  id: serial().primaryKey(),
+  battlePassId: integer().references(() => battlePass.id),
+  tier: integer().notNull(),
+  xpRequired: integer().notNull(),
+  cosmeticId: integer().references(() => cosmetic.id),
+});
+
+export const userBattlePassProgress = pgTable("user_battle_pass_progress", {
+  id: serial().primaryKey(),
+  userId: text().references(() => user.id),
+  battlePassId: integer().references(() => battlePass.id),
+  currentXp: integer().default(0),
+  currentTier: integer().default(0),
+  createdAt: timestamp().defaultNow(),
+});
 
 export const friendship = pgTable(
   "friendship",
