@@ -95,10 +95,11 @@ battlePassRoute.get("/battle-pass/progress/:battlePassId", authMiddleware, async
   }
 });
 
-// Get all user's battle pass progress
+// Get user's battle pass progress for active battle passes only
 battlePassRoute.get("/battle-pass/progress", authMiddleware, async (req, res) => {
   try {
     const userId = res.locals.userId!;
+    const now = new Date();
 
     const userProgressList = await db.query.userBattlePassProgress.findMany({
       where: eq(userBattlePassProgress.userId, userId),
@@ -114,10 +115,18 @@ battlePassRoute.get("/battle-pass/progress", authMiddleware, async (req, res) =>
           },
         },
       },
-      orderBy: desc(userBattlePassProgress.createdAt),
     });
 
-    res.json(userProgressList);
+    // Filter to only include active battle passes
+    const activeProgressList = userProgressList.filter(
+      (progress) =>
+        progress.battlePass &&
+        progress.battlePass.isActive &&
+        new Date(progress.battlePass.startDate) <= now &&
+        new Date(progress.battlePass.endDate) >= now
+    );
+
+    res.json(activeProgressList);
   } catch (error) {
     handleError(error, res, "Battle pass progress list route");
   }
