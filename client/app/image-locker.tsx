@@ -18,16 +18,25 @@ import { cn } from "~/utils/cn";
 export default function ImagesLocker() {
   const { data: currentUserData, refetch } = authClient.useSession();
 
-  const { data: images, isPending: areImagesPending } = useQuery({
+  const { data: imagesData, isPending: areImagesPending } = useQuery({
     queryKey: ["user", currentUserData?.user.id!, "images"],
     queryFn: async () => await getUserCosmetics("image"),
   });
 
-  const initSelected = images?.findIndex(
-    (image) => image.url == currentUserData?.user.image
-  );
+  const images = imagesData ? (() => {
+    const currentImageIndex = imagesData.findIndex(
+      (image) => image.url == currentUserData?.user.image
+    );
+    if (currentImageIndex > 0) {
+      const reorderedImages = [...imagesData];
+      const [currentImage] = reorderedImages.splice(currentImageIndex, 1);
+      reorderedImages.unshift(currentImage);
+      return reorderedImages;
+    }
+    return imagesData;
+  })() : undefined;
 
-  const [selectedIndex, setSelectedIndex] = useState(initSelected);
+  const [selectedIndex, setSelectedIndex] = useState(0);
 
   const [isPending, setIsPending] = useState(false);
 

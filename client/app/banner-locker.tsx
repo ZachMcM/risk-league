@@ -51,16 +51,25 @@ function BannerItem({
 export default function BannerLocker() {
   const { data: currentUserData, refetch } = authClient.useSession();
 
-  const { data: banners, isPending: areBannersPending } = useQuery({
+  const { data: bannersData, isPending: areBannersPending } = useQuery({
     queryKey: ["user", currentUserData?.user.id!, "banners"],
     queryFn: async () => await getUserCosmetics("banner"),
   });
 
-  const initSelected = banners?.findIndex(
-    (banner) => banner.url == currentUserData?.user.banner
-  );
+  const banners = bannersData ? (() => {
+    const currentBannerIndex = bannersData.findIndex(
+      (banner) => banner.url == currentUserData?.user.banner
+    );
+    if (currentBannerIndex > 0) {
+      const reorderedBanners = [...bannersData];
+      const [currentBanner] = reorderedBanners.splice(currentBannerIndex, 1);
+      reorderedBanners.unshift(currentBanner);
+      return reorderedBanners;
+    }
+    return bannersData;
+  })() : undefined;
 
-  const [selectedBannerIndex, setSelectedBannerIndex] = useState(initSelected);
+  const [selectedBannerIndex, setSelectedBannerIndex] = useState(0);
 
   const { mutate: updateBanner, isPending: isUpdatingBanner } = useMutation({
     mutationFn: async ({ banner }: { banner: string }) =>

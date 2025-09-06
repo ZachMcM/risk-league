@@ -29,6 +29,15 @@ usersRoute.patch("/users/banner", authMiddleware, async (req, res) => {
     }
     const { banner } = req.body;
 
+    const cosmeticExists = await db.query.cosmetic.findFirst({
+      where: and(eq(cosmetic.type, "banner"), eq(cosmetic.url, banner)),
+    });
+
+    if (!cosmeticExists) {
+      res.status(404).json({ error: "This banner doesn't exist" });
+      return;
+    }
+
     await db.update(user).set({ banner }).where(eq(user.id, userId));
 
     invalidateQueries(["user", res.locals.userId!]);
