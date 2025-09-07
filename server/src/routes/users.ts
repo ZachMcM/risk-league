@@ -1,4 +1,4 @@
-import { and, eq, ilike, ne } from "drizzle-orm";
+import { and, desc, eq, ilike, ne } from "drizzle-orm";
 import { Router } from "express";
 import { db } from "../db";
 import {
@@ -48,6 +48,18 @@ usersRoute.patch("/users/banner", authMiddleware, async (req, res) => {
   }
 });
 
+usersRoute.get("/users/cosmetics/all", authMiddleware, async (req, res) => {
+  try {
+    const allUserCosmetics = await db.query.userCosmetic.findMany({
+      where: eq(userCosmetic.userId, res.locals.userId!),
+    });
+
+    res.json(allUserCosmetics);
+  } catch (error) {
+    handleError(error, res, "Users");
+  }
+});
+
 usersRoute.get(
   "/users/cosmetics/:cosmetic",
   authMiddleware,
@@ -79,7 +91,6 @@ usersRoute.get(
           eq(cosmetic.isDefault, true)
         ),
       });
-      allCosmetics.push(...defaultCosmetics);
 
       const achievedCosmetics = await db
         .select({
@@ -92,9 +103,11 @@ usersRoute.get(
         .innerJoin(cosmetic, eq(userCosmetic.cosmeticId, cosmetic.id))
         .where(
           and(eq(userCosmetic.userId, id), eq(cosmetic.type, cosmeticTypeVal))
-        );
+        )
+        .orderBy(desc(userCosmetic.acquiredAt));
 
       allCosmetics.push(...achievedCosmetics);
+      allCosmetics.push(...defaultCosmetics);
 
       res.json(allCosmetics);
     } catch (error) {

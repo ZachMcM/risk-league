@@ -115,7 +115,6 @@ export default function FriendlyMatchDialog({
       return { previousRequests };
     },
     onError: (err, _, context) => {
-      console.log(err);
       toast.error("There was an error sending your friendly match request");
       queryClient.setQueryData(
         ["friendly-match-requests", currentUserData?.user.id!],

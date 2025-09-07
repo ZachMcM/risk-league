@@ -303,153 +303,70 @@ async function updateBattlePassXp(
   userId: string,
   parlayCount: number,
   totalStaked: number,
-  matchStatus: string,
+  matchStatus: string
 ) {
-  try {
-    // Get active battle passes
-    const now = new Date();
-    const activeBattlePasses = await db.query.battlePass.findMany({
-      where: and(
+  const now = new Date().toISOString();
+
+  const activeUserBattlePasses = await db
+    .select({
+      battlePassId: userBattlePassProgress.battlePassId,
+      userBattlePassProgressId: userBattlePassProgress.id,
+      currentXp: userBattlePassProgress.currentXp,
+    })
+    .from(userBattlePassProgress)
+    .innerJoin(
+      battlePass,
+      eq(userBattlePassProgress.battlePassId, battlePass.id)
+    )
+    .where(
+      and(
         eq(battlePass.isActive, true),
         lte(battlePass.startDate, now),
-        gte(battlePass.endDate, now)
-      ),
-      with: {
-        tiers: {
-          with: {
-            cosmetic: true,
-          },
-          orderBy: battlePassTier.tier,
-        },
-      },
-    });
+        gte(battlePass.endDate, now),
+        eq(userBattlePassProgress.userId, userId)
+      )
+    );
 
-    if (activeBattlePasses.length === 0) {
-      return; // No active battle passes
-    }
+  if (activeUserBattlePasses.length === 0) {
+    return; // No active battle passes
+  }
 
-    // Calculate XP gained
-    const baseXp = 50;
-    const parlayBonus = parlayCount * 10;
-    const stakingBonus = Math.floor(totalStaked / 10);
+  // Calculate XP gained
+  const baseXp = 50;
+  const parlayBonus = parlayCount * 10;
+  const stakingBonus = Math.floor(totalStaked / 10);
 
-    let multiplier = 1.0;
-    if (matchStatus === "win") {
-      multiplier = 1.5;
-    } else if (matchStatus === "draw") {
-      multiplier = 1.2;
-    } else if (matchStatus === "loss") {
-      multiplier = 1.0;
-    } else if (matchStatus === "disqualified") {
-      multiplier = 0.5;
-    }
+  let multiplier = 1.0;
+  if (matchStatus === "win") {
+    multiplier = 1.5;
+  } else if (matchStatus === "draw") {
+    multiplier = 1.2;
+  } else if (matchStatus === "loss") {
+    multiplier = 1.0;
+  } else if (matchStatus === "disqualified") {
+    multiplier = 0.5;
+  }
 
-    const totalXp = Math.floor((baseXp + parlayBonus + stakingBonus) * multiplier);
-    const xpGained = Math.max(25, totalXp);
+  const totalXp = Math.floor(
+    (baseXp + parlayBonus + stakingBonus) * multiplier
+  );
+  const xpGained = Math.max(25, totalXp);
 
-    // Process each active battle pass
-    for (const activeBattlePass of activeBattlePasses) {
-      // Get or create user progress
-      let userProgress = await db.query.userBattlePassProgress.findFirst({
-        where: and(
-          eq(userBattlePassProgress.userId, userId),
-          eq(userBattlePassProgress.battlePassId, activeBattlePass.id)
-        ),
-      });
+  // Process each active battle pass
+  for (const userBattlePass of activeUserBattlePasses) {
+    const newXp = (userBattlePass.currentXp || 0) + xpGained;
 
-      if (!userProgress) {
-        // Create new progress record
-        const [newProgress] = await db
-          .insert(userBattlePassProgress)
-          .values({
-            userId,
-            battlePassId: activeBattlePass.id,
-            currentXp: 0,
-            currentTier: 0,
-          })
-          .returning();
-        userProgress = newProgress;
-      }
-
-      const newXp = (userProgress.currentXp || 0) + xpGained;
-      let newTier = userProgress.currentTier || 0;
-      const newCosmeticsUnlocked: any[] = [];
-
-      // Check for tier progression
-      const nextTiers = activeBattlePass.tiers.filter(
-        (tier) => tier.tier > (userProgress!.currentTier || 0) && tier.xpRequired <= newXp
+    // Update user progress
+    await db
+      .update(userBattlePassProgress)
+      .set({
+        currentXp: newXp,
+      })
+      .where(
+        eq(userBattlePassProgress.id, userBattlePass.userBattlePassProgressId)
       );
 
-      if (nextTiers.length > 0) {
-        // User has progressed tiers
-        const highestTier = nextTiers[nextTiers.length - 1];
-        newTier = highestTier.tier;
-
-        // Award cosmetics for all tiers reached
-        for (const tier of nextTiers) {
-          if (tier.cosmeticId) {
-            // Check if user already has this cosmetic
-            const existingCosmetic = await db.query.userCosmetic.findFirst({
-              where: and(
-                eq(userCosmetic.userId, userId),
-                eq(userCosmetic.cosmeticId, tier.cosmeticId)
-              ),
-            });
-
-            if (!existingCosmetic) {
-              await db.insert(userCosmetic).values({
-                userId,
-                cosmeticId: tier.cosmeticId,
-              });
-              
-              newCosmeticsUnlocked.push(tier.cosmetic);
-            }
-          }
-        }
-      }
-
-      // Update user progress
-      await db
-        .update(userBattlePassProgress)
-        .set({
-          currentXp: newXp,
-          currentTier: newTier,
-        })
-        .where(eq(userBattlePassProgress.id, userProgress.id));
-
-      // Send real-time notifications
-      io.of("/realtime").to(`user:${userId}`).emit("battle-pass-xp-gained", {
-        battlePassId: activeBattlePass.id,
-        xpGained,
-        newXp,
-        previousTier: userProgress.currentTier,
-        newTier,
-      });
-
-      if (newTier > (userProgress.currentTier || 0)) {
-        io.of("/realtime").to(`user:${userId}`).emit("battle-pass-tier-up", {
-          battlePassId: activeBattlePass.id,
-          newTier,
-          previousTier: userProgress.currentTier || 0,
-        });
-      }
-
-      if (newCosmeticsUnlocked.length > 0) {
-        io.of("/realtime").to(`user:${userId}`).emit("battle-pass-cosmetic-unlocked", {
-          battlePassId: activeBattlePass.id,
-          cosmetics: newCosmeticsUnlocked,
-          tier: newTier,
-        });
-      }
-
-      // Invalidate queries
-      invalidateQueries(
-        ["battle-pass", "progress", userId],
-        ["user", userId, "cosmetics"]
-      );
-    }
-  } catch (error) {
-    logger.error("Battle pass XP update error:", error);
+    invalidateQueries(["battle-pass", userBattlePass.battlePassId, "progress", userId]);
   }
 }
 
@@ -617,7 +534,7 @@ matchesRoute.patch("/matches", apiKeyMiddleware, async (req, res) => {
         matchUser1TotalStaked,
         matchUser1Status
       );
-      
+
       await updateBattlePassXp(
         matchUser2.userId,
         matchUser2.parlays.length,

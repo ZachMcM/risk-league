@@ -70,7 +70,6 @@ export default function Messages() {
       return { previousMessages };
     },
     onError: (err, _, context) => {
-      console.log(err);
       toast.error("There was an error sending your message");
       queryClient.setQueryData(
         ["match", matchId, "messages"],

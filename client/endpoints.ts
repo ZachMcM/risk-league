@@ -1,6 +1,6 @@
-import * as ImagePicker from "expo-image-picker";
 import { authClient } from "./lib/auth-client";
-import { League } from "./lib/config";
+import { BATTLE_PASS_ID, League } from "./lib/config";
+import { Cosmetic, UserBattlePassProgress } from "./types/battlePass";
 import { DynastyLeague, DynastyLeagueUser } from "./types/dynastyLeague";
 import { LeaderboardPage } from "./types/leaderboard";
 import { ExtendedMatch, FriendlyMatchRequest, Match } from "./types/match";
@@ -8,8 +8,7 @@ import { Message } from "./types/message";
 import { Parlay, Pick } from "./types/parlay";
 import { Game, Prop, TodayPlayerProps } from "./types/prop";
 import { Rank } from "./types/rank";
-import { Career, Cosmetic, Friendship, User } from "./types/user";
-import { logger } from "react-native-reanimated/lib/typescript/logger";
+import { Career, Friendship, User } from "./types/user";
 
 export type serverRequestParams = {
   endpoint: string;
@@ -65,6 +64,38 @@ export async function serverRequest({
 export async function getUser(id: string): Promise<User> {
   const user = await serverRequest({ endpoint: `/users/${id}`, method: "GET" });
   return user;
+}
+
+export async function getBattlePassProgress(): Promise<UserBattlePassProgress> {
+  const battlePassProgress = await serverRequest({
+    endpoint: `/battle-pass/${BATTLE_PASS_ID}/progress`,
+    method: "GET",
+  });
+
+  return battlePassProgress;
+}
+
+export async function postUserBattlePass() {
+  await serverRequest({
+    endpoint: `/battle-pass/${BATTLE_PASS_ID}`,
+    method: "POST",
+  });
+}
+
+export async function postClaimBattlePassTier(tierId: number) {
+  await serverRequest({
+    endpoint: `/battle-pass/${BATTLE_PASS_ID}/tier/${tierId}/claim`,
+    method: "POST",
+  });
+}
+
+export async function getAllUserCosmetics(): Promise<{ cosmeticId: number }[]> {
+  const all = await serverRequest({
+    endpoint: "/users/cosmetics/all",
+    method: "GET",
+  });
+
+  return all;
 }
 
 export async function patchUserBanner(banner: string) {
@@ -148,7 +179,14 @@ export async function getMatch(id: number): Promise<ExtendedMatch> {
 export async function postDynastyLeague(
   dynastyLeague: Omit<
     DynastyLeague,
-    "id" | "createdAt" | "resolved" | "userCount" | "dynastyLeagueUsers"
+    | "id"
+    | "createdAt"
+    | "resolved"
+    | "userCount"
+    | "dynastyLeagueUsers"
+    | "adminCup"
+    | "cashPrize"
+    | "maxUsers"
   >
 ) {
   const newLeague: { id: number } = await serverRequest({
@@ -234,8 +272,6 @@ export async function postDynastLeagueInvite(id: number) {
     endpoint: `/dynastyLeagues/${id}/invite`,
     method: "POST",
   });
-
-  console.log(newInvite);
 
   return newInvite;
 }

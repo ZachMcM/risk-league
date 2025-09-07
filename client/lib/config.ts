@@ -9,6 +9,9 @@ export const MIN_STAKE_PCT = 0.2;
 export const LEAGUES = ["MLB", "NBA", "NFL", "NCAAFB", "NCAABB"] as const;
 export type League = (typeof LEAGUES)[number];
 
+export const BATTLE_PASS_ID = 1
+export const BATTLE_PASS_NAME = "Season Zero"
+
 export const ranksList: Omit<Rank, "minPoints" | "maxPoints">[] = [
   {
     tier: "Rookie",

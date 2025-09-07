@@ -129,7 +129,6 @@ export default function PlayerProps({
                             if (getPickChoice(prop.id) == choice) {
                               removePick(prop.id);
                             } else {
-                              console.log("update pick");
                               updatePick(prop.id, choice);
                             }
                           } else {

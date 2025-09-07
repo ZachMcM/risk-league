@@ -44,7 +44,7 @@ export const friendlyMatchRequestStatus = pgEnum(
   ["pending", "accepted", "declined"]
 );
 
-export const dynastLeagueUserRoles = pgEnum("dynasty_league_user_roles", [
+export const dynastyLeagueUserRoles = pgEnum("dynasty_league_user_roles", [
   "owner",
   "manager",
   "member",
@@ -140,10 +140,14 @@ export const userCosmetic = pgTable("user_cosmetic", {
     .defaultNow()
     .notNull(),
   id: serial().primaryKey().notNull(),
-  userId: text("user_id").references(() => user.id, { onDelete: "cascade" }),
-  cosmeticId: integer("cosmetic_id").references(() => cosmetic.id, {
-    onDelete: "cascade",
-  }),
+  userId: text("user_id")
+    .references(() => user.id, { onDelete: "cascade" })
+    .notNull(),
+  cosmeticId: integer("cosmetic_id")
+    .references(() => cosmetic.id, {
+      onDelete: "cascade",
+    })
+    .notNull(),
 });
 
 export const message = pgTable(
@@ -388,28 +392,42 @@ export const match = pgTable(
 export const battlePass = pgTable("battle_pass", {
   id: serial().primaryKey(),
   name: text().notNull(),
-  startDate: timestamp().notNull(),
-  endDate: timestamp().notNull(),
-  maxTier: integer().notNull(),
+  startDate: timestamp("start_date", {
+    withTimezone: true,
+    mode: "string",
+  }).notNull(),
+  endDate: timestamp("end_date", {
+    withTimezone: true,
+    mode: "string",
+  }).notNull(),
   isActive: boolean().default(false),
-  createdAt: timestamp().defaultNow(),
+  createdAt: timestamp().defaultNow().notNull(),
 });
 
 export const battlePassTier = pgTable("battle_pass_tier", {
   id: serial().primaryKey(),
-  battlePassId: integer().references(() => battlePass.id),
+  battlePassId: integer().references(() => battlePass.id, {
+    onDelete: "cascade",
+  }),
   tier: integer().notNull(),
   xpRequired: integer().notNull(),
-  cosmeticId: integer().references(() => cosmetic.id),
+  cosmeticId: integer()
+    .references(() => cosmetic.id, { onDelete: "cascade" })
+    .notNull(),
 });
 
 export const userBattlePassProgress = pgTable("user_battle_pass_progress", {
   id: serial().primaryKey(),
-  userId: text().references(() => user.id),
-  battlePassId: integer().references(() => battlePass.id),
-  currentXp: integer().default(0),
-  currentTier: integer().default(0),
-  createdAt: timestamp().defaultNow(),
+  userId: text()
+    .references(() => user.id, { onDelete: "cascade" })
+    .notNull(),
+  battlePassId: integer()
+    .references(() => battlePass.id, {
+      onDelete: "cascade",
+    })
+    .notNull(),
+  currentXp: integer().default(0).notNull(),
+  createdAt: timestamp().defaultNow().notNull(),
 });
 
 export const friendship = pgTable(
@@ -509,7 +527,7 @@ export const dynastyLeagueUser = pgTable(
       .notNull()
       .references(() => dynastyLeague.id, { onDelete: "cascade" }),
     startingBalance: doublePrecision("starting_balance").default(100).notNull(),
-    role: dynastLeagueUserRoles().notNull(),
+    role: dynastyLeagueUserRoles().notNull(),
   },
   (table) => [
     index("idx_dynasty_league_user_created_at").on(table.createdAt),

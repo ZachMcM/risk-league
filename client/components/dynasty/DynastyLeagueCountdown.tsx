@@ -45,7 +45,6 @@ export default function DynastyLeagueCountdown({
   const calculateTimeLeft = () => {
     // Add validation for date props
     if (!startDate || !endDate) {
-      console.log("Missing date props:", { startDate, endDate });
       return;
     }
 
@@ -55,7 +54,6 @@ export default function DynastyLeagueCountdown({
 
     // Check if dates are valid
     if (isNaN(start) || isNaN(end)) {
-      console.log("Invalid dates:", { startDate, endDate, start, end });
       return;
     }
 

@@ -48,8 +48,6 @@ function UserItem({
 }) {
   const { data: currentUserData } = authClient.useSession();
 
-  console.log(currentUserRole)
-
   const { mutate: promoteUser, isPending: isPromotingUser } = useMutation({
     mutationFn: async () =>
       await patchDynastyLeaguePromoteUser(

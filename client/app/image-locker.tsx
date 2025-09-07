@@ -23,18 +23,20 @@ export default function ImagesLocker() {
     queryFn: async () => await getUserCosmetics("image"),
   });
 
-  const images = imagesData ? (() => {
-    const currentImageIndex = imagesData.findIndex(
-      (image) => image.url == currentUserData?.user.image
-    );
-    if (currentImageIndex > 0) {
-      const reorderedImages = [...imagesData];
-      const [currentImage] = reorderedImages.splice(currentImageIndex, 1);
-      reorderedImages.unshift(currentImage);
-      return reorderedImages;
-    }
-    return imagesData;
-  })() : undefined;
+  const images = imagesData
+    ? (() => {
+        const currentImageIndex = imagesData.findIndex(
+          (image) => image.url == currentUserData?.user.image
+        );
+        if (currentImageIndex > 0) {
+          const reorderedImages = [...imagesData];
+          const [currentImage] = reorderedImages.splice(currentImageIndex, 1);
+          reorderedImages.unshift(currentImage);
+          return reorderedImages;
+        }
+        return imagesData;
+      })()
+    : undefined;
 
   const [selectedIndex, setSelectedIndex] = useState(0);
 
@@ -61,69 +63,66 @@ export default function ImagesLocker() {
   return (
     <ModalContainer>
       <View className="flex flex-1 flex-col gap-4 pt-10 px-4">
-        <Text className="font-bold text-4xl">Your Images</Text>
-        <View className="flex-1">
-          {areImagesPending ? (
-            <ActivityIndicator color="#6b7280" className="p-4" />
-          ) : (
-            images && (
-              <View className="flex flex-1 flex-col gap-4">
-                <FlashList
-                  numColumns={3}
-                  estimatedItemSize={120}
-                  showsVerticalScrollIndicator={false}
-                  data={images}
-                  renderItem={({ item, index }) => (
-                    <GridItemWrapper gap={12} index={index} numCols={3}>
-                      <View className="flex flex-col gap-2">
-                        <Pressable
-                          className="rounded-full items-center"
-                          onPress={() => setSelectedIndex(index)}
-                        >
-                          <ProfileImage
-                            username=""
-                            image={item.url}
-                            className={cn(
-                              "h-24 w-24 border-2 border-background",
-                              selectedIndex == index && "border-primary"
-                            )}
-                          />
-                        </Pressable>
-                        <Text className="text-center font-semibold">
-                          {item.title}
-                        </Text>
-                      </View>
-                    </GridItemWrapper>
-                  )}
-                  keyExtractor={(item, index) => `${item.url}-${index}`}
-                  extraData={selectedIndex}
-                  contentContainerStyle={{ paddingBottom: 12 }}
-                />
-                <Separator />
-                <View
-                  className="flex flex-row items-center gap-2 self-end"
-                  style={{
-                    marginBottom: insets.bottom,
-                  }}
-                >
-                  <Button onPress={() => router.dismiss()} variant="outline">
-                    <Text>Cancel</Text>
+        {areImagesPending ? (
+          <ActivityIndicator color="#6b7280" className="p-4" />
+        ) : (
+          images && (
+            <View className="flex flex-1 flex-col gap-4">
+              <FlashList
+                numColumns={3}
+                estimatedItemSize={120}
+                showsVerticalScrollIndicator={false}
+                data={images}
+                renderItem={({ item, index }) => (
+                  <GridItemWrapper gap={12} index={index} numCols={3}>
+                    <View className="flex flex-col gap-2">
+                      <Pressable
+                        className="rounded-full items-center"
+                        onPress={() => setSelectedIndex(index)}
+                      >
+                        <ProfileImage
+                          username=""
+                          image={item.url}
+                          className={cn(
+                            "h-24 w-24 border-2 border-background",
+                            selectedIndex == index && "border-primary"
+                          )}
+                        />
+                      </Pressable>
+                      <Text className="text-center font-bold">
+                        {item.title}
+                      </Text>
+                    </View>
+                  </GridItemWrapper>
+                )}
+                keyExtractor={(item, index) => `${item.url}-${index}`}
+                extraData={selectedIndex}
+                contentContainerStyle={{ paddingBottom: 12 }}
+              />
+              <Separator />
+              <View
+                className="flex flex-row items-center gap-2 self-end"
+                style={{
+                  marginBottom: insets.bottom,
+                }}
+              >
+                <Button onPress={() => router.dismiss()} variant="outline">
+                  <Text>Cancel</Text>
+                </Button>
+                {images && selectedIndex !== null && (
+                  <Button
+                    disabled={isPending}
+                    className="flex flex-row items-center gap-2"
+                    onPress={handleApplyChanges}
+                  >
+                    <Text>Apply Changes</Text>
+                    {isPending && <ActivityIndicator color="#ffffff" />}
                   </Button>
-                  {images && selectedIndex !== null && (
-                    <Button
-                      disabled={isPending}
-                      className="flex flex-row items-center gap-2"
-                      onPress={handleApplyChanges}
-                    >
-                      <Text>Apply Changes</Text>
-                      {isPending && <ActivityIndicator color="#ffffff" />}
-                    </Button>
-                  )}
-                </View>
+                )}
               </View>
-            )
-          )}
-        </View>
+            </View>
+          )
+        )}
       </View>
     </ModalContainer>
   );

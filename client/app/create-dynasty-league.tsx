@@ -119,12 +119,17 @@ export default function CreateDynastyLeague() {
       mutationFn: async (
         league: Omit<
           DynastyLeague,
-          "id" | "createdAt" | "resolved" | "userCount" | "dynastyLeagueUsers"
+          | "id"
+          | "createdAt"
+          | "resolved"
+          | "userCount"
+          | "dynastyLeagueUsers"
+          | "adminCup"
+          | "cashPrize"
+          | "maxUsers"
         >
       ) => await postDynastyLeague(league),
       onSuccess: async (data) => {
-        console.log("Finished creating league");
-
         // Invalidate cache before navigation to avoid race conditions
         await invalidateQueries(queryClient, [
           "dynasty-leagues",

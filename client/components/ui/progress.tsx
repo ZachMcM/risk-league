@@ -63,6 +63,7 @@ function Progress({
   value,
   indicatorClassName,
   showValueText = false,
+  valueType = "decimal",
   max = 100,
   ...props
 }: ProgressPrimitive.RootProps & {
@@ -70,6 +71,7 @@ function Progress({
   indicatorClassName?: string;
   showValueText?: boolean;
   max?: number;
+  valueType?: "decimal" | "percent" | "integer"
 } & VariantProps<typeof progressVariants>) {
   const percentage = ((value ?? 0) / max) * 100;
 
@@ -95,7 +97,7 @@ function Progress({
             }}
             className={cn(progressTextVariants({ variant }))}
           >
-            {value?.toFixed(1)}
+            {valueType == "decimal" ? value?.toFixed(1) : valueType == "integer" ? value?.toFixed(0) : value?.toFixed(0) + "%"}
           </Text>
         </View>
       )}

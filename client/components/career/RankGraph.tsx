@@ -14,8 +14,6 @@ export default function RankGraph({
   peakRank: Rank;
   currentRank: Rank;
 }) {
-  console.log(pointsTimeline);
-
   const scrollViewRef = useRef<ScrollView>(null);
 
   // Convert string dates to numbers for Victory Native

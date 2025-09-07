@@ -77,12 +77,7 @@ export default function PlayButton({
 
     socketRef.current = socket;
 
-    socket.on("connect", () =>
-      console.log("Connected to matchmaking namespace")
-    );
-
     socket.on("match-found", async ({ matchId }: { matchId: string }) => {
-      console.log(`Found match id: ${matchId}`);
       clearInterval(interval);
       setProgress(100);
       setLoadingMessage("Opponent found!");
@@ -102,7 +97,6 @@ export default function PlayButton({
     });
 
     socket.on("matchmaking-failed", () => {
-      console.log("Failed to create match");
       clearInterval(interval);
       setProgress(0);
       setLoadingMessage("Matchmaking failed...");

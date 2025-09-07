@@ -561,6 +561,34 @@
       "when": 1757186613434,
       "tag": "0079_worthless_master_mold",
       "breakpoints": true
+    },
+    {
+      "idx": 80,
+      "version": "7",
+      "when": 1757270392475,
+      "tag": "0080_clean_cobalt_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 81,
+      "version": "7",
+      "when": 1757272389880,
+      "tag": "0081_exotic_shocker",
+      "breakpoints": true
+    },
+    {
+      "idx": 82,
+      "version": "7",
+      "when": 1757274793636,
+      "tag": "0082_chemical_red_ghost",
+      "breakpoints": true
+    },
+    {
+      "idx": 83,
+      "version": "7",
+      "when": 1757276079598,
+      "tag": "0083_smart_baron_strucker",
+      "breakpoints": true
     }
   ]
 }

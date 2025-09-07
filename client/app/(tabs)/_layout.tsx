@@ -1,6 +1,7 @@
 import { Tabs } from "expo-router";
 import DynastyHeader from "~/components/dynasty/DynastyHeader";
 import PageHeader from "~/components/ui/page-header";
+import { BATTLE_PASS_NAME } from "~/lib/config";
 import { NAV_THEME } from "~/lib/constants";
 import { Contact } from "~/lib/icons/Contact";
 import { Dices } from "~/lib/icons/Dices";
@@ -67,7 +68,7 @@ export default function TabsLayout() {
         name="battle-pass"
         options={{
           title: "Battle Pass",
-          header: () => <PageHeader title="Battle Pass" />,
+          header: () => <PageHeader title={BATTLE_PASS_NAME} />,
           tabBarIcon: ({ color }) => <Gift size={22} color={color} />,
         }}
       />

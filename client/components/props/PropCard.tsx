@@ -67,7 +67,6 @@ export default function PropCard({ prop }: { prop: Prop }) {
                     if (getPickChoice(prop.id) == choice) {
                       removePick(prop.id);
                     } else {
-                      console.log("update pick");
                       updatePick(prop.id, choice);
                     }
                   } else {

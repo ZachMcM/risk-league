@@ -9,13 +9,6 @@ export type User = {
   rank: Rank;
 };
 
-export type Cosmetic = {
-  id: number,
-  type: "image" | "banner"
-  title: string
-  url: string
-}
-
 export type Career = {
   currentRank: Rank;
   peakRank: Rank;

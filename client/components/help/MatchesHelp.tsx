@@ -110,8 +110,8 @@ export default function MatchesHelp({
             </Text>
             <View className="flex flex-row items-center gap-4 w-full flex-wrap">
               {ranksList.map((rank) => (
-                <View key={`${rank.tier}-${rank.level}`} className="flex flex-col gap-1 items-center">
-                  <RankIcon rank={rank} size={56} />
+                <View key={`${rank.tier}-${rank.level}`} className="flex flex-col gap-2 items-center">
+                  <RankIcon rank={rank} size={48} />
                   <Text className="text-sm font-bold">
                     {rank.tier} {rank.level}
                   </Text>
