@@ -46,9 +46,6 @@ def handle_stats_updated(data):
 
     logger.info(f"Checking games /live/{today_str}/{league}")
     feed_req = data_feeds_req(f"/live/{today_str}/{league}")
-    if feed_req.status_code == 304:
-        logger.info("No games currently")
-        return
 
     feed_data = feed_req.json()
     games = feed_data["data"][league]
