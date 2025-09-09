@@ -65,6 +65,7 @@ def handle_stats_updated(data):
                             "statName": stat_name,
                             "currentValue": stat_value,
                             "league": league,
+                            "gameId": game['game_ID']
                         }
                     )
         logger.info(f"Finished processing all games. Total stats: {len(stats_list)}")

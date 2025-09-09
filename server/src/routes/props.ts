@@ -435,6 +435,7 @@ const livePropUpdateSchema = z.object({
   playerId: z.number(),
   statName: z.string(),
   currentValue: z.number(),
+  gameId: z.string(),
   league: z.enum(["MLB", "NFL", "NBA", "NCAABB", "NCAAFB"] as const),
 });
 
@@ -448,7 +449,7 @@ propsRoute.patch("/props/live", apiKeyMiddleware, async (req, res) => {
     }
 
     await Promise.all(
-      statUpdates.map(async ({ currentValue, playerId, statName, league }) => {
+      statUpdates.map(async ({ currentValue, playerId, statName, league, gameId }) => {
         const updatedProp = await db
           .update(prop)
           .set({ currentValue })
@@ -456,7 +457,8 @@ propsRoute.patch("/props/live", apiKeyMiddleware, async (req, res) => {
             and(
               eq(prop.playerId, playerId),
               eq(prop.statName, statName),
-              eq(prop.league, league)
+              eq(prop.league, league),
+              eq(prop.gameId, gameId)
             )
           )
           .returning({ id: prop.id });
