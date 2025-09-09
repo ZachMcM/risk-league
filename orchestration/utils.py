@@ -59,27 +59,22 @@ def server_req(
     method: Literal["GET", "POST", "PUT", "DELETE", "PATCH"],
     body: Optional[str] = None,
     files: Optional[dict] = None,
-    max_retries: int = 3,
 ):
-    """Make authenticated requests to the server API with retry logic for DNS failures.
+    """Make authenticated requests to the server API.
 
     Args:
         route: API route (e.g., '/teams')
         method: HTTP method
         body: JSON string body for request (optional)
         files: Dictionary of files for multipart form data (optional)
-        max_retries: Maximum number of retry attempts for DNS/connection errors
 
     Returns:
         Response object from requests
 
     Raises:
         requests.HTTPError: If response status is not 200
-        requests.ConnectionError: If connection fails after all retries
     """
     import requests
-    import time
-    from urllib3.exceptions import NameResolutionError
 
     SERVER_API_BASE_URL = getenv_required("SERVER_API_BASE_URL")
     SERVER_API_KEY = getenv_required("SERVER_API_KEY")
@@ -91,48 +86,26 @@ def server_req(
     if not files:
         headers["Content-Type"] = "application/json"
 
-    for attempt in range(max_retries + 1):
-        try:
-            if method == "GET":
-                response = requests.get(url, headers=headers, timeout=30)
-            elif method == "POST":
-                response = requests.post(url, headers=headers, data=body, files=files, timeout=30)
-            elif method == "PUT":
-                response = requests.put(url, headers=headers, data=body, files=files, timeout=30)
-            elif method == "DELETE":
-                response = requests.delete(url, headers=headers, timeout=30)
-            elif method == "PATCH":
-                response = requests.patch(url, headers=headers, data=body, files=files, timeout=30)
-            else:
-                raise ValueError(f"Unsupported HTTP method: {method}")
+    if method == "GET":
+        response = requests.get(url, headers=headers, timeout=30)
+    elif method == "POST":
+        response = requests.post(url, headers=headers, data=body, files=files, timeout=30)
+    elif method == "PUT":
+        response = requests.put(url, headers=headers, data=body, files=files, timeout=30)
+    elif method == "DELETE":
+        response = requests.delete(url, headers=headers, timeout=30)
+    elif method == "PATCH":
+        response = requests.patch(url, headers=headers, data=body, files=files, timeout=30)
+    else:
+        raise ValueError(f"Unsupported HTTP method: {method}")
 
-            if response.status_code not in [200, 304]:
-                raise requests.HTTPError(
-                    f"Server request failed: {response.status_code} {response.reason}. Response: {response.text}",
-                    response=response,
-                )
+    if response.status_code not in [200, 304]:
+        raise requests.HTTPError(
+            f"Server request failed: {response.status_code} {response.reason}. Response: {response.text}",
+            response=response,
+        )
 
-            return response
-
-        except requests.ConnectionError as e:
-            # Check if it's a DNS resolution error
-            if "Failed to resolve" in str(e) or "Name or service not known" in str(e):
-                if attempt < max_retries:
-                    wait_time = (2 ** attempt) + (attempt * 0.1)  # Exponential backoff with jitter
-                    logging.getLogger(__name__).warning(
-                        f"DNS resolution failed for {url} (attempt {attempt + 1}/{max_retries + 1}). "
-                        f"Retrying in {wait_time:.1f} seconds..."
-                    )
-                    time.sleep(wait_time)
-                    continue
-                else:
-                    logging.getLogger(__name__).error(
-                        f"DNS resolution failed for {url} after {max_retries + 1} attempts. Giving up."
-                    )
-                    raise
-            else:
-                # For non-DNS connection errors, don't retry
-                raise
+    return response
 
 
 def data_feeds_req(route: str):
