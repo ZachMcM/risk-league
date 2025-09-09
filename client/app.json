@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "client",
-    "slug": "client",
+    "name": "Risk League",
+    "slug": "risk-league",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -13,17 +13,25 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.zachmcm.client"
+      "bundleIdentifier": "com.zachmcm.client",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.zachmcm.client"
+      "package": "com.zachmcm.client",
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -46,8 +54,13 @@
           "iosAppId": "ca-app-pub-6463484676927404~4050880826"
         }
       ],
-      ["expo-router"],
-      ["expo-font", {}],
+      [
+        "expo-router"
+      ],
+      [
+        "expo-font",
+        {}
+      ],
       [
         "expo-image-picker",
         {
@@ -57,6 +70,13 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "85cea908-7910-497b-a514-7598be112331"
+      }
+    },
+    "owner": "zachriskleague"
   }
 }

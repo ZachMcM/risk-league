@@ -44,6 +44,7 @@ def handle_stats_updated(data):
 
     today_str = datetime.now(ZoneInfo("America/New_York")).strftime("%Y-%m-%d")
 
+    logger.info(f"Checking games /live/{today_str}/{league}")
     feed_req = data_feeds_req(f"/live/{today_str}/{league}")
     if feed_req.status_code == 304:
         logger.info("No games currently")

@@ -41,6 +41,10 @@ const limiter = rateLimit({
       : parseInt(process.env.MAX_REQS_PER_WINDOW!);
   }, // Limit each IP to 3000 requests per minute
   message: "Too many requests from this IP, please try again later",
+  skip: (_) => {
+    // Skip rate limiting if Redis is down
+    return !redis.isReady;
+  },
 });
 
 socketServer(io);

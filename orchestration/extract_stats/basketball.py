@@ -9,46 +9,46 @@ def calculate_basketball_player_extended_stats(player_stats, team_stats, opp_tea
     """Calculate extended basketball player statistics."""
     
     # True Shooting Percentage
-    ts_denominator = 2 * (player_stats["fieldGoalsAttempted"] + 0.44 * player_stats["freeThrowsAttempted"])
+    ts_denominator = 2 * (player_stats["fieldGoalsAttempted"] + 0.44 * player_stats.get("freeThrowsAttempted", 0))
     true_shooting_pct = player_stats["points"] / ts_denominator if ts_denominator > 0 else 0
     
     # Usage Rate
-    team_fga_fta_to = team_stats["field_goals_attempted"] + 0.44 * team_stats["free_throws_attempted"] + team_stats["turnovers"]
-    player_fga_fta_to = player_stats["fieldGoalsAttempted"] + 0.44 * player_stats["freeThrowsAttempted"] + player_stats["turnovers"]
+    team_fga_fta_to = team_stats.get("field_goals_attempted", 0) + 0.44 * team_stats.get("free_throws_attempted", 0) + team_stats.get("turnovers", 0)
+    player_fga_fta_to = player_stats["fieldGoalsAttempted"] + 0.44 * player_stats.get("freeThrowsAttempted", 0) + player_stats["turnovers"]
     
     usage_rate = 0
     if player_stats["minutes"] > 0 and team_fga_fta_to > 0:
         usage_rate = 100 * ((player_fga_fta_to * (all_team_players_minutes / 5)) / (player_stats["minutes"] * team_fga_fta_to))
     
     # Rebound Percentage
-    total_rebounds = team_stats["total_rebounds"] + opp_team_stats["total_rebounds"]
+    total_rebounds = team_stats.get("total_rebounds", 0) + opp_team_stats.get("total_rebounds", 0)
     rebounds_pct = 0
     if player_stats["minutes"] > 0 and total_rebounds > 0:
         rebounds_pct = 100 * (player_stats["rebounds"] * (all_team_players_minutes / 5)) / (player_stats["minutes"] * total_rebounds)
     
     # Assist Percentage
-    team_field_goals = team_stats["field_goals_made"] - player_stats["fieldGoalsMade"]
+    team_field_goals = team_stats.get("field_goals_made", 0) - player_stats["fieldGoalsMade"]
     assists_pct = 0
     if player_stats["minutes"] > 0 and team_field_goals > 0:
         assists_pct = 100 * player_stats["assists"] / ((player_stats["minutes"] / (all_team_players_minutes / 5)) * team_field_goals)
     
     # Block Percentage
-    opp_two_point_attempts = opp_team_stats["field_goals_attempted"] - opp_team_stats["three_points_attempted"]
+    opp_two_point_attempts = opp_team_stats.get("field_goals_attempted", 0) - opp_team_stats.get("three_points_attempted", 0)
     blocks_pct = 0
     if player_stats["minutes"] > 0 and opp_two_point_attempts > 0:
         blocks_pct = 100 * (player_stats["blocks"] * (all_team_players_minutes / 5)) / (player_stats["minutes"] * opp_two_point_attempts)
     
     # Steal Percentage (estimate opponent possessions)
-    opp_possessions = opp_team_stats["field_goals_attempted"] - opp_team_stats.get("offensive_rebounds", 0) + opp_team_stats["turnovers"] + 0.44 * opp_team_stats["free_throws_attempted"]
+    opp_possessions = opp_team_stats.get("field_goals_attempted", 0) - opp_team_stats.get("offensive_rebounds", 0) + opp_team_stats.get("turnovers", 0) + 0.44 * opp_team_stats.get("free_throws_attempted", 0)
     steals_pct = 0
     if player_stats["minutes"] > 0 and opp_possessions > 0:
         steals_pct = 100 * (player_stats["steals"] * (all_team_players_minutes / 5)) / (player_stats["minutes"] * opp_possessions)
     
     # Three Point Percentage
-    three_pct = player_stats["threePointsMade"] / player_stats["threePointsAttempted"] if player_stats["threePointsAttempted"] > 0 else 0
+    three_pct = player_stats["threePointsMade"] / player_stats.get("threePointsAttempted", 0) if player_stats.get("threePointsAttempted", 0) > 0 else 0
     
     # Free Throw Percentage
-    free_throw_pct = player_stats["freeThrowsMade"] / player_stats["freeThrowsAttempted"] if player_stats["freeThrowsAttempted"] > 0 else 0
+    free_throw_pct = player_stats["freeThrowsMade"] / player_stats.get("freeThrowsAttempted", 0) if player_stats.get("freeThrowsAttempted", 0) > 0 else 0
     
     # Combination Stats
     points_rebounds_assists = player_stats["points"] + player_stats["rebounds"] + player_stats["assists"]
@@ -91,17 +91,17 @@ def calculate_basketball_team_extended_stats(game, team, team_stats, opp_team_st
     
     # Estimate possessions (matches server calculation)
     team_possessions = (
-        team_stats["field_goals_attempted"] -
-        team_stats["offensive_rebounds"] +
-        team_stats["turnovers"] +
-        0.44 * team_stats["free_throws_attempted"]
+        team_stats.get("field_goals_attempted", 0) -
+        team_stats.get("offensive_rebounds", 0) +
+        team_stats.get("turnovers", 0) +
+        0.44 * team_stats.get("free_throws_attempted", 0)
     )
     
     opp_possessions = (
-        opp_team_stats["field_goals_attempted"] -
-        opp_team_stats["offensive_rebounds"] +
-        opp_team_stats["turnovers"] +
-        0.44 * opp_team_stats["free_throws_attempted"]
+        opp_team_stats.get("field_goals_attempted", 0) -
+        opp_team_stats.get("offensive_rebounds", 0) +
+        opp_team_stats.get("turnovers", 0) +
+        0.44 * opp_team_stats.get("free_throws_attempted", 0)
     )
     
     # Pace calculation (matches server formula)
@@ -133,23 +133,23 @@ def extract_basketball_team_stats(game, team, league):
         "teamId": game["full_box"][team]["team_id"],
         "league": league,
         "score": game["full_box"][team]["score"],
-        "fouls": team_stats["fouls"],
-        "blocks": team_stats["blocks"],
-        "steals": team_stats["steals"],
-        "assists": team_stats["assists"],
-        "turnovers": team_stats["turnovers"],
-        "rebounds": team_stats["total_rebounds"],
-        "twoPointsMade": team_stats["two_points_made"],
-        "fieldGoalsMade": team_stats["field_goals_made"],
-        "freeThrowsMade": team_stats["free_throws_made"],
-        "threePointsMade": team_stats["three_points_made"],
-        "defensiveRebounds": team_stats["defensive_rebounds"],
-        "offensiveRebounds": team_stats["offensive_rebounds"],
-        "twoPointPercentage": team_stats["two_point_percentage"],
-        "twoPointsAttempted": team_stats["two_points_attempted"],
-        "fieldGoalsAttempted": team_stats["field_goals_attempted"],
-        "freeThrowsAttempted": team_stats["free_throws_attempted"],
-        "threePointsAttempted": team_stats["three_points_attempted"],
+        "fouls": team_stats.get("fouls", 0),
+        "blocks": team_stats.get("blocks", 0),
+        "steals": team_stats.get("steals", 0),
+        "assists": team_stats.get("assists", 0),
+        "turnovers": team_stats.get("turnovers", 0),
+        "rebounds": team_stats.get("total_rebounds", 0),
+        "twoPointsMade": team_stats.get("two_points_made", 0),
+        "fieldGoalsMade": team_stats.get("field_goals_made", 0),
+        "freeThrowsMade": team_stats.get("free_throws_made", 0),
+        "threePointsMade": team_stats.get("three_points_made", 0),
+        "defensiveRebounds": team_stats.get("defensive_rebounds", 0),
+        "offensiveRebounds": team_stats.get("offensive_rebounds", 0),
+        "twoPointPercentage": team_stats.get("two_point_percentage", 0),
+        "twoPointsAttempted": team_stats.get("two_points_attempted", 0),
+        "fieldGoalsAttempted": team_stats.get("field_goals_attempted", 0) or 0,
+        "freeThrowsAttempted": team_stats.get("free_throws_attempted", 0),
+        "threePointsAttempted": team_stats.get("three_points_attempted", 0),
     }
     
     # Calculate extended stats
@@ -199,7 +199,7 @@ def extract_basketball_player_stats(game, team_id, player_id, player_stats, leag
         "offensiveRebounds": player_stats["offensive_rebounds"],
         "twoPointPercentage": player_stats["two_point_percentage"],
         "twoPointsAttempted": player_stats["two_points_attempted"],
-        "fieldGoalsAttempted": player_stats["field_goals_attempted"],
+        "fieldGoalsAttempted": player_stats.get("field_goals_attempted", 0) or 0,
         "freeThrowsAttempted": player_stats["free_throws_attempted"],
         "threePointsAttempted": player_stats["three_points_attempted"],
         "status": player_stats.get("status", "INACT"),

@@ -114,7 +114,8 @@
     "tailwindcss-animate": "^1.0.7",
     "vaul": "^1.1.2",
     "victory-native": "^41.19.3",
-    "zod": "^3.25.76"
+    "zod": "^3.25.76",
+    "expo-dev-client": "~5.2.4"
   },
   "devDependencies": {
     "@babel/core": "^7.26.0",
