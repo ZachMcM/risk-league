@@ -6,6 +6,7 @@ import { pick, prop } from "../db/schema";
 import { redis } from "../redis";
 import { invalidateQueries } from "../utils/invalidateQueries";
 import { handleError } from "../utils/handleError";
+import { logger } from "../logger";
 
 export const picksRoute = Router();
 
@@ -50,6 +51,7 @@ picksRoute.patch("/picks", apiKeyMiddleware, async (req, res) => {
     const propId = req.query.propId;
 
     if (!propId || isNaN(parseInt(propId as string))) {
+      logger.error("Invalid propId query string")
       res.status(400).json({ error: "Invalid propId query string" });
       return;
     }
@@ -59,6 +61,7 @@ picksRoute.patch("/picks", apiKeyMiddleware, async (req, res) => {
     });
 
     if (!updatedProp) {
+      logger.error(`No prop found with propId ${propId}`)
       res.status(400).json({ error: `No prop found with propId ${propId}` });
       return;
     }
