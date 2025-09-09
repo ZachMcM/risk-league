@@ -49,13 +49,13 @@ def handle_stats_updated(data):
 
     feed_data = feed_req.json()
     games = feed_data["data"][league]
+    logger.info(f"{len(games)} {league} Games found")
 
     stats_list = []
     for game in games:
         player_stats_list, _ = extract_player_stats(game, league)
-
+        logger.info(f"Found {len(player_stats_list)} player stats")
         for player_stats in player_stats_list:
-            logger.info(f"Extracting stats for {player_stats['player_id']}")
             player_id = player_stats["playerId"]
             for stat_name, stat_value in player_stats.items():
                 if stat_name in LEAGUE_VALID_STATS[league]:
@@ -67,6 +67,7 @@ def handle_stats_updated(data):
                             "league": league,
                         }
                     )
+        logger.info(f"Finished processing all games. Total stats: {len(stats_list)}")
                 
 
     server_req(

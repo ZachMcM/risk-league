@@ -440,6 +440,7 @@ const livePropUpdateSchema = z.object({
 
 propsRoute.patch("/props/live", apiKeyMiddleware, async (req, res) => {
   try {
+    logger.info(`Received live props update with ${req.body?.length || 0} entries`);
     const statUpdates = req.body as z.infer<typeof livePropUpdateSchema>[];
 
     for (const entry of statUpdates) {
