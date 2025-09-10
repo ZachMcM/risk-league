@@ -128,7 +128,7 @@ export default function PlayButton({
       className={cn(
         "w-72",
         arePropsPending && "animate-pulse",
-        !arePropsPending && props?.length == 0 && "opacity-60"
+        !arePropsPending && props?.length == 0 && "opacity-60",
       )}
     >
       <CardContent className="p-0 flex-1 flex flex-col">

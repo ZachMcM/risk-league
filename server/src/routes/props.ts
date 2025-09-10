@@ -448,7 +448,7 @@ propsRoute.patch("/props/live", apiKeyMiddleware, async (req, res) => {
       livePropUpdateSchema.parse(entry);
     }
 
-    await Promise.all(
+    const statsUpdated = await Promise.all(
       statUpdates.map(async ({ currentValue, playerId, statName, league, gameId }) => {
         const updatedProp = await db
           .update(prop)
@@ -468,6 +468,8 @@ propsRoute.patch("/props/live", apiKeyMiddleware, async (req, res) => {
         }
       })
     );
+
+    logger.info(`${statsUpdated.length} Stats updated`)
 
     res.json({ success: true });
   } catch (error) {

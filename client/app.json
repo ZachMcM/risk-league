@@ -8,14 +8,7 @@
     "scheme": "riskleague",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-    "splash": {
-      "image": "./assets/images/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.zachmcm.client",
@@ -26,12 +19,10 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#000000"
       },
       "package": "com.zachmcm.client",
-      "permissions": [
-        "android.permission.RECORD_AUDIO"
-      ]
+      "permissions": ["android.permission.RECORD_AUDIO"]
     },
     "web": {
       "bundler": "metro",
@@ -39,6 +30,14 @@
       "favicon": "./assets/images/icon.png"
     },
     "plugins": [
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#000000",
+          "image": "./assets/images/icon.png",
+          "imageWidth": 175
+        }
+      ],
       [
         "expo-build-properties",
         {
@@ -54,13 +53,8 @@
           "iosAppId": "ca-app-pub-6463484676927404~4050880826"
         }
       ],
-      [
-        "expo-router"
-      ],
-      [
-        "expo-font",
-        {}
-      ],
+      ["expo-router"],
+      ["expo-font", {}],
       [
         "expo-image-picker",
         {

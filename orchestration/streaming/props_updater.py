@@ -8,17 +8,30 @@ from redis_utils import create_redis_client, listen_for_messages
 from utils import data_feeds_req, getenv_required, server_req, setup_logger
 from prop_generation.configs.football import (
     get_football_stats_list,
+    get_football_prop_configs
 )
 from prop_generation.configs.baseball import (
     get_baseball_stats_list,
+    get_baseball_prop_configs
 )
 from prop_generation.configs.basketball import (
     get_basketball_stats_list,
+    get_basketball_prop_configs
 )
 
 VALID_FOOTBALL_STATS = get_football_stats_list()
 VALID_BASKETBALL_STATS = get_basketball_stats_list()
 VALID_BASEBALL_STATS = get_baseball_stats_list()
+
+# Get prop configs to create target field mappings
+FOOTBALL_CONFIGS = get_football_prop_configs()
+BASKETBALL_CONFIGS = get_basketball_prop_configs()
+BASEBALL_CONFIGS = get_baseball_prop_configs()
+
+# Create mappings from target_field to stat_name for validation
+FOOTBALL_TARGET_FIELDS = {config.target_field: stat_name for stat_name, config in FOOTBALL_CONFIGS.items()}
+BASKETBALL_TARGET_FIELDS = {config.target_field: stat_name for stat_name, config in BASKETBALL_CONFIGS.items()}
+BASEBALL_TARGET_FIELDS = {config.target_field: stat_name for stat_name, config in BASEBALL_CONFIGS.items()}
 
 LEAGUE_VALID_STATS = {
     "MLB": VALID_BASEBALL_STATS,
@@ -26,6 +39,14 @@ LEAGUE_VALID_STATS = {
     "NFL": VALID_FOOTBALL_STATS,
     "NCAAFB": VALID_FOOTBALL_STATS,
     "NCAABB": VALID_BASKETBALL_STATS,
+}
+
+LEAGUE_TARGET_FIELD_MAPPINGS = {
+    "MLB": BASEBALL_TARGET_FIELDS,
+    "NBA": BASKETBALL_TARGET_FIELDS,
+    "NFL": FOOTBALL_TARGET_FIELDS,
+    "NCAAFB": FOOTBALL_TARGET_FIELDS,
+    "NCAABB": BASKETBALL_TARGET_FIELDS,
 }
 
 STATS_UPDATER_MAX_WORKERS = int(getenv_required("STATS_UPDATER_MAX_WORKERS"))
@@ -54,22 +75,20 @@ def handle_stats_updated(data):
     stats_list = []
     for game in games:
         player_stats_list, _ = extract_player_stats(game, league)
-        logger.info(f"Found {len(player_stats_list)} player stats")
         for player_stats in player_stats_list:
             player_id = player_stats["playerId"]
             for stat_name, stat_value in player_stats.items():
-                if stat_name in LEAGUE_VALID_STATS[league]:
+                if stat_name in LEAGUE_TARGET_FIELD_MAPPINGS[league]:
+                    db_stat_name = LEAGUE_TARGET_FIELD_MAPPINGS[league][stat_name]
                     stats_list.append(
                         {
                             "playerId": player_id,
-                            "statName": stat_name,
+                            "statName": db_stat_name,
                             "currentValue": stat_value,
                             "league": league,
                             "gameId": game['game_ID']
                         }
                     )
-        logger.info(f"Finished processing all games. Total stats: {len(stats_list)}")
-                
 
     server_req(
         route=f"/props/live",

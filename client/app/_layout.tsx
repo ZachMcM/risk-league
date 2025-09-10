@@ -118,11 +118,20 @@ export default function RootLayout() {
 }
 
 export function RootNavigatior() {
-  const { data: currentUserData } = authClient.useSession();
+  const { data: currentUserData, isPending: isSessionPending } =
+    authClient.useSession();
 
   return (
     <Stack>
-      <Stack.Protected guard={currentUserData != null}>
+      <Stack.Protected guard={currentUserData == null || isSessionPending}>
+        <Stack.Screen
+          name="loading"
+          options={{
+            headerShown: false,
+          }}
+        />
+      </Stack.Protected>
+      <Stack.Protected guard={currentUserData != null && !isSessionPending}>
         <Stack.Screen
           name="(tabs)"
           options={{
@@ -173,7 +182,7 @@ export function RootNavigatior() {
           options={{ headerShown: false, presentation: "modal" }}
         />
       </Stack.Protected>
-      <Stack.Protected guard={currentUserData == null}>
+      <Stack.Protected guard={currentUserData == null && !isSessionPending}>
         <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="signin" options={{ headerShown: false }} />
         <Stack.Screen name="signup" options={{ headerShown: false }} />
