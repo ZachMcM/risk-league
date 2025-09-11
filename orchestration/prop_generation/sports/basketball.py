@@ -98,8 +98,6 @@ def main():
             for game in games_list:        
                 team_ids: list[int] = [game["home_team_ID"], game["away_team_ID"]]
                                 
-                logger.info(f"Processing {league} game {game['game_ID']}")
-
                 game_insert_body = {
                     "gameId": game["game_ID"],
                     "startTime": game["game_time"],

@@ -122,9 +122,6 @@ def main():
                             method="GET",
                         ).json()
 
-                        if player["name"] == "Joe Burrow":
-                            logger.info(player_stats_list)
-
                         if not player_stats_list:
                             continue
 

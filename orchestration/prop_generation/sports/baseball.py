@@ -122,7 +122,7 @@ def main() -> None:
 
                     if not eligible_stats:
                         logger.info(
-                            f"No eligible stats skipping player {player['name']}"
+                            f"No eligible stats skipping player"
                         )
                         continue
 
