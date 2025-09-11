@@ -146,8 +146,9 @@ propsRoute.get(
         },
       });
 
-      const startOfDay = moment().startOf("day").toISOString();
-      const endOfDay = moment().endOf("day").toISOString();
+      const now = moment();
+      const startTime = now.clone().subtract(6, 'hours').toISOString();
+      const endTime = now.clone().add(18, 'hours').toISOString();
 
       const availablePropIds = await db
         .select({ id: prop.id })
@@ -158,8 +159,8 @@ propsRoute.get(
         )
         .where(
           and(
-            gte(game.startTime, startOfDay),
-            lt(game.startTime, endOfDay),
+            gte(game.startTime, startTime),
+            lt(game.startTime, endTime),
             gt(game.startTime, new Date().toISOString()),
             eq(game.league, league),
             eq(prop.playerId, playerId),
@@ -366,8 +367,9 @@ propsRoute.get("/props/today", authMiddleware, async (req, res) => {
       return;
     }
 
-    const startOfDay = moment().startOf("day").toISOString();
-    const endOfDay = moment().endOf("day").toISOString();
+    const now = moment();
+    const startTime = now.clone().subtract(6, 'hours').toISOString();
+    const endTime = now.clone().add(18, 'hours').toISOString();
 
     const availablePropIds = await db
       .select({
@@ -380,8 +382,8 @@ propsRoute.get("/props/today", authMiddleware, async (req, res) => {
       )
       .where(
         and(
-          gte(game.startTime, startOfDay),
-          lt(game.startTime, endOfDay),
+          gte(game.startTime, startTime),
+          lt(game.startTime, endTime),
           gt(game.startTime, new Date().toISOString()),
           eq(game.league, league),
           notInArray(prop.id, propsPickedAlready)

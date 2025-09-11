@@ -123,7 +123,7 @@ export function RootNavigatior() {
 
   return (
     <Stack>
-      <Stack.Protected guard={currentUserData == null || isSessionPending}>
+      <Stack.Protected guard={isSessionPending}>
         <Stack.Screen
           name="loading"
           options={{
