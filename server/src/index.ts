@@ -5,6 +5,7 @@ import express from "express";
 import { createServer } from "http";
 import morgan from "morgan";
 import { Server } from "socket.io";
+import { createAdapter } from "@socket.io/redis-adapter";
 import { logger } from "./logger";
 import { routes } from "./routes";
 import { auth } from "./utils/auth";
@@ -24,6 +25,17 @@ export const io = new Server(httpServer, {
   cors: {
     origin: "*",
   },
+});
+
+// Configure Redis adapter for Socket.IO
+const pubClient = redis.duplicate();
+const subClient = redis.duplicate();
+
+Promise.all([pubClient.connect(), subClient.connect()]).then(() => {
+  io.adapter(createAdapter(pubClient, subClient));
+  logger.info("Socket.IO Redis adapter configured");
+}).catch((error) => {
+  logger.error("Failed to configure Socket.IO Redis adapter:", error);
 });
 
 const limiter = rateLimit({
