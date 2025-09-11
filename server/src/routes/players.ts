@@ -4,6 +4,7 @@ import {
   inArray,
   InferInsertModel,
   notInArray,
+  or,
   sql,
 } from "drizzle-orm";
 import { Router } from "express";
@@ -210,7 +211,10 @@ playersRoute.get(
             eq(player.teamId, teamId),
             eq(player.league, league),
             notInArray(player.playerId, injuriesIdsList),
-            inArray(player.playerId, depthChartPlayerIds)
+            or(
+              inArray(player.playerId, depthChartPlayerIds),
+              and(eq(player.league, "MLB"), eq(player.position, "P"))
+            )
           ),
         });
       }
@@ -240,7 +244,7 @@ playersRoute.get(
         where: and(eq(player.league, league), eq(player.status, "ACT")),
       });
 
-      res.json(playersResult)
+      res.json(playersResult);
     } catch (error) {
       handleError(error, res, "Players");
     }

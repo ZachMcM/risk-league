@@ -101,7 +101,7 @@ def main() -> None:
 
                     for stat in stats_list:
                         if stat in PITCHING_STATS:
-                            if player["playerId"] == starting_pitcher_ids[index]:
+                            if player["playerId"] in starting_pitcher_ids:
                                 eligible_stats.append(stat)
                         elif stat == "stolen_bases":
                             if (
