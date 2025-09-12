@@ -26,7 +26,7 @@ const progressVariants = cva(
     defaultVariants: {
       variant: "default",
     },
-  },
+  }
 );
 
 const progressIndicatorVariants = cva("h-full", {
@@ -71,7 +71,7 @@ function Progress({
   indicatorClassName?: string;
   showValueText?: boolean;
   max?: number;
-  valueType?: "decimal" | "percent" | "integer"
+  valueType?: "decimal" | "percent" | "integer";
 } & VariantProps<typeof progressVariants>) {
   const percentage = ((value ?? 0) / max) * 100;
 
@@ -85,7 +85,7 @@ function Progress({
           value={percentage}
           className={cn(
             progressIndicatorVariants({ variant }),
-            indicatorClassName,
+            indicatorClassName
           )}
         />
       </ProgressPrimitive.Root>
@@ -93,11 +93,18 @@ function Progress({
         <View className="relative flex w-full flex-row">
           <Text
             style={{
-              left: `${Math.max(0, Math.min(percentage - 5, 95))}%`,
+              left: `${Math.max(
+                0,
+                Math.min(percentage - 5, value! > 100 ? 87.5 : 95)
+              )}%`,
             }}
             className={cn(progressTextVariants({ variant }))}
           >
-            {valueType == "decimal" ? value?.toFixed(1) : valueType == "integer" ? value?.toFixed(0) : value?.toFixed(0) + "%"}
+            {valueType == "decimal"
+              ? value?.toFixed(1)
+              : valueType == "integer"
+              ? value?.toFixed(0)
+              : value?.toFixed(0) + "%"}
           </Text>
         </View>
       )}
@@ -123,9 +130,9 @@ function Indicator({
           progress.value,
           [0, 100],
           [0, 100],
-          Extrapolation.CLAMP,
+          Extrapolation.CLAMP
         )}%`,
-        { overshootClamping: true },
+        { overshootClamping: true }
       ),
     };
   });

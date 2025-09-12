@@ -32,9 +32,9 @@ picksRoute.get("/picks/:id", authMiddleware, async (req, res) => {
             game: {
               with: {
                 homeTeam: true,
-                awayTeam: true
-              }
-            }
+                awayTeam: true,
+              },
+            },
           },
         },
       },
@@ -51,7 +51,7 @@ picksRoute.patch("/picks", apiKeyMiddleware, async (req, res) => {
     const propId = req.query.propId;
 
     if (!propId || isNaN(parseInt(propId as string))) {
-      logger.error("Invalid propId query string")
+      logger.error("Invalid propId query string");
       res.status(400).json({ error: "Invalid propId query string" });
       return;
     }
@@ -61,12 +61,12 @@ picksRoute.patch("/picks", apiKeyMiddleware, async (req, res) => {
     });
 
     if (!updatedProp) {
-      logger.error(`No prop found with propId ${propId}`)
+      logger.error(`No prop found with propId ${propId}`);
       res.status(400).json({ error: `No prop found with propId ${propId}` });
       return;
     }
 
-    const picksToInvalidateList: { id: number }[] = [];
+    const picksToInvalidateList: { id: number; parlayId: number }[] = [];
 
     if (updatedProp.status == "did_not_play") {
       const didNotPlayPicks = await db
@@ -75,7 +75,7 @@ picksRoute.patch("/picks", apiKeyMiddleware, async (req, res) => {
           status: "did_not_play",
         })
         .where(eq(pick.propId, updatedProp.id))
-        .returning({ id: pick.id });
+        .returning({ id: pick.id, parlayId: pick.parlayId });
 
       picksToInvalidateList.push(...didNotPlayPicks);
     } else if (updatedProp.status == "resolved") {
@@ -86,7 +86,7 @@ picksRoute.patch("/picks", apiKeyMiddleware, async (req, res) => {
             status: "hit",
           })
           .where(and(eq(pick.choice, "over"), eq(pick.propId, updatedProp.id)))
-          .returning({ id: pick.id });
+          .returning({ id: pick.id, parlayId: pick.parlayId });
 
         picksToInvalidateList.push(...hits);
 
@@ -96,7 +96,7 @@ picksRoute.patch("/picks", apiKeyMiddleware, async (req, res) => {
             status: "missed",
           })
           .where(and(eq(pick.choice, "under"), eq(pick.propId, updatedProp.id)))
-          .returning({ id: pick.id });
+          .returning({ id: pick.id, parlayId: pick.parlayId });
 
         picksToInvalidateList.push(...misses);
       } else if (updatedProp.currentValue == updatedProp.line) {
@@ -106,7 +106,7 @@ picksRoute.patch("/picks", apiKeyMiddleware, async (req, res) => {
             status: "tie",
           })
           .where(eq(pick.propId, updatedProp.id))
-          .returning({ id: pick.id });
+          .returning({ id: pick.id, parlayId: pick.parlayId });
 
         picksToInvalidateList.push(...ties);
       } else {
@@ -116,7 +116,7 @@ picksRoute.patch("/picks", apiKeyMiddleware, async (req, res) => {
             status: "missed",
           })
           .where(and(eq(pick.choice, "over"), eq(pick.propId, updatedProp.id)))
-          .returning({ id: pick.id });
+          .returning({ id: pick.id, parlayId: pick.parlayId });
 
         picksToInvalidateList.push(...misses);
 
@@ -126,7 +126,7 @@ picksRoute.patch("/picks", apiKeyMiddleware, async (req, res) => {
             status: "hit",
           })
           .where(and(eq(pick.choice, "under"), eq(pick.propId, updatedProp.id)))
-          .returning({ id: pick.id });
+          .returning({ id: pick.id, parlayId: pick.parlayId });
 
         picksToInvalidateList.push(...hits);
       }
@@ -138,7 +138,7 @@ picksRoute.patch("/picks", apiKeyMiddleware, async (req, res) => {
             status: "hit",
           })
           .where(and(eq(pick.choice, "over"), eq(pick.propId, updatedProp.id)))
-          .returning({ id: pick.id });
+          .returning({ id: pick.id, parlayId: pick.parlayId });
 
         picksToInvalidateList.push(...hits);
 
@@ -148,12 +148,12 @@ picksRoute.patch("/picks", apiKeyMiddleware, async (req, res) => {
             status: "missed",
           })
           .where(and(eq(pick.choice, "under"), eq(pick.propId, updatedProp.id)))
-          .returning({ id: pick.id });
+          .returning({ id: pick.id, parlayId: pick.parlayId });
 
         picksToInvalidateList.push(...misses);
       } else {
         const relatedPicks = await db
-          .select({ id: pick.id })
+          .select({ id: pick.id, parlayId: pick.parlayId })
           .from(pick)
           .where(eq(pick.propId, updatedProp.id));
         picksToInvalidateList.push(...relatedPicks);
@@ -167,8 +167,11 @@ picksRoute.patch("/picks", apiKeyMiddleware, async (req, res) => {
           JSON.stringify({ id: pickToInvalidate.id })
         );
       }
-      
-      invalidateQueries(["pick", pickToInvalidate.id]);
+
+      invalidateQueries(
+        ["pick", pickToInvalidate.id],
+        ["parlay", pickToInvalidate.parlayId]
+      );
     }
 
     res.json({ success: true });
