@@ -92,7 +92,7 @@ export default function Messages() {
     <ModalContainer>
       <View className="flex flex-1">
         {areMessagesPending || isDynastyLeaguePending ? (
-          <ActivityIndicator className="text-foreground" />
+          <ActivityIndicator className="text-foreground p-4" />
         ) : (
           messages &&
           (messages.length == 0 ? (
