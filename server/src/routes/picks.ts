@@ -161,12 +161,10 @@ picksRoute.patch("/picks", apiKeyMiddleware, async (req, res) => {
     }
 
     for (const pickToInvalidate of picksToInvalidateList) {
-      if (updatedProp.status != "not_resolved") {
-        redis.publish(
-          "pick_resolved",
-          JSON.stringify({ id: pickToInvalidate.id })
-        );
-      }
+      redis.publish(
+        "pick_resolved",
+        JSON.stringify({ id: pickToInvalidate.id })
+      );
 
       invalidateQueries(
         ["pick", pickToInvalidate.id],
