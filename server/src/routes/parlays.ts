@@ -434,6 +434,11 @@ parlaysRoute.patch("/parlays", apiKeyMiddleware, async (req, res) => {
       })
     )?.parlay;
 
+    if (parlayResult?.resolved) {
+      res.status(304);
+      return;
+    }
+
     if (!parlayResult) {
       res.status(500).json({
         error: `No parlay found containing a pick with pickId ${pickId}`,
