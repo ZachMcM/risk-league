@@ -1,11 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "expo-router";
-import { View } from "react-native";
+import { ActivityIndicator, View } from "react-native";
 import { getMatch } from "~/endpoints";
 import { authClient } from "~/lib/auth-client";
 import { TrendingDown } from "~/lib/icons/TrendingDown";
 import { TrendingUp } from "~/lib/icons/TrendingUp";
-import { Match } from "~/types/match";
+import { ExtendedMatch } from "~/types/match";
 import { getBadgeText, getBadgeVariant } from "~/utils/badgeUtils";
 import { timeAgo } from "~/utils/dateUtils";
 import { Badge } from "../ui/badge";
@@ -16,25 +16,33 @@ import RankIcon from "../ui/rank-icon";
 import { Separator } from "../ui/separator";
 import { Text } from "../ui/text";
 
-export default function MatchListCard({ initialData }: { initialData: Match }) {
-  const { data: match } = useQuery({
-    initialData,
-    queryKey: ["match", initialData.id],
-    queryFn: async () => await getMatch(initialData.id)
-  })
+export default function MatchListCard({ matchId }: { matchId: number }) {
+  const { data: match, isLoading } = useQuery({
+    queryKey: ["match", matchId],
+    queryFn: async () => await getMatch(matchId),
+  });
 
   const { data: currentUserData } = authClient.useSession();
+
+  if (isLoading || !match || !currentUserData?.user.id) {
+    return <Card className="w-full animate-pulse h-[166px]" />;
+  }
+
   const you = match.matchUsers.find(
-    (matchUser) => matchUser.user.id == currentUserData?.user.id,
-  )!;
+    (matchUser) => matchUser.user.id == currentUserData.user.id
+  );
   const opponent = match.matchUsers.find(
-    (matchUser) => matchUser.user.id != currentUserData?.user.id,
-  )!;
+    (matchUser) => matchUser.user.id != currentUserData.user.id
+  );
+
+  if (!you || !opponent) {
+    return null;
+  }
 
   const badgeVariant = getBadgeVariant(
     you.status,
     you.balance,
-    opponent.balance,
+    opponent.balance
   );
 
   const badgeText = getBadgeText(you.status, you.balance, opponent.balance);
@@ -63,10 +71,7 @@ export default function MatchListCard({ initialData }: { initialData: Match }) {
                 </Text>
               </View>
               {match.type == "competitive" && (
-                <RankIcon
-                  size={28}
-                  rank={you.rankSnapshot}
-                />
+                <RankIcon size={28} rank={you.rankSnapshot} />
               )}
             </View>
             <View className="flex flex-row items-center justify-between w-full">
@@ -74,7 +79,11 @@ export default function MatchListCard({ initialData }: { initialData: Match }) {
                 <Text className="text-muted-foreground font-semibold text-lg">
                   vs
                 </Text>
-                <ProfileImage className="h-10 w-10" image={opponent.user.image} username={opponent.user.username}/>
+                <ProfileImage
+                  className="h-10 w-10"
+                  image={opponent.user.image}
+                  username={opponent.user.username}
+                />
                 <Text className="text-lg font-bold">
                   {opponent.user.username}
                 </Text>

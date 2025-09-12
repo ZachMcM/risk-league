@@ -413,7 +413,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
       "friendly-match-request-accepted",
       async ({ matchId }: { matchId: number }) => {
         await queryClient.invalidateQueries({
-          queryKey: ["matches", currentUserData?.user.id, "unresolved"],
+          queryKey: ["match-ids", currentUserData?.user.id, "unresolved"],
         });
         await queryClient.invalidateQueries({
           queryKey: ["match", matchId],

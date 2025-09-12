@@ -173,8 +173,8 @@ friendlyMatchRequestsRoute.patch(
       });
 
       invalidateQueries(
-        ["matches", updatedRequest.outgoingId, "unresolved"],
-        ["matches", updatedRequest.incomingId, "unresolved"],
+        ["match-ids", updatedRequest.outgoingId, "unresolved"],
+        ["match-ids", updatedRequest.incomingId, "unresolved"],
         ["friendly-match-requests", updatedRequest.outgoingId],
         ["friendly-match-requests", updatedRequest.incomingId]
       );

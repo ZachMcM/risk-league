@@ -31,7 +31,7 @@ export default function JoinDynastyLeague() {
       // Invalidate cache before navigation to avoid race conditions
       await invalidateQueries(
         queryClient,
-        ["dynasty-leagues", currentUserData?.user.id!],
+        ["dynasty-league-ids", currentUserData?.user.id!],
         ["dynasty-league", dynastyLeagueId],
         ["dynasty-league", dynastyLeagueId, "users"]
       );

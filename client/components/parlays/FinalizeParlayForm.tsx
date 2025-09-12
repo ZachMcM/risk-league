@@ -98,7 +98,7 @@ export default function FinalizeParlayForm({
             queryClient,
             ["match", matchId],
             ["parlays", "match", matchId, currentUserData?.user.id],
-            ["matches", currentUserData?.user.id, "unresolved"]
+            ["match-ids", currentUserData?.user.id, "unresolved"]
           );
         } else if (dynastyLeagueId) {
           await invalidateQueries(

@@ -9,48 +9,46 @@ import {
 } from "lucide-react-native";
 import moment from "moment";
 import { ActivityIndicator, Pressable, View } from "react-native";
+import { toast } from "sonner-native";
 import { getDynastyLeague, patchDynastyLeagueJoin } from "~/endpoints";
 import { authClient } from "~/lib/auth-client";
-import { DynastyLeague } from "~/types/dynastyLeague";
+import { invalidateQueries } from "~/utils/invalidateQueries";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { Card, CardContent } from "../ui/card";
 import { Icon } from "../ui/icon";
 import LeagueLogo from "../ui/league-logos/LeagueLogo";
 import { Separator } from "../ui/separator";
+import { Skeleton } from "../ui/skeleton";
 import { Text } from "../ui/text";
-import { toast } from "sonner-native";
-import { invalidateQueries } from "~/utils/invalidateQueries";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 
 export default function DynastyLeagueListCard({
-  initialData,
+  dynastyLeagueId,
 }: {
-  initialData: DynastyLeague;
+  dynastyLeagueId: number;
 }) {
-  const { data: league } = useQuery({
-    queryKey: ["dynasty-league", initialData.id],
-    queryFn: async () => await getDynastyLeague(initialData.id),
-    initialData,
+  const { data: league, isLoading } = useQuery({
+    queryKey: ["dynasty-league", dynastyLeagueId],
+    queryFn: async () => await getDynastyLeague(dynastyLeagueId),
   });
 
   const queryClient = useQueryClient();
   const { data: currentUserData } = authClient.useSession();
 
   const { mutate: joinLeague, isPending: isJoiningLeague } = useMutation({
-    mutationFn: async () =>
-      await patchDynastyLeagueJoin({ dynastyLeagueId: league.id }),
+    mutationFn: async () => await patchDynastyLeagueJoin({ dynastyLeagueId }),
     onSuccess: async () => {
       await invalidateQueries(
         queryClient,
-        ["dynasty-leagues", currentUserData?.user.id!],
-        ["dynasty-league", league.id],
-        ["dynasty-league", league.id, "users"]
+        ["dynasty-league-ids", currentUserData?.user.id!],
+        ["dynasty-league", dynastyLeagueId],
+        ["dynasty-league", dynastyLeagueId, "users"]
       );
-      toast.success(`Joined ${league.title}`);
+      toast.success(`Joined ${league?.title}`);
       router.navigate({
         pathname: "/dynastyLeague/[dynastyLeagueId]",
-        params: { dynastyLeagueId: league.id },
+        params: { dynastyLeagueId: dynastyLeagueId.toString() },
       });
     },
     onError: (error) => {
@@ -58,9 +56,13 @@ export default function DynastyLeagueListCard({
     },
   });
 
+  if (isLoading || !league || !currentUserData?.user.id) {
+    return <Card className="w-full animate-pulse h-[166px]"/>;
+  }
+
   const isMember =
     league.dynastyLeagueUsers?.find(
-      (du) => du.userId == currentUserData?.user.id!
+      (du) => du.userId == currentUserData.user.id
     ) !== undefined;
 
   return (

@@ -1,5 +1,7 @@
-import { and, asc, desc, eq, gt, InferInsertModel, lt } from "drizzle-orm";
+import { and, eq, gt, InferInsertModel, lt } from "drizzle-orm";
 import { Router } from "express";
+import { io } from "..";
+import { MIN_STAKE_PCT } from "../config";
 import { db } from "../db";
 import {
   choiceType,
@@ -12,14 +14,12 @@ import {
 } from "../db/schema";
 import { logger } from "../logger";
 import { apiKeyMiddleware, authMiddleware } from "../middleware";
+import { handleError } from "../utils/handleError";
 import { invalidateQueries } from "../utils/invalidateQueries";
 import {
   getFlexMultiplier,
   getPerfectPlayMultiplier,
 } from "../utils/parlayMultipliers";
-import { io } from "..";
-import { handleError } from "../utils/handleError";
-import { MIN_STAKE_PCT } from "../config";
 
 export const parlaysRoute = Router();
 
@@ -496,7 +496,7 @@ parlaysRoute.patch("/parlays", apiKeyMiddleware, async (req, res) => {
           parlayResult.matchUser.userId,
         ],
         ["match", parlayResult.matchUser.matchId],
-        ["matches", parlayResult.matchUser.userId, "unresolved"],
+        ["match-ids", parlayResult.matchUser.userId, "unresolved"],
         ["career", parlayResult.matchUser.userId]
       );
 

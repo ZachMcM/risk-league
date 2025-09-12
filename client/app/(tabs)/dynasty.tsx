@@ -12,21 +12,21 @@ import { Icon } from "~/components/ui/icon";
 import { SearchBar } from "~/components/ui/search-bar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { Text } from "~/components/ui/text";
-import { getDynastyLeagues, searchDynastyLeagues } from "~/endpoints";
+import { getDynastyLeagueIds, searchDynastyLeagues } from "~/endpoints";
 import { authClient } from "~/lib/auth-client";
 
 export default function Dynasty() {
   const { data: currentUserData } = authClient.useSession();
 
-  const { data: leagues, isPending: areLeaguesPending } = useQuery({
-    queryKey: ["dynasty-leagues", currentUserData?.user.id!],
-    queryFn: getDynastyLeagues,
+  const { data: leagueIds, isPending: areLeaguesPending } = useQuery({
+    queryKey: ["dynasty-league-ids", currentUserData?.user.id!],
+    queryFn: getDynastyLeagueIds,
   });
 
   const [tab, setTab] = useState(
     areLeaguesPending
       ? "my-leagues"
-      : !leagues || leagues.length == 0
+      : !leagueIds || leagueIds.length == 0
       ? "discover"
       : "my-leagues"
   );
@@ -61,7 +61,7 @@ export default function Dynasty() {
       <Tabs className="flex flex-1 flex-col" value={tab} onValueChange={setTab}>
         <TabsList>
           <TabsTrigger value="my-leagues">
-            <Text>My Leagues ({leagues?.length})</Text>
+            <Text>My Leagues ({leagueIds?.length})</Text>
           </TabsTrigger>
           <TabsTrigger value="discover">
             <Text>Discover</Text>
@@ -70,7 +70,7 @@ export default function Dynasty() {
         <TabsContent value="my-leagues" className="flex-1">
           {areLeaguesPending ? (
             <ActivityIndicator className="text-foreground p-8" />
-          ) : !leagues || leagues.length == 0 ? (
+          ) : !leagueIds || leagueIds.length == 0 ? (
             <View className="flex flex-col gap-4 p-8 items-center">
               <View className="flex flex-col gap-1 items-center">
                 <Text className="font-bold text-2xl text-center">
@@ -84,7 +84,7 @@ export default function Dynasty() {
           ) : (
             <FlashList
               showsVerticalScrollIndicator={false}
-              data={leagues}
+              data={leagueIds}
               contentContainerStyle={{
                 paddingHorizontal: 12,
                 paddingVertical: 16,
@@ -93,11 +93,11 @@ export default function Dynasty() {
               renderItem={({ item, index }) => {
                 return (
                   <GridItemWrapper index={index} numCols={1} gap={16}>
-                    <DynastyLeagueListCard initialData={item} />
+                    <DynastyLeagueListCard dynastyLeagueId={item} />
                   </GridItemWrapper>
                 );
               }}
-              keyExtractor={(item) => item.id.toString()}
+              keyExtractor={(item) => item.toString()}
               ListHeaderComponent={
                 <GridItemWrapper index={0} numCols={1} gap={16}>
                   <BannerAdWrapper />
@@ -146,7 +146,7 @@ export default function Dynasty() {
               showsVerticalScrollIndicator={false}
               renderItem={({ item, index }) => (
                 <GridItemWrapper index={index} numCols={1} gap={16}>
-                  <DynastyLeagueListCard initialData={item} />
+                  <DynastyLeagueListCard dynastyLeagueId={item.id} />
                 </GridItemWrapper>
               )}
               keyExtractor={(item) => `search-${item.id}`}

@@ -132,7 +132,7 @@ export default function CreateDynastyLeague() {
       onSuccess: async (data) => {
         // Invalidate cache before navigation to avoid race conditions
         await invalidateQueries(queryClient, [
-          "dynasty-leagues",
+          "dynasty-league-ids",
           currentUserData?.user.id!,
         ]);
 

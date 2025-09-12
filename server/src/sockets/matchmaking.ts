@@ -62,8 +62,8 @@ export async function createMatch({
   });
 
   invalidateQueries(
-    ["matches", user1Id, "unresolved"],
-    ["matches", user2Id, "unresolved"]
+    ["match-ids", user1Id, "unresolved"],
+    ["match-ids", user2Id, "unresolved"]
   );
 
   return matchResult.id;

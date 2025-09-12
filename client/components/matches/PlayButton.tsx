@@ -83,7 +83,7 @@ export default function PlayButton({
       setLoadingMessage("Opponent found!");
       toast.success("Opponent found!");
       await queryClient.invalidateQueries({
-        queryKey: ["matches", currentUserData?.user.id, "unresolved"],
+        queryKey: ["match-ids", currentUserData?.user.id, "unresolved"],
       });
       await queryClient.invalidateQueries({
         queryKey: ["match", matchId],

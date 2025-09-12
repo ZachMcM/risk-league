@@ -158,13 +158,13 @@ export async function getCareer(id: string): Promise<Career> {
   return career;
 }
 
-export async function getMatches(resolved: boolean): Promise<Match[]> {
-  const matches = await serverRequest({
+export async function getMatchIds(resolved: boolean): Promise<number[]> {
+  const matchIds = await serverRequest({
     endpoint: `/matches?resolved=${resolved}`,
     method: "GET",
   });
 
-  return matches;
+  return matchIds;
 }
 
 export async function getMatch(id: number): Promise<ExtendedMatch> {
@@ -221,13 +221,13 @@ export async function getDynastyLeague(id: number): Promise<DynastyLeague> {
   return league;
 }
 
-export async function getDynastyLeagues(): Promise<DynastyLeague[]> {
-  const leagues = await serverRequest({
+export async function getDynastyLeagueIds(): Promise<number[]> {
+  const leagueIds = await serverRequest({
     endpoint: `/dynastyLeagues`,
     method: "GET",
   });
 
-  return leagues;
+  return leagueIds;
 }
 
 export async function getDynastyLeagueUsers(

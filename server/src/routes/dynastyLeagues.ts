@@ -214,7 +214,7 @@ dynastyLeaguesRoute.post(
       });
 
       invalidateQueries(
-        ["dynasty-leagues", res.locals.userId!],
+        ["dynasty-league-ids", res.locals.userId!],
         ["dynasty-league", dynastyLeagueId],
         ["dynasty-league", dynastyLeagueId, "users"]
       );
@@ -363,7 +363,7 @@ dynastyLeaguesRoute.delete(
       }
 
       invalidateQueries(
-        ["dynasty-leagues", userId],
+        ["dynasty-league-ids", userId],
         ["dynasty-league", dynastyLeagueId, "users"],
         ["dynasty-league", dynastyLeagueId]
       );
@@ -440,7 +440,7 @@ dynastyLeaguesRoute.patch(
       }
 
       invalidateQueries(
-        ["dynasty-leagues", userId],
+        ["dynasty-league-ids", userId],
         ["dynasty-league", dynastyLeagueId, "users"],
         ["dynasty-league", dynastyLeagueId]
       );
@@ -513,7 +513,7 @@ dynastyLeaguesRoute.patch(
       }
 
       invalidateQueries(
-        ["dynasty-leagues", userId],
+        ["dynasty-league-ids", userId],
         ["dynasty-league", dynastyLeagueId, "users"],
         ["dynasty-league", dynastyLeagueId]
       );
@@ -821,25 +821,14 @@ dynastyLeaguesRoute.get("/dynastyLeagues", authMiddleware, async (_, res) => {
   try {
     const dynastyLeagueUserResults = await db.query.dynastyLeagueUser.findMany({
       where: eq(dynastyLeagueUser.userId, res.locals.userId!),
-      with: {
-        dynastyLeague: {
-          with: {
-            dynastyLeagueUsers: {
-              columns: { id: true, role: true, userId: true },
-            },
-          },
-        },
+      columns: {
+        dynastyLeagueId: true,
       },
-      orderBy: desc(dynastyLeague.createdAt),
+      orderBy: desc(dynastyLeagueUser.createdAt),
     });
 
-    const formattedDynastyLeagues = dynastyLeagueUserResults
-      .map(({ dynastyLeague }) => ({
-        ...dynastyLeague,
-        userCount: dynastyLeague.dynastyLeagueUsers.length,
-      }))
-
-    res.json(formattedDynastyLeagues);
+    const dynastyLeagueIds = dynastyLeagueUserResults.map(({ dynastyLeagueId }) => dynastyLeagueId);
+    res.json(dynastyLeagueIds);
   } catch (error) {
     handleError(error, res, "Dynasty Leagues");
   }

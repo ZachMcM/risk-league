@@ -42,48 +42,21 @@ matchesRoute.get("/matches", authMiddleware, async (req, res) => {
 
     const resolved = resolvedString === "true";
 
-    const withStatement = {
-      match: {
-        with: {
-          matchUsers: {
-            with: {
-              user: {
-                columns: {
-                  id: true,
-                  username: true,
-                  image: true,
-                },
-              },
-            },
-          },
-        },
-      },
-    };
-
     if (resolved) {
       const matchUserResults = await db.query.matchUser.findMany({
         where: and(
           eq(matchUser.userId, res.locals.userId!),
           ne(matchUser.status, "not_resolved")
         ),
-        with: withStatement,
+        columns: {
+          matchId: true,
+        },
         orderBy: desc(matchUser.createdAt),
         limit: 50,
       });
 
-      const formattedMatches = matchUserResults.map(({ match }) => ({
-        ...match,
-        matchUsers: match.matchUsers.map((mu) => ({
-          ...mu,
-          progressionDelta: calculateProgressionDelta(
-            mu.pointsSnapshot,
-            mu.pointsDelta
-          ),
-          rankSnapshot: findRank(mu.pointsSnapshot),
-        })),
-      }));
-
-      res.json(formattedMatches);
+      const matchIds = matchUserResults.map(({ matchId }) => matchId);
+      res.json(matchIds);
       return;
     }
 
@@ -92,23 +65,14 @@ matchesRoute.get("/matches", authMiddleware, async (req, res) => {
         eq(matchUser.userId, res.locals.userId!),
         eq(matchUser.status, "not_resolved")
       ),
-      with: withStatement,
+      columns: {
+        matchId: true,
+      },
       orderBy: desc(matchUser.createdAt),
     });
 
-    const formattedMatches = matchUserResults.map(({ match }) => ({
-      ...match,
-      matchUsers: match.matchUsers.map((mu) => ({
-        ...mu,
-        progressionDelta: calculateProgressionDelta(
-          mu.pointsSnapshot,
-          mu.pointsDelta
-        ),
-        rankSnapshot: findRank(mu.pointsSnapshot),
-      })),
-    }));
-
-    res.json(formattedMatches);
+    const matchIds = matchUserResults.map(({ matchId }) => matchId);
+    res.json(matchIds);
   } catch (error) {
     handleError(error, res, "Matches route");
   }
@@ -544,10 +508,10 @@ matchesRoute.patch("/matches", apiKeyMiddleware, async (req, res) => {
 
       invalidateQueries(
         ["match", matchToEnd.id],
-        ["matches", matchUser1.userId, "resolved"],
-        ["matches", matchUser2.userId, "resolved"],
-        ["matches", matchUser1.userId, "unresolved"],
-        ["matches", matchUser2.userId, "unresolved"],
+        ["match-ids", matchUser1.userId, "resolved"],
+        ["match-ids", matchUser2.userId, "resolved"],
+        ["match-ids", matchUser1.userId, "unresolved"],
+        ["match-ids", matchUser2.userId, "unresolved"],
         ["user", matchUser1.userId],
         ["user", matchUser2.userId],
         ["user", matchUser1.userId, "rank"],
