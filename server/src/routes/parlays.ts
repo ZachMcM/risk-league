@@ -482,7 +482,7 @@ parlaysRoute.patch("/parlays", apiKeyMiddleware, async (req, res) => {
     await db
       .update(parlay)
       .set({
-        profit: payout - parlayResult.stake,
+        profit: payout + parlayResult.stake,
         resolved: true,
       })
       .where(eq(parlay.id, parlayResult.id));
