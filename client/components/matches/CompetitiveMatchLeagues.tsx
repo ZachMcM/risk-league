@@ -21,7 +21,7 @@ export default function CompetitiveMatchLeagues() {
       );
       return results.sort((a, b) => b.propCount - a.propCount);
     },
-    staleTime: 1440 * 60 * 1000,
+    staleTime: 60 * 1000,
   });
 
   const sortedLeagues = leagueQueries.data?.map(item => item.league) || LEAGUES;

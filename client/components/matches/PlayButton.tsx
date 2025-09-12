@@ -41,7 +41,7 @@ export default function PlayButton({
       await getTodayProps({
         league,
       }),
-    staleTime: 1440 * 60 * 1000,
+    staleTime: 60 * 1000,
   });
 
   const queryClient = useQueryClient();
