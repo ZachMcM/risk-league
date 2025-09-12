@@ -86,7 +86,8 @@ def handle_stats_updated(data):
                             "statName": db_stat_name,
                             "currentValue": stat_value,
                             "league": league,
-                            "gameId": game['game_ID']
+                            "gameId": game['game_ID'],
+                            "status": game["status"]
                         }
                     )
 
