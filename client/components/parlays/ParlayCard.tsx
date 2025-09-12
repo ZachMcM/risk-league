@@ -151,27 +151,20 @@ export default function ParlayCard({ initialData }: { initialData: Parlay }) {
             </View>
           </View>
           <View className="flex flex-row items-center">
-            {parlay.picks
-              .filter(
-                (pick, index, picks) =>
-                  picks.findIndex(
-                    (p) => p.prop.player.playerId === pick.prop.player.playerId
-                  ) === index
-              )
-              .map((pick, i) => (
-                <PlayerImage
-                  key={pick.prop.player.playerId}
-                  image={pick.prop.player.image}
-                  className={cn(
-                    pick.status == "hit"
-                      ? "border-success"
-                      : pick.status == "missed"
-                      ? "border-destructive"
-                      : "border-border",
-                    i !== 0 && "-ml-2"
-                  )}
-                />
-              ))}
+            {parlay.picks.map((pick, i) => (
+              <PlayerImage
+                key={pick.id}
+                image={pick.prop.player.image}
+                className={cn(
+                  pick.status == "hit"
+                    ? "border-success"
+                    : pick.status == "missed"
+                    ? "border-destructive"
+                    : "border-border",
+                  i !== 0 && "-ml-2"
+                )}
+              />
+            ))}
           </View>
         </CardContent>
       </Card>

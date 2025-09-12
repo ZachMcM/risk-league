@@ -1,4 +1,4 @@
-import { and, eq, gt, InferInsertModel, lt } from "drizzle-orm";
+import { and, desc, eq, gt, InferInsertModel, lt } from "drizzle-orm";
 import { Router } from "express";
 import { io } from "..";
 import { MIN_STAKE_PCT } from "../config";
@@ -47,6 +47,7 @@ parlaysRoute.get("/parlays/:id", authMiddleware, async (req, res) => {
               },
             },
           },
+          orderBy: desc(pick.createdAt),
         },
       },
     });
@@ -95,6 +96,7 @@ parlaysRoute.get("/parlays", authMiddleware, async (req, res) => {
                     },
                   },
                 },
+                orderBy: desc(pick.createdAt),
               },
             },
           },
@@ -140,6 +142,7 @@ parlaysRoute.get("/parlays", authMiddleware, async (req, res) => {
                   },
                 },
               },
+              orderBy: desc(pick.createdAt),
             },
           },
         },

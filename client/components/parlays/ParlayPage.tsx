@@ -1,5 +1,4 @@
 import { useQuery } from "@tanstack/react-query";
-import { useLocalSearchParams } from "expo-router";
 import { ActivityIndicator, Pressable, View } from "react-native";
 import FlexPlayOutcomes from "~/components/parlays/FlexPlayOutcomes";
 import { ScrollContainer } from "~/components/ui/scroll-container";
