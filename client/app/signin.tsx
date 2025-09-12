@@ -11,6 +11,7 @@ import { cn } from "~/utils/cn";
 import { toast } from "sonner-native";
 import { Link } from "expo-router";
 import { Container } from "~/components/ui/container";
+import { useState } from "react";
 
 const schema = z.object({
   username: z
@@ -42,6 +43,8 @@ export default function SignIn() {
     },
   });
 
+  const [isLoading, setIsLoading] = useState(false);
+
   async function onSubmit({ username, password }: FormValues) {
     await authClient.signIn.username(
       {
@@ -51,6 +54,13 @@ export default function SignIn() {
       {
         onError: ({ error, response, request }) => {
           toast.error(error.message ?? response.text);
+        },
+        onRequest: () => {
+          setIsLoading(true);
+        },
+        onSuccess: () => {
+          toast.success("Successfully signed in");
+          setIsLoading(false);
         },
       }
     );
@@ -119,11 +129,12 @@ export default function SignIn() {
           <Button
             size="lg"
             onPress={handleSubmit(onSubmit)}
-            disabled={isPending}
+            disabled={isPending || isLoading}
             className="flex-row gap-2 items-center"
           >
             <Text className="font-bold">Sign In</Text>
-            {isPending && <ActivityIndicator className="text-foreground" />}
+            {isPending ||
+              (isLoading && <ActivityIndicator className="text-foreground" />)}
           </Button>
         </View>
         <View className="flex flex-col gap-2">

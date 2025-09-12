@@ -11,6 +11,7 @@ import { Text } from "~/components/ui/text";
 import { toast } from "sonner-native";
 import { Link } from "expo-router";
 import { Container } from "~/components/ui/container";
+import { useState } from "react";
 
 const schema = z
   .object({
@@ -39,8 +40,8 @@ const schema = z
       .string()
       .min(1, { message: "Username is required" })
       .max(16, { message: "Username can't be more than 16 characters" })
-      .regex(/^[a-zA-Z0-9_]+$/, { 
-        message: "Username can only contain letters, numbers, and underscores" 
+      .regex(/^[a-zA-Z0-9_]+$/, {
+        message: "Username can only contain letters, numbers, and underscores",
       }),
   })
   .refine(({ password, confirmPassword }) => confirmPassword === password, {
@@ -63,6 +64,7 @@ export default function SignUp() {
   });
 
   const { isPending } = authClient.useSession();
+  const [isLoading, setIsLoading] = useState(false);
 
   async function onSubmit({ email, username, password, name }: FormValues) {
     await authClient.signUp.email(
@@ -75,6 +77,13 @@ export default function SignUp() {
       {
         onError: ({ error }) => {
           toast.error(error.message);
+        },
+        onRequest: () => {
+          setIsLoading(true);
+        },
+        onSuccess: () => {
+          toast.success("Successfully signed up");
+          setIsLoading(false);
         },
       }
     );
@@ -212,11 +221,12 @@ export default function SignUp() {
           <Button
             size="lg"
             onPress={handleSubmit(onSubmit)}
-            disabled={isPending}
+            disabled={isPending || isLoading}
             className="flex-row gap-2 items-center"
           >
             <Text className="font-bold">Sign Up</Text>
-            {isPending && <ActivityIndicator className="text-foreground" />}
+            {isPending ||
+              (isLoading && <ActivityIndicator className="text-foreground" />)}
           </Button>
         </View>
         <Text className="text-center text-lg">
