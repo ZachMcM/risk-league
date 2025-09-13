@@ -131,8 +131,8 @@ export default function ParlayCard({ initialData }: { initialData: Parlay }) {
                 {!parlay.resolved
                   ? "Potential Payout"
                   : parlay.profit > 0
-                  ? "Amount Won"
-                  : "Amount Lost"}
+                  ? "Net Gain"
+                  : "Net Loss"}
               </Text>
               <Text className="font-bold text-2xl">
                 $

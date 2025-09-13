@@ -25,7 +25,6 @@ export const parlaysRoute = Router();
 
 parlaysRoute.get("/parlays/:id", authMiddleware, async (req, res) => {
   try {
-    logger.debug("This route is called");
     const parlayResult = await db.query.parlay.findFirst({
       where: eq(parlay.id, parseInt(req.params.id)),
       with: {
@@ -434,15 +433,15 @@ parlaysRoute.patch("/parlays", apiKeyMiddleware, async (req, res) => {
       })
     )?.parlay;
 
-    if (parlayResult?.resolved) {
-      res.status(304);
-      return;
-    }
-
     if (!parlayResult) {
       res.status(500).json({
         error: `No parlay found containing a pick with pickId ${pickId}`,
       });
+      return;
+    }
+
+    if (parlayResult.resolved) {
+      res.status(304);
       return;
     }
 
@@ -475,14 +474,19 @@ parlaysRoute.patch("/parlays", apiKeyMiddleware, async (req, res) => {
           getPerfectPlayMultiplier(effectivePickCount) * parlayResult.stake;
       }
     } else {
-      const multiplier = getFlexMultiplier(effectivePickCount, hitCount);
-      payout = multiplier * parlayResult.stake;
+      // For flex plays with ties that reduce to 1 effective pick, treat as loss
+      if (effectivePickCount < 2) {
+        payout = 0;
+      } else {
+        payout =
+          getFlexMultiplier(effectivePickCount, hitCount) * parlayResult.stake;
+      }
     }
 
     await db
       .update(parlay)
       .set({
-        profit: payout + parlayResult.stake,
+        profit: payout - parlayResult.stake,
         resolved: true,
       })
       .where(eq(parlay.id, parlayResult.id));

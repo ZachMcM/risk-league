@@ -112,8 +112,8 @@ export default function ParlayPage({ parlayId }: { parlayId: number }) {
                     {!parlay.resolved
                       ? "Potential Payout"
                       : parlay.profit > 0
-                      ? "Amount Won"
-                      : "Amount Lost"}
+                      ? "Net Gain"
+                      : "Net Loss"}
                   </Text>
                   <Text className="font-bold text-2xl">
                     $

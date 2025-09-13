@@ -18,6 +18,9 @@ export function getPerfectPlayMultiplier(pickCount: number): number {
  */
 export function getFlexMultiplier(pickCount: number, hitCount: number): number {
   const flexPayouts: Record<string, number> = {
+    // 2-pick flex (edge case when 3+ pick flex has ties)
+    "2-2": 1.25, // Same payout as 3-2 flex
+
     // 3-pick flex
     "3-3": 2.25,
     "3-2": 1.25,
