@@ -330,7 +330,12 @@ async function updateBattlePassXp(
         eq(userBattlePassProgress.id, userBattlePass.userBattlePassProgressId)
       );
 
-    invalidateQueries(["battle-pass", userBattlePass.battlePassId, "progress", userId]);
+    invalidateQueries([
+      "battle-pass",
+      userBattlePass.battlePassId,
+      "progress",
+      userId,
+    ]);
   }
 }
 

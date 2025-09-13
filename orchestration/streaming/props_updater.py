@@ -1,6 +1,6 @@
 import concurrent.futures
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
 from extract_stats.main import extract_player_stats
@@ -63,17 +63,31 @@ def handle_stats_updated(data):
         logger.error("Received stats updated message without league")
         return
 
-    today_str = datetime.now(ZoneInfo("America/New_York")).strftime("%Y-%m-%d")
+    est_tz = ZoneInfo("America/New_York")
+    today = datetime.now(est_tz)
+    yesterday = today - timedelta(days=1)
 
-    logger.info(f"Checking games /live/{today_str}/{league}")
-    feed_req = data_feeds_req(f"/live/{today_str}/{league}")
+    dates_to_check = [
+        yesterday.strftime("%Y-%m-%d"),
+        today.strftime("%Y-%m-%d")
+    ]
 
-    feed_data = feed_req.json()
-    games = feed_data["data"][league]
-    logger.info(f"{len(games)} {league} Games found")
+    all_games = []
+    for date_str in dates_to_check:
+        try:
+            logger.info(f"Checking games /live/{date_str}/{league}")
+            feed_req = data_feeds_req(f"/live/{date_str}/{league}")
+            feed_data = feed_req.json()
+            games = feed_data["data"][league]
+            logger.info(f"{len(games)} {league} games found for {date_str}")
+            all_games.extend(games)
+        except Exception as e:
+            logger.warning(f"Failed to fetch games for {date_str}: {e}")
+
+    logger.info(f"Total {len(all_games)} {league} games found across dates")
 
     stats_list = []
-    for game in games:
+    for game in all_games:
         player_stats_list, _ = extract_player_stats(game, league)
         for player_stats in player_stats_list:
             player_id = player_stats["playerId"]
