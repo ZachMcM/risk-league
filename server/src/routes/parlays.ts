@@ -20,6 +20,7 @@ import {
   getFlexMultiplier,
   getPerfectPlayMultiplier,
 } from "../utils/parlayMultipliers";
+import { redis } from "../redis";
 
 export const parlaysRoute = Router();
 
@@ -406,6 +407,16 @@ parlaysRoute.patch("/parlays", apiKeyMiddleware, async (req, res) => {
       return;
     }
 
+    const pickResult = await db.query.pick.findFirst({
+      where: eq(pick.id, parseInt(pickId as string)),
+      columns: { id: true }
+    });
+
+    if (!pickResult) {
+      res.status(404).json({ error: "Pick not found" });
+      return;
+    }
+
     const parlayResult = (
       await db.query.pick.findFirst({
         where: eq(pick.id, parseInt(pickId as string)),
@@ -441,7 +452,7 @@ parlaysRoute.patch("/parlays", apiKeyMiddleware, async (req, res) => {
     }
 
     if (parlayResult.resolved) {
-      res.status(304);
+      res.status(200).json({ message: "Parlay is already resolved" });
       return;
     }
 
@@ -483,22 +494,35 @@ parlaysRoute.patch("/parlays", apiKeyMiddleware, async (req, res) => {
       }
     }
 
-    await db
-      .update(parlay)
-      .set({
-        profit: payout - parlayResult.stake,
-        resolved: true,
-      })
-      .where(eq(parlay.id, parlayResult.id));
+    logger.info(`Parlay ${parlayResult.id} resolution triggered by pick ${pickId}, payout: ${payout}`);
+
+    await db.transaction(async (tx) => {
+      await tx
+        .update(parlay)
+        .set({
+          profit: payout - parlayResult.stake,
+          resolved: true,
+        })
+        .where(eq(parlay.id, parlayResult.id));
+
+      if (parlayResult.matchUser) {
+        await tx
+          .update(matchUser)
+          .set({
+            balance: parlayResult.matchUser.balance + payout,
+          })
+          .where(eq(matchUser.id, parlayResult.matchUserId!));
+      } else if (parlayResult.dynastyLeagueUser) {
+        await tx
+          .update(dynastyLeagueUser)
+          .set({
+            balance: parlayResult.dynastyLeagueUser.balance + payout,
+          })
+          .where(eq(dynastyLeagueUser.id, parlayResult.dynastyLeagueUserId!));
+      }
+    });
 
     if (parlayResult.matchUser) {
-      await db
-        .update(matchUser)
-        .set({
-          balance: parlayResult.matchUser.balance + payout,
-        })
-        .where(eq(matchUser.id, parlayResult.matchUserId!));
-
       invalidateQueries(
         ["parlay", parlayResult.id],
         [
@@ -518,14 +542,12 @@ parlaysRoute.patch("/parlays", apiKeyMiddleware, async (req, res) => {
           matchId: parlayResult.matchUser.matchId,
           parlayId: parlayResult.id,
         });
-    } else if (parlayResult.dynastyLeagueUser) {
-      await db
-        .update(dynastyLeagueUser)
-        .set({
-          balance: parlayResult.dynastyLeagueUser.balance + payout,
-        })
-        .where(eq(dynastyLeagueUser.id, parlayResult.dynastyLeagueUserId!));
 
+      redis.publish("parlay_resolved", JSON.stringify({
+        parlayId: parlayResult.id,
+        matchId: parlayResult.matchUser.matchId
+      }));
+    } else if (parlayResult.dynastyLeagueUser) {
       invalidateQueries(
         ["parlay", parlayResult.id],
         [

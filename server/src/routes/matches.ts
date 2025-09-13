@@ -11,6 +11,7 @@ import {
   matchStatus,
   matchUser,
   message,
+  parlay,
   user,
   userBattlePassProgress,
   userCosmetic,
@@ -26,6 +27,7 @@ import {
 } from "../utils/parlayMultipliers";
 import { handleError } from "../utils/handleError";
 import { K, MIN_PARLAYS_REQUIRED, MIN_PCT_TOTAL_STAKED } from "../config";
+import { getAvailablePropsForUser } from "../utils/getAvailableProps";
 
 export const matchesRoute = Router();
 
@@ -341,39 +343,92 @@ async function updateBattlePassXp(
 
 matchesRoute.patch("/matches", apiKeyMiddleware, async (req, res) => {
   try {
-    const league = req.query.league as
-      | undefined
-      | (typeof leagueType.enumValues)[number];
+    const parlayId = parseInt(req.query.parlayId as string);
 
-    if (league === undefined || !leagueType.enumValues.includes(league)) {
+    if (isNaN(parlayId)) {
       res.status(400).json({
-        error: "Invalid request, missing leagues",
+        error: "Invalid request, missing parlayId",
       });
       return;
     }
 
-    const minParlaysRequired = MIN_PARLAYS_REQUIRED;
-    const minPctTotalStaked = MIN_PCT_TOTAL_STAKED;
-
-    const unResolvedMatches = await db.query.match.findMany({
-      where: and(eq(match.resolved, false), eq(match.league, league)),
-      with: {
-        matchUsers: {
-          with: {
-            user: {
-              columns: {
-                points: true,
-              },
-            },
-            parlays: true,
-          },
-        },
-      },
+    const parlayExists = await db.query.parlay.findFirst({
+      where: eq(parlay.id, parlayId),
+      columns: { id: true }
     });
 
-    for (const matchToEnd of unResolvedMatches) {
-      const matchUser1 = matchToEnd.matchUsers[0];
-      const matchUser2 = matchToEnd.matchUsers[1];
+    if (!parlayExists) {
+      res.status(404).json({ error: "Parlay not found" });
+      return;
+    }
+
+    const matchResult = (
+      await db.query.parlay.findFirst({
+        where: eq(parlay.id, parlayId),
+        with: {
+          matchUser: {
+            with: {
+              match: {
+                with: {
+                  matchUsers: {
+                    with: {
+                      parlays: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      })
+    )?.matchUser?.match;
+
+    if (!matchResult) {
+      res.status(404).json({ error: "No match found" });
+      return;
+    }
+
+    for (const mu of matchResult.matchUsers) {
+      for (const p of mu.parlays) {
+        if (!p.resolved) {
+          res
+            .status(304)
+            .json({
+              message: "Match cannot be resolved - parlays not resolved",
+            });
+          return;
+        }
+      }
+    }
+
+    for (const mu of matchResult.matchUsers) {
+      const availableProps = await getAvailablePropsForUser(
+        mu.userId,
+        matchResult.id
+      );
+      if (availableProps.hasAvailableProps) {
+        res
+          .status(304)
+          .json({ message: "Match cannot be resolved - props still available" });
+        return;
+      }
+    }
+
+    logger.info(`Match ${matchResult.id} resolution triggered by parlay ${parlayId}`);
+
+    const matchUser1 = matchResult.matchUsers[0];
+    const matchUser2 = matchResult.matchUsers[1];
+
+    await db.transaction(async (tx) => {
+      await tx
+        .update(match)
+        .set({
+          resolved: true,
+        })
+        .where(eq(match.id, matchResult.id));
+
+      const minParlaysRequired = MIN_PARLAYS_REQUIRED;
+      const minPctTotalStaked = MIN_PCT_TOTAL_STAKED;
 
       let winner = null;
       let matchUser1Status: (typeof matchStatus.enumValues)[number];
@@ -435,68 +490,71 @@ matchesRoute.patch("/matches", apiKeyMiddleware, async (req, res) => {
         winner = 1;
       }
 
-      await db
+      await tx
         .update(matchUser)
         .set({
           status: matchUser1Status,
         })
         .where(eq(matchUser.id, matchUser1.id));
 
-      await db
+      await tx
         .update(matchUser)
         .set({
           status: matchUser2Status,
         })
         .where(eq(matchUser.id, matchUser2.id));
 
-      await db
-        .update(match)
-        .set({
-          resolved: true,
-        })
-        .where(eq(match.id, matchToEnd.id));
+      if (matchResult.type == "competitive") {
+        const user1Result = await tx.query.user.findFirst({
+          where: eq(user.id, matchUser1.userId),
+          columns: { points: true },
+        });
+        const user2Result = await tx.query.user.findFirst({
+          where: eq(user.id, matchUser2.userId),
+          columns: { points: true },
+        });
 
-      if (matchToEnd.type == "competitive") {
-        if (
-          matchUser1Status != "disqualified" ||
-          matchUser2Status != "disqualified"
-        ) {
-          const newPoints = recalculatePoints(
-            [matchUser1.user.points, matchUser2.user.points],
-            winner
-          );
+        if (user1Result && user2Result) {
+          if (
+            matchUser1Status != "disqualified" ||
+            matchUser2Status != "disqualified"
+          ) {
+            const newPoints = recalculatePoints(
+              [user1Result.points, user2Result.points],
+              winner
+            );
 
-          await db
-            .update(matchUser)
-            .set({
-              pointsDelta: Math.max(0, newPoints[0] - matchUser1.user.points),
-            })
-            .where(eq(matchUser.id, matchUser1.id));
+            await tx
+              .update(matchUser)
+              .set({
+                pointsDelta: Math.max(0, newPoints[0] - user1Result.points),
+              })
+              .where(eq(matchUser.id, matchUser1.id));
 
-          await db
-            .update(matchUser)
-            .set({
-              pointsDelta: Math.max(0, newPoints[1] - matchUser2.user.points),
-            })
-            .where(eq(matchUser.id, matchUser2.id));
+            await tx
+              .update(matchUser)
+              .set({
+                pointsDelta: Math.max(0, newPoints[1] - user2Result.points),
+              })
+              .where(eq(matchUser.id, matchUser2.id));
 
-          await db
-            .update(user)
-            .set({
-              points: Math.max(1000, newPoints[0]),
-            })
-            .where(eq(user.id, matchUser1.userId));
+            await tx
+              .update(user)
+              .set({
+                points: Math.max(1000, newPoints[0]),
+              })
+              .where(eq(user.id, matchUser1.userId));
 
-          await db
-            .update(user)
-            .set({
-              points: Math.max(1000, newPoints[1]),
-            })
-            .where(eq(user.id, matchUser2.userId));
+            await tx
+              .update(user)
+              .set({
+                points: Math.max(1000, newPoints[1]),
+              })
+              .where(eq(user.id, matchUser2.userId));
+          }
         }
       }
 
-      // Update battle pass XP for both users
       await updateBattlePassXp(
         matchUser1.userId,
         matchUser1.parlays.length,
@@ -510,28 +568,28 @@ matchesRoute.patch("/matches", apiKeyMiddleware, async (req, res) => {
         matchUser2TotalStaked,
         matchUser2Status
       );
+    });
 
-      invalidateQueries(
-        ["match", matchToEnd.id],
-        ["match-ids", matchUser1.userId, "resolved"],
-        ["match-ids", matchUser2.userId, "resolved"],
-        ["match-ids", matchUser1.userId, "unresolved"],
-        ["match-ids", matchUser2.userId, "unresolved"],
-        ["user", matchUser1.userId],
-        ["user", matchUser2.userId],
-        ["user", matchUser1.userId, "rank"],
-        ["user", matchUser2.userId, "rank"],
-        ["career", matchUser1.userId],
-        ["career", matchUser2.userId]
-      );
+    invalidateQueries(
+      ["match", matchResult.id],
+      ["match-ids", matchUser1.userId, "resolved"],
+      ["match-ids", matchUser2.userId, "resolved"],
+      ["match-ids", matchUser1.userId, "unresolved"],
+      ["match-ids", matchUser2.userId, "unresolved"],
+      ["user", matchUser1.userId],
+      ["user", matchUser2.userId],
+      ["user", matchUser1.userId, "rank"],
+      ["user", matchUser2.userId, "rank"],
+      ["career", matchUser1.userId],
+      ["career", matchUser2.userId]
+    );
 
-      for (const userId of [matchUser1.userId, matchUser2.userId]) {
-        io.of("/realtime").to(`user:${userId}`).emit("match-ended", {
-          type: matchToEnd.type,
-          league: matchToEnd.league,
-          id: matchToEnd.id,
-        });
-      }
+    for (const userId of [matchUser1.userId, matchUser2.userId]) {
+      io.of("/realtime").to(`user:${userId}`).emit("match-ended", {
+        type: matchResult.type,
+        league: matchResult.league,
+        id: matchResult.id,
+      });
     }
 
     res.json({ success: true });

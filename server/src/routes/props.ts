@@ -19,6 +19,7 @@ import { apiKeyMiddleware, authMiddleware } from "../middleware";
 import { redis } from "../redis";
 import { handleError } from "../utils/handleError";
 import { logger } from "../logger";
+import { getAvailablePropsForUser } from "../utils/getAvailableProps";
 
 export const propsRoute = Router();
 
@@ -259,161 +260,87 @@ propsRoute.get(
 
 propsRoute.get("/props/today", authMiddleware, async (req, res) => {
   try {
-    const propsPickedAlready: number[] = [];
-    let league;
+    const matchId = req.query.matchId
+      ? parseInt(req.query.matchId as string)
+      : undefined;
+    const dynastyLeagueId = req.query.dynastyLeagueId
+      ? parseInt(req.query.dynastyLeagueId as string)
+      : undefined;
+    const league = req.query.league as
+      | (typeof leagueType.enumValues)[number]
+      | undefined;
 
-    if (req.query.matchId) {
-      const matchId = parseInt(req.query.matchId as string);
-
-      if (isNaN(matchId)) {
-        res.status(400).json({ error: "Invalid matchId" });
-        return;
-      }
-
-      const matchUserResult = await db.query.matchUser.findFirst({
-        where: and(
-          eq(matchUser.userId, res.locals.userId!),
-          eq(matchUser.matchId, matchId)
-        ),
-        with: {
-          parlays: {
-            with: {
-              picks: {
-                columns: {
-                  propId: true,
-                },
-              },
-            },
-          },
-          match: {
-            columns: {
-              league: true,
-            },
-          },
-        },
-      });
-
-      if (!matchUserResult) {
-        res.status(404).json({
-          error: "No matchUser found with the provided credentials",
-        });
-        return;
-      }
-
-      league = matchUserResult.match.league;
-
-      matchUserResult.parlays.forEach((parlay) => {
-        parlay.picks.forEach((pick) => {
-          propsPickedAlready.push(pick.propId);
-        });
-      });
-    } else if (req.query.dynastyLeagueId) {
-      const dynastyLeagueId = parseInt(req.query.dynastyLeagueId as string);
-
-      if (isNaN(dynastyLeagueId)) {
-        res.status(400).json({ error: "Invalid dynastyLeagueId" });
-        return;
-      }
-
-      const dynastyLeagueUserResult =
-        await db.query.dynastyLeagueUser.findFirst({
-          where: and(
-            eq(dynastyLeagueUser.userId, res.locals.userId!),
-            eq(dynastyLeagueUser.dynastyLeagueId, dynastyLeagueId)
-          ),
-          with: {
-            parlays: {
-              with: {
-                picks: {
-                  columns: {
-                    propId: true,
-                  },
-                },
-              },
-            },
-            dynastyLeague: {
-              columns: {
-                league: true,
-              },
-            },
-          },
-        });
-
-      if (!dynastyLeagueUserResult) {
-        res.status(404).json({
-          error: "No matchUser found with the provided credentials",
-        });
-        return;
-      }
-
-      league = dynastyLeagueUserResult.dynastyLeague.league;
-
-      dynastyLeagueUserResult.parlays.forEach((parlay) => {
-        parlay.picks.forEach((pick) => {
-          propsPickedAlready.push(pick.propId);
-        });
-      });
-    } else {
-      league = req.query.league as
-        | (typeof leagueType.enumValues)[number]
-        | undefined;
-    }
-
-    if (!league || !leagueType.enumValues.includes(league)) {
+    if (!matchId && !dynastyLeagueId && !league) {
       res.status(400).json({
         error:
-          "Invalid params, no matchId, dynastLeagueId, or league was provided",
+          "Invalid params, no matchId, dynastyLeagueId, or league was provided",
       });
       return;
     }
 
-    const now = moment();
-    const startTime = now.clone().subtract(6, "hours").toISOString();
-    const endTime = now.clone().add(18, "hours").toISOString();
+    if (matchId || dynastyLeagueId) {
+      const result = await getAvailablePropsForUser(
+        res.locals.userId!,
+        matchId,
+        dynastyLeagueId,
+        true
+      );
+      res.json(result.props);
+    } else if (league) {
+      if (!leagueType.enumValues.includes(league)) {
+        res.status(400).json({
+          error: "Invalid league provided",
+        });
+        return;
+      }
 
-    const availablePropIds = await db
-      .select({
-        id: prop.id,
-      })
-      .from(prop)
-      .innerJoin(
-        game,
-        and(eq(prop.gameId, game.gameId), eq(prop.league, game.league))
-      )
-      .where(
-        and(
-          gte(game.startTime, startTime),
-          lt(game.startTime, endTime),
-          gt(game.startTime, new Date().toISOString()),
-          eq(game.league, league),
-          notInArray(prop.id, propsPickedAlready)
+      const now = moment();
+      const startTime = now.clone().subtract(6, "hours").toISOString();
+      const endTime = now.clone().add(18, "hours").toISOString();
+
+      const availablePropIds = await db
+        .select({
+          id: prop.id,
+        })
+        .from(prop)
+        .innerJoin(
+          game,
+          and(eq(prop.gameId, game.gameId), eq(prop.league, game.league))
         )
+        .where(
+          and(
+            gte(game.startTime, startTime),
+            lt(game.startTime, endTime),
+            gt(game.startTime, new Date().toISOString()),
+            eq(game.league, league as any)
+          )
+        );
+
+      const extendedAvailableProps = await Promise.all(
+        availablePropIds.map(async (propEntry) => {
+          const propResult = await db.query.prop.findFirst({
+            where: eq(prop.id, propEntry.id),
+            with: {
+              game: {
+                with: {
+                  homeTeam: true,
+                  awayTeam: true,
+                },
+              },
+              player: {
+                with: {
+                  team: true,
+                },
+              },
+            },
+          });
+
+          return propResult;
+        })
       );
 
-    const extendedAvailableProps = await Promise.all(
-      availablePropIds.map(async (propEntry) => {
-        const propResult = await db.query.prop.findFirst({
-          where: eq(prop.id, propEntry.id),
-          with: {
-            game: {
-              with: {
-                homeTeam: true,
-                awayTeam: true,
-              },
-            },
-            player: {
-              with: {
-                team: true,
-              },
-            },
-          },
-        });
-
-        return propResult;
-      })
-    );
-
-    res.json(extendedAvailableProps);
+      res.json(extendedAvailableProps);
+    }
   } catch (error) {
     handleError(error, res, "Props route");
   }
