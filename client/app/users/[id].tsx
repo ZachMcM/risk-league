@@ -40,7 +40,7 @@ export default function User() {
                   <View className="flex flex-row items-center gap-3">
                     <RankIcon rank={user.rank} />
                     <Text className="font-bold text-2xl">
-                      {currentUserData?.user.username}
+                      {user.username}
                     </Text>
                   </View>
                   {user.id !== currentUserData?.user.id && (
