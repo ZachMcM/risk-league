@@ -20,7 +20,8 @@ webhooksRoute.post(
         return;
       }
 
-      redis.publish("stats_updated", JSON.stringify({ league }));
+      // TODO commented out to save costs for now
+      // redis.publish("stats_updated", JSON.stringify({ league }));
 
       res.json({ success: true })
     } catch (error) {
