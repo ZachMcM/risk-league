@@ -26,10 +26,9 @@ class FeatureDefinition:
     """Defines how to extract and calculate a feature"""
 
     def __init__(
-        self, name: str, field: str, scope: DataScope
+        self, name: str, scope: DataScope
     ):
         self.name = name
-        self.field = field
         self.scope = scope
 
 
@@ -39,14 +38,12 @@ class PropConfig:
     def __init__(
         self,
         stat_name: str,
-        target_field: str,
         features: list[FeatureDefinition],
         model_type: ModelType,
         display_name: str,
         model_params: dict[str, Any] | None = None,
     ):
         self.stat_name = stat_name
-        self.target_field = target_field
         self.features = features
         self.model_type = model_type
         self.model_params = model_params or {}

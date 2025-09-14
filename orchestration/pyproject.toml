@@ -20,6 +20,8 @@ dependencies = [
   "schedule",
   "pytz",
   "python-json-logger",
+  "psycopg[binary]",
+  "psycopg[pool]"
 ]
 
 [tool.setuptools.packages.find]

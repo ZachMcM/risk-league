@@ -52,7 +52,7 @@ class BasePropGenerator(PropGenerator[PlayerStatsType, TeamStatsType]):
         feature_df = self.extract_features(config, game_data)
 
         x_values = feature_df[[f.name for f in config.features]]
-        y_values = feature_df[config.target_field]
+        y_values = feature_df[config.stat_name]
 
         model = self.create_model(config.model_type, config.model_params)
 
@@ -98,9 +98,9 @@ class BasePropGenerator(PropGenerator[PlayerStatsType, TeamStatsType]):
         )
 
         target_values = [
-            game[config.target_field] for game in game_data.player_stats_list
+            game[config.stat_name] for game in game_data.player_stats_list
         ]
-        feature_df[config.target_field] = target_values
+        feature_df[config.stat_name] = target_values
 
         return feature_df
 

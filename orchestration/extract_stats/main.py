@@ -140,37 +140,6 @@ def extract_team_stats(game, team, league):
     return config["team_extractor"](game, team, league)
 
 
-def extract_basketball_team_stats(game, team, league):
-    """Direct access to basketball team stats extraction."""
-    return extract_basketball_team_stats(game, team, league)
-
-
-def extract_basketball_player_stats(game, team_id, player_id, player_stats, league):
-    """Direct access to basketball player stats extraction."""
-    return extract_basketball_player_stats(game, team_id, player_id, player_stats, league)
-
-
-def extract_baseball_team_stats(game, team, league="MLB"):
-    """Direct access to baseball team stats extraction."""
-    return extract_baseball_team_stats(game, team, league)
-
-
-def extract_baseball_batting_stats(game, team_id, player_id, player_stats, league="MLB"):
-    """Direct access to baseball batting stats extraction."""
-    return extract_baseball_batting_stats(game, team_id, player_id, player_stats, league)
-
-
-def extract_baseball_pitching_stats(game, team_id, player_id, player_stats, league="MLB"):
-    """Direct access to baseball pitching stats extraction."""
-    return extract_baseball_pitching_stats(game, team_id, player_id, player_stats, league)
-
-
-def extract_football_team_stats(game, team, league):
-    """Direct access to football team stats extraction."""
-    return extract_football_team_stats(game, team, league)
-
-
-def extract_football_player_stats(game, team_id, player_id, player_stats, league):
-    """Direct access to football player stats extraction."""
-    return extract_football_player_stats(game, team_id, player_id, player_stats, league)
+# Direct access functions are already provided by the imports above
+# No need for wrapper functions since they have the same names
 

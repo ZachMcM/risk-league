@@ -4,12 +4,20 @@ import traceback
 from datetime import datetime
 from time import time, sleep
 from zoneinfo import ZoneInfo
-
-import numpy
-from my_types.server import (
+from db.games import insert_game, Game
+from db.stats.football import (
     FootballPlayerStats,
     FootballTeamStats,
     LeagueAverages,
+    get_football_player_stats,
+    get_football_team_stats,
+    get_football_team_stats_for_player,
+    get_football_opponent_stats_for_player,
+    get_football_league_averages
+)
+
+import numpy
+from my_types.server import (
     Player,
 )
 from prop_generation.configs.football import (
@@ -76,10 +84,11 @@ def main():
                 for stat, _ in ELIGIBILITY_THRESHOLDS[position].items():
                     config = configs[stat]
                     logger.info(f"Fetching league average {stat} for {position}")
-                    league_position_avg: LeagueAverages = server_req(
-                        route=f"/stats/football/league/{league}/averages/{config.target_field}?position={position}",
-                        method="GET",
-                    ).json()
+                    league_position_avg: LeagueAverages = get_football_league_averages(
+                        league=league,
+                        stat=config.stat_name,
+                        position=position
+                    )
                     leagues_averages[stat][position] = league_position_avg["average"]
 
             games_today = today_schedule_req.json()
@@ -89,16 +98,14 @@ def main():
 
                 logger.info(f"Processing {league} game {game['game_ID']}")
 
-                game_insert_body = {
-                    "gameId": game["game_ID"],
-                    "startTime": game["game_time"],
-                    "homeTeamId": team_ids[0],
-                    "awayTeamId": team_ids[1],
+                game_data: Game = {
+                    "game_id": game["game_ID"],
+                    "start_time": game["game_time"],
+                    "home_team_id": team_ids[0],
+                    "away_team_id": team_ids[1],
                     "league": league,
                 }
-                server_req(
-                    route="/games", method="POST", body=json.dumps(game_insert_body)
-                )
+                insert_game(game_data)
 
                 for index, team_id in enumerate(team_ids):
                     team_active_players_data: list[Player] = server_req(
@@ -117,10 +124,11 @@ def main():
                         ]:
                             continue
 
-                        player_stats_list: list[FootballPlayerStats] = server_req(
-                            route=f"/stats/football/league/{league}/players/{player['playerId']}?limit={SAMPLE_SIZE}",
-                            method="GET",
-                        ).json()
+                        player_stats_list: list[FootballPlayerStats] = get_football_player_stats(
+                            league=league,
+                            player_id=player['playerId'],
+                            limit=SAMPLE_SIZE
+                        )
 
                         if not player_stats_list:
                             continue
@@ -136,7 +144,7 @@ def main():
                             player_stat_avg = float(
                                 numpy.mean(
                                     [
-                                        game_stats[stat_config.target_field]
+                                        game_stats[stat_config.stat_name]
                                         for game_stats in player_stats_list
                                     ]
                                 )
@@ -154,18 +162,21 @@ def main():
                         if not eligible_stats:
                             continue
 
-                        team_stats_list: list[FootballTeamStats] = server_req(
-                            route=f"/stats/football/league/{league}/players/{player['playerId']}/team-stats?limit={SAMPLE_SIZE}",
-                            method="GET",
-                        ).json()
-                        prev_opponent_stats_list: list[FootballTeamStats] = server_req(
-                            route=f"/stats/football/league/{league}/players/{player['playerId']}/team-stats/opponents?limit={SAMPLE_SIZE}",
-                            method="GET",
-                        ).json()
-                        curr_opponents_stats_list: list[FootballTeamStats] = server_req(
-                            route=f"/stats/football/league/{league}/teams/{team_ids[0] if index == 0 else team_ids[1]}?limit={SAMPLE_SIZE}",
-                            method="GET",
-                        ).json()
+                        team_stats_list: list[FootballTeamStats] = get_football_team_stats_for_player(
+                            league=league,
+                            player_id=player['playerId'],
+                            limit=SAMPLE_SIZE
+                        )
+                        prev_opponent_stats_list: list[FootballTeamStats] = get_football_opponent_stats_for_player(
+                            league=league,
+                            player_id=player['playerId'],
+                            limit=SAMPLE_SIZE
+                        )
+                        curr_opponents_stats_list: list[FootballTeamStats] = get_football_team_stats(
+                            league=league,
+                            team_id=team_ids[1] if index == 0 else team_ids[0],
+                            limit=SAMPLE_SIZE
+                        )
 
                         games_stats_data = GameStats(
                             player_stats_list=player_stats_list,

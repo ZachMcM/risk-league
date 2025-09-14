@@ -4,12 +4,20 @@ import traceback
 from datetime import datetime
 from time import time, sleep
 from zoneinfo import ZoneInfo
-
-import numpy
-from my_types.server import (
+from db.games import insert_game, Game
+from db.stats.basketball import (
     BasketballPlayerStats,
     BasketballTeamStats,
     LeagueAverages,
+    get_basketball_player_stats,
+    get_basketball_team_stats,
+    get_basketball_team_stats_for_player,
+    get_basketball_opponent_stats_for_player,
+    get_basketball_league_averages
+)
+
+import numpy
+from my_types.server import (
     Player,
 )
 from prop_generation.configs.basketball import (
@@ -80,34 +88,33 @@ def main():
                 leagues_averages[stat] = {}
                 for position in ["G", "F", "C"]:
                     logger.info(f"Fetching league average {stat} for {position}")
-                    league_position_avg: LeagueAverages = server_req(
-                        route=f"/stats/basketball/league/{league}/averages/{config.target_field}?position={position}",
-                        method="GET",
-                    ).json()
+                    league_position_avg: LeagueAverages = get_basketball_league_averages(
+                        league=league,
+                        stat=config.stat_name,
+                        position=position
+                    )
                     leagues_averages[stat][position] = league_position_avg["average"]
 
             league_props_generated = 0
 
-            league_avg_minutes_data: LeagueAverages = server_req(
-                route=f"/stats/basketball/league/{league}/averages/minutes",
-                method="GET",
-            ).json()
+            league_avg_minutes_data: LeagueAverages = get_basketball_league_averages(
+                league=league,
+                stat="minutes"
+            )
 
             games_today = today_schedule_req.json()
             games_list = games_today["data"][league]
             for game in games_list:        
                 team_ids: list[int] = [game["home_team_ID"], game["away_team_ID"]]
                                 
-                game_insert_body = {
-                    "gameId": game["game_ID"],
-                    "startTime": game["game_time"],
-                    "homeTeamId": team_ids[0],
-                    "awayTeamId": team_ids[1],
+                game_data: Game = {
+                    "game_id": game["game_ID"],
+                    "start_time": game["game_time"],
+                    "home_team_id": team_ids[0],
+                    "away_team_id": team_ids[1],
                     "league": league,
                 }
-                server_req(
-                    route="/games", method="POST", body=json.dumps(game_insert_body)
-                )
+                insert_game(game_data)
 
                 for index, team_id in enumerate(team_ids):
                     team_active_players_data: list[Player] = server_req(
@@ -119,10 +126,11 @@ def main():
                         eligible_stats = []
                         position_umbrella = get_position_umbrella(player["position"])
 
-                        player_stats_list: list[BasketballPlayerStats] = server_req(
-                            route=f"/stats/basketball/league/{league}/players/{player['playerId']}?limit={SAMPLE_SIZE}",
-                            method="GET",
-                        ).json()
+                        player_stats_list: list[BasketballPlayerStats] = get_basketball_player_stats(
+                            league=league,
+                            player_id=player['playerId'],
+                            limit=SAMPLE_SIZE
+                        )
 
                         if not player_stats_list:
                             continue
@@ -143,7 +151,7 @@ def main():
                             player_stat_avg = float(
                                 numpy.mean(
                                     [
-                                        game_stats[stat_config.target_field]
+                                        game_stats[stat_config.stat_name]
                                         for game_stats in player_stats_list
                                     ]
                                 )
@@ -161,21 +169,20 @@ def main():
                         if not eligible_stats:
                             continue
 
-                        team_stats_list: list[BasketballTeamStats] = server_req(
-                            route=f"/stats/basketball/league/{league}/players/{player['playerId']}/team-stats?limit={SAMPLE_SIZE}",
-                            method="GET",
-                        ).json()
-                        prev_opponent_stats_list: list[BasketballTeamStats] = (
-                            server_req(
-                                route=f"/stats/basketball/league/{league}/players/{player['playerId']}/team-stats/opponents?limit={SAMPLE_SIZE}",
-                                method="GET",
-                            ).json()
+                        team_stats_list: list[BasketballTeamStats] = get_basketball_team_stats_for_player(
+                            league=league,
+                            player_id=player['playerId'],
+                            limit=SAMPLE_SIZE
                         )
-                        curr_opponents_stats_list: list[BasketballTeamStats] = (
-                            server_req(
-                                route=f"/stats/basketball/league/{league}/teams/{team_ids[0] if index == 0 else team_ids[1]}?limit={SAMPLE_SIZE}",
-                                method="GET",
-                            ).json()
+                        prev_opponent_stats_list: list[BasketballTeamStats] = get_basketball_opponent_stats_for_player(
+                            league=league,
+                            player_id=player['playerId'],
+                            limit=SAMPLE_SIZE
+                        )
+                        curr_opponents_stats_list: list[BasketballTeamStats] = get_basketball_team_stats(
+                            league=league,
+                            team_id=team_ids[1] if index == 0 else team_ids[0],
+                            limit=SAMPLE_SIZE
                         )
 
                         games_stats_data = GameStats(
