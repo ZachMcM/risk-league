@@ -51,7 +51,7 @@ class FeatureExtractor(Generic[PlayerStatsType, TeamStatsType]):
         values = []
         for game in source_data:
             try:
-                value = game[definition.name]
+                value = game[definition.field]
                 values.append(float(value) if value is not None else 0.0)
             except AttributeError:
                 values.append(0.0)
@@ -68,7 +68,7 @@ class FeatureExtractor(Generic[PlayerStatsType, TeamStatsType]):
         if definition.scope == DataScope.OPPONENT:
             source_data = game_data.curr_opponent_stats_list
 
-            values = [game[definition.name] for game in source_data]
+            values = [game[definition.field] for game in source_data]
             return calculate_weighted_arithmetic_mean(values)
         else:
             if training_data is not None and definition.name in training_data.columns:

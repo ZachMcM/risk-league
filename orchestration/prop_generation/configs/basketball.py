@@ -44,7 +44,6 @@ def points_config() -> PropConfig:
     """Points configuration"""
     return PropConfig(
         stat_name="points",
-        target_field="points",
         display_name="Points",
         features=[
             FeatureDefinition("minutes", "minutes", DataScope.PLAYER),
@@ -76,7 +75,6 @@ def rebounds_config() -> PropConfig:
     """Rebounds configuration"""
     return PropConfig(
         stat_name="rebounds",
-        target_field="rebounds",
         display_name="Rebounds",
         features=[
             FeatureDefinition("minutes", "minutes", DataScope.PLAYER),
@@ -100,7 +98,6 @@ def assists_config() -> PropConfig:
     """Assists configuration"""
     return PropConfig(
         stat_name="assists",
-        target_field="assists",
         display_name="Assists",
         features=[
             FeatureDefinition("minutes", "minutes", DataScope.PLAYER),
@@ -126,7 +123,6 @@ def three_points_made_config() -> PropConfig:
     """3-PT Made configuration"""
     return PropConfig(
         stat_name="three_points_made",
-        target_field="threePointsMade",
         display_name="3-PT Made",
         features=[
             FeatureDefinition("minutes", "minutes", DataScope.PLAYER),
@@ -153,7 +149,6 @@ def three_points_attempted_config() -> PropConfig:
     """3-PT Attempted configuration"""
     return PropConfig(
         stat_name="three_points_attempted",
-        target_field="threePointsAttempted",
         display_name="3-PT Attempted",
         features=[
             FeatureDefinition("minutes", "minutes", DataScope.PLAYER),
@@ -178,7 +173,6 @@ def blocks_config() -> PropConfig:
     """Blocks configuration"""
     return PropConfig(
         stat_name="blocks",
-        target_field="blocks",
         display_name="Blocks",
         features=[
             FeatureDefinition("minutes", "minutes", DataScope.PLAYER),
@@ -201,7 +195,6 @@ def steals_config() -> PropConfig:
     """Steals configuration"""
     return PropConfig(
         stat_name="steals",
-        target_field="steals",
         display_name="Steals",
         features=[
             FeatureDefinition("minutes", "minutes", DataScope.PLAYER),
@@ -225,7 +218,6 @@ def turnovers_config() -> PropConfig:
     """Turnovers configuration"""
     return PropConfig(
         stat_name="turnovers",
-        target_field="turnovers",
         display_name="Turnovers",
         features=[
             FeatureDefinition("minutes", "minutes", DataScope.PLAYER),
@@ -248,7 +240,6 @@ def points_rebounds_assists_config() -> PropConfig:
     """Pts+Rebs+Asts configuration"""
     return PropConfig(
         stat_name="points_rebounds_assists",
-        target_field="pointsReboundsAssists",
         display_name="Pts+Rebs+Asts",
         features=[
             FeatureDefinition("minutes", "minutes", DataScope.PLAYER),
@@ -289,7 +280,6 @@ def points_rebounds_config() -> PropConfig:
     """Pts+Rebs configuration"""
     return PropConfig(
         stat_name="points_rebounds",
-        target_field="pointsRebounds",
         display_name="Pts+Rebs",
         features=[
             FeatureDefinition("minutes", "minutes", DataScope.PLAYER),
@@ -329,7 +319,6 @@ def points_assists_config() -> PropConfig:
     """Pts+Asts configuration"""
     return PropConfig(
         stat_name="points_assists",
-        target_field="pointsAssists",
         display_name="Pts+Asts",
         features=[
             FeatureDefinition("minutes", "minutes", DataScope.PLAYER),
@@ -367,7 +356,6 @@ def rebounds_assists_config() -> PropConfig:
     """Rebs+Asts configuration"""
     return PropConfig(
         stat_name="rebounds_assists",
-        target_field="reboundsAssists",
         display_name="Rebs+Asts",
         features=[
             FeatureDefinition("minutes", "minutes", DataScope.PLAYER),
@@ -394,7 +382,6 @@ def rebounds_assists_config() -> PropConfig:
 def free_throws_made() -> PropConfig:
     return PropConfig(
         stat_name="free_throws_made",
-        target_field="freeThrowsMade",
         display_name="FT Made",
         features=[
             FeatureDefinition("minutes", "minutes", DataScope.PLAYER),

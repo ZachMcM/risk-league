@@ -26,9 +26,10 @@ class FeatureDefinition:
     """Defines how to extract and calculate a feature"""
 
     def __init__(
-        self, name: str, scope: DataScope
+        self, name: str, field: str, scope: DataScope
     ):
         self.name = name
+        self.field = field
         self.scope = scope
 
 

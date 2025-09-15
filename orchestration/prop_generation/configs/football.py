@@ -54,7 +54,6 @@ def passing_yards_config() -> PropConfig:
     """Passing Yards configuration"""
     return PropConfig(
         stat_name="passing_yards",
-        target_field="passingYards",
         display_name="Passing Yards",
         features=[
             FeatureDefinition("completions", "completions", DataScope.PLAYER),
@@ -89,7 +88,6 @@ def receiving_yards_config() -> PropConfig:
     """Receiving Yards configuration"""
     return PropConfig(
         stat_name="receiving_yards",
-        target_field="receivingYards",
         display_name="Receiving Yards",
         features=[
             FeatureDefinition("receptions", "receptions", DataScope.PLAYER),
@@ -126,7 +124,6 @@ def rushing_yards_config() -> PropConfig:
     """Rushing Yards configuration"""
     return PropConfig(
         stat_name="rushing_yards",
-        target_field="rushingYards",
         display_name="Rushing Yards",
         features=[
             FeatureDefinition("rushing_long", "rushingLong", DataScope.PLAYER),
@@ -153,7 +150,6 @@ def field_goals_made_config() -> PropConfig:
     """Field Goals Made configuration"""
     return PropConfig(
         stat_name="field_goals_made",
-        target_field="fieldGoalsMade",
         display_name="Field Goals Made",
         features=[
             FeatureDefinition("team_turnovers", "turnovers", DataScope.TEAM),
@@ -179,7 +175,6 @@ def receiving_touchdowns_config() -> PropConfig:
     """Receiving Touchdowns configuration"""
     return PropConfig(
         stat_name="receiving_touchdowns",
-        target_field="receivingTouchdowns",
         display_name="Receiving Touchdowns",
         features=[
             FeatureDefinition("receptions", "receptions", DataScope.PLAYER),
@@ -207,7 +202,6 @@ def passing_touchdowns_config() -> PropConfig:
     """Passing Touchdowns configuration"""
     return PropConfig(
         stat_name="passing_touchdowns",
-        target_field="passingTouchdowns",
         display_name="Passing Touchdowns",
         features=[
             FeatureDefinition("completions", "completions", DataScope.PLAYER),
@@ -236,7 +230,6 @@ def passing_interceptions_config() -> PropConfig:
     """Passing Interceptions configuration"""
     return PropConfig(
         stat_name="passing_interceptions",
-        target_field="passingInterceptions",
         display_name="Passing Interceptions",
         features=[
             FeatureDefinition("passing_attempts", "passingAttempts", DataScope.PLAYER),
@@ -259,7 +252,6 @@ def rushing_touchdowns_config() -> PropConfig:
     """Rushing Touchdowns configuration"""
     return PropConfig(
         stat_name="rushing_touchdowns",
-        target_field="rushingTouchdowns",
         display_name="Rushing Touchdowns",
         features=[
             FeatureDefinition("rushing_attempts", "rushingAttempts", DataScope.PLAYER),
@@ -288,7 +280,6 @@ def receiving_rushing_touchdowns_config() -> PropConfig:
     """Receiving+Rushing Touchdowns configuration"""
     return PropConfig(
         stat_name="receiving_rushing_touchdowns",
-        target_field="receivingRushingTouchdowns",
         display_name="Receiving+Rushing TDs",
         features=[
             FeatureDefinition("rushing_attempts", "rushingAttempts", DataScope.PLAYER),
@@ -328,7 +319,6 @@ def passing_rushing_touchdowns_config() -> PropConfig:
     """Passing+Rushing Touchdowns configuration"""
     return PropConfig(
         stat_name="passing_rushing_touchdowns",
-        target_field="passingRushingTouchdowns",
         display_name="Passing+Rushing TDs",
         features=[
             FeatureDefinition("passing_attempts", "passingAttempts", DataScope.PLAYER),
