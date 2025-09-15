@@ -1,5 +1,6 @@
 from typing import TypedDict, List, Optional, Union, cast, Literal
 from psycopg.rows import dict_row
+from psycopg import sql
 import logging
 from db.connection import get_connection
 
@@ -166,37 +167,59 @@ def insert_football_player_stats(player_stats: Union[FootballPlayerStats, List[F
                                         if entry['player_id'] not in existing_player_ids]
                     logger.warning(f"Players not found in database, skipping: {', '.join(map(str, missing_player_ids))}")
 
-                insert_query = """
-                    INSERT INTO football_player_stats (
-                        player_id, team_id, game_id, league, completions, fumbles_lost,
-                        rushing_long, receiving_long, passer_rating, passing_yards,
-                        rushing_yards, receiving_yards, passing_attempts, rushing_attempts,
-                        fumble_recoveries, passing_touchdowns, rushing_touchdowns,
-                        receiving_touchdowns, passing_interceptions, receptions,
-                        field_goals_attempted, field_goals_made, field_goals_long,
-                        extra_points_attempted, extra_points_made, status, completion_pct,
-                        yards_per_attempt, yards_per_completion, yards_per_carry,
-                        yards_per_reception, field_goal_pct, extra_point_pct,
-                        receiving_rushing_touchdowns, passing_rushing_touchdowns
-                    ) VALUES (
-                        %(player_id)s, %(team_id)s, %(game_id)s, %(league)s, %(completions)s,
-                        %(fumbles_lost)s, %(rushing_long)s, %(receiving_long)s, %(passer_rating)s,
-                        %(passing_yards)s, %(rushing_yards)s, %(receiving_yards)s,
-                        %(passing_attempts)s, %(rushing_attempts)s, %(fumble_recoveries)s,
-                        %(passing_touchdowns)s, %(rushing_touchdowns)s, %(receiving_touchdowns)s,
-                        %(passing_interceptions)s, %(receptions)s, %(field_goals_attempted)s,
-                        %(field_goals_made)s, %(field_goals_long)s, %(extra_points_attempted)s,
-                        %(extra_points_made)s, %(status)s, %(completion_pct)s,
-                        %(yards_per_attempt)s, %(yards_per_completion)s, %(yards_per_carry)s,
-                        %(yards_per_reception)s, %(field_goal_pct)s, %(extra_point_pct)s,
-                        %(receiving_rushing_touchdowns)s, %(passing_rushing_touchdowns)s
+                # Build dynamic INSERT query based on available fields
+                def build_insert_query_and_params(entry):
+                    # Required fields that must be present
+                    required_fields = ['player_id', 'team_id', 'game_id', 'league', 'status']
+
+                    # All possible fields with their defaults
+                    all_fields = {
+                        'completions': 0, 'fumbles_lost': 0, 'rushing_long': 0.0, 'receiving_long': 0.0,
+                        'passer_rating': 0.0, 'passing_yards': 0.0, 'rushing_yards': 0.0, 'receiving_yards': 0.0,
+                        'passing_attempts': 0, 'rushing_attempts': 0, 'fumble_recoveries': 0,
+                        'passing_touchdowns': 0, 'rushing_touchdowns': 0, 'receiving_touchdowns': 0,
+                        'passing_interceptions': 0, 'receptions': 0, 'field_goals_attempted': 0,
+                        'field_goals_made': 0, 'field_goals_long': 0.0, 'extra_points_attempted': 0,
+                        'extra_points_made': 0, 'completion_pct': 0.0, 'yards_per_attempt': 0.0,
+                        'yards_per_completion': 0.0, 'yards_per_carry': 0.0, 'yards_per_reception': 0.0,
+                        'field_goal_pct': 0.0, 'extra_point_pct': 0.0, 'receiving_rushing_touchdowns': 0,
+                        'passing_rushing_touchdowns': 0, 'total_yards': 0.0
+                    }
+
+                    # Build fields list - only include fields that are present in entry or required
+                    fields_to_insert = []
+                    params = {}
+
+                    # Add required fields first
+                    for field in required_fields:
+                        if field not in entry:
+                            raise ValueError(f"Required field '{field}' missing from entry")
+                        fields_to_insert.append(field)
+                        params[field] = entry[field]
+
+                    # Add optional fields that are present in the entry
+                    for field in all_fields:
+                        if field in entry:
+                            fields_to_insert.append(field)
+                            params[field] = entry[field]
+                        # Don't include fields that aren't in the entry - let DB use defaults
+
+                    # Build the INSERT query using psycopg SQL composition
+                    query = sql.SQL("""
+                        INSERT INTO football_player_stats ({})
+                        VALUES ({})
+                        RETURNING id;
+                    """).format(
+                        sql.SQL(', ').join(sql.Identifier(field) for field in fields_to_insert),
+                        sql.SQL(', ').join(sql.Placeholder(field) for field in fields_to_insert)
                     )
-                    RETURNING id;
-                """
+
+                    return query, params
 
                 results = []
                 for entry in valid_entries:
-                    cur.execute(insert_query, entry)
+                    query, params = build_insert_query_and_params(entry)
+                    cur.execute(query, params)
                     results.append(cur.fetchone())
 
                 conn.commit()

@@ -1,5 +1,6 @@
 from typing import TypedDict, List, Optional, Union, cast, Literal
 from psycopg.rows import dict_row
+from psycopg import sql
 import logging
 from db.connection import get_connection
 
@@ -184,43 +185,61 @@ def insert_baseball_player_stats(player_stats: Union[BaseballPlayerStats, List[B
                                         if entry['player_id'] not in existing_player_ids]
                     logger.warning(f"Players not found in database, skipping: {', '.join(map(str, missing_player_ids))}")
 
-                insert_query = """
-                    INSERT INTO baseball_player_stats (
-                        errors, hits, runs, singles, doubles, triples, at_bats, walks,
-                        caught_stealing, home_runs, putouts, stolen_bases, strikeouts,
-                        hit_by_pitch, intentional_walks, rbis, outs, hits_allowed,
-                        pitching_strikeouts, losses, earned_runs, saves, runs_allowed,
-                        wins, singles_allowed, doubles_allowed, triples_allowed,
-                        pitching_walks, balks, blown_saves, pitching_caught_stealing,
-                        home_runs_allowed, innings_pitched, pitching_putouts,
-                        stolen_bases_allowed, wild_pitches, pitching_hit_by_pitch,
-                        holds, pitching_intentional_walks, pitches_thrown, strikes,
-                        game_id, player_id, team_id, league, status, batting_avg,
-                        obp, slugging_pct, ops, hits_runs_rbis, era, whip,
-                        k_per_nine, strike_pct
-                    ) VALUES (
-                        %(errors)s, %(hits)s, %(runs)s, %(singles)s, %(doubles)s,
-                        %(triples)s, %(at_bats)s, %(walks)s, %(caught_stealing)s,
-                        %(home_runs)s, %(putouts)s, %(stolen_bases)s, %(strikeouts)s,
-                        %(hit_by_pitch)s, %(intentional_walks)s, %(rbis)s, %(outs)s,
-                        %(hits_allowed)s, %(pitching_strikeouts)s, %(losses)s,
-                        %(earned_runs)s, %(saves)s, %(runs_allowed)s, %(wins)s,
-                        %(singles_allowed)s, %(doubles_allowed)s, %(triples_allowed)s,
-                        %(pitching_walks)s, %(balks)s, %(blown_saves)s,
-                        %(pitching_caught_stealing)s, %(home_runs_allowed)s,
-                        %(innings_pitched)s, %(pitching_putouts)s, %(stolen_bases_allowed)s,
-                        %(wild_pitches)s, %(pitching_hit_by_pitch)s, %(holds)s,
-                        %(pitching_intentional_walks)s, %(pitches_thrown)s, %(strikes)s,
-                        %(game_id)s, %(player_id)s, %(team_id)s, %(league)s, %(status)s,
-                        %(batting_avg)s, %(obp)s, %(slugging_pct)s, %(ops)s,
-                        %(hits_runs_rbis)s, %(era)s, %(whip)s, %(k_per_nine)s, %(strike_pct)s
+                # Build dynamic INSERT query based on available fields
+                def build_insert_query_and_params(entry):
+                    # Required fields that must be present
+                    required_fields = ['game_id', 'player_id', 'team_id', 'league', 'status']
+
+                    # All possible fields with their defaults
+                    all_fields = {
+                        'errors': 0, 'hits': 0, 'runs': 0, 'singles': 0, 'doubles': 0, 'triples': 0,
+                        'at_bats': 0, 'walks': 0, 'caught_stealing': 0, 'home_runs': 0, 'putouts': 0,
+                        'stolen_bases': 0, 'strikeouts': 0, 'hit_by_pitch': 0, 'intentional_walks': 0,
+                        'rbis': 0, 'outs': 0, 'hits_allowed': 0, 'pitching_strikeouts': 0, 'losses': 0,
+                        'earned_runs': 0, 'saves': 0, 'runs_allowed': 0, 'wins': 0, 'singles_allowed': 0,
+                        'doubles_allowed': 0, 'triples_allowed': 0, 'pitching_walks': 0, 'balks': 0,
+                        'blown_saves': 0, 'pitching_caught_stealing': 0, 'home_runs_allowed': 0,
+                        'innings_pitched': 0.0, 'pitching_putouts': 0, 'stolen_bases_allowed': 0,
+                        'wild_pitches': 0, 'pitching_hit_by_pitch': 0, 'holds': 0,
+                        'pitching_intentional_walks': 0, 'pitches_thrown': 0, 'strikes': 0,
+                        'batting_avg': 0.0, 'obp': 0.0, 'slugging_pct': 0.0, 'ops': 0.0,
+                        'hits_runs_rbis': 0, 'era': 0.0, 'whip': 0.0, 'k_per_nine': 0.0, 'strike_pct': 0.0
+                    }
+
+                    # Build fields list - only include fields that are present in entry or required
+                    fields_to_insert = []
+                    params = {}
+
+                    # Add required fields first
+                    for field in required_fields:
+                        if field not in entry:
+                            raise ValueError(f"Required field '{field}' missing from entry")
+                        fields_to_insert.append(field)
+                        params[field] = entry[field]
+
+                    # Add optional fields that are present in the entry
+                    for field, default_value in all_fields.items():
+                        if field in entry:
+                            fields_to_insert.append(field)
+                            params[field] = entry[field]
+                        # Don't include fields that aren't in the entry - let DB use defaults
+
+                    # Build the INSERT query using psycopg SQL composition
+                    query = sql.SQL("""
+                        INSERT INTO baseball_player_stats ({})
+                        VALUES ({})
+                        RETURNING id;
+                    """).format(
+                        sql.SQL(', ').join(sql.Identifier(field) for field in fields_to_insert),
+                        sql.SQL(', ').join(sql.Placeholder(field) for field in fields_to_insert)
                     )
-                    RETURNING id;
-                """
+
+                    return query, params
 
                 results = []
                 for entry in valid_entries:
-                    cur.execute(insert_query, entry)
+                    query, params = build_insert_query_and_params(entry)
+                    cur.execute(query, params)
                     results.append(cur.fetchone())
 
                 conn.commit()

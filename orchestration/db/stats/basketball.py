@@ -1,5 +1,6 @@
 from typing import TypedDict, List, Optional, Union, cast, Literal
 from psycopg.rows import dict_row
+from psycopg import sql
 import logging
 from db.connection import get_connection
 
@@ -156,34 +157,58 @@ def insert_basketball_player_stats(player_stats: Union[BasketballPlayerStats, Li
                                         if entry['player_id'] not in existing_player_ids]
                     logger.warning(f"Players not found in database, skipping: {', '.join(map(str, missing_player_ids))}")
 
-                insert_query = """
-                    INSERT INTO basketball_player_stats (
-                        player_id, game_id, team_id, league, fouls, blocks, points, steals,
-                        assists, minutes, turnovers, rebounds, two_points_made, field_goals_made,
-                        free_throws_made, three_points_made, defensive_rebounds, offensive_rebounds,
-                        two_point_percentage, two_points_attempted, field_goals_attempted,
-                        free_throws_attempted, three_points_attempted, status, true_shooting_pct,
-                        usage_rate, rebounds_pct, assists_pct, blocks_pct, steals_pct, three_pct,
-                        free_throw_pct, points_rebounds_assists, points_rebounds, points_assists,
-                        rebounds_assists
-                    ) VALUES (
-                        %(player_id)s, %(game_id)s, %(team_id)s, %(league)s, %(fouls)s, %(blocks)s,
-                        %(points)s, %(steals)s, %(assists)s, %(minutes)s, %(turnovers)s,
-                        %(rebounds)s, %(two_points_made)s, %(field_goals_made)s, %(free_throws_made)s,
-                        %(three_points_made)s, %(defensive_rebounds)s, %(offensive_rebounds)s,
-                        %(two_point_percentage)s, %(two_points_attempted)s, %(field_goals_attempted)s,
-                        %(free_throws_attempted)s, %(three_points_attempted)s, %(status)s,
-                        %(true_shooting_pct)s, %(usage_rate)s, %(rebounds_pct)s, %(assists_pct)s,
-                        %(blocks_pct)s, %(steals_pct)s, %(three_pct)s, %(free_throw_pct)s,
-                        %(points_rebounds_assists)s, %(points_rebounds)s, %(points_assists)s,
-                        %(rebounds_assists)s
+                # Build dynamic INSERT query based on available fields
+                def build_insert_query_and_params(entry):
+                    # Required fields that must be present
+                    required_fields = ['player_id', 'game_id', 'team_id', 'league', 'status']
+
+                    # All possible fields with their defaults
+                    all_fields = {
+                        'fouls': 0, 'blocks': 0, 'points': 0, 'steals': 0, 'assists': 0, 'minutes': 0.0,
+                        'turnovers': 0, 'rebounds': 0, 'two_points_made': 0, 'field_goals_made': 0,
+                        'free_throws_made': 0, 'three_points_made': 0, 'defensive_rebounds': 0,
+                        'offensive_rebounds': 0, 'two_point_percentage': 0.0, 'two_points_attempted': 0,
+                        'field_goals_attempted': 0, 'free_throws_attempted': 0, 'three_points_attempted': 0,
+                        'true_shooting_pct': 0.0, 'usage_rate': 0.0, 'rebounds_pct': 0.0, 'assists_pct': 0.0,
+                        'blocks_pct': 0.0, 'steals_pct': 0.0, 'three_pct': 0.0, 'free_throw_pct': 0.0,
+                        'points_rebounds_assists': 0, 'points_rebounds': 0, 'points_assists': 0,
+                        'rebounds_assists': 0
+                    }
+
+                    # Build fields list - only include fields that are present in entry or required
+                    fields_to_insert = []
+                    params = {}
+
+                    # Add required fields first
+                    for field in required_fields:
+                        if field not in entry:
+                            raise ValueError(f"Required field '{field}' missing from entry")
+                        fields_to_insert.append(field)
+                        params[field] = entry[field]
+
+                    # Add optional fields that are present in the entry
+                    for field in all_fields:
+                        if field in entry:
+                            fields_to_insert.append(field)
+                            params[field] = entry[field]
+                        # Don't include fields that aren't in the entry - let DB use defaults
+
+                    # Build the INSERT query using psycopg SQL composition
+                    query = sql.SQL("""
+                        INSERT INTO basketball_player_stats ({})
+                        VALUES ({})
+                        RETURNING id;
+                    """).format(
+                        sql.SQL(', ').join(sql.Identifier(field) for field in fields_to_insert),
+                        sql.SQL(', ').join(sql.Placeholder(field) for field in fields_to_insert)
                     )
-                    RETURNING id;
-                """
+
+                    return query, params
 
                 results = []
                 for entry in valid_entries:
-                    cur.execute(insert_query, entry)
+                    query, params = build_insert_query_and_params(entry)
+                    cur.execute(query, params)
                     results.append(cur.fetchone())
 
                 conn.commit()

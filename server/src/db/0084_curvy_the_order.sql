@@ -1,0 +1,1 @@
+ALTER TABLE "baseball_team_stats" RENAME COLUMN "homeRuns" TO "home_runs";

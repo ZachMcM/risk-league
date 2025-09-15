@@ -400,34 +400,34 @@ export const battlePass = pgTable("battle_pass", {
     withTimezone: true,
     mode: "string",
   }).notNull(),
-  isActive: boolean().default(false),
-  createdAt: timestamp().defaultNow().notNull(),
+  isActive: boolean("is_active").default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 export const battlePassTier = pgTable("battle_pass_tier", {
   id: serial().primaryKey(),
-  battlePassId: integer().references(() => battlePass.id, {
+  battlePassId: integer("battle_pass_id").references(() => battlePass.id, {
     onDelete: "cascade",
   }),
   tier: integer().notNull(),
-  xpRequired: integer().notNull(),
-  cosmeticId: integer()
+  xpRequired: integer("xp_required").notNull(),
+  cosmeticId: integer("cosmetic_id")
     .references(() => cosmetic.id, { onDelete: "cascade" })
     .notNull(),
 });
 
 export const userBattlePassProgress = pgTable("user_battle_pass_progress", {
   id: serial().primaryKey(),
-  userId: text()
+  userId: text("user_id")
     .references(() => user.id, { onDelete: "cascade" })
     .notNull(),
-  battlePassId: integer()
+  battlePassId: integer("battle_pass_id")
     .references(() => battlePass.id, {
       onDelete: "cascade",
     })
     .notNull(),
-  currentXp: integer().default(0).notNull(),
-  createdAt: timestamp().defaultNow().notNull(),
+  currentXp: integer("current_xp").default(0).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 export const friendship = pgTable(
@@ -665,7 +665,7 @@ export const baseballTeamStats = pgTable(
     atBats: integer("at_bats").default(0).notNull(),
     walks: integer().default(0).notNull(),
     caughtStealing: integer("caught_stealing").default(0).notNull(),
-    homeRuns: integer().default(0).notNull(),
+    homeRuns: integer("home_runs").default(0).notNull(),
     stolenBases: integer("stolen_bases").default(0).notNull(),
     strikeouts: integer().default(0).notNull(),
     rbis: integer().default(0).notNull(),
@@ -676,11 +676,11 @@ export const baseballTeamStats = pgTable(
     homeRunsAllowed: integer("home_runs_allowed").default(0).notNull(),
     doublesAllowed: integer("doubles_allowed").default(0).notNull(),
     triplesAllowed: integer("triples_allowed").default(0).notNull(),
-    hitsAllowed: integer().default(0).notNull(),
-    runsAllowed: integer().default(0).notNull(),
+    hitsAllowed: integer("hits_allowed").default(0).notNull(),
+    runsAllowed: integer("runs_allowed").default(0).notNull(),
     strikes: integer().default(0).notNull(),
     pitchingWalks: integer("pitching_walks").default(0).notNull(),
-    pitchesThrown: integer().default(0).notNull(),
+    pitchesThrown: integer("pitches_thrown").default(0).notNull(),
     pitchingStrikeouts: integer("pitching_strikeouts").default(0).notNull(),
     battingAvg: doublePrecision("batting_avg").default(0.0).notNull(),
     obp: doublePrecision("on_base_percentage").default(0.0).notNull(),
