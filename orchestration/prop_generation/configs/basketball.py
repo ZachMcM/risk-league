@@ -48,21 +48,21 @@ def points_config() -> PropConfig:
         features=[
             FeatureDefinition("minutes", "minutes", DataScope.PLAYER),
             FeatureDefinition(
-                "field_goals_attempted", "fieldGoalsAttempted", DataScope.PLAYER
+                "field_goals_attempted", "field_goals_attempted", DataScope.PLAYER
             ),
             FeatureDefinition(
-                "three_points_attempted", "threePointsAttempted", DataScope.PLAYER
+                "three_points_attempted", "three_points_attempted", DataScope.PLAYER
             ),
-            FeatureDefinition("field_goals_made", "fieldGoalsMade", DataScope.PLAYER),
-            FeatureDefinition("three_points_made", "threePointsMade", DataScope.PLAYER),
-            FeatureDefinition("true_shooting_pct", "trueShootingPct", DataScope.PLAYER),
+            FeatureDefinition("field_goals_made", "field_goals_made", DataScope.PLAYER),
+            FeatureDefinition("three_points_made", "three_points_made", DataScope.PLAYER),
+            FeatureDefinition("true_shooting_pct", "true_shooting_pct", DataScope.PLAYER),
             FeatureDefinition("pace", "pace", DataScope.TEAM),
-            FeatureDefinition("usage_rate", "usageRate", DataScope.PLAYER),
+            FeatureDefinition("usage_rate", "usage_rate", DataScope.PLAYER),
             FeatureDefinition(
-                "opp_defensive_rating", "defensiveRating", DataScope.OPPONENT
+                "opp_defensive_rating", "defensive_rating", DataScope.OPPONENT
             ),
             FeatureDefinition(
-                "team_offensive_rating", "offensiveRating", DataScope.TEAM
+                "team_offensive_rating", "offensive_rating", DataScope.TEAM
             ),
         ],
         model_type=ModelType.RIDGE,
@@ -78,12 +78,12 @@ def rebounds_config() -> PropConfig:
         display_name="Rebounds",
         features=[
             FeatureDefinition("minutes", "minutes", DataScope.PLAYER),
-            FeatureDefinition("rebounds_pct", "reboundsPct", DataScope.PLAYER),
+            FeatureDefinition("rebounds_pct", "rebounds_pct", DataScope.PLAYER),
             FeatureDefinition(
-                "opp_field_goals_made", "fieldGoalsMade", DataScope.OPPONENT
+                "opp_field_goals_made", "field_goals_made", DataScope.OPPONENT
             ),
             FeatureDefinition(
-                "team_field_goals_made", "fieldGoalsMade", DataScope.TEAM
+                "team_field_goals_made", "field_goals_made", DataScope.TEAM
             ),
             FeatureDefinition("pace", "pace", DataScope.TEAM),
             FeatureDefinition("opp_pace", "pace", DataScope.OPPONENT),
@@ -101,16 +101,16 @@ def assists_config() -> PropConfig:
         display_name="Assists",
         features=[
             FeatureDefinition("minutes", "minutes", DataScope.PLAYER),
-            FeatureDefinition("assists_pct", "assistsPct", DataScope.PLAYER),
+            FeatureDefinition("assists_pct", "assists_pct", DataScope.PLAYER),
             FeatureDefinition(
-                "team_field_goals_made", "fieldGoalsMade", DataScope.TEAM
+                "team_field_goals_made", "field_goals_made", DataScope.TEAM
             ),
-            FeatureDefinition("usage_rate", "usageRate", DataScope.PLAYER),
+            FeatureDefinition("usage_rate", "usage_rate", DataScope.PLAYER),
             FeatureDefinition(
-                "team_offensive_rating", "offensiveRating", DataScope.TEAM
+                "team_offensive_rating", "offensive_rating", DataScope.TEAM
             ),
             FeatureDefinition(
-                "opp_defensive_rating", "defensiveRating", DataScope.OPPONENT
+                "opp_defensive_rating", "defensive_rating", DataScope.OPPONENT
             ),
         ],
         model_type=ModelType.POISSON,
@@ -127,17 +127,17 @@ def three_points_made_config() -> PropConfig:
         features=[
             FeatureDefinition("minutes", "minutes", DataScope.PLAYER),
             FeatureDefinition(
-                "team_offensive_rating", "offensiveRating", DataScope.TEAM
+                "team_offensive_rating", "offensive_rating", DataScope.TEAM
             ),
             FeatureDefinition("pace", "pace", DataScope.TEAM),
             FeatureDefinition(
-                "opp_defensive_rating", "defensiveRating", DataScope.OPPONENT
+                "opp_defensive_rating", "defensive_rating", DataScope.OPPONENT
             ),
-            FeatureDefinition("usage_rate", "usageRate", DataScope.PLAYER),
+            FeatureDefinition("usage_rate", "usage_rate", DataScope.PLAYER),
             FeatureDefinition(
-                "three_points_attempted", "threePointsAttempted", DataScope.PLAYER
+                "three_points_attempted", "three_points_attempted", DataScope.PLAYER
             ),
-            FeatureDefinition("three_pct", "threePct", DataScope.PLAYER),
+            FeatureDefinition("three_pct", "three_pct", DataScope.PLAYER),
         ],
         model_type=ModelType.POISSON,
         model_params={"alpha": 1},
@@ -153,15 +153,15 @@ def three_points_attempted_config() -> PropConfig:
         features=[
             FeatureDefinition("minutes", "minutes", DataScope.PLAYER),
             FeatureDefinition(
-                "team_offensive_rating", "offensiveRating", DataScope.TEAM
+                "team_offensive_rating", "offensive_rating", DataScope.TEAM
             ),
             FeatureDefinition("pace", "pace", DataScope.TEAM),
             FeatureDefinition(
-                "opp_defensive_rating", "defensiveRating", DataScope.OPPONENT
+                "opp_defensive_rating", "defensive_rating", DataScope.OPPONENT
             ),
-            FeatureDefinition("usage_rate", "usageRate", DataScope.PLAYER),
-            FeatureDefinition("three_points_made", "threePointsMade", DataScope.PLAYER),
-            FeatureDefinition("three_pct", "threePct", DataScope.PLAYER),
+            FeatureDefinition("usage_rate", "usage_rate", DataScope.PLAYER),
+            FeatureDefinition("three_points_made", "three_points_made", DataScope.PLAYER),
+            FeatureDefinition("three_pct", "three_pct", DataScope.PLAYER),
         ],
         model_type=ModelType.POISSON,
         model_params={"alpha": 1},
@@ -176,13 +176,13 @@ def blocks_config() -> PropConfig:
         display_name="Blocks",
         features=[
             FeatureDefinition("minutes", "minutes", DataScope.PLAYER),
-            FeatureDefinition("blocks_pct", "blocksPct", DataScope.PLAYER),
+            FeatureDefinition("blocks_pct", "blocks_pct", DataScope.PLAYER),
             FeatureDefinition("opp_pace", "pace", DataScope.OPPONENT),
             FeatureDefinition(
-                "opp_offensive_rating", "offensiveRating", DataScope.OPPONENT
+                "opp_offensive_rating", "offensive_rating", DataScope.OPPONENT
             ),
             FeatureDefinition(
-                "team_defensive_rating", "defensiveRating", DataScope.TEAM
+                "team_defensive_rating", "defensive_rating", DataScope.TEAM
             ),
         ],
         model_type=ModelType.POISSON,
@@ -199,13 +199,13 @@ def steals_config() -> PropConfig:
         features=[
             FeatureDefinition("minutes", "minutes", DataScope.PLAYER),
             FeatureDefinition(
-                "team_defensive_rating", "defensiveRating", DataScope.TEAM
+                "team_defensive_rating", "defensive_rating", DataScope.TEAM
             ),
             FeatureDefinition(
-                "opp_offensive_rating", "offensiveRating", DataScope.OPPONENT
+                "opp_offensive_rating", "offensive_rating", DataScope.OPPONENT
             ),
             FeatureDefinition("opp_pace", "pace", DataScope.OPPONENT),
-            FeatureDefinition("steals_pct", "stealsPct", DataScope.PLAYER),
+            FeatureDefinition("steals_pct", "steals_pct", DataScope.PLAYER),
             FeatureDefinition("opp_turnovers", "turnovers", DataScope.OPPONENT),
         ],
         model_type=ModelType.POISSON,
@@ -221,12 +221,12 @@ def turnovers_config() -> PropConfig:
         display_name="Turnovers",
         features=[
             FeatureDefinition("minutes", "minutes", DataScope.PLAYER),
-            FeatureDefinition("usage_rate", "usageRate", DataScope.PLAYER),
+            FeatureDefinition("usage_rate", "usage_rate", DataScope.PLAYER),
             FeatureDefinition(
-                "team_offensive_rating", "offensiveRating", DataScope.TEAM
+                "team_offensive_rating", "offensive_rating", DataScope.TEAM
             ),
             FeatureDefinition(
-                "opp_defensive_rating", "defensiveRating", DataScope.OPPONENT
+                "opp_defensive_rating", "defensive_rating", DataScope.OPPONENT
             ),
             FeatureDefinition("opp_steals", "steals", DataScope.OPPONENT),
         ],
@@ -243,31 +243,31 @@ def points_rebounds_assists_config() -> PropConfig:
         display_name="Pts+Rebs+Asts",
         features=[
             FeatureDefinition("minutes", "minutes", DataScope.PLAYER),
-            FeatureDefinition("rebounds_pct", "reboundsPct", DataScope.PLAYER),
-            FeatureDefinition("assists_pct", "assistsPct", DataScope.PLAYER),
+            FeatureDefinition("rebounds_pct", "rebounds_pct", DataScope.PLAYER),
+            FeatureDefinition("assists_pct", "assists_pct", DataScope.PLAYER),
             FeatureDefinition(
-                "opp_field_goals_made", "fieldGoalsMade", DataScope.OPPONENT
+                "opp_field_goals_made", "field_goals_made", DataScope.OPPONENT
             ),
             FeatureDefinition(
-                "field_goals_attempted", "fieldGoalsAttempted", DataScope.PLAYER
+                "field_goals_attempted", "field_goals_attempted", DataScope.PLAYER
             ),
             FeatureDefinition(
-                "three_points_attempted", "threePointsAttempted", DataScope.PLAYER
+                "three_points_attempted", "three_points_attempted", DataScope.PLAYER
             ),
             FeatureDefinition(
-                "team_field_goals_made", "fieldGoalsMade", DataScope.TEAM
+                "team_field_goals_made", "field_goals_made", DataScope.TEAM
             ),
             FeatureDefinition("pace", "pace", DataScope.TEAM),
             FeatureDefinition("opp_pace", "pace", DataScope.OPPONENT),
             FeatureDefinition(
-                "team_offensive_rating", "offensiveRating", DataScope.TEAM
+                "team_offensive_rating", "offensive_rating", DataScope.TEAM
             ),
-            FeatureDefinition("field_goals_made", "fieldGoalsMade", DataScope.PLAYER),
-            FeatureDefinition("three_points_made", "threePointsMade", DataScope.PLAYER),
-            FeatureDefinition("true_shooting", "trueShootingPct", DataScope.PLAYER),
-            FeatureDefinition("usage_rate", "usageRate", DataScope.PLAYER),
+            FeatureDefinition("field_goals_made", "field_goals_made", DataScope.PLAYER),
+            FeatureDefinition("three_points_made", "three_points_made", DataScope.PLAYER),
+            FeatureDefinition("true_shooting", "true_shooting_pct", DataScope.PLAYER),
+            FeatureDefinition("usage_rate", "usage_rate", DataScope.PLAYER),
             FeatureDefinition(
-                "opp_defensive_rating", "defensiveRating", DataScope.OPPONENT
+                "opp_defensive_rating", "defensive_rating", DataScope.OPPONENT
             ),
         ],
         model_type=ModelType.RIDGE,
@@ -283,30 +283,30 @@ def points_rebounds_config() -> PropConfig:
         display_name="Pts+Rebs",
         features=[
             FeatureDefinition("minutes", "minutes", DataScope.PLAYER),
-            FeatureDefinition("rebounds_pct", "reboundsPct", DataScope.PLAYER),
+            FeatureDefinition("rebounds_pct", "rebounds_pct", DataScope.PLAYER),
             FeatureDefinition(
-                "opp_field_goals_made", "fieldGoalsMade", DataScope.OPPONENT
+                "opp_field_goals_made", "field_goals_made", DataScope.OPPONENT
             ),
             FeatureDefinition(
-                "field_goals_attempted", "fieldGoalsAttempted", DataScope.PLAYER
+                "field_goals_attempted", "field_goals_attempted", DataScope.PLAYER
             ),
             FeatureDefinition(
-                "three_points_attempted", "threePointsAttempted", DataScope.PLAYER
+                "three_points_attempted", "three_points_attempted", DataScope.PLAYER
             ),
             FeatureDefinition(
-                "team_field_goals_made", "fieldGoalsMade", DataScope.TEAM
+                "team_field_goals_made", "field_goals_made", DataScope.TEAM
             ),
             FeatureDefinition("pace", "pace", DataScope.TEAM),
             FeatureDefinition("opp_pace", "pace", DataScope.OPPONENT),
             FeatureDefinition(
-                "team_offensive_rating", "offensiveRating", DataScope.TEAM
+                "team_offensive_rating", "offensive_rating", DataScope.TEAM
             ),
-            FeatureDefinition("field_goals_made", "fieldGoalsMade", DataScope.PLAYER),
-            FeatureDefinition("three_points_made", "threePointsMade", DataScope.PLAYER),
-            FeatureDefinition("true_shooting", "trueShootingPct", DataScope.PLAYER),
-            FeatureDefinition("usage_rate", "usageRate", DataScope.PLAYER),
+            FeatureDefinition("field_goals_made", "field_goals_made", DataScope.PLAYER),
+            FeatureDefinition("three_points_made", "three_points_made", DataScope.PLAYER),
+            FeatureDefinition("true_shooting", "true_shooting_pct", DataScope.PLAYER),
+            FeatureDefinition("usage_rate", "usage_rate", DataScope.PLAYER),
             FeatureDefinition(
-                "opp_defensive_rating", "defensiveRating", DataScope.OPPONENT
+                "opp_defensive_rating", "defensive_rating", DataScope.OPPONENT
             ),
         ],
         model_type=ModelType.RIDGE,
@@ -322,28 +322,28 @@ def points_assists_config() -> PropConfig:
         display_name="Pts+Asts",
         features=[
             FeatureDefinition("minutes", "minutes", DataScope.PLAYER),
-            FeatureDefinition("rebounds_pct", "reboundsPct", DataScope.PLAYER),
+            FeatureDefinition("rebounds_pct", "rebounds_pct", DataScope.PLAYER),
             FeatureDefinition(
-                "field_goals_attempted", "fieldGoalsAttempted", DataScope.PLAYER
+                "field_goals_attempted", "field_goals_attempted", DataScope.PLAYER
             ),
             FeatureDefinition(
-                "three_points_attempted", "threePointsAttempted", DataScope.PLAYER
+                "three_points_attempted", "three_points_attempted", DataScope.PLAYER
             ),
             FeatureDefinition(
-                "team_field_goals_made", "fieldGoalsMade", DataScope.TEAM
+                "team_field_goals_made", "field_goals_made", DataScope.TEAM
             ),
             FeatureDefinition("pace", "pace", DataScope.TEAM),
             FeatureDefinition("opp_pace", "pace", DataScope.OPPONENT),
             FeatureDefinition(
-                "team_offensive_rating", "offensiveRating", DataScope.TEAM
+                "team_offensive_rating", "offensive_rating", DataScope.TEAM
             ),
-            FeatureDefinition("assists_pct", "assistsPct", DataScope.PLAYER),
-            FeatureDefinition("field_goals_made", "fieldGoalsMade", DataScope.PLAYER),
-            FeatureDefinition("three_points_made", "threePointsMade", DataScope.PLAYER),
-            FeatureDefinition("true_shooting", "trueShootingPct", DataScope.PLAYER),
-            FeatureDefinition("usage_rate", "usageRate", DataScope.PLAYER),
+            FeatureDefinition("assists_pct", "assists_pct", DataScope.PLAYER),
+            FeatureDefinition("field_goals_made", "field_goals_made", DataScope.PLAYER),
+            FeatureDefinition("three_points_made", "three_points_made", DataScope.PLAYER),
+            FeatureDefinition("true_shooting", "true_shooting_pct", DataScope.PLAYER),
+            FeatureDefinition("usage_rate", "usage_rate", DataScope.PLAYER),
             FeatureDefinition(
-                "opp_defensive_rating", "defensiveRating", DataScope.OPPONENT
+                "opp_defensive_rating", "defensive_rating", DataScope.OPPONENT
             ),
         ],
         model_type=ModelType.RIDGE,
@@ -359,18 +359,18 @@ def rebounds_assists_config() -> PropConfig:
         display_name="Rebs+Asts",
         features=[
             FeatureDefinition("minutes", "minutes", DataScope.PLAYER),
-            FeatureDefinition("rebounds_pct", "reboundsPct", DataScope.PLAYER),
+            FeatureDefinition("rebounds_pct", "rebounds_pct", DataScope.PLAYER),
             FeatureDefinition(
-                "team_field_goals_made", "fieldGoalsMade", DataScope.TEAM
+                "team_field_goals_made", "field_goals_made", DataScope.TEAM
             ),
             FeatureDefinition("pace", "pace", DataScope.TEAM),
             FeatureDefinition("opp_pace", "pace", DataScope.OPPONENT),
             FeatureDefinition(
-                "team_offensive_rating", "offensiveRating", DataScope.TEAM
+                "team_offensive_rating", "offensive_rating", DataScope.TEAM
             ),
-            FeatureDefinition("usage_rate", "usageRate", DataScope.PLAYER),
+            FeatureDefinition("usage_rate", "usage_rate", DataScope.PLAYER),
             FeatureDefinition(
-                "opp_defensive_rating", "defensiveRating", DataScope.OPPONENT
+                "opp_defensive_rating", "defensive_rating", DataScope.OPPONENT
             ),
         ],
         model_type=ModelType.RIDGE,
@@ -386,16 +386,16 @@ def free_throws_made() -> PropConfig:
         features=[
             FeatureDefinition("minutes", "minutes", DataScope.PLAYER),
             FeatureDefinition(
-                "free_throws_attempted", "freeThrowsAttempted", DataScope.PLAYER
+                "free_throws_attempted", "free_throws_attempted", DataScope.PLAYER
             ),
-            FeatureDefinition("free_throw_pct", "freeThrowPct", DataScope.PLAYER),
-            FeatureDefinition("usage_rate", "usageRate", DataScope.PLAYER),
+            FeatureDefinition("free_throw_pct", "free_throw_pct", DataScope.PLAYER),
+            FeatureDefinition("usage_rate", "usage_rate", DataScope.PLAYER),
             FeatureDefinition("pace", "pace", DataScope.TEAM),
             FeatureDefinition(
-                "team_offensive_rating", "offensiveRating", DataScope.TEAM
+                "team_offensive_rating", "offensive_rating", DataScope.TEAM
             ),
             FeatureDefinition(
-                "opp_defensive_rating", "defensiveRating", DataScope.OPPONENT
+                "opp_defensive_rating", "defensive_rating", DataScope.OPPONENT
             ),
             FeatureDefinition("opp_fouls", "fouls", DataScope.OPPONENT),
         ],

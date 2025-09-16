@@ -13,8 +13,6 @@ class Prop(TypedDict):
     league: str
     game_id: str
     choices: list[str]
-    current_value: float | None
-    status: Literal["resolved", "did_not_play", "not_resolved"] | None
 
 def insert_prop(prop_data: Prop) -> str:
     """
@@ -32,13 +30,13 @@ def insert_prop(prop_data: Prop) -> str:
     try:
         with get_connection() as conn:
             with conn.cursor() as cur:
+                # Let database use default value for current_value
                 insert_query = """
-                    INSERT INTO prop (line, stat_name, stat_display_name, player_id, league, game_id, choices, current_value, status)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    INSERT INTO prop (line, stat_name, stat_display_name, player_id, league, game_id, choices)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s)
                     RETURNING id
                 """
-
-                cur.execute(insert_query, (
+                params = (
                     prop_data['line'],
                     prop_data['stat_name'],
                     prop_data['stat_display_name'],
@@ -46,9 +44,9 @@ def insert_prop(prop_data: Prop) -> str:
                     prop_data['league'],
                     prop_data['game_id'],
                     prop_data['choices'],
-                    prop_data.get('current_value'),
-                    prop_data.get('status', 'not_resolved')
-                ))
+                )
+
+                cur.execute(insert_query, params)
 
                 result = cur.fetchone()
                 if not result:

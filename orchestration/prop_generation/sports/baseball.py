@@ -182,8 +182,6 @@ def main() -> None:
                                     if prop_line > MIN_LINE_FOR_UNDER
                                     else ["over"]
                                 ),
-                                "current_value": None,
-                                "status": None,
                             }
 
                             insert_prop(prop_data)
