@@ -2,36 +2,25 @@ import concurrent.futures
 import json
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
+from db.connection import get_connection_context
+from typing import TypedDict
 
 from extract_stats.main import extract_player_stats
 from redis_utils import create_redis_client, listen_for_messages
 from utils import data_feeds_req, getenv_required, server_req, setup_logger
 from prop_generation.configs.football import (
     get_football_stats_list,
-    get_football_prop_configs
 )
 from prop_generation.configs.baseball import (
     get_baseball_stats_list,
-    get_baseball_prop_configs
 )
 from prop_generation.configs.basketball import (
     get_basketball_stats_list,
-    get_basketball_prop_configs
 )
 
 VALID_FOOTBALL_STATS = get_football_stats_list()
 VALID_BASKETBALL_STATS = get_basketball_stats_list()
 VALID_BASEBALL_STATS = get_baseball_stats_list()
-
-# Get prop configs to create target field mappings
-FOOTBALL_CONFIGS = get_football_prop_configs()
-BASKETBALL_CONFIGS = get_basketball_prop_configs()
-BASEBALL_CONFIGS = get_baseball_prop_configs()
-
-# Create mappings from target_field to stat_name for validation
-FOOTBALL_TARGET_FIELDS = {config.target_field: stat_name for stat_name, config in FOOTBALL_CONFIGS.items()}
-BASKETBALL_TARGET_FIELDS = {config.target_field: stat_name for stat_name, config in BASKETBALL_CONFIGS.items()}
-BASEBALL_TARGET_FIELDS = {config.target_field: stat_name for stat_name, config in BASEBALL_CONFIGS.items()}
 
 LEAGUE_VALID_STATS = {
     "MLB": VALID_BASEBALL_STATS,
@@ -41,19 +30,20 @@ LEAGUE_VALID_STATS = {
     "NCAABB": VALID_BASKETBALL_STATS,
 }
 
-LEAGUE_TARGET_FIELD_MAPPINGS = {
-    "MLB": BASEBALL_TARGET_FIELDS,
-    "NBA": BASKETBALL_TARGET_FIELDS,
-    "NFL": FOOTBALL_TARGET_FIELDS,
-    "NCAAFB": FOOTBALL_TARGET_FIELDS,
-    "NCAABB": BASKETBALL_TARGET_FIELDS,
-}
-
 STATS_UPDATER_MAX_WORKERS = int(getenv_required("STATS_UPDATER_MAX_WORKERS"))
 
 logger = setup_logger(__name__)
 
 redis_client = create_redis_client()
+
+
+class StatEntry(TypedDict):
+    player_id: int
+    stat_name: str
+    current_value: float
+    league: str
+    game_id: str
+    status: str
 
 
 def handle_stats_updated(data):
@@ -67,10 +57,7 @@ def handle_stats_updated(data):
     today = datetime.now(est_tz)
     yesterday = today - timedelta(days=1)
 
-    dates_to_check = [
-        yesterday.strftime("%Y-%m-%d"),
-        today.strftime("%Y-%m-%d")
-    ]
+    dates_to_check = [yesterday.strftime("%Y-%m-%d"), today.strftime("%Y-%m-%d")]
 
     all_games = []
     for date_str in dates_to_check:
@@ -86,30 +73,77 @@ def handle_stats_updated(data):
 
     logger.info(f"Total {len(all_games)} {league} games found across dates")
 
-    stats_list = []
+    stats_list: list[StatEntry] = []
     for game in all_games:
         player_stats_list, _ = extract_player_stats(game, league)
         for player_stats in player_stats_list:
             player_id = player_stats["playerId"]
             for stat_name, stat_value in player_stats.items():
-                if stat_name in LEAGUE_TARGET_FIELD_MAPPINGS[league]:
-                    db_stat_name = LEAGUE_TARGET_FIELD_MAPPINGS[league][stat_name]
+                if stat_name in LEAGUE_VALID_STATS[league]:
                     stats_list.append(
                         {
-                            "playerId": player_id,
-                            "statName": db_stat_name,
-                            "currentValue": stat_value,
+                            "player_id": player_id,
+                            "stat_name": stat_name,
+                            "current_value": stat_value,
                             "league": league,
-                            "gameId": game['game_ID'],
-                            "status": game["status"]
+                            "game_id": game["game_ID"],
+                            "status": game["status"],
                         }
                     )
 
-    server_req(
-        route=f"/props/live",
-        method="PATCH",
-        body=json.dumps(stats_list),
-    )
+    total_props_updated = []
+
+    with get_connection_context() as conn:
+        with conn.cursor() as cur:
+            for stat_entry in stats_list:
+                select_query = """
+                    SELECT id, line, status 
+                    FROM prop 
+                    WHERE player_id = %s AND stat_name = %s 
+                    AND league = %s AND game_id = %s
+                """
+
+                cur.execute(
+                    select_query,
+                    (
+                        stat_entry["player_id"],
+                        stat_entry["stat_name"],
+                        stat_entry["league"],
+                        stat_entry["game_id"],
+                    ),
+                )
+
+                rows = cur.fetchone()
+
+                if not rows:
+                    continue
+
+                update_query = """
+                    UPDATE prop
+                    SET current_value = %s, status = %s
+                    WHERE id = %s
+                    RETURNING id
+                """
+
+                status = (
+                    "resolved"
+                    if stat_entry["status"] in ["completed", "final"]
+                    or stat_entry["current_value"] > rows[1]
+                    else "not_resolved"
+                )
+
+                cur.execute(
+                    update_query, (stat_entry["current_value"], status, rows[0])
+                )
+                result = cur.fetchone()
+
+                if result:
+                    total_props_updated.append(result)
+                    redis_client.publish(
+                        channel="prop_updated", message=json.dumps({"id": result[0]})
+                    )
+                    
+    logger.info(f"Updated {len(total_props_updated)} props")
 
 
 def listen_for_stats_updated():

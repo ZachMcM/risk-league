@@ -21,7 +21,8 @@ dependencies = [
   "pytz",
   "python-json-logger",
   "psycopg[binary]",
-  "psycopg[pool]"
+  "psycopg[pool]",
+  "fastapi[standard]"
 ]
 
 [tool.setuptools.packages.find]

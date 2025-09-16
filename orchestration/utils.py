@@ -88,10 +88,10 @@ def server_req(
     import requests
 
     SERVER_API_BASE_URL = getenv_required("SERVER_API_BASE_URL")
-    SERVER_API_KEY = getenv_required("SERVER_API_KEY")
+    API_KEY = getenv_required("API_KEY")
 
     url = f"{SERVER_API_BASE_URL}{route}"
-    headers = {"x-api-key": SERVER_API_KEY}
+    headers = {"x-api-key": API_KEY}
     
     # Only set Content-Type for JSON if no files are being sent
     if not files:

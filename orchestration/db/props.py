@@ -1,7 +1,7 @@
 import psycopg
 from typing import TypedDict, Literal
 from utils import setup_logger
-from .connection import get_connection
+from .connection import get_connection_context
 
 logger = setup_logger(__name__)
 
@@ -28,7 +28,7 @@ def insert_prop(prop_data: Prop) -> str:
         psycopg.Error: If database operation fails
     """
     try:
-        with get_connection() as conn:
+        with get_connection_context() as conn:
             with conn.cursor() as cur:
                 # Let database use default value for current_value
                 insert_query = """

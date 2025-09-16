@@ -1,6 +1,5 @@
 import sys
 from datetime import datetime, timedelta
-import time
 from utils import data_feeds_req, setup_logger
 from extract_stats.main import LEAGUE_CONFIG
 from shared.game_processor import process_game

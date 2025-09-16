@@ -1,7 +1,7 @@
 import sys
 import traceback
 from datetime import datetime
-from time import time, sleep
+from time import time
 from zoneinfo import ZoneInfo
 from db.games import insert_game, Game
 from db.props import insert_prop, Prop

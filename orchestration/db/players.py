@@ -1,7 +1,7 @@
 import psycopg
 from typing import TypedDict
 from utils import setup_logger
-from .connection import get_connection
+from .connection import get_connection_context
 
 logger = setup_logger(__name__)
 
@@ -32,7 +32,7 @@ def insert_players(players_data: list[Player]) -> list[int]:
         psycopg.Error: If database operation fails
     """
     try:
-        with get_connection() as conn:
+        with get_connection_context() as conn:
             with conn.cursor() as cur:
                 # First, filter players that have valid team references
                 valid_players = []
@@ -121,7 +121,7 @@ def get_active_players_for_team(league: str, team_id: int) -> list[Player]:
         psycopg.Error: If database operation fails
     """
     try:
-        with get_connection() as conn:
+        with get_connection_context() as conn:
             with conn.cursor() as cur:
                 # For now, return all active players for the team
                 # The original route does injury/depth chart filtering but that requires
@@ -178,7 +178,7 @@ def get_players_by_league(league: str) -> list[Player]:
         psycopg.Error: If database operation fails
     """
     try:
-        with get_connection() as conn:
+        with get_connection_context() as conn:
             with conn.cursor() as cur:
                 query = """
                     SELECT number, player_id, status, name, team_id, league,
@@ -231,7 +231,7 @@ def update_player_image(player_id: int, league: str, image_url: str) -> None:
         psycopg.Error: If database operation fails
     """
     try:
-        with get_connection() as conn:
+        with get_connection_context() as conn:
             with conn.cursor() as cur:
                 update_query = """
                     UPDATE player

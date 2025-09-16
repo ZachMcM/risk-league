@@ -1,7 +1,7 @@
 import psycopg
 from typing import TypedDict
 from utils import setup_logger
-from .connection import get_connection
+from .connection import get_connection_context
 
 logger = setup_logger(__name__)
 
@@ -27,7 +27,7 @@ def insert_game(game_data: Game):
         psycopg.Error: If database operation fails
     """
     try:
-        with get_connection() as conn:
+        with get_connection_context() as conn:
             with conn.cursor() as cur:
                 # Build the INSERT query with ON CONFLICT DO UPDATE
                 insert_query = """

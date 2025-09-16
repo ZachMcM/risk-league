@@ -1,7 +1,7 @@
 import psycopg
 from typing import TypedDict
 from utils import setup_logger
-from .connection import get_connection
+from .connection import get_connection_context
 
 logger = setup_logger(__name__)
 
@@ -31,7 +31,7 @@ def insert_teams(teams_data: list[Team]) -> list[int]:
         psycopg.Error: If database operation fails
     """
     try:
-        with get_connection() as conn:
+        with get_connection_context() as conn:
             with conn.cursor() as cur:
                 insert_query = """
                     INSERT INTO team (team_id, league, full_name, abbreviation, location, mascot, arena, conference)
@@ -88,7 +88,7 @@ def get_teams_by_league(league: str) -> list[Team]:
         psycopg.Error: If database operation fails
     """
     try:
-        with get_connection() as conn:
+        with get_connection_context() as conn:
             with conn.cursor() as cur:
                 query = """
                     SELECT team_id, league, full_name, abbreviation, location, mascot, arena, conference
@@ -139,7 +139,7 @@ def update_team_colors(team_id: int, league: str, color: str, alternate_color: s
         psycopg.Error: If database operation fails
     """
     try:
-        with get_connection() as conn:
+        with get_connection_context() as conn:
             with conn.cursor() as cur:
                 update_query = """
                     UPDATE team
@@ -175,7 +175,7 @@ def update_team_image(team_id: int, league: str, image_url: str) -> None:
         psycopg.Error: If database operation fails
     """
     try:
-        with get_connection() as conn:
+        with get_connection_context() as conn:
             with conn.cursor() as cur:
                 update_query = """
                     UPDATE team

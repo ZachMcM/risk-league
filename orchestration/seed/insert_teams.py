@@ -1,4 +1,3 @@
-import json
 import sys
 
 from utils import data_feeds_req, setup_logger
