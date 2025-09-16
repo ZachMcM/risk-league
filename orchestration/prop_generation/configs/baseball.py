@@ -256,7 +256,7 @@ def pitching_walks_config() -> PropConfig:
             FeatureDefinition("innings_pitched", "innings_pitched", DataScope.PLAYER),
             FeatureDefinition("pitches_thrown", "pitches_thrown", DataScope.PLAYER),
             FeatureDefinition("opp_walks", "walks", DataScope.OPPONENT),
-            FeatureDefinition("opp_obp", "obp", DataScope.OPPONENT)
+            FeatureDefinition("opp_obp", "on_base_percentage", DataScope.OPPONENT)
         ],
         model_type=ModelType.POISSON,
         model_params={"alpha": 1},

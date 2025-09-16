@@ -18,7 +18,7 @@ impl RedisClient {
     pub async fn publish(&self, channel: &str, message: &Value) -> Result<()> {
         let mut conn = self.client.get_multiplexed_async_connection().await?;
         let message_str = serde_json::to_string(message)?;
-        let _: () = conn.publish(channel, message_str).await?; // Fix type annotation
+        let _: () = conn.publish(channel, message_str).await?;
         Ok(())
     }
 }
