@@ -1,10 +1,11 @@
-import json
 import sys
 import traceback
 from datetime import datetime
 from time import time, sleep
 from zoneinfo import ZoneInfo
 from db.games import insert_game, Game
+from db.props import insert_prop, Prop
+from db.players import get_active_players_for_team, Player
 from db.stats.football import (
     FootballPlayerStats,
     FootballTeamStats,
@@ -17,9 +18,6 @@ from db.stats.football import (
 )
 
 import numpy
-from my_types.server import (
-    Player,
-)
 from prop_generation.configs.football import (
     ELIGIBILITY_THRESHOLDS,
     SAMPLE_SIZE,
@@ -29,7 +27,7 @@ from prop_generation.configs.football import (
 )
 from prop_generation.generator.base import GameStats
 from prop_generation.generator.main import BasePropGenerator
-from utils import data_feeds_req, server_req, setup_logger
+from utils import data_feeds_req, setup_logger
 
 logger = setup_logger(__name__)
 
@@ -108,10 +106,7 @@ def main():
                 insert_game(game_data)
 
                 for index, team_id in enumerate(team_ids):
-                    team_active_players_data: list[Player] = server_req(
-                        route=f"/players/league/{league}/team/{team_id}/active",
-                        method="GET",
-                    ).json()
+                    team_active_players_data: list[Player] = get_active_players_for_team(league, team_id)
 
                     for player in team_active_players_data:
                         if player["position"] not in [
@@ -126,7 +121,7 @@ def main():
 
                         player_stats_list: list[FootballPlayerStats] = get_football_player_stats(
                             league=league,
-                            player_id=player['playerId'],
+                            player_id=player['player_id'],
                             limit=SAMPLE_SIZE
                         )
 
@@ -164,12 +159,12 @@ def main():
 
                         team_stats_list: list[FootballTeamStats] = get_football_team_stats_for_player(
                             league=league,
-                            player_id=player['playerId'],
+                            player_id=player['player_id'],
                             limit=SAMPLE_SIZE
                         )
                         prev_opponent_stats_list: list[FootballTeamStats] = get_football_opponent_stats_for_player(
                             league=league,
-                            player_id=player['playerId'],
+                            player_id=player['player_id'],
                             limit=SAMPLE_SIZE
                         )
                         curr_opponents_stats_list: list[FootballTeamStats] = get_football_team_stats(
@@ -194,33 +189,29 @@ def main():
                             )
 
                             if prop_line > 0:
-                                prop_data = {
+                                prop_data: Prop = {
                                     "line": prop_line,
-                                    "statName": config.stat_name,
-                                    "statDisplayName": config.display_name,
-                                    "playerId": player["playerId"],
+                                    "stat_name": config.stat_name,
+                                    "stat_display_name": config.display_name,
+                                    "player_id": player["player_id"],
                                     "league": league,
-                                    "gameId": game["game_ID"],
+                                    "game_id": game["game_ID"],
                                     "choices": (
                                         ["over", "under"]
                                         if prop_line > MIN_LINE_FOR_UNDER
                                         else ["over"]
                                     ),
+                                    "current_value": None,
+                                    "status": None
                                 }
 
-                                server_req(
-                                    route="/props",
-                                    method="POST",
-                                    body=json.dumps(prop_data),
-                                )
+                                insert_prop(prop_data)
 
                                 league_props_generated += 1
                                 total_props_generated += 1
                                 logger.info(
                                     f"Generated prop for {player['name']} - {config.display_name}: {prop_line}"
                                 )
-
-                        sleep(0.5)
 
             logger.info(f"{league_props_generated} props generated for {league}")
 

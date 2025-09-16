@@ -54,7 +54,6 @@ def main():
                 team_stats_count, player_stats_count = process_game(game, league)
                 total_team_stats_inserted += team_stats_count
                 total_player_stats_inserted += player_stats_count
-                time.sleep(0.1)
 
             current_date += timedelta(days=1)
 

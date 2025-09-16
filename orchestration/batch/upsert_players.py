@@ -1,8 +1,8 @@
-import json
 import sys
 
 from constants import LEAGUES
-from utils import data_feeds_req, server_req, setup_logger
+from db.players import insert_players, Player
+from utils import data_feeds_req, setup_logger
 
 logger = setup_logger(__name__)
 
@@ -33,30 +33,26 @@ def main():
             # Process players in batches
             batch = []
             for i, player in enumerate(players):
-                req_body = {
-                    "playerId": player["player_id"],
+                player_data: Player = {
+                    "player_id": player["player_id"],
                     "name": player["player"],
-                    "teamId": player["team_id"],
+                    "team_id": player["team_id"],
                     "position": player.get("position") or "N/A",
                     "number": player["number"],
                     "height": player["height"],
-                    "weight": float(player["weight"]) if player["weight"] else 0,
+                    "weight": int(float(player["weight"])) if player["weight"] else None,
                     "status": player.get("status", "INACT") or "INACT",
                     "league": league,
+                    "updated_at": ""  # Will be set by database
                 }
-                batch.append(req_body)
+                batch.append(player_data)
 
                 # Send batch when it reaches BATCH_SIZE or at the end
                 if len(batch) == BATCH_SIZE or i == len(players) - 1:
-                    batch_req = server_req(
-                        route="/players", method="POST", body=json.dumps({ "players": batch })
-                    )
-                    if batch_req.status_code != 304:
-                        total_upserted += len(batch)
-                        logger.info(f"Successfully upserted batch of {len(batch)} players, {len(players) - total_upserted} left")
-                    else:
-                        logger.info(f"Batch of {len(batch)} players already up to date")
-                    
+                    inserted_ids = insert_players(batch)
+                    total_upserted += len(inserted_ids)
+                    logger.info(f"Successfully upserted batch of {len(inserted_ids)} players, {len(players) - total_upserted} left")
+
                     batch = []  # Reset batch
 
             print(f"{total_upserted} {league} players upserted")

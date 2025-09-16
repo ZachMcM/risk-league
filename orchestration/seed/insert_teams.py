@@ -1,8 +1,9 @@
 import json
 import sys
 
-from utils import data_feeds_req, server_req, setup_logger
+from utils import data_feeds_req, setup_logger
 from constants import LEAGUES
+from db.teams import insert_teams, Team
 
 logger = setup_logger(__name__)
 
@@ -26,13 +27,13 @@ def main():
             teams_data = teams_req.json()
             teams = teams_data["data"][league]
 
-            teamsList = []
+            teamsList: list[Team] = []
 
             for team in teams:
                 teamsList.append(
                     {
-                        "teamId": team["team_id"],
-                        "fullName": team["team"],
+                        "team_id": team["team_id"],
+                        "full_name": team["team"],
                         "league": league,
                         "abbreviation": team["abbrv"],
                         "location": team.get(
@@ -45,10 +46,8 @@ def main():
                     }
                 )
 
-            post_req_data = server_req(
-                route="/teams", method="POST", body=json.dumps({"teams": teamsList})
-            ).json()
-            print(f"{len(post_req_data)} teams inserted for {league}")
+            team_ids = insert_teams(teamsList)
+            print(f"{len(team_ids)} teams inserted for {league}")
     except Exception as e:
         logger.error(f"Error inserting teams {e}")
         sys.exit(1)

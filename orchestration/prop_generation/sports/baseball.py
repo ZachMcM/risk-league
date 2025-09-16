@@ -1,10 +1,11 @@
-import json
 import sys
 import traceback
 from datetime import datetime
 from time import time, sleep
 from zoneinfo import ZoneInfo
 from db.games import insert_game, Game
+from db.props import insert_prop, Prop
+from db.players import get_active_players_for_team, Player
 from db.stats.baseball import (
     BaseballPlayerStats,
     BaseballTeamStats,
@@ -13,13 +14,10 @@ from db.stats.baseball import (
     get_baseball_team_stats,
     get_baseball_team_stats_for_player,
     get_baseball_opponent_stats_for_player,
-    get_baseball_league_averages
+    get_baseball_league_averages,
 )
 
 import numpy
-from my_types.server import (
-    Player,
-)
 from prop_generation.configs.baseball import (
     BATTING_STATS,
     PITCHING_STATS,
@@ -31,7 +29,7 @@ from prop_generation.configs.baseball import (
 )
 from prop_generation.generator.base import GameStats
 from prop_generation.generator.main import BasePropGenerator
-from utils import data_feeds_req, server_req, setup_logger
+from utils import data_feeds_req, setup_logger
 
 logger = setup_logger(__name__)
 
@@ -59,10 +57,14 @@ def main() -> None:
         configs = get_baseball_prop_configs()
 
         logger.info("Fetching MLB league average at bats")
-        league_avg_at_bats_data: LeagueAverages = get_baseball_league_averages("MLB", "at_bats")
+        league_avg_at_bats_data: LeagueAverages = get_baseball_league_averages(
+            "MLB", "at_bats"
+        )
 
         logger.info("Fetching MLB league average stolen bases")
-        league_avg_stolen_bases_data: LeagueAverages = get_baseball_league_averages("MLB", "stolen_bases")
+        league_avg_stolen_bases_data: LeagueAverages = get_baseball_league_averages(
+            "MLB", "stolen_bases"
+        )
 
         for game in games_list:
             logger.info(f"Processing MLB game {game['game_ID']}")
@@ -83,16 +85,18 @@ def main() -> None:
             insert_game(game_data)
 
             for index, team_id in enumerate(team_ids):
-                team_active_players_data: list[Player] = server_req(
-                    route=f"/players/league/MLB/team/{team_id}/active", method="GET"
-                ).json()
+                team_active_players_data: list[Player] = get_active_players_for_team(
+                    "MLB", team_id
+                )
 
                 for player in team_active_players_data:
                     eligible_stats = []
-                    player_stats_list: list[BaseballPlayerStats] = get_baseball_player_stats(
-                        league="MLB",
-                        player_id=player['playerId'],
-                        limit=SAMPLE_SIZE
+                    player_stats_list: list[BaseballPlayerStats] = (
+                        get_baseball_player_stats(
+                            league="MLB",
+                            player_id=player["player_id"],
+                            limit=SAMPLE_SIZE,
+                        )
                     )
 
                     if not player_stats_list:
@@ -107,7 +111,7 @@ def main() -> None:
 
                     for stat in stats_list:
                         if stat in PITCHING_STATS:
-                            if player["playerId"] in starting_pitcher_ids:
+                            if player["player_id"] in starting_pitcher_ids:
                                 eligible_stats.append(stat)
                         elif stat == "stolen_bases":
                             if (
@@ -130,20 +134,26 @@ def main() -> None:
                         logger.info(f"No eligible stats skipping player")
                         continue
 
-                    team_stats_list: list[BaseballTeamStats] = get_baseball_team_stats_for_player(
-                        league="MLB",
-                        player_id=player['playerId'],
-                        limit=SAMPLE_SIZE
+                    team_stats_list: list[BaseballTeamStats] = (
+                        get_baseball_team_stats_for_player(
+                            league="MLB",
+                            player_id=player["player_id"],
+                            limit=SAMPLE_SIZE,
+                        )
                     )
-                    prev_opponent_stats_list: list[BaseballTeamStats] = get_baseball_opponent_stats_for_player(
-                        league="MLB",
-                        player_id=player['playerId'],
-                        limit=SAMPLE_SIZE
+                    prev_opponent_stats_list: list[BaseballTeamStats] = (
+                        get_baseball_opponent_stats_for_player(
+                            league="MLB",
+                            player_id=player["player_id"],
+                            limit=SAMPLE_SIZE,
+                        )
                     )
-                    curr_opponents_stats_list: list[BaseballTeamStats] = get_baseball_team_stats(
-                        league="MLB",
-                        team_id=team_ids[1] if index == 0 else team_ids[0],
-                        limit=SAMPLE_SIZE
+                    curr_opponents_stats_list: list[BaseballTeamStats] = (
+                        get_baseball_team_stats(
+                            league="MLB",
+                            team_id=team_ids[1] if index == 0 else team_ids[0],
+                            limit=SAMPLE_SIZE,
+                        )
                     )
 
                     games_stats_data = GameStats(
@@ -160,31 +170,28 @@ def main() -> None:
                         prop_line = generator.generate_prop(config, games_stats_data)
 
                         if prop_line > 0:
-                            prop_data = {
+                            prop_data: Prop = {
                                 "line": prop_line,
-                                "statName": config.stat_name,
-                                "statDisplayName": config.display_name,
-                                "playerId": player["playerId"],
+                                "stat_name": config.stat_name,
+                                "stat_display_name": config.display_name,
+                                "player_id": player["player_id"],
                                 "league": "MLB",
-                                "gameId": game["game_ID"],
+                                "game_id": game["game_ID"],
                                 "choices": (
                                     ["over", "under"]
                                     if prop_line > MIN_LINE_FOR_UNDER
                                     else ["over"]
                                 ),
+                                "current_value": None,
+                                "status": None,
                             }
 
-                            server_req(
-                                route="/props",
-                                method="POST",
-                                body=json.dumps(prop_data),
-                            )
+                            insert_prop(prop_data)
 
                             total_props_generated += 1
                             logger.info(
                                 f"Generated prop for {player['name']} - {config.display_name}: {prop_line}"
                             )
-                    sleep(0.5)
 
         end = time()
         logger.info(
