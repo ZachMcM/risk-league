@@ -1,6 +1,5 @@
 import { and, desc, eq, gt, InferInsertModel, lt } from "drizzle-orm";
 import { Router } from "express";
-import { io } from "..";
 import { MIN_STAKE_PCT } from "../config";
 import { db } from "../db";
 import {
@@ -13,14 +12,9 @@ import {
   prop,
 } from "../db/schema";
 import { logger } from "../logger";
-import { apiKeyMiddleware, authMiddleware } from "../middleware";
+import { authMiddleware } from "../middleware";
 import { handleError } from "../utils/handleError";
 import { invalidateQueries } from "../utils/invalidateQueries";
-import {
-  getFlexMultiplier,
-  getPerfectPlayMultiplier,
-} from "../utils/parlayMultipliers";
-import { redis } from "../redis";
 
 export const parlaysRoute = Router();
 
@@ -395,185 +389,5 @@ parlaysRoute.post("/parlays", authMiddleware, async (req, res) => {
     res.status(500).json({
       error: error instanceof Error ? error.message : String(error),
     });
-  }
-});
-
-parlaysRoute.patch("/parlays", apiKeyMiddleware, async (req, res) => {
-  try {
-    const pickId = req.query.pickId;
-
-    if (!pickId || isNaN(parseInt(pickId as string))) {
-      res.status(400).json({ error: "Invalid pickId query string" });
-      return;
-    }
-
-    const pickResult = await db.query.pick.findFirst({
-      where: eq(pick.id, parseInt(pickId as string)),
-      columns: { id: true }
-    });
-
-    if (!pickResult) {
-      res.status(404).json({ error: "Pick not found" });
-      return;
-    }
-
-    const parlayResult = (
-      await db.query.pick.findFirst({
-        where: eq(pick.id, parseInt(pickId as string)),
-        with: {
-          parlay: {
-            with: {
-              picks: true,
-              matchUser: {
-                columns: {
-                  balance: true,
-                  matchId: true,
-                  userId: true,
-                },
-              },
-              dynastyLeagueUser: {
-                columns: {
-                  balance: true,
-                  dynastyLeagueId: true,
-                  userId: true,
-                },
-              },
-            },
-          },
-        },
-      })
-    )?.parlay;
-
-    if (!parlayResult) {
-      res.status(500).json({
-        error: `No parlay found containing a pick with pickId ${pickId}`,
-      });
-      return;
-    }
-
-    if (parlayResult.resolved) {
-      res.status(200).json({ message: "Parlay is already resolved" });
-      return;
-    }
-
-    let hitCount = 0;
-    let ignorePickCount = 0;
-
-    for (const currPick of parlayResult.picks) {
-      if (currPick.status == "not_resolved") {
-        res.json({ success: true });
-        return;
-      }
-      if (currPick.status == "hit") {
-        hitCount++;
-      } else if (
-        currPick.status == "tie" ||
-        currPick.status == "did_not_play"
-      ) {
-        ignorePickCount++;
-      }
-    }
-
-    const effectivePickCount = parlayResult.picks.length - ignorePickCount;
-    let payout;
-
-    if (parlayResult.type == "perfect") {
-      if (effectivePickCount != hitCount) {
-        payout = 0;
-      } else {
-        payout =
-          getPerfectPlayMultiplier(effectivePickCount) * parlayResult.stake;
-      }
-    } else {
-      // For flex plays with ties that reduce to 1 effective pick, treat as loss
-      if (effectivePickCount < 2) {
-        payout = 0;
-      } else {
-        payout =
-          getFlexMultiplier(effectivePickCount, hitCount) * parlayResult.stake;
-      }
-    }
-
-    logger.info(`Parlay ${parlayResult.id} resolution triggered by pick ${pickId}, payout: ${payout}`);
-
-    await db.transaction(async (tx) => {
-      await tx
-        .update(parlay)
-        .set({
-          profit: payout - parlayResult.stake,
-          resolved: true,
-        })
-        .where(eq(parlay.id, parlayResult.id));
-
-      if (parlayResult.matchUser) {
-        await tx
-          .update(matchUser)
-          .set({
-            balance: parlayResult.matchUser.balance + payout,
-          })
-          .where(eq(matchUser.id, parlayResult.matchUserId!));
-      } else if (parlayResult.dynastyLeagueUser) {
-        await tx
-          .update(dynastyLeagueUser)
-          .set({
-            balance: parlayResult.dynastyLeagueUser.balance + payout,
-          })
-          .where(eq(dynastyLeagueUser.id, parlayResult.dynastyLeagueUserId!));
-      }
-    });
-
-    if (parlayResult.matchUser) {
-      invalidateQueries(
-        ["parlay", parlayResult.id],
-        [
-          "parlays",
-          "match",
-          parlayResult.matchUser.matchId,
-          parlayResult.matchUser.userId,
-        ],
-        ["match", parlayResult.matchUser.matchId],
-        ["match-ids", parlayResult.matchUser.userId, "unresolved"],
-        ["career", parlayResult.matchUser.userId]
-      );
-
-      io.of("/realtime")
-        .to(`user:${parlayResult.matchUser.userId}`)
-        .emit("match-parlay-resolved", {
-          matchId: parlayResult.matchUser.matchId,
-          parlayId: parlayResult.id,
-        });
-
-      redis.publish("parlay_resolved", JSON.stringify({
-        parlayId: parlayResult.id,
-        matchId: parlayResult.matchUser.matchId
-      }));
-    } else if (parlayResult.dynastyLeagueUser) {
-      invalidateQueries(
-        ["parlay", parlayResult.id],
-        [
-          "parlays",
-          "dynasty-league",
-          parlayResult.dynastyLeagueUser.dynastyLeagueId,
-          parlayResult.dynastyLeagueUser.userId,
-        ],
-        [
-          "dynasty-league",
-          parlayResult.dynastyLeagueUser.dynastyLeagueId,
-          "users",
-        ],
-        ["career", parlayResult.dynastyLeagueUser.userId]
-      );
-
-      io.of("/realtime")
-        .to(`user:${parlayResult.dynastyLeagueUser.userId}`)
-        .emit("dynasty-league-parlay-resolved", {
-          dynastyLeagueId: parlayResult.dynastyLeagueUser.dynastyLeagueId,
-          parlayId: parlayResult.id,
-        });
-    }
-
-    res.json({ success: true });
-  } catch (error) {
-    handleError(error, res, "Parlays route");
   }
 });

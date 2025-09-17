@@ -22,7 +22,9 @@ dependencies = [
   "python-json-logger",
   "psycopg[binary]",
   "psycopg[pool]",
-  "fastapi[standard]"
+  "fastapi[standard]",
+  "aioredis",
+  "aiohttp"
 ]
 
 [tool.setuptools.packages.find]

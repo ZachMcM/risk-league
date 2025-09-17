@@ -1,203 +1,222 @@
-from utils import setup_logger, server_req, getenv_required
-from redis_utils import listen_for_messages, create_redis_client
-import concurrent.futures
-from db.connection import get_connection_context
-import json
+from utils import setup_logger, getenv_required
+from redis_utils import (
+    listen_for_messages_async,
+    create_async_redis_client,
+    publish_message_async,
+)
+import asyncio
+from db.connection import get_async_connection_context
 
 logger = setup_logger(__name__)
 
-# Redis connections will be created per-worker to avoid fork issues
 
-PICKS_UPDATER_MAX_WORKERS = int(getenv_required("PICKS_UPDATER_MAX_WORKERS"))
-
-
-def handle_prop_updated(data):
-    """Handle incoming prop_updated messages"""
+async def handle_prop_updated(data):
+    """Handle incoming prop_updated messages asynchronously"""
     prop_id = data.get("id")
     if not prop_id:
         logger.error("Received prop updated message without id")
         return
 
     # Create fresh Redis connection for this worker
-    redis_publisher = create_redis_client()
+    redis_publisher = await create_async_redis_client()
     picks_to_invalidate = []
 
-    with get_connection_context() as conn:
-        with conn.cursor() as cur:
-            try:
-                cur.execute("BEGIN")
+    try:
+        async with await get_async_connection_context() as conn:
+            async with conn.cursor() as cur:
+                try:
+                    await cur.execute("BEGIN")
 
-                select_query = """
-                    SELECT id, current_value, line, status
-                    FROM prop
-                    WHERE id = %s
-                """
-
-                cur.execute(select_query, (prop_id,))
-                prop_query_res = cur.fetchone()
-
-                if not prop_query_res:
-                    logger.warning(f"No prop found with id {prop_id}")
-                    cur.execute("ROLLBACK")
-                    return
-
-                updated_prop = {
-                    "id": prop_query_res[0],
-                    "current_value": prop_query_res[1],
-                    "line": prop_query_res[2],
-                    "status": prop_query_res[3],
-                }
-
-                if updated_prop["status"] == "did_not_play":
-                    update_stmt = """
-                        UPDATE pick SET status = 'did_not_play'
-                        WHERE prop_id = %s
-                        RETURNING id, parlay_id
+                    select_query = """
+                        SELECT id, current_value, line, status
+                        FROM prop
+                        WHERE id = %s
                     """
 
-                    cur.execute(update_stmt, (updated_prop["id"],))
-                    dnp_res_list = cur.fetchall()
+                    await cur.execute(select_query, (prop_id,))
+                    prop_query_res = await cur.fetchone()
 
-                    for res in dnp_res_list:
-                        picks_to_invalidate.append({"id": res[0], "parlay_id": res[1]})
+                    if not prop_query_res:
+                        logger.warning(f"No prop found with id {prop_id}")
+                        await cur.execute("ROLLBACK")
+                        return
 
-                elif updated_prop["status"] == "resolved":
-                    if updated_prop["current_value"] > updated_prop["line"]:
-                        batch_update_stmt = """
-                            WITH updates AS (
-                                UPDATE pick SET status = CASE
-                                    WHEN choice = 'over' THEN 'hit'
-                                    WHEN choice = 'under' THEN 'missed'
-                                END
-                                WHERE prop_id = %s AND choice IN ('over', 'under')
-                                RETURNING id, parlay_id
-                            )
-                            SELECT id, parlay_id FROM updates
-                        """
+                    updated_prop = {
+                        "id": prop_query_res[0],
+                        "current_value": prop_query_res[1],
+                        "line": prop_query_res[2],
+                        "status": prop_query_res[3],
+                    }
 
-                        cur.execute(batch_update_stmt, (updated_prop["id"],))
-                        batch_res_list = cur.fetchall()
-
-                        for res in batch_res_list:
-                            picks_to_invalidate.append({"id": res[0], "parlay_id": res[1]})
-
-                    elif updated_prop["current_value"] == updated_prop["line"]:
-                        ties_update_stmt = """
-                            UPDATE pick SET status = 'tie'
+                    if updated_prop["status"] == "did_not_play":
+                        update_stmt = """
+                            UPDATE pick SET status = 'did_not_play'
                             WHERE prop_id = %s
                             RETURNING id, parlay_id
                         """
 
-                        cur.execute(ties_update_stmt, (updated_prop["id"],))
-                        ties_res_list = cur.fetchall()
+                        await cur.execute(update_stmt, (updated_prop["id"],))
+                        dnp_res_list = await cur.fetchall()
 
-                        for ties_res in ties_res_list:
+                        for res in dnp_res_list:
                             picks_to_invalidate.append(
-                                {"id": ties_res[0], "parlay_id": ties_res[1]}
+                                {"id": res[0], "parlay_id": res[1]}
                             )
-                    else:
-                        batch_update_stmt = """
-                            WITH updates AS (
-                                UPDATE pick SET status = CASE
-                                    WHEN choice = 'over' THEN 'missed'
-                                    WHEN choice = 'under' THEN 'hit'
-                                END
-                                WHERE prop_id = %s AND choice IN ('over', 'under')
+
+                    elif updated_prop["status"] == "resolved":
+                        if updated_prop["current_value"] > updated_prop["line"]:
+                            batch_update_stmt = """
+                                WITH updates AS (
+                                    UPDATE pick SET status = CASE
+                                        WHEN choice = 'over' THEN 'hit'
+                                        WHEN choice = 'under' THEN 'missed'
+                                    END
+                                    WHERE prop_id = %s AND choice IN ('over', 'under')
+                                    RETURNING id, parlay_id
+                                )
+                                SELECT id, parlay_id FROM updates
+                            """
+
+                            await cur.execute(batch_update_stmt, (updated_prop["id"],))
+                            batch_res_list = await cur.fetchall()
+
+                            for res in batch_res_list:
+                                picks_to_invalidate.append(
+                                    {"id": res[0], "parlay_id": res[1]}
+                                )
+
+                        elif updated_prop["current_value"] == updated_prop["line"]:
+                            ties_update_stmt = """
+                                UPDATE pick SET status = 'tie'
+                                WHERE prop_id = %s
                                 RETURNING id, parlay_id
-                            )
-                            SELECT id, parlay_id FROM updates
-                        """
+                            """
 
-                        cur.execute(batch_update_stmt, (updated_prop["id"],))
-                        batch_res_list = cur.fetchall()
+                            await cur.execute(ties_update_stmt, (updated_prop["id"],))
+                            ties_res_list = await cur.fetchall()
 
-                        for res in batch_res_list:
-                            picks_to_invalidate.append({"id": res[0], "parlay_id": res[1]})
+                            for ties_res in ties_res_list:
+                                picks_to_invalidate.append(
+                                    {"id": ties_res[0], "parlay_id": ties_res[1]}
+                                )
+                        else:
+                            batch_update_stmt = """
+                                WITH updates AS (
+                                    UPDATE pick SET status = CASE
+                                        WHEN choice = 'over' THEN 'missed'
+                                        WHEN choice = 'under' THEN 'hit'
+                                    END
+                                    WHERE prop_id = %s AND choice IN ('over', 'under')
+                                    RETURNING id, parlay_id
+                                )
+                                SELECT id, parlay_id FROM updates
+                            """
 
-                else:
-                    if updated_prop["current_value"] > updated_prop["line"]:
-                        batch_update_stmt = """
-                            WITH updates AS (
-                                UPDATE pick SET status = CASE
-                                    WHEN choice = 'over' THEN 'hit'
-                                    WHEN choice = 'under' THEN 'missed'
-                                END
-                                WHERE prop_id = %s AND choice IN ('over', 'under')
-                                RETURNING id, parlay_id
-                            )
-                            SELECT id, parlay_id FROM updates
-                        """
+                            await cur.execute(batch_update_stmt, (updated_prop["id"],))
+                            batch_res_list = await cur.fetchall()
 
-                        cur.execute(batch_update_stmt, (updated_prop["id"],))
-                        batch_res_list = cur.fetchall()
+                            for res in batch_res_list:
+                                picks_to_invalidate.append(
+                                    {"id": res[0], "parlay_id": res[1]}
+                                )
 
-                        for res in batch_res_list:
-                            picks_to_invalidate.append({"id": res[0], "parlay_id": res[1]})
                     else:
-                        related_picks_query = """
-                            SELECT id, parlay_id
-                            FROM pick
-                            WHERE prop_id = %s
-                        """
+                        if updated_prop["current_value"] > updated_prop["line"]:
+                            batch_update_stmt = """
+                                WITH updates AS (
+                                    UPDATE pick SET status = CASE
+                                        WHEN choice = 'over' THEN 'hit'
+                                        WHEN choice = 'under' THEN 'missed'
+                                    END
+                                    WHERE prop_id = %s AND choice IN ('over', 'under')
+                                    RETURNING id, parlay_id
+                                )
+                                SELECT id, parlay_id FROM updates
+                            """
 
-                        cur.execute(related_picks_query, (updated_prop["id"],))
-                        related_picks_res_list = cur.fetchall()
+                            await cur.execute(batch_update_stmt, (updated_prop["id"],))
+                            batch_res_list = await cur.fetchall()
 
-                        for related_picks_res in related_picks_res_list:
-                            picks_to_invalidate.append(
-                                {"id": related_picks_res[0], "parlay_id": related_picks_res[1]}
+                            for res in batch_res_list:
+                                picks_to_invalidate.append(
+                                    {"id": res[0], "parlay_id": res[1]}
+                                )
+                        else:
+                            related_picks_query = """
+                                SELECT id, parlay_id
+                                FROM pick
+                                WHERE prop_id = %s
+                            """
+
+                            await cur.execute(
+                                related_picks_query, (updated_prop["id"],)
                             )
+                            related_picks_res_list = await cur.fetchall()
 
-                cur.execute("COMMIT")
+                            for related_picks_res in related_picks_res_list:
+                                picks_to_invalidate.append(
+                                    {
+                                        "id": related_picks_res[0],
+                                        "parlay_id": related_picks_res[1],
+                                    }
+                                )
 
-            except Exception as e:
-                cur.execute("ROLLBACK")
-                logger.error(f"Database transaction failed: {e}")
-                raise e
+                    await cur.execute("COMMIT")
 
-    try:
-        for pick in picks_to_invalidate:
-            redis_publisher.publish(
-                channel="pick_resolved", message=json.dumps({"id": pick["id"]})
-            )
-            redis_publisher.publish(
-                channel="invalidate_queries",
-                message=json.dumps(
-                    {"keys": [["pick", pick["id"]], ["parlay", pick["parlay_id"]]]}
-                ),
-            )
+                except Exception as e:
+                    await cur.execute("ROLLBACK")
+                    logger.error(f"Database transaction failed: {e}")
+                    raise e
+
+        # Publish all Redis messages in parallel
+        if picks_to_invalidate:
+            publish_tasks = []
+            for pick in picks_to_invalidate:
+                publish_tasks.append(
+                    publish_message_async(
+                        redis_publisher, "pick_resolved", {"id": pick["id"]}
+                    )
+                )
+                publish_tasks.append(
+                    publish_message_async(
+                        redis_publisher,
+                        "invalidate_queries",
+                        {"keys": [["pick", pick["id"]], ["parlay", pick["parlay_id"]]]},
+                    )
+                )
+            await asyncio.gather(*publish_tasks)
+
+    except Exception as e:
+        logger.error(f"Error handling prop update: {e}")
     finally:
-        redis_publisher.close()
+        await redis_publisher.close()
 
 
-def listen_for_prop_updated():
+async def listen_for_prop_updated():
     """Function that listens for a prop updated message on the redis server"""
     # Create dedicated Redis connection for listener
-    redis_subscriber = create_redis_client()
+    redis_subscriber = await create_async_redis_client()
 
     try:
-        with concurrent.futures.ThreadPoolExecutor(
-            max_workers=PICKS_UPDATER_MAX_WORKERS
-        ) as executor:
-
-            def async_handler(data):
-                executor.submit(handle_prop_updated, data)
-
-            logger.info("Listening for prop updated messages...")
-            listen_for_messages(redis_subscriber, "prop_updated", async_handler)
+        logger.info("Listening for prop updated messages...")
+        await listen_for_messages_async(
+            redis_subscriber, "prop_updated", handle_prop_updated
+        )
+    except Exception as e:
+        logger.error(f"Error in listener: {e}")
     finally:
-        redis_subscriber.close()
+        await redis_subscriber.close()
 
 
-def main():
+async def main():
     """Main function that listens for prop updated messages."""
     try:
-        listen_for_prop_updated()
+        await listen_for_prop_updated()
     except KeyboardInterrupt:
-        logger.warning("Shutting down update_parlay_picks...")
+        logger.warning("Shutting down picks_worker...")
     except Exception as e:
         logger.error(f"Error in main: {e}")
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

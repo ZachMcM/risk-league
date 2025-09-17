@@ -1,13 +1,17 @@
-import concurrent.futures
 import json
+import asyncio
+import aiohttp
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
-from db.connection import get_connection_context
+from db.connection import get_async_connection_context
 from typing import TypedDict
-
 from extract_stats.main import extract_player_stats
-from redis_utils import create_redis_client, listen_for_messages
-from utils import data_feeds_req, getenv_required, server_req, setup_logger
+from redis_utils import (
+    create_async_redis_client,
+    listen_for_messages_async,
+    publish_message_async,
+)
+from utils import getenv_required, setup_logger
 from prop_generation.configs.football import (
     get_football_stats_list,
 )
@@ -30,11 +34,7 @@ LEAGUE_VALID_STATS = {
     "NCAABB": VALID_BASKETBALL_STATS,
 }
 
-STATS_UPDATER_MAX_WORKERS = int(getenv_required("STATS_UPDATER_MAX_WORKERS"))
-
 logger = setup_logger(__name__)
-
-# Redis connections will be created per-worker to avoid fork issues
 
 
 class StatEntry(TypedDict):
@@ -46,15 +46,15 @@ class StatEntry(TypedDict):
     status: str
 
 
-def handle_stats_updated(data):
-    """Handle incoming prop_updated messages"""
+async def handle_stats_updated(data):
+    """Handle incoming stats_updated messages asynchronously"""
     league = data.get("league")
     if not league:
         logger.error("Received stats updated message without league")
         return
 
     # Create fresh Redis connection for this worker
-    redis_publisher = create_redis_client()
+    redis_publisher = await create_async_redis_client()
 
     est_tz = ZoneInfo("America/New_York")
     today = datetime.now(est_tz)
@@ -63,16 +63,33 @@ def handle_stats_updated(data):
     dates_to_check = [yesterday.strftime("%Y-%m-%d"), today.strftime("%Y-%m-%d")]
 
     all_games = []
-    for date_str in dates_to_check:
+
+    # Fetch all dates concurrently
+    async def fetch_games_for_date(session, date_str):
         try:
             logger.info(f"Checking games /live/{date_str}/{league}")
-            feed_req = data_feeds_req(f"/live/{date_str}/{league}")
-            feed_data = feed_req.json()
-            games = feed_data["data"][league]
-            logger.info(f"{len(games)} {league} games found for {date_str}")
-            all_games.extend(games)
+
+            DATA_FEEDS_API_TOKEN = getenv_required("DATA_FEEDS_API_TOKEN")
+            DATA_FEEDS_BASE_URL = getenv_required("DATA_FEEDS_BASE_URL")
+
+            url = f"{DATA_FEEDS_BASE_URL}/live/{date_str}/{league}?RSC_token={DATA_FEEDS_API_TOKEN}"
+
+            async with session.get(url, timeout=30) as response:
+                response.raise_for_status()
+                feed_data = await response.json()
+                games = feed_data["data"][league]
+                logger.info(f"{len(games)} {league} games found for {date_str}")
+                return games
         except Exception as e:
             logger.warning(f"Failed to fetch games for {date_str}: {e}")
+            return []
+
+    async with aiohttp.ClientSession() as session:
+        tasks = [fetch_games_for_date(session, date_str) for date_str in dates_to_check]
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        for games in results:
+            if isinstance(games, list):
+                all_games.extend(games)
 
     logger.info(f"Total {len(all_games)} {league} games found across dates")
 
@@ -96,92 +113,105 @@ def handle_stats_updated(data):
 
     props_updated = []
 
-    with get_connection_context() as conn:
-        with conn.cursor() as cur:
-            for stat_entry in stats_list:
-                select_query = """
-                    SELECT id, line, status 
-                    FROM prop 
-                    WHERE player_id = %s AND stat_name = %s 
-                    AND league = %s AND game_id = %s
-                """
-
-                cur.execute(
-                    select_query,
-                    (
-                        stat_entry["player_id"],
-                        stat_entry["stat_name"],
-                        stat_entry["league"],
-                        stat_entry["game_id"],
-                    ),
-                )
-
-                rows = cur.fetchone()
-
-                if not rows:
-                    continue
-
-                update_query = """
-                    UPDATE prop
-                    SET current_value = %s, status = %s
-                    WHERE id = %s
-                    RETURNING id
-                """
-
-                status = (
-                    "resolved"
-                    if stat_entry["status"] in ["completed", "final"]
-                    or stat_entry["current_value"] > rows[1]
-                    else "not_resolved"
-                )
-
-                cur.execute(
-                    update_query, (stat_entry["current_value"], status, rows[0])
-                )
-                result = cur.fetchone()
-
-                if result:
-                    props_updated.append(result)
-
     try:
-        for prop in props_updated:
-            redis_publisher.publish(
-                channel="prop_updated", message=json.dumps({"id": prop[0]})
-            )
+        async with await get_async_connection_context() as conn:
+            async with conn.cursor() as cur:
+                await cur.execute("BEGIN")
+
+                try:
+                    for stat_entry in stats_list:
+                        select_query = """
+                            SELECT id, line, status
+                            FROM prop
+                            WHERE player_id = %s AND stat_name = %s
+                            AND league = %s AND game_id = %s
+                        """
+
+                        await cur.execute(
+                            select_query,
+                            (
+                                stat_entry["player_id"],
+                                stat_entry["stat_name"],
+                                stat_entry["league"],
+                                stat_entry["game_id"],
+                            ),
+                        )
+
+                        rows = await cur.fetchone()
+
+                        if not rows:
+                            continue
+
+                        update_query = """
+                            UPDATE prop
+                            SET current_value = %s, status = %s
+                            WHERE id = %s
+                            RETURNING id
+                        """
+
+                        status = (
+                            "resolved"
+                            if stat_entry["status"] in ["completed", "final"]
+                            or stat_entry["current_value"] > rows[1]
+                            else "not_resolved"
+                        )
+
+                        await cur.execute(
+                            update_query, (stat_entry["current_value"], status, rows[0])
+                        )
+                        result = await cur.fetchone()
+
+                        if result:
+                            props_updated.append(result)
+
+                    await cur.execute("COMMIT")
+
+                except Exception as e:
+                    await cur.execute("ROLLBACK")
+                    logger.error(f"Database transaction failed: {e}")
+                    raise e
+
+        # Publish all Redis messages in parallel
+        if props_updated:
+            publish_tasks = [
+                publish_message_async(redis_publisher, "prop_updated", {"id": prop[0]})
+                for prop in props_updated
+            ]
+            await asyncio.gather(*publish_tasks)
+
+    except Exception as e:
+        logger.error(f"Error handling stats update: {e}")
     finally:
-        redis_publisher.close()
+        await redis_publisher.close()
 
     logger.info(f"Updated {len(props_updated)} props")
 
 
-def listen_for_stats_updated():
-    """Function that listens for a prop updated message on the redis server"""
+async def listen_for_stats_updated():
+    """Function that listens for stats updated messages on the redis server"""
     # Create dedicated Redis connection for listener
-    redis_subscriber = create_redis_client()
+    redis_subscriber = await create_async_redis_client()
 
     try:
-        with concurrent.futures.ThreadPoolExecutor(
-            max_workers=STATS_UPDATER_MAX_WORKERS
-        ) as executor:
-
-            def async_handler(data):
-                executor.submit(handle_stats_updated, data)
-
-            logger.info("Listening for prop updated messages...")
-            listen_for_messages(redis_subscriber, "stats_updated", async_handler)
+        logger.info("Listening for stats updated messages...")
+        await listen_for_messages_async(
+            redis_subscriber, "stats_updated", handle_stats_updated
+        )
+    except Exception as e:
+        logger.error(f"Error in listener: {e}")
     finally:
-        redis_subscriber.close()
+        await redis_subscriber.close()
 
 
-def main():
-    """Main function that listens for prop updated messages."""
+async def main():
+    """Main function that listens for stats updated messages."""
     try:
-        listen_for_stats_updated()
+        await listen_for_stats_updated()
     except KeyboardInterrupt:
-        logger.warning("Shutting down update_parlay_picks...")
+        logger.warning("Shutting down props_worker...")
     except Exception as e:
         logger.error(f"Error in main: {e}")
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
