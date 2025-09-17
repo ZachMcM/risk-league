@@ -1,4 +1,4 @@
-from utils import setup_logger, getenv_required
+from utils import setup_logger
 import asyncio
 from typing import TypedDict, Optional, Dict, List
 from redis_utils import (
@@ -7,6 +7,7 @@ from redis_utils import (
     publish_message_async,
 )
 from db.connection import get_async_connection_context
+from time import time
 
 logger = setup_logger(__name__)
 
@@ -79,6 +80,7 @@ def get_flex_multiplier(pick_count: int, hit_count: int) -> float:
 
 async def handle_pick_resolved(data):
     """Handles incoming pick_resolved messages asynchronously"""
+    start_time = time()
     pick_id = data.get("id")
     if not pick_id:
         logger.error("Received pick_resolved message without id")
@@ -268,7 +270,10 @@ async def handle_pick_resolved(data):
     except Exception as e:
         logger.error(f"Error handling pick resolved: {e}")
     finally:
-        await redis_publisher.close()
+        await redis_publisher.aclose()
+        
+    end_time = time()
+    logger.info(f"Updated parlay of pick_id {pick_id}. Completed in {end_time - start_time:.2f}s")
 
 
 async def _publish_parlay_resolved_messages(
@@ -339,7 +344,7 @@ async def listen_for_pick_resolved():
     except Exception as e:
         logger.error(f"Error in listener: {e}")
     finally:
-        await redis_subscriber.close()
+        await redis_subscriber.aclose()
 
 
 async def main():

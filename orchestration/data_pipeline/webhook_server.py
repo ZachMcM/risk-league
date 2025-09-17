@@ -13,7 +13,7 @@ async def lifespan(app: FastAPI):
     # Shutdown
     global _redis_client
     if _redis_client:
-        await _redis_client.close()
+        await _redis_client.aclose()
 
 
 # Create app with lifespan

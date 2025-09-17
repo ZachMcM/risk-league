@@ -1,4 +1,4 @@
-from utils import setup_logger, getenv_required
+from utils import setup_logger
 from redis_utils import (
     listen_for_messages_async,
     create_async_redis_client,
@@ -6,12 +6,14 @@ from redis_utils import (
 )
 import asyncio
 from db.connection import get_async_connection_context
+from time import time
 
 logger = setup_logger(__name__)
 
 
 async def handle_prop_updated(data):
     """Handle incoming prop_updated messages asynchronously"""
+    start_time = time()
     prop_id = data.get("id")
     if not prop_id:
         logger.error("Received prop updated message without id")
@@ -50,7 +52,7 @@ async def handle_prop_updated(data):
 
                     if updated_prop["status"] == "did_not_play":
                         update_stmt = """
-                            UPDATE pick SET status = 'did_not_play'
+                            UPDATE pick SET status = 'did_not_play'::pick_status
                             WHERE prop_id = %s
                             RETURNING id, parlay_id
                         """
@@ -68,8 +70,8 @@ async def handle_prop_updated(data):
                             batch_update_stmt = """
                                 WITH updates AS (
                                     UPDATE pick SET status = CASE
-                                        WHEN choice = 'over' THEN 'hit'
-                                        WHEN choice = 'under' THEN 'missed'
+                                        WHEN choice = 'over' THEN 'hit'::pick_status
+                                        WHEN choice = 'under' THEN 'missed'::pick_status
                                     END
                                     WHERE prop_id = %s AND choice IN ('over', 'under')
                                     RETURNING id, parlay_id
@@ -87,7 +89,7 @@ async def handle_prop_updated(data):
 
                         elif updated_prop["current_value"] == updated_prop["line"]:
                             ties_update_stmt = """
-                                UPDATE pick SET status = 'tie'
+                                UPDATE pick SET status = 'tie'::pick_status
                                 WHERE prop_id = %s
                                 RETURNING id, parlay_id
                             """
@@ -103,8 +105,8 @@ async def handle_prop_updated(data):
                             batch_update_stmt = """
                                 WITH updates AS (
                                     UPDATE pick SET status = CASE
-                                        WHEN choice = 'over' THEN 'missed'
-                                        WHEN choice = 'under' THEN 'hit'
+                                        WHEN choice = 'over' THEN 'missed'::pick_status
+                                        WHEN choice = 'under' THEN 'hit'::pick_status
                                     END
                                     WHERE prop_id = %s AND choice IN ('over', 'under')
                                     RETURNING id, parlay_id
@@ -125,8 +127,8 @@ async def handle_prop_updated(data):
                             batch_update_stmt = """
                                 WITH updates AS (
                                     UPDATE pick SET status = CASE
-                                        WHEN choice = 'over' THEN 'hit'
-                                        WHEN choice = 'under' THEN 'missed'
+                                        WHEN choice = 'over' THEN 'hit'::pick_status
+                                        WHEN choice = 'under' THEN 'missed'::pick_status
                                     END
                                     WHERE prop_id = %s AND choice IN ('over', 'under')
                                     RETURNING id, parlay_id
@@ -189,7 +191,13 @@ async def handle_prop_updated(data):
     except Exception as e:
         logger.error(f"Error handling prop update: {e}")
     finally:
-        await redis_publisher.close()
+        await redis_publisher.aclose()
+        
+    end_time = time()
+    if picks_to_invalidate:
+        logger.info(f"Updated/invalidated {len(picks_to_invalidate)} picks related to prop_id {prop_id}. Completed in {end_time - start_time:.2f}s")
+    else:
+        logger.info(f"No picks to update for prop_id {prop_id}. Completed in {end_time - start_time:.2f}s")
 
 
 async def listen_for_prop_updated():
@@ -205,7 +213,7 @@ async def listen_for_prop_updated():
     except Exception as e:
         logger.error(f"Error in listener: {e}")
     finally:
-        await redis_subscriber.close()
+        await redis_subscriber.aclose()
 
 
 async def main():

@@ -4,10 +4,10 @@ from db.connection import get_async_connection_context
 import asyncio
 from typing import TypedDict, Optional, List, Tuple
 from datetime import datetime
+from time import time
 
 logger = setup_logger(__name__)
 
-# Constants from server config
 MIN_PARLAYS_REQUIRED = 2
 MIN_PCT_TOTAL_STAKED = 0.6
 K = 32  # Elo rating constant
@@ -66,6 +66,7 @@ def recalculate_points(current_points: List[float], winner: Optional[int]) -> Li
 
 async def handle_parlay_resolved(data):
     """Handles incoming parlay_resolved messages asynchronously"""
+    start_time = time()
     parlay_id = data.get("parlayId")
     if not parlay_id:
         logger.error("Received parlay_resolved message without parlayId")
@@ -228,7 +229,10 @@ async def handle_parlay_resolved(data):
     except Exception as e:
         logger.error(f"Error handling parlay resolved: {e}")
     finally:
-        await redis_publisher.close()
+        await redis_publisher.aclose()
+        
+    end_time = time()
+    logger.info(f"Updated match of parlay_id {parlay_id}. Completed in {end_time - start_time:.2f}s")
 
 
 async def _resolve_match(
@@ -291,11 +295,11 @@ async def _resolve_match(
 
     # Update match user statuses
     await cur.execute(
-        "UPDATE match_user SET status = %s WHERE id = %s",
+        "UPDATE match_user SET status = %s::match_user_status WHERE id = %s",
         (match_user1_status, match_user1["id"])
     )
     await cur.execute(
-        "UPDATE match_user SET status = %s WHERE id = %s",
+        "UPDATE match_user SET status = %s::match_user_status WHERE id = %s",
         (match_user2_status, match_user2["id"])
     )
 
@@ -463,7 +467,7 @@ async def listen_for_parlay_resolved():
     except Exception as e:
         logger.error(f"Error in listener: {e}")
     finally:
-        await redis_subscriber.close()
+        await redis_subscriber.aclose()
 
 
 async def main():

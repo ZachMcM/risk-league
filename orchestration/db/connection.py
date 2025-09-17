@@ -64,7 +64,8 @@ async def get_async_pool():
                     min_size=2,
                     max_size=10,
                     timeout=30.0,
-                    max_idle=300.0
+                    max_idle=300.0,
+                    open=False
                 )
                 await _async_pool.open()
                 atexit.register(close_async_pool_sync)

@@ -1,4 +1,3 @@
-import json
 import asyncio
 import aiohttp
 from datetime import datetime, timedelta
@@ -21,6 +20,7 @@ from prop_generation.configs.baseball import (
 from prop_generation.configs.basketball import (
     get_basketball_stats_list,
 )
+from time import time
 
 VALID_FOOTBALL_STATS = get_football_stats_list()
 VALID_BASKETBALL_STATS = get_basketball_stats_list()
@@ -48,6 +48,7 @@ class StatEntry(TypedDict):
 
 async def handle_stats_updated(data):
     """Handle incoming stats_updated messages asynchronously"""
+    start_time = time()
     league = data.get("league")
     if not league:
         logger.error("Received stats updated message without league")
@@ -97,7 +98,7 @@ async def handle_stats_updated(data):
     for game in all_games:
         player_stats_list, _ = extract_player_stats(game, league)
         for player_stats in player_stats_list:
-            player_id = player_stats["playerId"]
+            player_id = player_stats["player_id"]
             for stat_name, stat_value in player_stats.items():
                 if stat_name in LEAGUE_VALID_STATS[league]:
                     stats_list.append(
@@ -182,9 +183,10 @@ async def handle_stats_updated(data):
     except Exception as e:
         logger.error(f"Error handling stats update: {e}")
     finally:
-        await redis_publisher.close()
+        await redis_publisher.aclose()
 
-    logger.info(f"Updated {len(props_updated)} props")
+    end_time = time()
+    logger.info(f"Updated {len(props_updated)} props. Completed in {end_time - start_time:.2f}s")
 
 
 async def listen_for_stats_updated():
@@ -200,7 +202,7 @@ async def listen_for_stats_updated():
     except Exception as e:
         logger.error(f"Error in listener: {e}")
     finally:
-        await redis_subscriber.close()
+        await redis_subscriber.aclose()
 
 
 async def main():
