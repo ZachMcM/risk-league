@@ -13,6 +13,7 @@ import { socketServer } from "./sockets";
 import rateLimit from "express-rate-limit";
 import RedisStore from "rate-limit-redis";
 import { redis } from "./redis";
+import { invalidateQueries } from "./utils/invalidateQueries";
 const port = process.env.PORT;
 
 const app = express();
@@ -31,12 +32,38 @@ export const io = new Server(httpServer, {
 const pubClient = redis.duplicate();
 const subClient = redis.duplicate();
 
-Promise.all([pubClient.connect(), subClient.connect()]).then(() => {
-  io.adapter(createAdapter(pubClient, subClient));
-  logger.info("Socket.IO Redis adapter configured");
-}).catch((error) => {
-  logger.error("Failed to configure Socket.IO Redis adapter:", error);
-});
+Promise.all([pubClient.connect(), subClient.connect()])
+  .then(() => {
+    io.adapter(createAdapter(pubClient, subClient));
+    logger.info("Socket.IO Redis adapter configured");
+  })
+  .catch((error) => {
+    logger.error("Failed to configure Socket.IO Redis adapter:", error);
+  });
+
+const subClientForHandlers = redis.duplicate();
+
+subClientForHandlers
+  .connect()
+  .then(() => {
+    subClientForHandlers.subscribe("invalidate_queries", (message) => {
+      try {
+        const data = JSON.parse(message);
+        const { keys } = data;
+
+        if (keys && Array.isArray(keys)) {
+          invalidateQueries(...keys);
+        }
+      } catch (error) {
+        logger.error("Error handling query invalidation:", error);
+      }
+    });
+
+    logger.info("Redis invalidation handler configured");
+  })
+  .catch((error) => {
+    logger.error("Failed to configure Redis invalidation handler", error);
+  });
 
 const limiter = rateLimit({
   store: new RedisStore({

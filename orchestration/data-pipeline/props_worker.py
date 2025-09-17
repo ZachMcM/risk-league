@@ -34,7 +34,7 @@ STATS_UPDATER_MAX_WORKERS = int(getenv_required("STATS_UPDATER_MAX_WORKERS"))
 
 logger = setup_logger(__name__)
 
-redis_client = create_redis_client()
+# Redis connections will be created per-worker to avoid fork issues
 
 
 class StatEntry(TypedDict):
@@ -52,6 +52,9 @@ def handle_stats_updated(data):
     if not league:
         logger.error("Received stats updated message without league")
         return
+
+    # Create fresh Redis connection for this worker
+    redis_publisher = create_redis_client()
 
     est_tz = ZoneInfo("America/New_York")
     today = datetime.now(est_tz)
@@ -139,24 +142,35 @@ def handle_stats_updated(data):
 
                 if result:
                     props_updated.append(result)
-                    redis_client.publish(
-                        channel="prop_updated", message=json.dumps({"id": result[0]})
-                    )
-                    
+
+    try:
+        for prop in props_updated:
+            redis_publisher.publish(
+                channel="prop_updated", message=json.dumps({"id": prop[0]})
+            )
+    finally:
+        redis_publisher.close()
+
     logger.info(f"Updated {len(props_updated)} props")
 
 
 def listen_for_stats_updated():
     """Function that listens for a prop updated message on the redis server"""
-    with concurrent.futures.ProcessPoolExecutor(
-        max_workers=STATS_UPDATER_MAX_WORKERS
-    ) as executor:
+    # Create dedicated Redis connection for listener
+    redis_subscriber = create_redis_client()
 
-        def async_handler(data):
-            executor.submit(handle_stats_updated, data)
+    try:
+        with concurrent.futures.ThreadPoolExecutor(
+            max_workers=STATS_UPDATER_MAX_WORKERS
+        ) as executor:
 
-        logger.info("Listening for prop updated messages...")
-        listen_for_messages(redis_client, "stats_updated", async_handler)
+            def async_handler(data):
+                executor.submit(handle_stats_updated, data)
+
+            logger.info("Listening for prop updated messages...")
+            listen_for_messages(redis_subscriber, "stats_updated", async_handler)
+    finally:
+        redis_subscriber.close()
 
 
 def main():

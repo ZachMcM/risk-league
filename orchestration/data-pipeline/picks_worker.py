@@ -6,7 +6,7 @@ import json
 
 logger = setup_logger(__name__)
 
-redis_client = create_redis_client()
+# Redis connections will be created per-worker to avoid fork issues
 
 PICKS_UPDATER_MAX_WORKERS = int(getenv_required("PICKS_UPDATER_MAX_WORKERS"))
 
@@ -18,204 +18,175 @@ def handle_prop_updated(data):
         logger.error("Received prop updated message without id")
         return
 
+    # Create fresh Redis connection for this worker
+    redis_publisher = create_redis_client()
     picks_to_invalidate = []
 
     with get_connection_context() as conn:
         with conn.cursor() as cur:
-            select_query = """
-                SELECT id, current_value, line, status
-                FROM prop
-                WHERE id = %s
-            """
+            try:
+                cur.execute("BEGIN")
 
-            cur.execute(select_query, (prop_id))
-            prop_query_res = cur.fetchone()
-
-            if not prop_query_res:
-                logger.warning("Error, no prop found")
-                return
-
-            updated_prop = {
-                "id": prop_query_res[0],
-                "current_value": prop_query_res[1],
-                "line": prop_query_res[2],
-                "status": prop_query_res[3],
-            }
-
-            if updated_prop["status"] == "did_not_play":
-                update_stmt = """
-                    UPDATE pick SET status = 'did_not_play'
-                    WHERE prop_id = %s
-                    RETURNING id, parlay_id
+                select_query = """
+                    SELECT id, current_value, line, status
+                    FROM prop
+                    WHERE id = %s
                 """
 
-                cur.execute(update_stmt, (updated_prop["id"]))
-                res = cur.fetchone()
-                if not res:
-                    logger.warning("Error, failed to update pick")
+                cur.execute(select_query, (prop_id,))
+                prop_query_res = cur.fetchone()
+
+                if not prop_query_res:
+                    logger.warning(f"No prop found with id {prop_id}")
+                    cur.execute("ROLLBACK")
                     return
 
-                picks_to_invalidate.append({"id": res[0], "parlay_id": res[1]})
+                updated_prop = {
+                    "id": prop_query_res[0],
+                    "current_value": prop_query_res[1],
+                    "line": prop_query_res[2],
+                    "status": prop_query_res[3],
+                }
 
-            elif updated_prop["status"] == "resolved":
-                if updated_prop["current_value"] > updated_prop["line"]:
-                    hits_update_stmt = """
-                        UPDATE pick SET status = 'hit'
-                        WHERE choice = 'over' AND prop_id = %s
-                        RETURNING id, parlay_id
-                    """
-
-                    cur.execute(hits_update_stmt, (updated_prop["id"]))
-                    hits_res = cur.fetchone()
-
-                    if not hits_res:
-                        logger.warning("Error, failed to update pick")
-                        return
-
-                    picks_to_invalidate.append(
-                        {"id": hits_res[0], "parlay_id": hits_res[1]}
-                    )
-
-                    misses_update_stmt = """
-                        UPDATE pick SET status = 'missed'
-                        WHERE choice = 'under' AND prop_id = %s
-                        RETURNING id, parlay_id
-                    """
-
-                    cur.execute(misses_update_stmt, (updated_prop["id"]))
-                    misses_res = cur.fetchone()
-
-                    if not misses_res:
-                        logger.warning("Error, failed to update pick")
-                        return
-
-                    picks_to_invalidate.append(
-                        {"id": misses_res[0], "parlay_id": misses_res[1]}
-                    )
-
-                elif updated_prop["current_value"] == updated_prop["line"]:
-                    ties_update_stmt = """
-                        UPDATE pick SET status = 'tie'
+                if updated_prop["status"] == "did_not_play":
+                    update_stmt = """
+                        UPDATE pick SET status = 'did_not_play'
                         WHERE prop_id = %s
                         RETURNING id, parlay_id
                     """
 
-                    cur.execute(ties_update_stmt, (updated_prop["id"]))
-                    ties_res = cur.fetchone()
+                    cur.execute(update_stmt, (updated_prop["id"],))
+                    dnp_res_list = cur.fetchall()
 
-                    if not ties_res:
-                        logger.warning("Error, failed to update pick")
-                        return
+                    for res in dnp_res_list:
+                        picks_to_invalidate.append({"id": res[0], "parlay_id": res[1]})
 
-                    picks_to_invalidate.append(
-                        {"id": ties_res[0], "parlay_id": ties_res[1]}
-                    )
+                elif updated_prop["status"] == "resolved":
+                    if updated_prop["current_value"] > updated_prop["line"]:
+                        batch_update_stmt = """
+                            WITH updates AS (
+                                UPDATE pick SET status = CASE
+                                    WHEN choice = 'over' THEN 'hit'
+                                    WHEN choice = 'under' THEN 'missed'
+                                END
+                                WHERE prop_id = %s AND choice IN ('over', 'under')
+                                RETURNING id, parlay_id
+                            )
+                            SELECT id, parlay_id FROM updates
+                        """
+
+                        cur.execute(batch_update_stmt, (updated_prop["id"],))
+                        batch_res_list = cur.fetchall()
+
+                        for res in batch_res_list:
+                            picks_to_invalidate.append({"id": res[0], "parlay_id": res[1]})
+
+                    elif updated_prop["current_value"] == updated_prop["line"]:
+                        ties_update_stmt = """
+                            UPDATE pick SET status = 'tie'
+                            WHERE prop_id = %s
+                            RETURNING id, parlay_id
+                        """
+
+                        cur.execute(ties_update_stmt, (updated_prop["id"],))
+                        ties_res_list = cur.fetchall()
+
+                        for ties_res in ties_res_list:
+                            picks_to_invalidate.append(
+                                {"id": ties_res[0], "parlay_id": ties_res[1]}
+                            )
+                    else:
+                        batch_update_stmt = """
+                            WITH updates AS (
+                                UPDATE pick SET status = CASE
+                                    WHEN choice = 'over' THEN 'missed'
+                                    WHEN choice = 'under' THEN 'hit'
+                                END
+                                WHERE prop_id = %s AND choice IN ('over', 'under')
+                                RETURNING id, parlay_id
+                            )
+                            SELECT id, parlay_id FROM updates
+                        """
+
+                        cur.execute(batch_update_stmt, (updated_prop["id"],))
+                        batch_res_list = cur.fetchall()
+
+                        for res in batch_res_list:
+                            picks_to_invalidate.append({"id": res[0], "parlay_id": res[1]})
+
                 else:
-                    misses_update_stmt = """
-                        UPDATE pick SET status = 'missed'
-                        WHERE choice = 'over' AND prop_id = %s
-                        RETURNING id, parlay_id
-                    """
+                    if updated_prop["current_value"] > updated_prop["line"]:
+                        batch_update_stmt = """
+                            WITH updates AS (
+                                UPDATE pick SET status = CASE
+                                    WHEN choice = 'over' THEN 'hit'
+                                    WHEN choice = 'under' THEN 'missed'
+                                END
+                                WHERE prop_id = %s AND choice IN ('over', 'under')
+                                RETURNING id, parlay_id
+                            )
+                            SELECT id, parlay_id FROM updates
+                        """
 
-                    cur.execute(misses_update_stmt, (updated_prop["id"]))
-                    misses_res = cur.fetchone()
+                        cur.execute(batch_update_stmt, (updated_prop["id"],))
+                        batch_res_list = cur.fetchall()
 
-                    if not misses_res:
-                        logger.warning("Error, failed to update pick")
-                        return
+                        for res in batch_res_list:
+                            picks_to_invalidate.append({"id": res[0], "parlay_id": res[1]})
+                    else:
+                        related_picks_query = """
+                            SELECT id, parlay_id
+                            FROM pick
+                            WHERE prop_id = %s
+                        """
 
-                    picks_to_invalidate.append(
-                        {"id": misses_res[0], "parlay_id": misses_res[1]}
-                    )
+                        cur.execute(related_picks_query, (updated_prop["id"],))
+                        related_picks_res_list = cur.fetchall()
 
-                    hits_update_stmt = """
-                        UPDATE pick SET status = 'hit'
-                        WHERE choice = 'under' AND prop_id = %s
-                        RETURNING id, parlay_id
-                    """
+                        for related_picks_res in related_picks_res_list:
+                            picks_to_invalidate.append(
+                                {"id": related_picks_res[0], "parlay_id": related_picks_res[1]}
+                            )
 
-                    cur.execute(hits_update_stmt, (updated_prop["id"]))
-                    hits_res = cur.fetchone()
+                cur.execute("COMMIT")
 
-                    if not hits_res:
-                        logger.warning("Error, failed to update pick")
-                        return
+            except Exception as e:
+                cur.execute("ROLLBACK")
+                logger.error(f"Database transaction failed: {e}")
+                raise e
 
-                    picks_to_invalidate.append(
-                        {"id": hits_res[0], "parlay_id": hits_res[1]}
-                    )
-            else:
-                if updated_prop["current_value"] > updated_prop["line"]:
-                    hits_update_stmt = """
-                        UPDATE pick SET status = 'hit'
-                        WHERE choice = 'over' AND prop_id = %s
-                        RETURNING id, parlay_id
-                    """
-
-                    cur.execute(hits_update_stmt, (updated_prop["id"]))
-                    hits_res = cur.fetchone()
-
-                    if not hits_res:
-                        logger.warning("Error, failed to update pick")
-                        return
-
-                    picks_to_invalidate.append(
-                        {"id": hits_res[0], "parlay_id": hits_res[1]}
-                    )
-
-                    misses_update_stmt = """
-                        UPDATE pick SET status = 'missed'
-                        WHERE choice = 'under' AND prop_id = %s
-                        RETURNING id, parlay_id
-                    """
-
-                    cur.execute(misses_update_stmt, (updated_prop["id"]))
-                    misses_res = cur.fetchone()
-
-                    if not misses_res:
-                        logger.warning("Error, failed to update pick")
-                        return
-
-                    picks_to_invalidate.append(
-                        {"id": misses_res[0], "parlay_id": misses_res[1]}
-                    )
-                else:
-                    related_picks_query = """
-                        SELECT id, parlay_id 
-                        FROM pick
-                        WHERE prop_id = %s
-                    """
-
-                    cur.execute(related_picks_query, (updated_prop["id"]))
-                    related_picks_res = cur.fetchone()
-
-                    if not related_picks_res:
-                        logger.warning("Error, failed to update pick")
-                        return
-
-                    picks_to_invalidate.append(
-                        {"id": related_picks_res[0], "parlay_id": related_picks_res[1]}
-                    )
-
-    for pick in picks_to_invalidate:
-        redis_client.publish(
-            channel="pick_resolved", message=json.dumps({"id": pick["id"]})
-        )
-        
-        # TODO send invalidation message
+    try:
+        for pick in picks_to_invalidate:
+            redis_publisher.publish(
+                channel="pick_resolved", message=json.dumps({"id": pick["id"]})
+            )
+            redis_publisher.publish(
+                channel="invalidate_queries",
+                message=json.dumps(
+                    {"keys": [["pick", pick["id"]], ["parlay", pick["parlay_id"]]]}
+                ),
+            )
+    finally:
+        redis_publisher.close()
 
 
 def listen_for_prop_updated():
     """Function that listens for a prop updated message on the redis server"""
-    with concurrent.futures.ProcessPoolExecutor(
-        max_workers=PICKS_UPDATER_MAX_WORKERS
-    ) as executor:
+    # Create dedicated Redis connection for listener
+    redis_subscriber = create_redis_client()
 
-        def async_handler(data):
-            executor.submit(handle_prop_updated, data)
+    try:
+        with concurrent.futures.ThreadPoolExecutor(
+            max_workers=PICKS_UPDATER_MAX_WORKERS
+        ) as executor:
 
-        logger.info("Listening for prop updated messages...")
-        listen_for_messages(redis_client, "prop_updated", async_handler)
+            def async_handler(data):
+                executor.submit(handle_prop_updated, data)
+
+            logger.info("Listening for prop updated messages...")
+            listen_for_messages(redis_subscriber, "prop_updated", async_handler)
+    finally:
+        redis_subscriber.close()
 
 
 def main():

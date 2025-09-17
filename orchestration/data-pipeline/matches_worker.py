@@ -4,7 +4,8 @@ import concurrent.futures
 
 logger = setup_logger(__name__)
 
-redis_client = create_redis_client()
+redis_subscriber = create_redis_client()
+redis_publisher = create_redis_client()
 
 MATCHES_UPDATER_MAX_WORKERS = int(getenv_required("MATCHES_UPDATER_MAX_WORKERS"))
 
