@@ -1,8 +1,6 @@
 import { and, desc, eq, gt, gte, lt, notInArray } from "drizzle-orm";
-import { createInsertSchema } from "drizzle-zod";
 import { Router } from "express";
 import moment from "moment";
-import z from "zod";
 import { db } from "../db";
 import {
   baseballPlayerStats,
@@ -15,11 +13,10 @@ import {
   player,
   prop,
 } from "../db/schema";
-import { apiKeyMiddleware, authMiddleware } from "../middleware";
-import { redis } from "../redis";
-import { handleError } from "../utils/handleError";
 import { logger } from "../logger";
+import { authMiddleware } from "../middleware";
 import { getAvailablePropsForUser } from "../utils/getAvailableProps";
+import { handleError } from "../utils/handleError";
 
 export const propsRoute = Router();
 
@@ -343,97 +340,5 @@ propsRoute.get("/props/today", authMiddleware, async (req, res) => {
     }
   } catch (error) {
     handleError(error, res, "Props route");
-  }
-});
-
-const propsSchema = createInsertSchema(prop);
-
-propsRoute.post("/props", apiKeyMiddleware, async (req, res) => {
-  try {
-    propsSchema.parse(req.body);
-
-    const newProp = await db.insert(prop).values(req.body);
-
-    res.json(newProp);
-  } catch (error) {
-    handleError(error, res, "Props route");
-  }
-});
-
-const livePropUpdateSchema = z.object({
-  playerId: z.number(),
-  statName: z.string(),
-  currentValue: z.number(),
-  gameId: z.string(),
-  league: z.enum(["MLB", "NFL", "NBA", "NCAABB", "NCAAFB"] as const),
-  status: z.string(),
-});
-
-propsRoute.patch("/props/live", apiKeyMiddleware, async (req, res) => {
-  try {
-    logger.info(
-      `Received live props update with ${req.body?.length || 0} entries`
-    );
-    const statUpdates = req.body as z.infer<typeof livePropUpdateSchema>[];
-
-    for (const entry of statUpdates) {
-      livePropUpdateSchema.parse(entry);
-    }
-
-    const statsUpdated = await Promise.all(
-      statUpdates.map(
-        async ({
-          currentValue,
-          playerId,
-          statName,
-          league,
-          gameId,
-          status,
-        }) => {
-          const propResult = await db.query.prop.findFirst({
-            where: and(
-              eq(prop.playerId, playerId),
-              eq(prop.statName, statName),
-              eq(prop.league, league),
-              eq(prop.gameId, gameId)
-            ),
-          });
-
-          if (!propResult) {
-            return;
-          }
-
-          const updateData: {
-            currentValue: number;
-            status?: "resolved" | "did_not_play" | "not_resolved";
-          } = {
-            currentValue,
-          };
-
-          if (
-            ["completed", "final"].includes(status) ||
-            currentValue > propResult.line
-          ) {
-            updateData.status = "resolved";
-          }
-
-          const updatedProp = await db
-            .update(prop)
-            .set(updateData)
-            .where(eq(prop.id, propResult.id))
-            .returning({ id: prop.id });
-
-          for (const prop of updatedProp) {
-            redis.publish("prop_updated", JSON.stringify({ id: prop.id }));
-          }
-        }
-      )
-    );
-
-    logger.info(`${statsUpdated.length} Stats updated`);
-
-    res.json({ success: true });
-  } catch (error) {
-    handleError(error, res, "Props");
   }
 });

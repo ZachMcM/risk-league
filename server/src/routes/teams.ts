@@ -85,37 +85,6 @@ teamsRoute.get("/teams/league/:league", apiKeyMiddleware, async (req, res) => {
   }
 });
 
-teamsRoute.get(
-  "/teams/:teamId/league/:league",
-  apiKeyMiddleware,
-  async (req, res) => {
-    try {
-      const teamId = parseInt(req.params.teamId);
-      const league = req.params.league as
-        | (typeof leagueType.enumValues)[number]
-        | undefined;
-
-      if (league === undefined || !leagueType.enumValues.includes(league)) {
-        res.status(400).json({ error: "Invalid league parameter" });
-        return;
-      }
-
-      if (isNaN(teamId)) {
-        res.status(400).json({ error: "Invalid teamId parameter" });
-        return;
-      }
-
-      const teamResult = await db.query.team.findFirst({
-        where: and(eq(team.teamId, teamId), eq(team.league, league)),
-      });
-
-      res.json(teamResult);
-    } catch (error) {
-      handleError(error, res, "Teams");
-    }
-  }
-);
-
 teamsRoute.put(
   "/teams/:id/league/:league/colors",
   apiKeyMiddleware,

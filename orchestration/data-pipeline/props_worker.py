@@ -91,7 +91,7 @@ def handle_stats_updated(data):
                         }
                     )
 
-    total_props_updated = []
+    props_updated = []
 
     with get_connection_context() as conn:
         with conn.cursor() as cur:
@@ -138,12 +138,12 @@ def handle_stats_updated(data):
                 result = cur.fetchone()
 
                 if result:
-                    total_props_updated.append(result)
+                    props_updated.append(result)
                     redis_client.publish(
                         channel="prop_updated", message=json.dumps({"id": result[0]})
                     )
                     
-    logger.info(f"Updated {len(total_props_updated)} props")
+    logger.info(f"Updated {len(props_updated)} props")
 
 
 def listen_for_stats_updated():
