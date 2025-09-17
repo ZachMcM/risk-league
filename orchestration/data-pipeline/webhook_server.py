@@ -1,11 +1,34 @@
-import json
+from contextlib import asynccontextmanager
+
+from fastapi import Depends, FastAPI, HTTPException, Request
+from redis_utils import create_async_redis_client, publish_message_async
 from utils import getenv_required
-from fastapi import FastAPI, HTTPException, Request, Depends
-from redis_utils import create_redis_client
 
-app = FastAPI()
 
-redis_client = create_redis_client()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Handle application startup and shutdown"""
+    # Startup
+    yield
+    # Shutdown
+    global _redis_client
+    if _redis_client:
+        await _redis_client.close()
+
+
+# Create app with lifespan
+app = FastAPI(lifespan=lifespan)
+
+# Global async Redis client
+_redis_client = None
+
+
+async def get_redis_client():
+    """Get or create async Redis client"""
+    global _redis_client
+    if _redis_client is None:
+        _redis_client = await create_async_redis_client()
+    return _redis_client
 
 
 def api_key_or_ip_middleware(request: Request):
@@ -27,12 +50,15 @@ def api_key_or_ip_middleware(request: Request):
 
 
 @app.post("/webhook/stats/league/{league_id}")
-async def handle_webhook(league_id: str, request: Request, _: None = Depends(api_key_or_ip_middleware)):
+async def handle_webhook(
+    league_id: str, request: Request, _: None = Depends(api_key_or_ip_middleware)
+):
+    """Handle stats webhook with proper async Redis publishing"""
     if league_id not in ["MLB", "NBA", "NFL", "NCAAFB", "NCAABB"]:
         raise HTTPException(status_code=400, detail="Invalid league_id")
 
-    redis_client.publish(
-        channel="stats_updated", message=json.dumps({"league": league_id})
-    )
+    # Use async Redis client
+    redis_client = await get_redis_client()
+    await publish_message_async(redis_client, "stats_updated", {"league": league_id})
 
     return {"success": True}

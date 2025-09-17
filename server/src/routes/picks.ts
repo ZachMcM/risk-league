@@ -1,12 +1,9 @@
+import { eq } from "drizzle-orm";
 import { Router } from "express";
-import { apiKeyMiddleware, authMiddleware } from "../middleware";
 import { db } from "../db";
-import { and, eq } from "drizzle-orm";
-import { pick, prop } from "../db/schema";
-import { redis } from "../redis";
-import { invalidateQueries } from "../utils/invalidateQueries";
+import { pick } from "../db/schema";
+import { authMiddleware } from "../middleware";
 import { handleError } from "../utils/handleError";
-import { logger } from "../logger";
 
 export const picksRoute = Router();
 

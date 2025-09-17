@@ -11,7 +11,6 @@ import { propsRoute } from "./props";
 import { teamsRoute } from "./teams";
 import { usersRoute } from "./users";
 import { leaderboardRoute } from "./leaderboard";
-import { webhooksRoute } from "./webhooks";
 import { dynastyLeaguesRoute } from "./dynastyLeagues";
 
 export const routes = express.Router();
@@ -27,6 +26,5 @@ routes.use(gamesRoute);
 routes.use(teamsRoute);
 routes.use(playersRoute);
 routes.use(leaderboardRoute);
-routes.use(webhooksRoute);
 routes.use(dynastyLeaguesRoute);
 routes.use(battlePassRoute);

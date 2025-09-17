@@ -9,13 +9,13 @@ requires-python = ">=3.9"
 dependencies = [
   "pandas",
   "python-dotenv",
-  "numpy",
+  "numpy>=2.0.0",
   "requests",
   "scikit-learn",
   "apscheduler",
   "asyncio",
   "mypy",
-  "redis",
+  "redis==6.4.0",
   "python-socketio[asyncio_client]",
   "schedule",
   "pytz",
@@ -23,8 +23,9 @@ dependencies = [
   "psycopg[binary]",
   "psycopg[pool]",
   "fastapi[standard]",
-  "aioredis",
-  "aiohttp"
+  "aiohttp",
+  "numba>=0.60.0",
+  "opencv-python-headless>=4.10.0"
 ]
 
 [tool.setuptools.packages.find]
