@@ -7,7 +7,7 @@ docker run --name postgres-local -e POSTGRES_PASSWORD=<PASSWORD> -p 5432:5432 -d
 
 Add to `.env` in server
 ```
-DATABASE_URL="postgresql://postgres:<PASSWORD>@localhost:5432/riskleague?sslmode=disable"
+DATABASE_URL="postgresql://postgres:<PASSWORD>@localhost:5432"
 ```
 
 ### Running The Redis Server
