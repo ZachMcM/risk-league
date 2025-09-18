@@ -2,8 +2,9 @@ from contextlib import asynccontextmanager
 
 from fastapi import Depends, FastAPI, HTTPException, Request
 from redis_utils import create_async_redis_client, publish_message_async
-from utils import getenv_required
+from utils import getenv_required, setup_logger
 
+logger = setup_logger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -54,6 +55,7 @@ async def handle_webhook(
     league_id: str, request: Request, _: None = Depends(api_key_or_ip_middleware)
 ):
     """Handle stats webhook with proper async Redis publishing"""
+    logger.info(f"Stat update request for league: {league_id}", request)
     if league_id not in ["MLB", "NBA", "NFL", "NCAAFB", "NCAABB"]:
         raise HTTPException(status_code=400, detail="Invalid league_id")
 
