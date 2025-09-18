@@ -10,6 +10,7 @@ logger = setup_logger(__name__)
 async def lifespan(app: FastAPI):
     """Handle application startup and shutdown"""
     # Startup
+    logger.info(f"Setting up FastAPI on port {getenv_required('PORT')}")
     yield
     # Shutdown
     global _redis_client
