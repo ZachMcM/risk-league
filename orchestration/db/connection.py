@@ -104,9 +104,7 @@ async def close_async_pool():
         logger.info("Async database connection pool closed")
 
 
-def get_async_connection_context():
+async def get_async_connection_context():
     """Get an async connection context manager from the pool"""
-    async def _get_context():
-        pool = await get_async_pool()
-        return pool.connection()
-    return _get_context()
+    pool = await get_async_pool()
+    return pool.connection()

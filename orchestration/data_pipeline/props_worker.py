@@ -189,20 +189,30 @@ async def handle_stats_updated(data):
     logger.info(f"Updated {len(props_updated)} props. Completed in {end_time - start_time:.2f}s")
 
 
+async def handle_stats_updated_safe(data):
+    """Safe wrapper for handle_stats_updated that prevents listener crashes"""
+    try:
+        await handle_stats_updated(data)
+    except Exception as e:
+        logger.error(f"Error handling stats_updated message: {e}", exc_info=True)
+
+
 async def listen_for_stats_updated():
     """Function that listens for stats updated messages on the redis server"""
-    # Create dedicated Redis connection for listener
-    redis_subscriber = await create_async_redis_client()
-
-    try:
-        logger.info("Listening for stats updated messages...")
-        await listen_for_messages_async(
-            redis_subscriber, "stats_updated", handle_stats_updated
-        )
-    except Exception as e:
-        logger.error(f"Error in listener: {e}")
-    finally:
-        await redis_subscriber.aclose()
+    while True:
+        redis_subscriber = None
+        try:
+            redis_subscriber = await create_async_redis_client()
+            logger.info("Listening for stats updated messages...")
+            await listen_for_messages_async(
+                redis_subscriber, "stats_updated", handle_stats_updated_safe
+            )
+        except Exception as e:
+            logger.error(f"Error in listener, restarting: {e}")
+            await asyncio.sleep(5)  # Brief delay before restart
+        finally:
+            if redis_subscriber:
+                await redis_subscriber.aclose()
 
 
 async def main():

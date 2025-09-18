@@ -332,19 +332,30 @@ async def _publish_parlay_resolved_messages(
         await asyncio.gather(*publish_tasks)
 
 
+async def handle_pick_resolved_safe(data):
+    """Safe wrapper for handle_pick_resolved that prevents listener crashes"""
+    try:
+        await handle_pick_resolved(data)
+    except Exception as e:
+        logger.error(f"Error handling pick_resolved message: {e}", exc_info=True)
+
+
 async def listen_for_pick_resolved():
     """Function that listens for a pick_resolved message on redis"""
-    redis_subscriber = await create_async_redis_client()
-
-    try:
-        logger.info("Listening for pick_resolved messages...")
-        await listen_for_messages_async(
-            redis_subscriber, "pick_resolved", handle_pick_resolved
-        )
-    except Exception as e:
-        logger.error(f"Error in listener: {e}")
-    finally:
-        await redis_subscriber.aclose()
+    while True:
+        redis_subscriber = None
+        try:
+            redis_subscriber = await create_async_redis_client()
+            logger.info("Listening for pick_resolved messages...")
+            await listen_for_messages_async(
+                redis_subscriber, "pick_resolved", handle_pick_resolved_safe
+            )
+        except Exception as e:
+            logger.error(f"Error in listener, restarting: {e}")
+            await asyncio.sleep(5)  # Brief delay before restart
+        finally:
+            if redis_subscriber:
+                await redis_subscriber.aclose()
 
 
 async def main():

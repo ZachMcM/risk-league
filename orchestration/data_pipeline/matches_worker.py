@@ -455,19 +455,30 @@ async def _publish_match_resolved_messages(
         await asyncio.gather(*publish_tasks)
 
 
+async def handle_parlay_resolved_safe(data):
+    """Safe wrapper for handle_parlay_resolved that prevents listener crashes"""
+    try:
+        await handle_parlay_resolved(data)
+    except Exception as e:
+        logger.error(f"Error handling parlay_resolved message: {e}", exc_info=True)
+
+
 async def listen_for_parlay_resolved():
     """Function that listens for a parlay_resolved message on redis"""
-    redis_subscriber = await create_async_redis_client()
-
-    try:
-        logger.info("Listening for parlay_resolved messages...")
-        await listen_for_messages_async(
-            redis_subscriber, "parlay_resolved", handle_parlay_resolved
-        )
-    except Exception as e:
-        logger.error(f"Error in listener: {e}")
-    finally:
-        await redis_subscriber.aclose()
+    while True:
+        redis_subscriber = None
+        try:
+            redis_subscriber = await create_async_redis_client()
+            logger.info("Listening for parlay_resolved messages...")
+            await listen_for_messages_async(
+                redis_subscriber, "parlay_resolved", handle_parlay_resolved_safe
+            )
+        except Exception as e:
+            logger.error(f"Error in listener, restarting: {e}")
+            await asyncio.sleep(5)  # Brief delay before restart
+        finally:
+            if redis_subscriber:
+                await redis_subscriber.aclose()
 
 
 async def main():
