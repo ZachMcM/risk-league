@@ -23,6 +23,7 @@ dependencies = [
   "psycopg[binary]",
   "psycopg[pool]",
   "fastapi[standard]",
+  "uvicorn",
   "aiohttp",
   "numba>=0.60.0",
   "opencv-python-headless>=4.10.0"
