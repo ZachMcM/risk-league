@@ -66,8 +66,8 @@ def main() -> None:
             "MLB", "stolen_bases"
         )
 
-        for game in games_list:
-            logger.info(f"Processing MLB game {game['game_ID']}")
+        for i, game in enumerate(games_list):
+            logger.info(f"Processing MLB game {game['game_ID']} ({i + 1}/{len(game)})")
             team_ids: list[int] = [game["home_team_ID"], game["away_team_ID"]]
             starting_pitcher_ids = [
                 game["home_pitcher"]["player_id"],

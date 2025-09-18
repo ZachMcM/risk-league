@@ -34,15 +34,23 @@ def insert_players(players_data: list[Player]) -> list[int]:
     try:
         with get_connection_context() as conn:
             with conn.cursor() as cur:
-                # First, filter players that have valid team references
+                # First, get all valid team IDs for the league in one query
+                if not players_data:
+                    return []
+
+                league = players_data[0]['league']  # All players should be from same league
+                team_ids = list(set(p['team_id'] for p in players_data))
+
+                cur.execute(
+                    "SELECT team_id FROM team WHERE team_id = ANY(%s) AND league = %s",
+                    (team_ids, league)
+                )
+                valid_team_ids = {row[0] for row in cur.fetchall()}
+
+                # Filter players that have valid team references
                 valid_players = []
                 for player_data in players_data:
-                    # Check if team exists
-                    cur.execute(
-                        "SELECT team_id FROM team WHERE team_id = %s AND league = %s LIMIT 1",
-                        (player_data['team_id'], player_data['league'])
-                    )
-                    if cur.fetchone():
+                    if player_data['team_id'] in valid_team_ids:
                         valid_players.append(player_data)
                     else:
                         logger.warning(
@@ -70,10 +78,10 @@ def insert_players(players_data: list[Player]) -> list[int]:
                     RETURNING player_id
                 """
 
-                # Execute batch insert
-                player_ids = []
+                # Execute batch insert using executemany
+                player_values = []
                 for player_data in valid_players:
-                    cur.execute(insert_query, (
+                    player_values.append((
                         player_data['player_id'],
                         player_data['name'],
                         player_data['team_id'],
@@ -84,6 +92,10 @@ def insert_players(players_data: list[Player]) -> list[int]:
                         player_data['status'],
                         player_data['league']
                     ))
+
+                player_ids = []
+                for values in player_values:
+                    cur.execute(insert_query, values)
                     result = cur.fetchone()
                     if result:
                         player_ids.append(result[0])

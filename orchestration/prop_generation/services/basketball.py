@@ -101,7 +101,8 @@ def main():
 
             games_today = today_schedule_req.json()
             games_list = games_today["data"][league]
-            for game in games_list:
+            for i, game in enumerate(games_list):
+                logger.info(f"Processing game {game['game_ID']} ({i + 1}/{len(game)})")
                 team_ids: list[int] = [game["home_team_ID"], game["away_team_ID"]]
 
                 game_data: Game = {

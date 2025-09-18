@@ -4,16 +4,16 @@ import traceback
 from constants import LEAGUES
 from db.players import insert_players, Player
 from utils import data_feeds_req, setup_logger
+from time import time
 
 logger = setup_logger(__name__)
 
 
 def main():
     try:
+        start_time = time()
         # Log startup information
         logger.info("Starting player upsert process")
-        logger.info(f"Python path: {sys.path}")
-        logger.info(f"Command line args: {sys.argv}")
 
         if len(sys.argv) < 2:
             logger.error("You need to provide league command arguments")
@@ -74,7 +74,8 @@ def main():
 
                     batch = []  # Reset batch
 
-            print(f"{total_upserted} {league} players upserted")
+            end_time = time()
+            print(f"{total_upserted} {league} players upserted in {end_time - start_time:.2f}s")
 
     except Exception as e:
         logger.error(f"Fatal error in upsert_players: {e}")
