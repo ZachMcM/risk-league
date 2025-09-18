@@ -50,23 +50,14 @@ def home_runs_config() -> PropConfig:
     """Home runs configuration"""
     return PropConfig(
         stat_name="home_runs",
-        target_field="homeRuns",
         display_name="Home Runs",
         features=[
-            FeatureDefinition("at_bats", "atBats", DataScope.PLAYER),
-            FeatureDefinition("slugging_pct", "sluggingPct", DataScope.PLAYER),
-            FeatureDefinition("batting_avg", "battingAvg", DataScope.PLAYER),
-            FeatureDefinition(
-                "opp_home_runs_allowed", "homeRunsAllowed", DataScope.OPPONENT
-            ),
-            FeatureDefinition(
-                "opp_pitching_strikeouts",
-                "pitchingStrikeouts",
-                DataScope.OPPONENT,
-            ),
-            FeatureDefinition(
-                "opp_pitching_walks", "pitchingWalks", DataScope.OPPONENT
-            ),
+            FeatureDefinition("at_bats", "at_bats", DataScope.PLAYER),
+            FeatureDefinition("slugging_pct", "slugging_pct", DataScope.PLAYER),
+            FeatureDefinition("batting_avg", "batting_avg", DataScope.PLAYER),
+            FeatureDefinition("opp_home_runs_allowed", "home_runs_allowed", DataScope.OPPONENT),
+            FeatureDefinition("opp_pitching_strikeouts", "pitching_strikeouts", DataScope.OPPONENT),
+            FeatureDefinition("opp_pitching_walks", "pitching_walks", DataScope.OPPONENT),
         ],
         model_type=ModelType.POISSON,
         model_params={"alpha": 1},
@@ -78,24 +69,15 @@ def doubles_config() -> PropConfig:
     """Doubles configuration"""
     return PropConfig(
         stat_name="doubles",
-        target_field="doubles",
         display_name="Doubles",
         features=[
             FeatureDefinition("hits", "hits", DataScope.PLAYER),
-            FeatureDefinition("at_bats", "atBats", DataScope.PLAYER),
-            FeatureDefinition("slugging_pct", "sluggingPct", DataScope.PLAYER),
-            FeatureDefinition("batting_avg", "battingAvg", DataScope.PLAYER),
-            FeatureDefinition(
-                "opp_doubles_allowed", "doublesAllowed", DataScope.OPPONENT
-            ),
-            FeatureDefinition(
-                "opp_pitching_strikeouts",
-                "pitchingStrikeouts",
-                DataScope.OPPONENT,
-            ),
-            FeatureDefinition(
-                "opp_pitching_walks", "pitchingWalks", DataScope.OPPONENT
-            ),
+            FeatureDefinition("at_bats", "at_bats", DataScope.PLAYER),
+            FeatureDefinition("slugging_pct", "slugging_pct", DataScope.PLAYER),
+            FeatureDefinition("batting_avg", "batting_avg", DataScope.PLAYER),
+            FeatureDefinition("opp_doubles_allowed", "doubles_allowed", DataScope.OPPONENT),
+            FeatureDefinition("opp_pitching_strikeouts", "pitching_strikeouts", DataScope.OPPONENT),
+            FeatureDefinition("opp_pitching_walks", "pitching_walks", DataScope.OPPONENT),
         ],
         model_type=ModelType.POISSON,
         model_params={"alpha": 1},
@@ -107,21 +89,14 @@ def hits_config() -> PropConfig:
     """Hits configuration"""
     return PropConfig(
         stat_name="hits",
-        target_field="hits",
         display_name="Hits",
         features=[
-            FeatureDefinition("at_bats", "atBats", DataScope.PLAYER),
-            FeatureDefinition("slugging_pct", "sluggingPct", DataScope.PLAYER),
-            FeatureDefinition("batting_avg", "battingAvg", DataScope.PLAYER),
-            FeatureDefinition("opp_hits_allowed", "hitsAllowed", DataScope.OPPONENT),
-            FeatureDefinition(
-                "opp_pitching_strikeouts",
-                "pitchingStrikeouts",
-                DataScope.OPPONENT,
-            ),
-            FeatureDefinition(
-                "opp_pitching_walks", "pitchingWalks", DataScope.OPPONENT
-            ),
+            FeatureDefinition("at_bats", "at_bats", DataScope.PLAYER),
+            FeatureDefinition("slugging_pct", "slugging_pct", DataScope.PLAYER),
+            FeatureDefinition("batting_avg", "batting_avg", DataScope.PLAYER),
+            FeatureDefinition("opp_hits_allowed", "hits_allowed", DataScope.OPPONENT),
+            FeatureDefinition("opp_pitching_strikeouts", "pitching_strikeouts", DataScope.OPPONENT),
+            FeatureDefinition("opp_pitching_walks", "pitching_walks", DataScope.OPPONENT),
         ],
         model_type=ModelType.POISSON,
         model_params={"alpha": 1},
@@ -133,24 +108,15 @@ def triples_config() -> PropConfig:
     """Triples configuration"""
     return PropConfig(
         stat_name="triples",
-        target_field="triples",
         display_name="Triples",
         features=[
             FeatureDefinition("hits", "hits", DataScope.PLAYER),
-            FeatureDefinition("at_bats", "atBats", DataScope.PLAYER),
-            FeatureDefinition("slugging_pct", "sluggingPct", DataScope.PLAYER),
-            FeatureDefinition("batting_avg", "battingAvg", DataScope.PLAYER),
-            FeatureDefinition(
-                "opp_triples_allowed", "triplesAllowed", DataScope.OPPONENT
-            ),
-            FeatureDefinition(
-                "opp_pitching_strikeouts",
-                "pitchingStrikeouts",
-                DataScope.OPPONENT,
-            ),
-            FeatureDefinition(
-                "opp_pitching_walks", "pitchingWalks", DataScope.OPPONENT
-            ),
+            FeatureDefinition("at_bats", "at_bats", DataScope.PLAYER),
+            FeatureDefinition("slugging_pct", "slugging_pct", DataScope.PLAYER),
+            FeatureDefinition("batting_avg", "batting_avg", DataScope.PLAYER),
+            FeatureDefinition("opp_triples_allowed", "triples_allowed", DataScope.OPPONENT),
+            FeatureDefinition("opp_pitching_strikeouts", "pitching_strikeouts", DataScope.OPPONENT),
+            FeatureDefinition("opp_pitching_walks", "pitching_walks", DataScope.OPPONENT),
         ],
         model_type=ModelType.POISSON,
         model_params={"alpha": 1},
@@ -162,23 +128,16 @@ def rbis_config() -> PropConfig:
     """RBI configuration"""
     return PropConfig(
         stat_name="rbis",
-        target_field="rbis",
         display_name="RBIs",
         features=[
             FeatureDefinition("hits", "hits", DataScope.PLAYER),
-            FeatureDefinition("home_runs", "homeRuns", DataScope.PLAYER),
-            FeatureDefinition("at_bats", "atBats", DataScope.PLAYER),
-            FeatureDefinition("slugging_pct", "sluggingPct", DataScope.PLAYER),
+            FeatureDefinition("home_runs", "home_runs", DataScope.PLAYER),
+            FeatureDefinition("at_bats", "at_bats", DataScope.PLAYER),
+            FeatureDefinition("slugging_pct", "slugging_pct", DataScope.PLAYER),
             FeatureDefinition("team_runs", "runs", DataScope.TEAM),
-            FeatureDefinition(
-                "opp_pitching_strikeouts",
-                "pitchingStrikeouts",
-                DataScope.OPPONENT,
-            ),
-            FeatureDefinition(
-                "opp_pitching_walks", "pitchingWalks", DataScope.OPPONENT
-            ),
-            FeatureDefinition("opp_runs_allowed", "runsAllowed", DataScope.OPPONENT),
+            FeatureDefinition("opp_pitching_strikeouts", "pitching_strikeouts", DataScope.OPPONENT),
+            FeatureDefinition("opp_pitching_walks", "pitching_walks", DataScope.OPPONENT),
+            FeatureDefinition("opp_runs_allowed", "runs_allowed", DataScope.OPPONENT),
         ],
         model_type=ModelType.POISSON,
         model_params={"alpha": 1},
@@ -190,21 +149,14 @@ def strikeouts_config() -> PropConfig:
     """Batting Strikeouts configuration"""
     return PropConfig(
         stat_name="strikeouts",
-        target_field="strikeouts",
         display_name="Batting Strikeouts",
         features=[
-            FeatureDefinition("at_bats", "atBats", DataScope.PLAYER),
-            FeatureDefinition("slugging_pct", "sluggingPct", DataScope.PLAYER),
-            FeatureDefinition(
-                "opp_pitching_strikeouts",
-                "pitchingStrikeouts",
-                DataScope.OPPONENT,
-            ),
+            FeatureDefinition("at_bats", "at_bats", DataScope.PLAYER),
+            FeatureDefinition("slugging_pct", "slugging_pct", DataScope.PLAYER),
+            FeatureDefinition("opp_pitching_strikeouts", "pitching_strikeouts", DataScope.OPPONENT),
             FeatureDefinition("opp_strikes", "strikes", DataScope.OPPONENT),
-            FeatureDefinition(
-                "opp_pitches_thrown", "pitchesThrown", DataScope.OPPONENT
-            ),
-            FeatureDefinition("opp_hits_allowed", "hitsAllowed", DataScope.OPPONENT),
+            FeatureDefinition("opp_pitches_thrown", "pitches_thrown", DataScope.OPPONENT),
+            FeatureDefinition("opp_hits_allowed", "hits_allowed", DataScope.OPPONENT),
         ],
         model_type=ModelType.POISSON,
         model_params={"alpha": 1},
@@ -216,15 +168,14 @@ def pitching_strikeouts_config() -> PropConfig:
     """Pitching Strikeouts configuration"""
     return PropConfig(
         stat_name="pitching_strikeouts",
-        target_field="pitchingStrikeouts",
         display_name="Pitching Strikeouts",
         features=[
-            FeatureDefinition("innings_pitched", "inningsPitched", DataScope.PLAYER),
-            FeatureDefinition("pitches_thrown", "pitchesThrown", DataScope.PLAYER),
+            FeatureDefinition("innings_pitched", "innings_pitched", DataScope.PLAYER),
+            FeatureDefinition("pitches_thrown", "pitches_thrown", DataScope.PLAYER),
             FeatureDefinition("strikes", "strikes", DataScope.PLAYER),
             FeatureDefinition("opp_strikeouts", "strikeouts", DataScope.OPPONENT),
-            FeatureDefinition("opp_batting_avg", "battingAvg", DataScope.OPPONENT),
-            FeatureDefinition("opp_slugging_pct", "sluggingPct", DataScope.OPPONENT)
+            FeatureDefinition("opp_batting_avg", "batting_avg", DataScope.OPPONENT),
+            FeatureDefinition("opp_slugging_pct", "slugging_pct", DataScope.OPPONENT)
         ],
         model_type=ModelType.POISSON,
         model_params={"alpha": 1},
@@ -236,21 +187,18 @@ def pitches_thrown_config() -> PropConfig:
     """Pitches thrown configuration"""
     return PropConfig(
         stat_name="pitches_thrown",
-        target_field="pitchesThrown",
         display_name="Pitches Thrown",
         features=[
-            FeatureDefinition("innings_pitched", "inningsPitched", DataScope.PLAYER),
-            FeatureDefinition(
-                "pitching_strikeouts", "pitchingStrikeouts", DataScope.PLAYER
-            ),
+            FeatureDefinition("innings_pitched", "innings_pitched", DataScope.PLAYER),
+            FeatureDefinition("pitching_strikeouts", "pitching_strikeouts", DataScope.PLAYER),
             FeatureDefinition("strikes", "strikes", DataScope.PLAYER),
-            FeatureDefinition("pitching_walks", "pitchingWalks", DataScope.PLAYER),
-            FeatureDefinition("hits_allowed", "hitsAllowed", DataScope.PLAYER),
+            FeatureDefinition("pitching_walks", "pitching_walks", DataScope.PLAYER),
+            FeatureDefinition("hits_allowed", "hits_allowed", DataScope.PLAYER),
             FeatureDefinition("opp_ops", "ops", DataScope.OPPONENT),
             FeatureDefinition("opp_runs", "runs", DataScope.OPPONENT),
             FeatureDefinition("opp_strikeouts", "strikeouts", DataScope.OPPONENT),
-            FeatureDefinition("opp_batting_avg", "battingAvg", DataScope.OPPONENT),
-            FeatureDefinition("opp_slugging_pct", "sluggingPct", DataScope.OPPONENT)
+            FeatureDefinition("opp_batting_avg", "batting_avg", DataScope.OPPONENT),
+            FeatureDefinition("opp_slugging_pct", "slugging_pct", DataScope.OPPONENT)
         ],
         model_type=ModelType.POISSON,
         model_params={"alpha": 1},
@@ -262,18 +210,17 @@ def earned_runs_config() -> PropConfig:
     """Earned runs configuration"""
     return PropConfig(
         stat_name="earned_runs",
-        target_field="earnedRuns",
         display_name="Earned Runs",
         features=[
-            FeatureDefinition("innings_pitched", "inningsPitched", DataScope.PLAYER),
-            FeatureDefinition("hits_allowed", "hitsAllowed", DataScope.PLAYER),
-            FeatureDefinition("pitching_walks", "pitchingWalks", DataScope.PLAYER),
-            FeatureDefinition("home_runs_allowed", "homeRunsAllowed", DataScope.PLAYER),
+            FeatureDefinition("innings_pitched", "innings_pitched", DataScope.PLAYER),
+            FeatureDefinition("hits_allowed", "hits_allowed", DataScope.PLAYER),
+            FeatureDefinition("pitching_walks", "pitching_walks", DataScope.PLAYER),
+            FeatureDefinition("home_runs_allowed", "home_runs_allowed", DataScope.PLAYER),
             FeatureDefinition("opp_runs", "runs", DataScope.OPPONENT),
             FeatureDefinition("opp_ops", "ops", DataScope.OPPONENT),
             FeatureDefinition("opp_strikeouts", "strikeouts", DataScope.OPPONENT),
-            FeatureDefinition("opp_batting_avg", "battingAvg", DataScope.OPPONENT),
-            FeatureDefinition("opp_slugging_pct", "sluggingPct", DataScope.OPPONENT)
+            FeatureDefinition("opp_batting_avg", "batting_avg", DataScope.OPPONENT),
+            FeatureDefinition("opp_slugging_pct", "slugging_pct", DataScope.OPPONENT)
         ],
         model_type=ModelType.POISSON,
         model_params={"alpha": 1},
@@ -285,16 +232,13 @@ def hits_allowed_config() -> PropConfig:
     """Hits Allowed configuration"""
     return PropConfig(
         stat_name="hits_allowed",
-        target_field="hitsAllowed",
         display_name="Hits Allowed",
         features=[
-            FeatureDefinition("innings_pitched", "inningsPitched", DataScope.PLAYER),
-            FeatureDefinition("pitches_thrown", "pitchesThrown", DataScope.PLAYER),
-            FeatureDefinition(
-                "pitching_strikeouts", "pitchingStrikeouts", DataScope.PLAYER
-            ),
-            FeatureDefinition("opp_batting_avg", "battingAvg", DataScope.OPPONENT),
-            FeatureDefinition("opp_slugging_pct", "sluggingPct", DataScope.OPPONENT),
+            FeatureDefinition("innings_pitched", "innings_pitched", DataScope.PLAYER),
+            FeatureDefinition("pitches_thrown", "pitches_thrown", DataScope.PLAYER),
+            FeatureDefinition("pitching_strikeouts", "pitching_strikeouts", DataScope.PLAYER),
+            FeatureDefinition("opp_batting_avg", "batting_avg", DataScope.OPPONENT),
+            FeatureDefinition("opp_slugging_pct", "slugging_pct", DataScope.OPPONENT),
             FeatureDefinition("opp_strikeouts", "strikeouts", DataScope.OPPONENT),
         ],
         model_type=ModelType.POISSON,
@@ -307,13 +251,12 @@ def pitching_walks_config() -> PropConfig:
     """Pitching walks configuration"""
     return PropConfig(
         stat_name="pitching_walks",
-        target_field="pitchingWalks",
         display_name="Pitching Walks",
         features=[
-            FeatureDefinition("innings_pitched", "inningsPitched", DataScope.PLAYER),
-            FeatureDefinition("pitches_thrown", "pitchesThrown", DataScope.PLAYER),
+            FeatureDefinition("innings_pitched", "innings_pitched", DataScope.PLAYER),
+            FeatureDefinition("pitches_thrown", "pitches_thrown", DataScope.PLAYER),
             FeatureDefinition("opp_walks", "walks", DataScope.OPPONENT),
-            FeatureDefinition("opp_obp", "obp", DataScope.OPPONENT)
+            FeatureDefinition("opp_obp", "on_base_percentage", DataScope.OPPONENT)
         ],
         model_type=ModelType.POISSON,
         model_params={"alpha": 1},
@@ -325,24 +268,17 @@ def runs_config() -> PropConfig:
     """Runs configuration"""
     return PropConfig(
         stat_name="runs",
-        target_field="runs",
         display_name="Runs",
         features=[
-            FeatureDefinition("at_bats", "atBats", DataScope.PLAYER),
+            FeatureDefinition("at_bats", "at_bats", DataScope.PLAYER),
             FeatureDefinition("hits", "hits", DataScope.PLAYER),
-            FeatureDefinition("home_runs", "homeRuns", DataScope.PLAYER),
+            FeatureDefinition("home_runs", "home_runs", DataScope.PLAYER),
             FeatureDefinition("ops", "ops", DataScope.PLAYER),
-            FeatureDefinition("batting_avg", "battingAvg", DataScope.PLAYER),
-            FeatureDefinition("opp_hits_allowed", "hitsAllowed", DataScope.OPPONENT),
-            FeatureDefinition(
-                "opp_pitching_strikeouts",
-                "pitchingStrikeouts",
-                DataScope.OPPONENT,
-            ),
-            FeatureDefinition(
-                "opp_pitching_walks", "pitchingWalks", DataScope.OPPONENT
-            ),
-            FeatureDefinition("opp_runs_allowed", "runsAllowed", DataScope.OPPONENT),
+            FeatureDefinition("batting_avg", "batting_avg", DataScope.PLAYER),
+            FeatureDefinition("opp_hits_allowed", "hits_allowed", DataScope.OPPONENT),
+            FeatureDefinition("opp_pitching_strikeouts", "pitching_strikeouts", DataScope.OPPONENT),
+            FeatureDefinition("opp_pitching_walks", "pitching_walks", DataScope.OPPONENT),
+            FeatureDefinition("opp_runs_allowed", "runs_allowed", DataScope.OPPONENT),
         ],
         model_type=ModelType.POISSON,
         model_params={"alpha": 1},
@@ -354,23 +290,16 @@ def hits_runs_rbis_config() -> PropConfig:
     """Hits+Runs+ RBIs configuration"""
     return PropConfig(
         stat_name="hits_runs_rbis",
-        target_field="hitsRunsRbis",
         display_name="Hits+Runs+RBIs",
         features=[
-            FeatureDefinition("at_bats", "atBats", DataScope.PLAYER),
+            FeatureDefinition("at_bats", "at_bats", DataScope.PLAYER),
             FeatureDefinition("hits", "hits", DataScope.PLAYER),
             FeatureDefinition("ops", "ops", DataScope.PLAYER),
-            FeatureDefinition("batting_avg", "battingAvg", DataScope.PLAYER),
-            FeatureDefinition("opp_hits_allowed", "hitsAllowed", DataScope.OPPONENT),
-            FeatureDefinition(
-                "opp_pitching_strikeouts",
-                "pitchingStrikeouts",
-                DataScope.OPPONENT,
-            ),
-            FeatureDefinition(
-                "opp_pitching_walks", "pitchingWalks", DataScope.OPPONENT
-            ),
-            FeatureDefinition("opp_runs_allowed", "runsAllowed", DataScope.OPPONENT),
+            FeatureDefinition("batting_avg", "batting_avg", DataScope.PLAYER),
+            FeatureDefinition("opp_hits_allowed", "hits_allowed", DataScope.OPPONENT),
+            FeatureDefinition("opp_pitching_strikeouts", "pitching_strikeouts", DataScope.OPPONENT),
+            FeatureDefinition("opp_pitching_walks", "pitching_walks", DataScope.OPPONENT),
+            FeatureDefinition("opp_runs_allowed", "runs_allowed", DataScope.OPPONENT),
         ],
         model_type=ModelType.POISSON,
         model_params={"alpha": 1},
@@ -382,23 +311,16 @@ def stolen_bases_config() -> PropConfig:
     """Stolen bases configuration"""
     return PropConfig(
         stat_name="stolen_bases",
-        target_field="stolenBases",
         display_name="Stolen Bases",
         features=[
             FeatureDefinition("walks", "walks", DataScope.PLAYER),
             FeatureDefinition("hits", "hits", DataScope.PLAYER),
-            FeatureDefinition("at_bats", "atBats", DataScope.PLAYER),
-            FeatureDefinition("caught_stealing", "caughtStealing", DataScope.PLAYER),
+            FeatureDefinition("at_bats", "at_bats", DataScope.PLAYER),
+            FeatureDefinition("caught_stealing", "caught_stealing", DataScope.PLAYER),
             FeatureDefinition("obp", "obp", DataScope.PLAYER),
-            FeatureDefinition(
-                "opp_pitching_caught_stealing",
-                "pitchingCaughtStealing",
-                DataScope.OPPONENT,
-            ),
-            FeatureDefinition(
-                "opp_stolen_bases_allowed", "stolenBasesAllowed", DataScope.OPPONENT
-            ),
-            FeatureDefinition("opp_earned_runs", "earnedRuns", DataScope.OPPONENT),
+            FeatureDefinition("opp_pitching_caught_stealing", "pitching_caught_stealing", DataScope.OPPONENT),
+            FeatureDefinition("opp_stolen_bases_allowed", "stolen_bases_allowed", DataScope.OPPONENT),
+            FeatureDefinition("opp_earned_runs", "earned_runs", DataScope.OPPONENT),
         ],
         model_type=ModelType.POISSON,
         model_params={"alpha": 1},

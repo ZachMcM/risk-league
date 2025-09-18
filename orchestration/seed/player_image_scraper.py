@@ -1,8 +1,6 @@
-import json
 import sys
 import time
 import requests
-from my_types.server import Player
 from utils import setup_logger, server_req
 import requests
 
@@ -37,7 +35,7 @@ def main():
 
         total_scraped = 0
         
-        players_list: list[Player] = server_req(
+        players_list: list[dict] = server_req(
             route=f"/players/league/{league}/active", method="GET"
         ).json()
 

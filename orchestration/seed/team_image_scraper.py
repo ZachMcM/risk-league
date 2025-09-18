@@ -1,8 +1,6 @@
-import json
 import sys
 import time
 import requests
-from my_types.server import Team
 from utils import setup_logger, server_req
 import requests
 
@@ -37,7 +35,7 @@ def main():
         if len(sys.argv) > 2:
             starting_index = int(sys.argv[2])
 
-        teams_list: list[Team] = server_req(
+        teams_list: list[dict] = server_req(
             route=f"/teams/league/{league}", method="GET"
         ).json()
 

@@ -1,8 +1,6 @@
-import json
 import sys
 from datetime import datetime, timedelta
-import time
-from utils import data_feeds_req, server_req, setup_logger
+from utils import data_feeds_req, setup_logger
 from extract_stats.main import LEAGUE_CONFIG
 from shared.game_processor import process_game
 
@@ -55,7 +53,6 @@ def main():
                 team_stats_count, player_stats_count = process_game(game, league)
                 total_team_stats_inserted += team_stats_count
                 total_player_stats_inserted += player_stats_count
-                time.sleep(0.1)
 
             current_date += timedelta(days=1)
 

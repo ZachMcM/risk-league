@@ -1,12 +1,11 @@
+import { and, eq, gt, gte, lt } from "drizzle-orm";
+import { createInsertSchema } from "drizzle-zod";
 import { Router } from "express";
-import { apiKeyMiddleware, authMiddleware } from "../middleware";
-import { logger } from "../logger";
+import moment from "moment";
 import { db } from "../db";
 import { game, leagueType } from "../db/schema";
-import { and, eq, gte, InferInsertModel, sql, lt, gt } from "drizzle-orm";
+import { authMiddleware } from "../middleware";
 import { handleError } from "../utils/handleError";
-import { createInsertSchema } from "drizzle-zod";
-import moment from "moment";
 
 export const gamesRoute = Router();
 
@@ -56,38 +55,3 @@ gamesRoute.get(
     }
   }
 );
-
-gamesRoute.post("/games", apiKeyMiddleware, async (req, res) => {
-  try {
-    const isBatch = Array.isArray(req.body.games);
-    const gamesToInsert: InferInsertModel<typeof game>[] = isBatch
-      ? req.body.games
-      : [req.body];
-
-    if (gamesToInsert.length === 0) {
-      res.status(400).json({ error: "No games provided" });
-      return;
-    }
-
-    for (const entry of gamesToInsert) {
-      gamesSchema.parse(entry);
-    }
-
-    const result = await db
-      .insert(game)
-      .values(gamesToInsert)
-      .onConflictDoUpdate({
-        target: [game.gameId, game.league],
-        set: {
-          gameId: sql`EXCLUDED.game_id`,
-        },
-      })
-      .returning({ id: game.gameId });
-
-    logger.info(`Successfully inserted ${result.length} game(s)`);
-
-    res.json(isBatch ? result : result[0]);
-  } catch (error) {
-    handleError(error, res, "Games route");
-  }
-});

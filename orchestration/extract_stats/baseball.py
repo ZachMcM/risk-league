@@ -2,59 +2,61 @@
 Baseball statistics extraction and extended calculations.
 """
 
+from db.stats.baseball import BaseballPlayerStats, BaseballTeamStats
+
 
 def calculate_baseball_batting_extended_stats(player_stats):
     """Calculate extended baseball batting statistics."""
-    
+
     # Batting Average
-    batting_avg = player_stats["hits"] / player_stats["atBats"] if player_stats["atBats"] > 0 else 0
-    
+    batting_avg = player_stats["hits"] / player_stats["at_bats"] if player_stats["at_bats"] > 0 else 0
+
     # On-Base Percentage
-    plate_appearances = player_stats["atBats"] + player_stats["walks"] + player_stats["hitByPitch"]
-    obp = (player_stats["hits"] + player_stats["walks"] + player_stats["hitByPitch"]) / plate_appearances if plate_appearances > 0 else 0
-    
+    plate_appearances = player_stats["at_bats"] + player_stats["walks"] + player_stats["hit_by_pitch"]
+    obp = (player_stats["hits"] + player_stats["walks"] + player_stats["hit_by_pitch"]) / plate_appearances if plate_appearances > 0 else 0
+
     # Slugging Percentage
-    total_bases = (player_stats["singles"] + 
-                   2 * player_stats["doubles"] + 
-                   3 * player_stats["triples"] + 
-                   4 * player_stats["homeRuns"])
-    slugging_pct = total_bases / player_stats["atBats"] if player_stats["atBats"] > 0 else 0
-    
+    total_bases = (player_stats["singles"] +
+                   2 * player_stats["doubles"] +
+                   3 * player_stats["triples"] +
+                   4 * player_stats["home_runs"])
+    slugging_pct = total_bases / player_stats["at_bats"] if player_stats["at_bats"] > 0 else 0
+
     # OPS (On-base Plus Slugging)
     ops = obp + slugging_pct
-    
+
     # Combination Stats
     hits_runs_rbis = player_stats["hits"] + player_stats["runs"] + player_stats["rbis"]
-    
+
     return {
-        "battingAvg": round(batting_avg, 4),
+        "batting_avg": round(batting_avg, 4),
         "obp": round(obp, 4),
-        "sluggingPct": round(slugging_pct, 4),
+        "slugging_pct": round(slugging_pct, 4),
         "ops": round(ops, 4),
-        "hitsRunsRbis": hits_runs_rbis,
+        "hits_runs_rbis": hits_runs_rbis,
     }
 
 
 def calculate_baseball_pitching_extended_stats(player_stats):
     """Calculate extended baseball pitching statistics."""
-    
+
     # ERA (Earned Run Average)
-    era = (player_stats["earnedRuns"] * 9) / player_stats["inningsPitched"] if player_stats["inningsPitched"] > 0 else 0
-    
+    era = (player_stats["earned_runs"] * 9) / player_stats["innings_pitched"] if player_stats["innings_pitched"] > 0 else 0
+
     # WHIP (Walks + Hits per Inning Pitched)
-    whip = (player_stats["hitsAllowed"] + player_stats["pitchingWalks"]) / player_stats["inningsPitched"] if player_stats["inningsPitched"] > 0 else 0
-    
+    whip = (player_stats["hits_allowed"] + player_stats["pitching_walks"]) / player_stats["innings_pitched"] if player_stats["innings_pitched"] > 0 else 0
+
     # K/9 (Strikeouts per 9 innings)
-    k_per_nine = (player_stats["pitchingStrikeouts"] * 9) / player_stats["inningsPitched"] if player_stats["inningsPitched"] > 0 else 0
-    
+    k_per_nine = (player_stats["pitching_strikeouts"] * 9) / player_stats["innings_pitched"] if player_stats["innings_pitched"] > 0 else 0
+
     # Strike Percentage
-    strike_pct = player_stats["strikes"] / player_stats["pitchesThrown"] if player_stats["pitchesThrown"] > 0 else 0
-    
+    strike_pct = player_stats["strikes"] / player_stats["pitches_thrown"] if player_stats["pitches_thrown"] > 0 else 0
+
     return {
         "era": round(era, 2),
         "whip": round(whip, 2),
-        "kPerNine": round(k_per_nine, 2),
-        "strikePct": round(strike_pct, 4),
+        "k_per_nine": round(k_per_nine, 2),
+        "strike_pct": round(strike_pct, 4),
     }
 
 
@@ -118,22 +120,22 @@ def calculate_baseball_team_extended_stats(game, team, team_stats):
     ops = slugging_pct + obp
     
     return {
-        "homeRunsAllowed": home_runs_allowed,
-        "pitchingStrikeouts": pitching_strikeouts,
-        "pitchingWalks": pitching_walks,
-        "doublesAllowed": doubles_allowed,
-        "hitsAllowed": hits_allowed,
-        "triplesAllowed": triples_allowed,
-        "runsAllowed": runs_allowed,
+        "home_runs_allowed": home_runs_allowed,
+        "pitching_strikeouts": pitching_strikeouts,
+        "pitching_walks": pitching_walks,
+        "doubles_allowed": doubles_allowed,
+        "hits_allowed": hits_allowed,
+        "triples_allowed": triples_allowed,
+        "runs_allowed": runs_allowed,
         "strikes": strikes,
-        "pitchesThrown": pitches_thrown,
-        "battingAvg": round(batting_avg, 4),
-        "sluggingPct": round(slugging_pct, 4),
-        "obp": round(obp, 4),
+        "pitches_thrown": pitches_thrown,
+        "batting_avg": round(batting_avg, 4),
+        "slugging_pct": round(slugging_pct, 4),
+        "on_base_percentage": round(obp, 4),
         "ops": round(ops, 4),
-        "pitchingCaughtStealing": pitching_caught_stealing,
-        "stolenBasesAllowed": stolen_bases_allowed,
-        "earnedRuns": earned_runs,
+        "pitching_caught_stealing": pitching_caught_stealing,
+        "stolen_bases_allowed": stolen_bases_allowed,
+        "earned_runs": earned_runs,
     }
 
 
@@ -142,19 +144,19 @@ def extract_baseball_team_stats(game, team, league="MLB"):
     team_stats = game["full_box"][team]["team_stats"]
 
     base_stats = {
-        "gameId": game["game_ID"],
-        "teamId": game["full_box"][team]["team_id"],
+        "game_id": game["game_ID"],
+        "team_id": game["full_box"][team]["team_id"],
         "league": league,
         "errors": team_stats["E"],
         "hits": team_stats["H"],
         "runs": team_stats["R"],
         "doubles": team_stats["2B"],
         "triples": team_stats["3B"],
-        "atBats": team_stats["AB"],
+        "at_bats": team_stats["AB"],
         "walks": team_stats["BB"],
-        "caughtStealing": team_stats["CS"],
-        "homeRuns": team_stats["HR"],
-        "stolenBases": team_stats["SB"],
+        "caught_stealing": team_stats["CS"],
+        "home_runs": team_stats["HR"],
+        "stolen_bases": team_stats["SB"],
         "strikeouts": team_stats["SO"],
         "rbis": team_stats["RBI"],
     }
@@ -170,27 +172,27 @@ def extract_baseball_batting_stats(
 ):
     """Extract baseball batting stats from game data."""
     base_stats = {
-        "gameId": game["game_ID"],
-        "playerId": int(player_id),
-        "teamId": int(team_id),
+        "game_id": game["game_ID"],
+        "player_id": int(player_id),
+        "team_id": int(team_id),
         "league": league,
-        "errors": player_stats["E"],
-        "hits": player_stats["H"],
-        "runs": player_stats["R"],
-        "singles": player_stats["1B"],
-        "doubles": player_stats["2B"],
-        "triples": player_stats["3B"],
-        "atBats": player_stats["AB"],
-        "walks": player_stats["BB"],
-        "caughtStealing": player_stats["CS"],
-        "homeRuns": player_stats["HR"],
-        "putouts": player_stats["PO"],
-        "stolenBases": player_stats["SB"],
-        "strikeouts": player_stats["SO"],
-        "hitByPitch": player_stats["HBP"],
-        "intentionalWalks": player_stats["IBB"],
-        "rbis": player_stats["RBI"],
-        "outs": player_stats["Outs"],
+        "errors": player_stats.get("E", 0),
+        "hits": player_stats.get("H", 0),
+        "runs": player_stats.get("R", 0),
+        "singles": player_stats.get("1B", 0),
+        "doubles": player_stats.get("2B", 0),
+        "triples": player_stats.get("3B", 0),
+        "at_bats": player_stats.get("AB", 0),
+        "walks": player_stats.get("BB", 0),
+        "caught_stealing": player_stats.get("CS", 0),
+        "home_runs": player_stats.get("HR", 0),
+        "putouts": player_stats.get("PO", 0),
+        "stolen_bases": player_stats.get("SB", 0),
+        "strikeouts": player_stats.get("SO", 0),
+        "hit_by_pitch": player_stats.get("HBP", 0),
+        "intentional_walks": player_stats.get("IBB", 0),
+        "rbis": player_stats.get("RBI", 0),
+        "outs": player_stats.get("Outs", 0),
         "status": player_stats.get("status", "INACT"),
     }
     
@@ -205,34 +207,34 @@ def extract_baseball_pitching_stats(
 ):
     """Extract baseball pitching stats from game data."""
     base_stats = {
-        "gameId": game["game_ID"],
-        "playerId": int(player_id),
-        "teamId": int(team_id),
+        "game_id": game["game_ID"],
+        "player_id": int(player_id),
+        "team_id": int(team_id),
         "league": league,
-        "hitsAllowed": player_stats["H"],
-        "pitchingStrikeouts": player_stats["K"],
-        "losses": player_stats["L"],
-        "runsAllowed": player_stats["R"],
-        "saves": player_stats["S"],
-        "wins": player_stats["W"],
-        "singlesAllowed": player_stats["1B"],
-        "doublesAllowed": player_stats["2B"],
-        "triplesAllowed": player_stats["3B"],
-        "pitchingWalks": player_stats["BB"],
-        "balks": player_stats["BK"],
-        "blownSaves": player_stats["BS"],
-        "pitchingCaughtStealing": player_stats["CS"],
-        "earnedRuns": player_stats["ER"],
-        "homeRunsAllowed": player_stats["HR"],
-        "inningsPitched": player_stats["IP"],
-        "pitchingPutouts": player_stats["PO"],
-        "stolenBasesAllowed": player_stats["SB"],
-        "wildPitches": player_stats["WP"],
-        "pitchingHitByPitch": player_stats["HBP"],
-        "holds": player_stats["HLD"],
-        "pitchingIntentionalWalks": player_stats["IBB"],
-        "pitchesThrown": player_stats["pitches"],
-        "strikes": player_stats["strikes"],
+        "hits_allowed": player_stats.get("H", 0),
+        "pitching_strikeouts": player_stats.get("K", 0),
+        "losses": player_stats.get("L", 0),
+        "runs_allowed": player_stats.get("R", 0),
+        "saves": player_stats.get("S", 0),
+        "wins": player_stats.get("W", 0),
+        "singles_allowed": player_stats.get("1B", 0),
+        "doubles_allowed": player_stats.get("2B", 0),
+        "triples_allowed": player_stats.get("3B", 0),
+        "pitching_walks": player_stats.get("BB", 0),
+        "balks": player_stats.get("BK", 0),
+        "blown_saves": player_stats.get("BS", 0),
+        "pitching_caught_stealing": player_stats.get("CS", 0),
+        "earned_runs": player_stats.get("ER", 0),
+        "home_runs_allowed": player_stats.get("HR", 0),
+        "innings_pitched": player_stats.get("IP", 0),
+        "pitching_putouts": player_stats.get("PO", 0),
+        "stolen_bases_allowed": player_stats.get("SB", 0),
+        "wild_pitches": player_stats.get("WP", 0),
+        "pitching_hit_by_pitch": player_stats.get("HBP", 0),
+        "holds": player_stats.get("HLD", 0),
+        "pitching_intentional_walks": player_stats.get("IBB", 0),
+        "pitches_thrown": player_stats.get("pitches", 0),
+        "strikes": player_stats.get("strikes", 0),
         "status": player_stats.get("status", "INACT"),
     }
     
