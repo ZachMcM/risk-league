@@ -1,4 +1,5 @@
 import sys
+import traceback
 
 from constants import LEAGUES
 from db.players import insert_players, Player
@@ -9,6 +10,11 @@ logger = setup_logger(__name__)
 
 def main():
     try:
+        # Log startup information
+        logger.info("Starting player upsert process")
+        logger.info(f"Python path: {sys.path}")
+        logger.info(f"Command line args: {sys.argv}")
+
         if len(sys.argv) < 2:
             logger.error("You need to provide league command arguments")
             sys.exit(1)
@@ -25,10 +31,18 @@ def main():
 
         for league in provided_leagues:
             total_upserted = 0
+            logger.info(f"Processing league: {league}")
 
-            playersReq = data_feeds_req(f"/player-info/{league}")
-            playersData = playersReq.json()
-            players = playersData["data"][league]
+            try:
+                playersReq = data_feeds_req(f"/player-info/{league}")
+                logger.info(f"Successfully fetched data for {league}")
+                playersData = playersReq.json()
+                players = playersData["data"][league]
+                logger.info(f"Found {len(players)} players for {league}")
+            except Exception as e:
+                logger.error(f"Failed to fetch player data for {league}: {e}")
+                logger.error(f"Full traceback: {traceback.format_exc()}")
+                continue
 
             # Process players in batches
             batch = []
@@ -49,16 +63,24 @@ def main():
 
                 # Send batch when it reaches BATCH_SIZE or at the end
                 if len(batch) == BATCH_SIZE or i == len(players) - 1:
-                    inserted_ids = insert_players(batch)
-                    total_upserted += len(inserted_ids)
-                    logger.info(f"Successfully upserted batch of {len(inserted_ids)} players, {len(players) - total_upserted} left")
+                    try:
+                        inserted_ids = insert_players(batch)
+                        total_upserted += len(inserted_ids)
+                        logger.info(f"Successfully upserted batch of {len(inserted_ids)} players, {len(players) - total_upserted} left")
+                    except Exception as e:
+                        logger.error(f"Failed to insert batch for {league}: {e}")
+                        logger.error(f"Full traceback: {traceback.format_exc()}")
+                        # Continue with next batch despite failure
 
                     batch = []  # Reset batch
 
             print(f"{total_upserted} {league} players upserted")
 
     except Exception as e:
-        logger.error(f"Error upserted players {e}")
+        logger.error(f"Fatal error in upsert_players: {e}")
+        logger.error(f"Full traceback: {traceback.format_exc()}")
+        print(f"FATAL ERROR: {e}", file=sys.stderr)
+        print(f"TRACEBACK: {traceback.format_exc()}", file=sys.stderr)
         sys.exit(1)
 
 
