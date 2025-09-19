@@ -59,7 +59,7 @@ export default function Match() {
     if (
       isAdLoaded &&
       match &&
-      new Date().getTime() - sqlToJsDate(match.createdAt).getTime() <= 60000
+      new Date().getTime() - sqlToJsDate(match.createdAt).getTime() <= 10000
     ) {
       showAd();
     }

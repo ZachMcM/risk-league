@@ -45,7 +45,7 @@ export default function ParlayCard({ initialData }: { initialData: Parlay }) {
   useEffect(() => {
     if (
       isAdLoaded &&
-      new Date().getTime() - sqlToJsDate(parlay.createdAt).getTime() <= 60000
+      new Date().getTime() - sqlToJsDate(parlay.createdAt).getTime() <= 10000
     ) {
       showAd();
     }

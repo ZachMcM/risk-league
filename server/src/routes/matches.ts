@@ -1,14 +1,11 @@
-import { and, desc, eq, gte, lte, ne } from "drizzle-orm";
+import { and, desc, eq, ne } from "drizzle-orm";
 import { Router } from "express";
 import { io } from "..";
-import { K } from "../config";
 import { db } from "../db";
 import {
-  battlePass,
   match,
   matchUser,
-  message,
-  userBattlePassProgress
+  message
 } from "../db/schema";
 import { logger } from "../logger";
 import { authMiddleware } from "../middleware";
@@ -223,112 +220,3 @@ matchesRoute.post("/matches/:id/messages", authMiddleware, async (req, res) => {
     handleError(error, res, "Matches route");
   }
 });
-
-/**
- * Recalculates each users points based on the winner of a match
- *
- * The formula is used is based on the official formula created by Arpad Elo.
- * https://en.wikipedia.org/wiki/Elo_rating_system
- */
-function recalculatePoints(currentPoints: number[], winner: number | null) {
-  const R_A = currentPoints[0];
-  const R_B = currentPoints[1];
-
-  let S_A;
-  let S_B;
-
-  if (!winner) {
-    S_A = 0.5;
-    S_B = 0.5;
-  } else {
-    S_A = winner == 0 ? 1 : 0;
-    S_B = 1 - S_A;
-  }
-
-  // probability of player one winning
-  const E_A = 1 / (1 + Math.pow(10, (R_B - R_A) / 400));
-
-  // probability of player two winning
-  const E_B = 1 - E_A;
-
-  const R_prime_A = R_A + K * (S_A - E_A);
-  const R_prime_B = R_B + K * (S_B - E_B);
-
-  return [Math.round(R_prime_A), Math.round(R_prime_B)];
-}
-
-async function updateBattlePassXp(
-  userId: string,
-  parlayCount: number,
-  totalStaked: number,
-  matchStatus: string
-) {
-  const now = new Date().toISOString();
-
-  const activeUserBattlePasses = await db
-    .select({
-      battlePassId: userBattlePassProgress.battlePassId,
-      userBattlePassProgressId: userBattlePassProgress.id,
-      currentXp: userBattlePassProgress.currentXp,
-    })
-    .from(userBattlePassProgress)
-    .innerJoin(
-      battlePass,
-      eq(userBattlePassProgress.battlePassId, battlePass.id)
-    )
-    .where(
-      and(
-        eq(battlePass.isActive, true),
-        lte(battlePass.startDate, now),
-        gte(battlePass.endDate, now),
-        eq(userBattlePassProgress.userId, userId)
-      )
-    );
-
-  if (activeUserBattlePasses.length === 0) {
-    return; // No active battle passes
-  }
-
-  // Calculate XP gained
-  const baseXp = 50;
-  const parlayBonus = parlayCount * 10;
-  const stakingBonus = Math.floor(totalStaked / 10);
-
-  let multiplier = 1.0;
-  if (matchStatus === "win") {
-    multiplier = 1.5;
-  } else if (matchStatus === "draw") {
-    multiplier = 1.2;
-  } else if (matchStatus === "loss") {
-    multiplier = 1.0;
-  } else if (matchStatus === "disqualified") {
-    multiplier = 0.5;
-  }
-
-  const totalXp = Math.floor(
-    (baseXp + parlayBonus + stakingBonus) * multiplier
-  );
-  const xpGained = Math.max(25, totalXp);
-
-  // Process each active battle pass
-  for (const userBattlePass of activeUserBattlePasses) {
-    const newXp = (userBattlePass.currentXp || 0) + xpGained;
-
-    // Update user progress
-    await db
-      .update(userBattlePassProgress)
-      .set({
-        currentXp: newXp,
-      })
-      .where(
-        eq(userBattlePassProgress.id, userBattlePass.userBattlePassProgressId)
-      );
-
-    invalidateQueries([
-      "battle-pass",
-      userBattlePass.battlePassId,
-      "progress",
-      userId,
-    ]);
-  }
-}

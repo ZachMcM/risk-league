@@ -42,7 +42,7 @@ export default function Home() {
   const [onboardingDialog, setOnboardingDialog] = useState(
     new Date().getTime() -
       new Date(currentUserData?.user.createdAt!).getTime() <=
-      60000
+      10000
   );
 
   return (

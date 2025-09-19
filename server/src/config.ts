@@ -1,13 +1,5 @@
-export const MIN_PARLAYS_REQUIRED = 2
 export const MIN_STARTING_BALANCE = 200
 export const MAX_STARTING_BALANCE = 400
-export const MIN_PCT_TOTAL_STAKED = 0.6
 export const MIN_STAKE_PCT = 0.2;
-
-export const K = 32
-
-export const MIN_GAMES_FOR_CURRENT_MLB_SEASON = 100
-export const MIN_GAMES_FOR_CURRENT_BASKETBALL_SEASON = 30
-export const MIN_GAMES_FOR_CURRENT_FOOTBALL_SEASON = 6
 
 export const USER_IMAGES_BUCKET = "user-images"
