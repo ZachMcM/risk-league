@@ -455,12 +455,175 @@ async def _publish_match_resolved_messages(
         await asyncio.gather(*publish_tasks)
 
 
+async def handle_match_check(data):
+    """Handles incoming match_check messages to resolve matches without parlay triggers"""
+    start_time = time()
+    match_id = data.get("matchId")
+    if not match_id:
+        logger.error("Received match_check message without matchId")
+        return
+
+    redis_publisher = await create_async_redis_client()
+
+    try:
+        async with await get_async_connection_context() as conn:
+            async with conn.cursor() as cur:
+                try:
+                    await cur.execute("BEGIN")
+
+                    # Get match with all related data
+                    match_query = """
+                        SELECT
+                            m.id as match_id,
+                            m.type as match_type,
+                            m.league as match_league,
+                            m.resolved as match_resolved
+                        FROM match m
+                        WHERE m.id = %s
+                    """
+
+                    await cur.execute(match_query, (match_id,))
+                    match_res = await cur.fetchone()
+
+                    if not match_res:
+                        logger.error(f"No match found with id {match_id}")
+                        await cur.execute("ROLLBACK")
+                        return
+
+                    # Check if match is already resolved
+                    if match_res[3]:  # match_resolved
+                        logger.info(f"Match {match_id} is already resolved")
+                        await cur.execute("COMMIT")
+                        return
+
+                    # Get all match users with parlays
+                    match_users_query = """
+                        SELECT
+                            mu.id as match_user_id,
+                            mu.user_id,
+                            mu.balance,
+                            mu.starting_balance,
+                            mu.points_snapshot,
+                            mu.points_delta,
+                            mu.status
+                        FROM match_user mu
+                        WHERE mu.match_id = %s
+                        ORDER BY mu.id
+                    """
+
+                    await cur.execute(match_users_query, (match_id,))
+                    match_users_res = await cur.fetchall()
+
+                    if len(match_users_res) != 2:
+                        logger.error(f"Match {match_id} does not have exactly 2 users")
+                        await cur.execute("ROLLBACK")
+                        return
+
+                    # Get parlays for each match user
+                    match_users_data = []
+                    for mu_row in match_users_res:
+                        parlays_query = """
+                            SELECT id, stake, resolved, profit
+                            FROM parlay
+                            WHERE match_user_id = %s
+                        """
+
+                        await cur.execute(parlays_query, (mu_row[0],))
+                        parlays_res = await cur.fetchall()
+
+                        parlays = [
+                            {
+                                "id": p[0],
+                                "stake": float(p[1]),
+                                "resolved": p[2],
+                                "profit": float(p[3]) if p[3] is not None else None
+                            }
+                            for p in parlays_res
+                        ]
+
+                        match_users_data.append({
+                            "id": mu_row[0],
+                            "user_id": mu_row[1],
+                            "balance": float(mu_row[2]),
+                            "starting_balance": float(mu_row[3]),
+                            "points_snapshot": float(mu_row[4]),
+                            "points_delta": float(mu_row[5]),
+                            "status": mu_row[6],
+                            "parlays": parlays
+                        })
+
+                    # Check if any parlays are still unresolved
+                    unresolved_parlays = []
+                    for mu_data in match_users_data:
+                        for parlay in mu_data["parlays"]:
+                            if not parlay["resolved"]:
+                                unresolved_parlays.append(parlay["id"])
+
+                    if unresolved_parlays:
+                        logger.info(f"Match {match_id} cannot be resolved - parlays {unresolved_parlays} not resolved")
+                        await cur.execute("COMMIT")
+                        return
+
+                    # Check if props are still available
+                    props_available_query = """
+                        SELECT COUNT(*) as available_count
+                        FROM prop p
+                        JOIN game g ON p.game_id = g.game_id
+                        WHERE g.league = %s
+                        AND p.status = 'not_resolved'
+                        AND g.start_time > NOW()
+                    """
+
+                    await cur.execute(props_available_query, (match_res[2],))  # match_league
+                    props_count_res = await cur.fetchone()
+
+                    if props_count_res and props_count_res[0] > 0:
+                        logger.info(f"Match {match_id} cannot be resolved - props still available")
+                        await cur.execute("COMMIT")
+                        return
+
+                    logger.info(f"Match {match_id} resolution triggered by match_check")
+
+                    # Resolve the match
+                    await _resolve_match(
+                        cur, match_id, match_res[1], match_res[2], match_users_data
+                    )
+
+                    await cur.execute("COMMIT")
+
+                    # Publish Redis messages for cache invalidation
+                    await _publish_match_resolved_messages(
+                        redis_publisher, match_id, match_users_data
+                    )
+
+                except Exception as e:
+                    await cur.execute("ROLLBACK")
+                    logger.error(f"Database transaction failed: {e}")
+                    raise e
+
+    except Exception as e:
+        logger.error(f"Error handling match check: {e}")
+    finally:
+        await redis_publisher.aclose()
+
+    end_time = time()
+    logger.info(f"Processed match_check for match_id {match_id}. Completed in {end_time - start_time:.2f}s")
+
+
 async def handle_parlay_resolved_safe(data):
     """Safe wrapper for handle_parlay_resolved that prevents listener crashes"""
     try:
         await handle_parlay_resolved(data)
     except Exception as e:
         logger.error(f"Error handling parlay_resolved message: {e}", exc_info=True)
+
+
+async def handle_match_check_safe(data):
+    """Safe wrapper for handle_match_check that prevents listener crashes"""
+    try:
+        await handle_match_check(data)
+    except Exception as e:
+        logger.error(f"Error handling match_check message: {e}", exc_info=True)
 
 
 async def listen_for_parlay_resolved():
@@ -474,7 +637,25 @@ async def listen_for_parlay_resolved():
                 redis_subscriber, "parlay_resolved", handle_parlay_resolved_safe
             )
         except Exception as e:
-            logger.error(f"Error in listener, restarting: {e}")
+            logger.error(f"Error in parlay_resolved listener, restarting: {e}")
+            await asyncio.sleep(5)  # Brief delay before restart
+        finally:
+            if redis_subscriber:
+                await redis_subscriber.aclose()
+
+
+async def listen_for_match_check():
+    """Function that listens for match_check messages on redis"""
+    while True:
+        redis_subscriber = None
+        try:
+            redis_subscriber = await create_async_redis_client()
+            logger.info("Listening for match_check messages...")
+            await listen_for_messages_async(
+                redis_subscriber, "match_check", handle_match_check_safe
+            )
+        except Exception as e:
+            logger.error(f"Error in match_check listener, restarting: {e}")
             await asyncio.sleep(5)  # Brief delay before restart
         finally:
             if redis_subscriber:
@@ -482,9 +663,13 @@ async def listen_for_parlay_resolved():
 
 
 async def main():
-    """Main function that listens for parlay_resolved messages."""
+    """Main function that listens for both parlay_resolved and match_check messages."""
     try:
-        await listen_for_parlay_resolved()
+        # Run both listeners concurrently
+        await asyncio.gather(
+            listen_for_parlay_resolved(),
+            listen_for_match_check()
+        )
     except KeyboardInterrupt:
         logger.warning("Shutting down matches_worker...")
     except Exception as e:
