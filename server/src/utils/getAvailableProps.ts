@@ -150,8 +150,8 @@ export async function getAvailablePropsForUser(
   });
 
   return {
-    hasAvailableProps: availablePropIds.length > 0,
-    availablePropsCount: availablePropIds.length,
+    hasAvailableProps: extendedAvailableProps.length > 0,
+    availablePropsCount: extendedAvailableProps.length,
     league,
     props: extendedAvailableProps,
   };

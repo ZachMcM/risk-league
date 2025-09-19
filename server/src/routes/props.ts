@@ -1,4 +1,4 @@
-import { and, desc, eq, gt, gte, lt, notInArray } from "drizzle-orm";
+import { and, desc, eq, gt, gte, lt, notInArray, inArray } from "drizzle-orm";
 import { Router } from "express";
 import moment from "moment";
 import { db } from "../db";
@@ -162,34 +162,26 @@ propsRoute.get(
             gt(game.startTime, new Date().toISOString()),
             eq(game.league, league),
             eq(prop.playerId, playerId),
-            notInArray(prop.id, propsPickedAlready)
+            notInArray(prop.id, propsPickedAlready.length > 0 ? propsPickedAlready : [-1])
           )
         );
 
-      const extendedAvailableProps = (
-        await Promise.all(
-          availablePropIds.map(async (propEntry) => {
-            const propResult = await db.query.prop.findFirst({
-              where: eq(prop.id, propEntry.id),
-              with: {
-                game: {
-                  with: {
-                    homeTeam: true,
-                    awayTeam: true,
-                  },
-                },
-                player: {
-                  with: {
-                    team: true,
-                  },
-                },
-              },
-            });
-
-            return propResult;
-          })
-        )
-      ).filter((prop) => prop !== undefined);
+      const extendedAvailableProps = await db.query.prop.findMany({
+        where: inArray(prop.id, availablePropIds.map(p => p.id)),
+        with: {
+          game: {
+            with: {
+              homeTeam: true,
+              awayTeam: true,
+            },
+          },
+          player: {
+            with: {
+              team: true,
+            },
+          },
+        },
+      });
 
       const fromTable =
         league == "MLB"
@@ -313,30 +305,26 @@ propsRoute.get("/props/today", authMiddleware, async (req, res) => {
           )
         );
 
-      const extendedAvailableProps = await Promise.all(
-        availablePropIds.map(async (propEntry) => {
-          const propResult = await db.query.prop.findFirst({
-            where: eq(prop.id, propEntry.id),
+      const extendedAvailableProps = await db.query.prop.findMany({
+        where: inArray(prop.id, availablePropIds.map(p => p.id)),
+        with: {
+          game: {
             with: {
-              game: {
-                with: {
-                  homeTeam: true,
-                  awayTeam: true,
-                },
-              },
-              player: {
-                with: {
-                  team: true,
-                },
-              },
+              homeTeam: true,
+              awayTeam: true,
             },
-          });
-
-          return propResult;
-        })
-      );
+          },
+          player: {
+            with: {
+              team: true,
+            },
+          },
+        },
+      });
 
       res.json(extendedAvailableProps);
+    } else {
+      res.json({ error: "Please pass in league, matchId, or dynastyLeagueId"})
     }
   } catch (error) {
     handleError(error, res, "Props route");
