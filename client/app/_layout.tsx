@@ -15,22 +15,22 @@ import {
   QueryClient,
   QueryClientProvider,
 } from "@tanstack/react-query";
-import { SplashScreen, Stack, Tabs } from "expo-router";
+import { SplashScreen, Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import * as React from "react";
 import { useEffect } from "react";
 import type { AppStateStatus } from "react-native";
 import { Appearance, AppState, Platform } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import mobileAds from "react-native-google-mobile-ads";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Toaster } from "sonner-native";
-import { RealtimeProvider } from "~/components/providers/RealtimeProvider";
+import { RealTimeProvider } from "~/components/providers/RealTimeProvider";
 import { SplashScreenController } from "~/components/ui/splash";
 import { setAndroidNavigationBar } from "~/lib/android-navigation-bar";
 import { authClient } from "~/lib/auth-client";
 import { NAV_THEME } from "~/lib/constants";
 import { useColorScheme } from "~/lib/useColorScheme";
-import mobileAds from "react-native-google-mobile-ads";
 
 onlineManager.setEventListener((setOnline) => {
   return NetInfo.addEventListener((state) => {
@@ -89,13 +89,13 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <GestureHandlerRootView>
           <QueryClientProvider client={queryClient}>
-            <RealtimeProvider>
+            <RealTimeProvider>
               <ThemeProvider value={DARK_THEME}>
                 <SplashScreenController />
                 <RootNavigatior />
                 <StatusBar style={isDarkColorScheme ? "light" : "dark"} />
               </ThemeProvider>
-            </RealtimeProvider>
+            </RealTimeProvider>
             <Toaster
               toastOptions={{
                 style: {

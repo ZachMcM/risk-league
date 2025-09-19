@@ -1,7 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { Link, router, usePathname } from "expo-router";
 import { createContext, ReactNode, useEffect, useRef, useState } from "react";
-import { AppState, View } from "react-native";
+import { AppState, Pressable, View } from "react-native";
 import { io, Socket } from "socket.io-client";
 import { toast } from "sonner-native";
 import { authClient } from "~/lib/auth-client";
@@ -16,7 +16,7 @@ const RealtimeContext = createContext<{ isConnected: boolean }>({
   isConnected: false,
 });
 
-export function RealtimeProvider({ children }: { children: ReactNode }) {
+export function RealTimeProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
   const { data: currentUserData } = authClient.useSession();
   const [isConnected, setIsConnected] = useState(false);
@@ -71,16 +71,20 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
       "match-parlay-resolved",
       ({ matchId, parlayId }: { matchId: number; parlayId: number }) => {
         const toastId = toast.custom(
-          <Link
-            href={{
-              pathname: "/match/[matchId]",
-              params: { matchId, openSubRoute: "parlay", subRouteId: parlayId },
-            }}
+          <Pressable
             className="m-3"
             onPress={() => {
               if (router.canDismiss()) {
                 router.dismissAll();
               }
+              router.navigate({
+                pathname: "/match/[matchId]",
+                params: {
+                  matchId,
+                  openSubRoute: "parlay",
+                  subRouteId: parlayId,
+                },
+              });
               toast.dismiss(toastId);
             }}
           >
@@ -94,7 +98,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
                 </Text>
               </CardContent>
             </Card>
-          </Link>
+          </Pressable>
         );
       }
     );
@@ -109,20 +113,20 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
         parlayId: number;
       }) => {
         const toastId = toast.custom(
-          <Link
-            href={{
-              pathname: "/dynastyLeague/[dynastyLeagueId]",
-              params: {
-                dynastyLeagueId,
-                openSubRoute: "parlay",
-                subRouteId: parlayId,
-              },
-            }}
+          <Pressable
             className="m-3"
             onPress={() => {
               if (router.canDismiss()) {
                 router.dismissAll();
               }
+              router.navigate({
+                pathname: "/dynastyLeague/[dynastyLeagueId]",
+                params: {
+                  dynastyLeagueId,
+                  openSubRoute: "parlay",
+                  subRouteId: parlayId,
+                },
+              });
               toast.dismiss(toastId);
             }}
           >
@@ -136,7 +140,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
                 </Text>
               </CardContent>
             </Card>
-          </Link>
+          </Pressable>
         );
       }
     );
@@ -153,16 +157,16 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
         id: number;
       }) => {
         const toastId = toast.custom(
-          <Link
-            href={{
-              pathname: "/match/[matchId]",
-              params: { matchId: id },
-            }}
+          <Pressable
             className="m-3"
             onPress={() => {
               if (router.canDismiss()) {
                 router.dismissAll();
               }
+              router.navigate({
+                pathname: "/match/[matchId]",
+                params: { matchId: id },
+              });
               toast.dismiss(toastId);
             }}
           >
@@ -179,7 +183,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
                 </View>
               </CardContent>
             </Card>
-          </Link>
+          </Pressable>
         );
       }
     );
@@ -188,16 +192,16 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
       "friend-request-received",
       ({ username, image }: { username: string; image: string }) => {
         const toastId = toast.custom(
-          <Link
-            href={{
-              pathname: "/(tabs)/social",
-              params: { tab: "requests" },
-            }}
+          <Pressable
             className="m-3"
             onPress={() => {
               if (router.canDismiss()) {
                 router.dismissAll();
               }
+              router.navigate({
+                pathname: "/(tabs)/social",
+                params: { tab: "requests" },
+              });
               toast.dismiss(toastId);
             }}
           >
@@ -216,7 +220,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
                 </View>
               </CardContent>
             </Card>
-          </Link>
+          </Pressable>
         );
       }
     );
@@ -225,16 +229,16 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
       "friend-request-accepted",
       ({ username, image }: { username: string; image: string }) => {
         const toastId = toast.custom(
-          <Link
-            href={{
-              pathname: "/(tabs)/social",
-              params: { tab: "friends" },
-            }}
+          <Pressable
             className="m-3"
             onPress={() => {
               if (router.canDismiss()) {
                 router.dismissAll();
               }
+              router.navigate({
+                pathname: "/(tabs)/social",
+                params: { tab: "friends" },
+              });
               toast.dismiss(toastId);
             }}
           >
@@ -253,7 +257,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
                 </View>
               </CardContent>
             </Card>
-          </Link>
+          </Pressable>
         );
       }
     );
@@ -264,16 +268,19 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
         pathname !== `/match/${message.matchId}/messages`
       ) {
         const toastId = toast.custom(
-          <Link
+          <Pressable
             className="m-3"
-            href={{
-              pathname: "/match/[matchId]",
-              params: { matchId: message.matchId!, openSubRoute: "messages" },
-            }}
             onPress={() => {
-              if (router.canDismiss()) {
+              if (
+                router.canDismiss() &&
+                pathname !== `/match/${message.matchId}`
+              ) {
                 router.dismissAll();
               }
+              router.navigate({
+                pathname: "/match/[matchId]",
+                params: { matchId: message.matchId!, openSubRoute: "messages" },
+              });
               toast.dismiss(toastId);
             }}
           >
@@ -297,7 +304,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
                 </View>
               </CardContent>
             </Card>
-          </Link>
+          </Pressable>
         );
       }
     });
@@ -308,19 +315,22 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
         pathname !== `/dynastyLeague/${message.dynastyLeagueId}/messages`
       ) {
         const toastId = toast.custom(
-          <Link
+          <Pressable
             className="m-3"
-            href={{
-              pathname: "/dynastyLeague/[dynastyLeagueId]",
-              params: {
-                dynastyLeagueId: message.dynastyLeagueId!,
-                openSubRoute: "messages",
-              },
-            }}
             onPress={() => {
-              if (router.canDismiss()) {
+              if (
+                router.canDismiss() &&
+                pathname !== `/dynastyLeague/${message.dynastyLeagueId}`
+              ) {
                 router.dismissAll();
               }
+              router.navigate({
+                pathname: "/dynastyLeague/[dynastyLeagueId]",
+                params: {
+                  dynastyLeagueId: message.dynastyLeagueId!,
+                  openSubRoute: "messages",
+                },
+              });
               toast.dismiss(toastId);
             }}
           >
@@ -344,7 +354,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
                 </View>
               </CardContent>
             </Card>
-          </Link>
+          </Pressable>
         );
       }
     });
@@ -362,13 +372,13 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
       }) => {
         if (pathname !== "/(tabs)/social") {
           const toastId = toast.custom(
-            <Link
-              href="/(tabs)/social"
+            <Pressable
               className="m-3"
               onPress={() => {
                 if (router.canDismiss()) {
                   router.dismissAll();
                 }
+                router.navigate("/(tabs)/social");
                 toast.dismiss(toastId);
               }}
             >
@@ -387,7 +397,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
                   </View>
                 </CardContent>
               </Card>
-            </Link>,
+            </Pressable>,
             {
               duration: Infinity,
             }
@@ -448,41 +458,48 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
 
     // Handle app state changes to manage connection properly
     const handleAppStateChange = (nextAppState: string) => {
-      if (nextAppState === 'background' && socket?.connected) {
+      if (nextAppState === "background" && socket?.connected) {
         socket.disconnect();
-      } else if (nextAppState === 'active' && !socket?.connected && !isUnmountingRef.current) {
+      } else if (
+        nextAppState === "active" &&
+        !socket?.connected &&
+        !isUnmountingRef.current
+      ) {
         socket.connect();
       }
     };
 
-    const subscription = AppState.addEventListener('change', handleAppStateChange);
+    const subscription = AppState.addEventListener(
+      "change",
+      handleAppStateChange
+    );
 
     return () => {
       isUnmountingRef.current = true;
       subscription?.remove();
-      
+
       if (socketRef.current) {
         // Remove all listeners first to prevent events during cleanup
         socketRef.current.removeAllListeners();
-        
+
         // Disconnect forcefully with a timeout
         const disconnectTimeout = setTimeout(() => {
           if (socketRef.current) {
             socketRef.current.close();
           }
         }, 100);
-        
+
         if (socketRef.current.connected) {
           socketRef.current.disconnect();
         }
-        
+
         clearTimeout(disconnectTimeout);
         socketRef.current = null;
       }
-      
+
       setIsConnected(false);
     };
-  }, [queryClient, currentUserData?.user.id]);
+  }, [queryClient, currentUserData?.user.id, pathname]);
 
   return (
     <RealtimeContext.Provider value={{ isConnected }}>
