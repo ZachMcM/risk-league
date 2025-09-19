@@ -123,45 +123,24 @@ async def handle_prop_updated(data):
                                 )
 
                     else:
-                        if updated_prop["current_value"] > updated_prop["line"]:
-                            batch_update_stmt = """
-                                WITH updates AS (
-                                    UPDATE pick SET status = CASE
-                                        WHEN choice = 'over' THEN 'hit'::pick_status
-                                        WHEN choice = 'under' THEN 'missed'::pick_status
-                                    END
-                                    WHERE prop_id = %s AND choice IN ('over', 'under')
-                                    RETURNING id, parlay_id
-                                )
-                                SELECT id, parlay_id FROM updates
-                            """
+                        related_picks_query = """
+                            SELECT id, parlay_id
+                            FROM pick
+                            WHERE prop_id = %s
+                        """
 
-                            await cur.execute(batch_update_stmt, (updated_prop["id"],))
-                            batch_res_list = await cur.fetchall()
+                        await cur.execute(
+                            related_picks_query, (updated_prop["id"],)
+                        )
+                        related_picks_res_list = await cur.fetchall()
 
-                            for res in batch_res_list:
-                                picks_to_invalidate.append(
-                                    {"id": res[0], "parlay_id": res[1]}
-                                )
-                        else:
-                            related_picks_query = """
-                                SELECT id, parlay_id
-                                FROM pick
-                                WHERE prop_id = %s
-                            """
-
-                            await cur.execute(
-                                related_picks_query, (updated_prop["id"],)
+                        for related_picks_res in related_picks_res_list:
+                            picks_to_invalidate.append(
+                                {
+                                    "id": related_picks_res[0],
+                                    "parlay_id": related_picks_res[1],
+                                }
                             )
-                            related_picks_res_list = await cur.fetchall()
-
-                            for related_picks_res in related_picks_res_list:
-                                picks_to_invalidate.append(
-                                    {
-                                        "id": related_picks_res[0],
-                                        "parlay_id": related_picks_res[1],
-                                    }
-                                )
 
                     await cur.execute("COMMIT")
 
