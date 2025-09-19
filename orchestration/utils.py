@@ -70,6 +70,7 @@ def server_req(
     method: Literal["GET", "POST", "PUT", "DELETE", "PATCH"],
     body: Optional[str] = None,
     files: Optional[dict] = None,
+    params: Optional[dict] = None,
 ):
     """Make authenticated requests to the server API.
 
@@ -78,6 +79,7 @@ def server_req(
         method: HTTP method
         body: JSON string body for request (optional)
         files: Dictionary of files for multipart form data (optional)
+        params: Dictionary of query parameters (optional)
 
     Returns:
         Response object from requests
@@ -98,15 +100,15 @@ def server_req(
         headers["Content-Type"] = "application/json"
 
     if method == "GET":
-        response = requests.get(url, headers=headers, timeout=30)
+        response = requests.get(url, headers=headers, params=params, timeout=30)
     elif method == "POST":
-        response = requests.post(url, headers=headers, data=body, files=files, timeout=30)
+        response = requests.post(url, headers=headers, data=body, files=files, params=params, timeout=30)
     elif method == "PUT":
-        response = requests.put(url, headers=headers, data=body, files=files, timeout=30)
+        response = requests.put(url, headers=headers, data=body, files=files, params=params, timeout=30)
     elif method == "DELETE":
-        response = requests.delete(url, headers=headers, timeout=30)
+        response = requests.delete(url, headers=headers, params=params, timeout=30)
     elif method == "PATCH":
-        response = requests.patch(url, headers=headers, data=body, files=files, timeout=30)
+        response = requests.patch(url, headers=headers, data=body, files=files, params=params, timeout=30)
     else:
         raise ValueError(f"Unsupported HTTP method: {method}")
 
@@ -119,11 +121,12 @@ def server_req(
     return response
 
 
-def data_feeds_req(route: str):
+def data_feeds_req(route: str, params: Optional[dict] = None):
     """Make authenticated GET requests to the data feeds API.
 
     Args:
         route: API route (e.g., '/team-info/MLB')
+        params: Dictionary of query parameters (optional)
 
     Returns:
         Response object from requests
@@ -136,9 +139,16 @@ def data_feeds_req(route: str):
     DATA_FEEDS_API_TOKEN = getenv_required("DATA_FEEDS_API_TOKEN")
     DATA_FEEDS_BASE_URL = getenv_required("DATA_FEEDS_BASE_URL")
 
-    url = f"{DATA_FEEDS_BASE_URL}{route}?RSC_token={DATA_FEEDS_API_TOKEN}"
+    # Build base parameters with API token
+    api_params = {"RSC_token": DATA_FEEDS_API_TOKEN}
 
-    response = requests.get(url, timeout=30)
+    # Add any additional query parameters
+    if params:
+        api_params.update(params)
+
+    url = f"{DATA_FEEDS_BASE_URL}{route}"
+
+    response = requests.get(url, params=api_params, timeout=30)
 
     if response.status_code not in [200, 304]:
         raise requests.HTTPError(

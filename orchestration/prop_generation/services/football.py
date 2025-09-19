@@ -119,6 +119,8 @@ def main():
                             "WR",
                         ]:
                             continue
+                        
+                        logger.info(f"Processing player {player['name']}")
 
                         player_stats_list: list[FootballPlayerStats] = get_football_player_stats(
                             league=league,
