@@ -328,12 +328,12 @@ async def _update_elo_points(
 
     # Get current user points
     await cur.execute(
-        "SELECT points FROM user WHERE id = %s", (match_user1["user_id"],)
+        "SELECT points FROM public.user WHERE id = %s", (match_user1["user_id"],)
     )
     user1_points_res = await cur.fetchone()
 
     await cur.execute(
-        "SELECT points FROM user WHERE id = %s", (match_user2["user_id"],)
+        "SELECT points FROM public.user WHERE id = %s", (match_user2["user_id"],)
     )
     user2_points_res = await cur.fetchone()
 
@@ -358,11 +358,11 @@ async def _update_elo_points(
 
     # Update user points (minimum 1000)
     await cur.execute(
-        "UPDATE user SET points = %s WHERE id = %s",
+        "UPDATE public.user SET points = %s WHERE id = %s",
         (max(1000, new_points[0]), match_user1["user_id"])
     )
     await cur.execute(
-        "UPDATE user SET points = %s WHERE id = %s",
+        "UPDATE public.user SET points = %s WHERE id = %s",
         (max(1000, new_points[1]), match_user2["user_id"])
     )
 
