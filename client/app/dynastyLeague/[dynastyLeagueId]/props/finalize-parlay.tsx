@@ -26,6 +26,9 @@ export default function FinalizeParlay() {
   ) : (
     <FinalizeParlayForm
       balance={currentDynastyLeagueUser.balance}
+      startingBalance={currentDynastyLeagueUser.startingBalance}
+      totalStaked={currentDynastyLeagueUser.totalStaked}
+      totalParlays={currentDynastyLeagueUser.totalParlays}
       dynastyLeagueId={dynastyLeagueId}
     />
   );

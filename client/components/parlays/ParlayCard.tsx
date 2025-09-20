@@ -19,6 +19,7 @@ import { Card, CardContent } from "../ui/card";
 import PlayerImage from "../ui/player-image";
 import { Separator } from "../ui/separator";
 import { Text } from "../ui/text";
+import { toast } from "sonner-native";
 
 export default function ParlayCard({ initialData }: { initialData: Parlay }) {
   const searchParams = useLocalSearchParams<{
@@ -47,6 +48,7 @@ export default function ParlayCard({ initialData }: { initialData: Parlay }) {
       isAdLoaded &&
       new Date().getTime() - sqlToJsDate(parlay.createdAt).getTime() <= 10000
     ) {
+      toast.dismiss();
       showAd();
     }
   }, [isAdLoaded, parlay]);

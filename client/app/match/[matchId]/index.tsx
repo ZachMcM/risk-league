@@ -3,6 +3,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect } from "react";
 import { ActivityIndicator, View } from "react-native";
 import { useInterstitialAd } from "react-native-google-mobile-ads";
+import { toast } from "sonner-native";
 import MatchDetails from "~/components/matches/MatchDetails";
 import ParlaysView from "~/components/parlays/ParlaysView";
 import { Button } from "~/components/ui/button";
@@ -61,6 +62,7 @@ export default function Match() {
       match &&
       new Date().getTime() - sqlToJsDate(match.createdAt).getTime() <= 10000
     ) {
+      toast.dismiss();
       showAd();
     }
   }, [isAdLoaded, match]);

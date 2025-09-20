@@ -97,6 +97,7 @@ export default function DynastyLeagueDetails({
         sqlToJsDate(currentDynastyLeagueUser.createdAt).getTime() <=
         10000
     ) {
+      toast.dismiss()
       showAd();
     }
   }, [isAdLoaded, currentDynastyLeagueUser]);

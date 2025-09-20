@@ -16,7 +16,11 @@ import PlayerImage from "~/components/ui/player-image";
 import { Text } from "~/components/ui/text";
 import { postParlay } from "~/endpoints";
 import { authClient } from "~/lib/auth-client";
-import { MIN_STAKE_PCT } from "~/lib/config";
+import {
+  MIN_PARLAYS_REQUIRED,
+  MIN_PCT_TOTAL_STAKED,
+  MIN_STAKE_PCT,
+} from "~/lib/config";
 import { CircleMinus } from "~/lib/icons/CircleMinus";
 import { Prop } from "~/types/prop";
 import { cn } from "~/utils/cn";
@@ -26,13 +30,21 @@ import {
   getPerfectPlayMultiplier,
 } from "~/utils/multiplierUtils";
 import { Tabs, TabsList, TabsTrigger } from "../ui/tabs";
+import { Icon } from "../ui/icon";
+import { AlertCircle } from "lucide-react-native";
 
 export default function FinalizeParlayForm({
   balance,
+  startingBalance,
+  totalStaked,
+  totalParlays,
   matchId,
   dynastyLeagueId,
 }: {
   balance: number;
+  startingBalance: number;
+  totalStaked: number;
+  totalParlays: number;
   matchId?: number;
   dynastyLeagueId?: number;
 }) {
@@ -69,7 +81,6 @@ export default function FinalizeParlayForm({
       }
     }
   }, [formError, stake]);
-
 
   const { mutate: createParlay, isPending: isCreatingParlayPending } =
     useMutation({
@@ -113,7 +124,6 @@ export default function FinalizeParlayForm({
             ["dynasty-league", dynastyLeagueId]
           );
         }
-
 
         toast.success("Parlay Successfully created", {
           position: "top-center",
@@ -161,6 +171,11 @@ export default function FinalizeParlayForm({
   }
 
   const insets = useSafeAreaInsets();
+
+  const minTotalStaked = Math.round(MIN_PCT_TOTAL_STAKED * startingBalance);
+
+  console.log(totalStaked, minTotalStaked);
+  console.log(totalParlays, MIN_PARLAYS_REQUIRED);
 
   return (
     <ModalContainer>
@@ -314,7 +329,7 @@ export default function FinalizeParlayForm({
                     size="sm"
                     onPress={() => {
                       if (router.canDismiss()) {
-                        router.dismissAll()
+                        router.dismissAll();
                       }
                       if (matchId) {
                         router.navigate({
@@ -370,6 +385,17 @@ export default function FinalizeParlayForm({
                     : ""}
                 </Text>
               </View>
+              {(totalStaked < minTotalStaked ||
+                totalParlays < MIN_PARLAYS_REQUIRED) && (
+                <Text className="font-semibold text-destructive text-center">
+                  {totalStaked < minTotalStaked &&
+                    `You need to stake $${minTotalStaked - totalStaked} more. `}
+                  {totalParlays < MIN_PARLAYS_REQUIRED &&
+                    `You need to place ${
+                      MIN_PARLAYS_REQUIRED - totalParlays
+                    } more parlays`}
+                </Text>
+              )}
               {formError && (
                 <Text className="font-semibold text-sm text-destructive text-center">
                   {formError}

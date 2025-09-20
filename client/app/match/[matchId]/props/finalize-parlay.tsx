@@ -4,6 +4,7 @@ import { ActivityIndicator } from "react-native";
 import FinalizeParlayForm from "~/components/parlays/FinalizeParlayForm";
 import { getMatch } from "~/endpoints";
 import { authClient } from "~/lib/auth-client";
+import { ExtendedMatchUser } from "~/types/match";
 
 export default function FinalizeParlay() {
   const searchParams = useLocalSearchParams<{ matchId: string }>();
@@ -16,13 +17,21 @@ export default function FinalizeParlay() {
 
   const { data: currentUserData } = authClient.useSession();
 
-  const { balance } = match?.matchUsers.find(
-    (matchUser) => matchUser.user.id == currentUserData?.user.id!
-  )!;
+  const { balance, totalParlays, totalStaked, startingBalance } =
+    match?.matchUsers.find(
+      (matchUser: ExtendedMatchUser) =>
+        matchUser.user.id == currentUserData?.user.id!
+    )!;
 
   return isPending ? (
     <ActivityIndicator className="text-foreground" />
   ) : (
-    <FinalizeParlayForm balance={balance} matchId={matchId} />
+    <FinalizeParlayForm
+      totalStaked={totalStaked}
+      startingBalance={startingBalance}
+      totalParlays={totalParlays}
+      balance={balance}
+      matchId={matchId}
+    />
   );
 }
