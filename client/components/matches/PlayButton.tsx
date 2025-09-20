@@ -5,7 +5,7 @@ import { ReactNode, useRef, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
 import { io } from "socket.io-client";
 import { toast } from "sonner-native";
-import { getTodayProps } from "~/endpoints";
+import { getTodayPropsCount } from "~/endpoints";
 import { authClient } from "~/lib/auth-client";
 import { League } from "~/lib/config";
 import { CircleX } from "~/lib/icons/CircleX";
@@ -35,12 +35,9 @@ export default function PlayButton({
   const ncaabbImage = require("~/assets/images/ncaabb.jpeg");
   const ncaafbImage = require("~/assets/images/ncaafb.jpeg");
 
-  const { data: props, isPending: arePropsPending } = useQuery({
-    queryKey: ["props", league],
-    queryFn: async () =>
-      await getTodayProps({
-        league,
-      }),
+  const { data: propsData, isPending: arePropsPending } = useQuery({
+    queryKey: ["props-games-count", league],
+    queryFn: async () => await getTodayPropsCount(league),
     staleTime: 60 * 1000,
   });
 
@@ -121,14 +118,15 @@ export default function PlayButton({
     }
   }
 
-  const uniqueGameIds = [...new Set(props?.map((prop) => prop.game.gameId))];
+  const propsCount = propsData?.availableProps || 0;
+  const gamesCount = propsData?.totalGames || 0;
 
   return (
     <Card
       className={cn(
         "w-72",
         arePropsPending && "animate-pulse",
-        !arePropsPending && props?.length == 0 && "opacity-60",
+        !arePropsPending && propsCount === 0 && "opacity-60",
       )}
     >
       <CardContent className="p-0 flex-1 flex flex-col">
@@ -168,13 +166,13 @@ export default function PlayButton({
               </View>
             ) : (
               <Text className="text-muted-foreground text-center">
-                {arePropsPending ? "..." : props?.length} Props •{" "}
-                {arePropsPending ? "..." : uniqueGameIds.length} Games
+                {arePropsPending ? "..." : propsCount} Props •{" "}
+                {arePropsPending ? "..." : gamesCount} Games
               </Text>
             )}
           </View>
           <Button
-            disabled={arePropsPending || !props || props.length == 0}
+            disabled={arePropsPending || !propsData || propsCount === 0}
             onPress={handlePress}
             className="flex flex-row items-center gap-2 w-full"
             variant={isLoading ? "destructive" : "default"}

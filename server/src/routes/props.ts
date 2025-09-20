@@ -247,6 +247,51 @@ propsRoute.get(
   }
 );
 
+propsRoute.get("/props/today/count", async (req, res) => {
+  try {
+    const league = req.query.league as
+      | (typeof leagueType.enumValues)[number]
+      | undefined;
+
+    if (!league || !leagueType.enumValues.includes(league)) {
+      res.status(400).json({ error: "Invalid or missing league parameter" });
+      return;
+    }
+
+    const now = moment();
+    const startTime = now.clone().subtract(6, "hours").toISOString();
+    const endTime = now.clone().add(18, "hours").toISOString();
+
+    const availablePropsCount = await db
+      .select({
+        propCount: prop.id,
+        gameId: game.gameId,
+      })
+      .from(prop)
+      .innerJoin(
+        game,
+        and(eq(prop.gameId, game.gameId), eq(prop.league, game.league))
+      )
+      .where(
+        and(
+          gte(game.startTime, startTime),
+          lt(game.startTime, endTime),
+          gt(game.startTime, new Date().toISOString()),
+          eq(game.league, league)
+        )
+      );
+
+    const uniqueGameIds = [...new Set(availablePropsCount.map(item => item.gameId))];
+
+    res.json({
+      availableProps: availablePropsCount.length,
+      totalGames: uniqueGameIds.length,
+    });
+  } catch (error) {
+    handleError(error, res, "Props count route");
+  }
+});
+
 propsRoute.get("/props/today", authMiddleware, async (req, res) => {
   try {
     const matchId = req.query.matchId

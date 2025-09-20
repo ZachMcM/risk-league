@@ -341,6 +341,17 @@ export async function postMessage({
   });
 }
 
+export async function getTodayPropsCount(
+  league: League
+): Promise<{ availableProps: number; totalGames: number }> {
+  const propsCount = await serverRequest({
+    endpoint: `/props/today/count?league=${league}`,
+    method: "GET",
+  });
+
+  return propsCount;
+}
+
 export async function getTodayProps({
   league,
   matchId,

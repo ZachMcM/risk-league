@@ -1,22 +1,22 @@
 import { useQueries } from "@tanstack/react-query";
 import { ScrollView, View } from "react-native";
-import { getTodayProps } from "~/endpoints";
-import { LEAGUES, League } from "~/lib/config";
+import { getTodayPropsCount } from "~/endpoints";
+import { LEAGUES } from "~/lib/config";
 import { Text } from "../ui/text";
 import PlayButton from "./PlayButton";
 
 export default function CompetitiveMatchLeagues() {
   const leagueQueries = useQueries({
     queries: LEAGUES.map((league) => ({
-      queryKey: ["props", league],
-      queryFn: () => getTodayProps({ league }),
+      queryKey: ["props-games-count", league],
+      queryFn: () => getTodayPropsCount(league),
       staleTime: 60 * 1000,
     })),
   });
 
   const leagueData = LEAGUES.map((league, index) => ({
     league,
-    propCount: leagueQueries[index]?.data?.length || 0,
+    propCount: leagueQueries[index]?.data?.availableProps || 0,
     isLoading: leagueQueries[index]?.isPending,
   }));
 
