@@ -240,7 +240,7 @@ usersRoute.get("/users/:id/career", authMiddleware, async (req, res) => {
             parlays: {
               columns: {
                 resolved: true,
-                profit: true,
+                payout: true,
               },
               with: {
                 picks: {
@@ -411,7 +411,7 @@ usersRoute.get("/users/:id/career", authMiddleware, async (req, res) => {
             (accum, curr) =>
               accum +
               curr.parlays.filter(
-                (parlay) => parlay.resolved && parlay.profit > 0
+                (parlay) => parlay.resolved && parlay.payout > 0
               ).length,
             0
           ),
@@ -421,7 +421,7 @@ usersRoute.get("/users/:id/career", authMiddleware, async (req, res) => {
             (accum, curr) =>
               accum +
               curr.parlays.filter(
-                (parlay) => parlay.resolved && parlay.profit <= 0
+                (parlay) => parlay.resolved && parlay.payout == 0
               ).length,
             0
           ),

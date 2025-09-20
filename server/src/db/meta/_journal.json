@@ -603,6 +603,13 @@
       "when": 1757950334185,
       "tag": "0085_smooth_grey_gargoyle",
       "breakpoints": true
+    },
+    {
+      "idx": 86,
+      "version": "7",
+      "when": 1758343284132,
+      "tag": "0086_silent_absorbing_man",
+      "breakpoints": true
     }
   ]
 }

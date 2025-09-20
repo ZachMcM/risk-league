@@ -107,10 +107,10 @@ matchesRoute.get("/matches/:id", authMiddleware, async (req, res) => {
         totalStaked: mu.parlays.reduce((accum, curr) => accum + curr.stake, 0),
         totalParlays: mu.parlays.length,
         parlaysWon: mu.parlays.filter(
-          (parlay) => parlay.profit && parlay.profit > 0
+          (parlay) => parlay.payout > 0
         ).length,
         parlaysLost: mu.parlays.filter(
-          (parlay) => parlay.profit && parlay.profit < 0
+          (parlay) => parlay.payout == 0
         ).length,
         parlaysInProgress: mu.parlays.filter((parlay) => !parlay.resolved)
           .length,

@@ -8,7 +8,7 @@ export type Parlay = {
   resolved: boolean;
   matchUserId: number | null;
   dynastyLeagueUserId: number | null
-  profit: number;
+  payout: number;
   picks: Pick[];
 };
 

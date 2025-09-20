@@ -93,7 +93,7 @@ export default function ParlayCard({ initialData }: { initialData: Parlay }) {
               <Badge
                 variant={
                   parlay.resolved
-                    ? parlay.profit > 0
+                    ? parlay.payout > 0
                       ? "success"
                       : "destructive"
                     : "default"
@@ -103,7 +103,7 @@ export default function ParlayCard({ initialData }: { initialData: Parlay }) {
                 <Text className="text-sm">
                   {!parlay.resolved
                     ? "Active"
-                    : parlay.profit > 0
+                    : parlay.payout > 0
                     ? "Won"
                     : "Lost"}
                 </Text>
@@ -128,11 +128,7 @@ export default function ParlayCard({ initialData }: { initialData: Parlay }) {
             <Separator orientation="vertical" />
             <View className="flex flex-col">
               <Text className="text-muted-foreground font-semibold">
-                {!parlay.resolved
-                  ? "Potential Payout"
-                  : parlay.profit > 0
-                  ? "Net Gain"
-                  : "Net Loss"}
+                {!parlay.resolved ? "Potential Payout" : "Payout"}
               </Text>
               <Text className="font-bold text-2xl">
                 $
@@ -146,7 +142,7 @@ export default function ParlayCard({ initialData }: { initialData: Parlay }) {
                         : getPerfectPlayMultiplier(parlay.picks.length)) *
                       parlay.stake
                     ).toFixed(2)
-                  : Math.abs(parlay.profit).toFixed(2)}
+                  : Math.abs(parlay.payout).toFixed(2)}
               </Text>
             </View>
           </View>

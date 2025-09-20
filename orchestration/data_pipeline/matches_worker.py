@@ -152,7 +152,7 @@ async def handle_parlay_resolved(data):
                     match_users_data = []
                     for mu_row in match_users_res:
                         parlays_query = """
-                            SELECT id, stake, resolved, profit
+                            SELECT id, stake, resolved, payout
                             FROM parlay
                             WHERE match_user_id = %s
                         """
@@ -165,7 +165,7 @@ async def handle_parlay_resolved(data):
                                 "id": p[0],
                                 "stake": float(p[1]),
                                 "resolved": p[2],
-                                "profit": float(p[3]) if p[3] is not None else None
+                                "payout": float(p[3]) if p[3] is not None else None
                             }
                             for p in parlays_res
                         ]
@@ -525,7 +525,7 @@ async def handle_match_check(data):
                     match_users_data = []
                     for mu_row in match_users_res:
                         parlays_query = """
-                            SELECT id, stake, resolved, profit
+                            SELECT id, stake, resolved, payout
                             FROM parlay
                             WHERE match_user_id = %s
                         """
@@ -538,7 +538,7 @@ async def handle_match_check(data):
                                 "id": p[0],
                                 "stake": float(p[1]),
                                 "resolved": p[2],
-                                "profit": float(p[3]) if p[3] is not None else None
+                                "payout": float(p[3]) if p[3] is not None else None
                             }
                             for p in parlays_res
                         ]

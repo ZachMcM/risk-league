@@ -192,8 +192,6 @@ async def handle_pick_resolved(data):
                                 * stake
                             )
 
-                    profit = payout - stake
-
                     logger.info(
                         f"Parlay {parlay_res[0]} resolution triggered by pick {pick_id}, payout: {payout}"
                     )
@@ -201,11 +199,11 @@ async def handle_pick_resolved(data):
                     # Update parlay as resolved
                     update_parlay_query = """
                         UPDATE parlay
-                        SET profit = %s, resolved = true
+                        SET payout = %s, resolved = true
                         WHERE id = %s
                     """
 
-                    await cur.execute(update_parlay_query, (profit, parlay_res[0]))
+                    await cur.execute(update_parlay_query, (payout, parlay_res[0]))
 
                     # Update user balance
                     user_context = None

@@ -331,7 +331,7 @@ export const parlay = pgTable(
       { onDelete: "cascade" }
     ),
     resolved: boolean().default(false).notNull(),
-    profit: doublePrecision().default(0).notNull(),
+    payout: doublePrecision().default(0).notNull(),
     type: parlayType().notNull(),
   },
   (table) => [

@@ -56,8 +56,8 @@ export default function ParlaysView({ parlays }: { parlays: Parlay[] }) {
         : selectedFilter == "completed"
         ? parlay.resolved
         : selectedFilter == "lost"
-        ? parlay.profit < 0
-        : parlay.profit > 0
+        ? parlay.payout == 0
+        : parlay.payout > 0
     );
   };
 

@@ -1,0 +1,1 @@
+ALTER TABLE "parlay" RENAME COLUMN "profit" TO "payout";

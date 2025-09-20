@@ -91,7 +91,7 @@ export default function ParlayPage({ parlayId }: { parlayId: number }) {
                   <Badge
                     variant={
                       parlay.resolved
-                        ? parlay.profit > 0
+                        ? parlay.payout > 0
                           ? "success"
                           : "destructive"
                         : "default"
@@ -99,7 +99,7 @@ export default function ParlayPage({ parlayId }: { parlayId: number }) {
                   >
                     <Text className="text-base">
                       {parlay.resolved
-                        ? parlay.profit > 0
+                        ? parlay.payout > 0
                           ? "Won"
                           : "Lost"
                         : "Active"}
@@ -111,9 +111,7 @@ export default function ParlayPage({ parlayId }: { parlayId: number }) {
                   <Text className="text-muted-foreground font-semibold">
                     {!parlay.resolved
                       ? "Potential Payout"
-                      : parlay.profit > 0
-                      ? "Net Gain"
-                      : "Net Loss"}
+                      : "Payout"}
                   </Text>
                   <Text className="font-bold text-2xl">
                     $
@@ -127,7 +125,7 @@ export default function ParlayPage({ parlayId }: { parlayId: number }) {
                             : getPerfectPlayMultiplier(parlay.picks.length)) *
                           parlay.stake
                         ).toFixed(2)
-                      : Math.abs(parlay.profit).toFixed(2)}
+                      : Math.abs(parlay.payout).toFixed(2)}
                   </Text>
                 </View>
               </View>
