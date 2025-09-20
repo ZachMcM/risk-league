@@ -2,7 +2,7 @@ import asyncio
 import aiohttp
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
-from db.connection import get_async_connection_context
+from db.connection import get_async_pool
 from typing import TypedDict
 from extract_stats.main import extract_player_stats
 from redis_utils import (
@@ -115,7 +115,8 @@ async def handle_stats_updated(data):
     props_updated = []
 
     try:
-        async with await get_async_connection_context() as conn:
+        pool = await get_async_pool()
+        async with pool.connection() as conn:
             async with conn.cursor() as cur:
                 await cur.execute("BEGIN")
 
@@ -221,8 +222,14 @@ async def main():
         await listen_for_stats_updated()
     except KeyboardInterrupt:
         logger.warning("Shutting down props_worker...")
+        # Ensure pool cleanup on shutdown
+        from db.connection import close_async_pool
+        await close_async_pool()
     except Exception as e:
         logger.error(f"Error in main: {e}")
+        # Ensure pool cleanup on error
+        from db.connection import close_async_pool
+        await close_async_pool()
 
 
 if __name__ == "__main__":

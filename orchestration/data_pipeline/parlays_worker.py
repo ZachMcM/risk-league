@@ -6,7 +6,7 @@ from redis_utils import (
     listen_for_messages_async,
     publish_message_async,
 )
-from db.connection import get_async_connection_context
+from db.connection import get_async_pool
 from time import time
 
 logger = setup_logger(__name__)
@@ -89,7 +89,8 @@ async def handle_pick_resolved(data):
     redis_publisher = await create_async_redis_client()
 
     try:
-        async with await get_async_connection_context() as conn:
+        pool = await get_async_pool()
+        async with pool.connection() as conn:
             async with conn.cursor() as cur:
                 try:
                     await cur.execute("BEGIN")
@@ -364,8 +365,14 @@ async def main():
         await listen_for_pick_resolved()
     except KeyboardInterrupt:
         logger.warning("Shutting down parlays_worker...")
+        # Ensure pool cleanup on shutdown
+        from db.connection import close_async_pool
+        await close_async_pool()
     except Exception as e:
         logger.error(f"Error in main: {e}")
+        # Ensure pool cleanup on error
+        from db.connection import close_async_pool
+        await close_async_pool()
 
 
 if __name__ == "__main__":

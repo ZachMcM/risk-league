@@ -1,6 +1,6 @@
 from utils import setup_logger
 from redis_utils import create_async_redis_client, publish_message_async
-from db.connection import get_async_connection_context
+from db.connection import get_async_pool
 import asyncio
 from datetime import datetime
 from time import time
@@ -14,7 +14,8 @@ MAX_MATCH_AGE_HOURS = 24  # Don't process matches older than 24 hours
 async def find_matches_to_resolve():
     """Find unresolved matches that should be checked for resolution"""
     try:
-        async with await get_async_connection_context() as conn:
+        pool = await get_async_pool()
+        async with pool.connection() as conn:
             async with conn.cursor() as cur:
                 # Find unresolved matches where:
                 # 1. Match is not already resolved
@@ -114,8 +115,14 @@ async def main():
         await poll_matches()
     except KeyboardInterrupt:
         logger.warning("Shutting down matches_poller...")
+        # Ensure pool cleanup on shutdown
+        from db.connection import close_async_pool
+        await close_async_pool()
     except Exception as e:
         logger.error(f"Error in main: {e}")
+        # Ensure pool cleanup on error
+        from db.connection import close_async_pool
+        await close_async_pool()
 
 
 if __name__ == "__main__":

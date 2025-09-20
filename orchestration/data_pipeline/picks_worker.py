@@ -5,7 +5,7 @@ from redis_utils import (
     publish_message_async,
 )
 import asyncio
-from db.connection import get_async_connection_context
+from db.connection import get_async_pool
 from time import time
 
 logger = setup_logger(__name__)
@@ -24,7 +24,8 @@ async def handle_prop_updated(data):
     picks_to_invalidate = []
 
     try:
-        async with await get_async_connection_context() as conn:
+        pool = await get_async_pool()
+        async with pool.connection() as conn:
             async with conn.cursor() as cur:
                 try:
                     await cur.execute("BEGIN")
@@ -211,8 +212,14 @@ async def main():
         await listen_for_prop_updated()
     except KeyboardInterrupt:
         logger.warning("Shutting down picks_worker...")
+        # Ensure pool cleanup on shutdown
+        from db.connection import close_async_pool
+        await close_async_pool()
     except Exception as e:
         logger.error(f"Error in main: {e}")
+        # Ensure pool cleanup on error
+        from db.connection import close_async_pool
+        await close_async_pool()
 
 
 if __name__ == "__main__":

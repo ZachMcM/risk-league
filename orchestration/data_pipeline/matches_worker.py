@@ -1,6 +1,6 @@
 from utils import setup_logger
 from redis_utils import create_async_redis_client, publish_message_async, listen_for_messages_async
-from db.connection import get_async_connection_context
+from db.connection import get_async_pool
 import asyncio
 from typing import TypedDict, Optional, List, Tuple
 from datetime import datetime
@@ -73,9 +73,10 @@ async def handle_parlay_resolved(data):
         return
 
     redis_publisher = await create_async_redis_client()
+    pool = await get_async_pool()
 
     try:
-        async with await get_async_connection_context() as conn:
+        async with pool.connection() as conn:
             async with conn.cursor() as cur:
                 try:
                     await cur.execute("BEGIN")
@@ -464,9 +465,10 @@ async def handle_match_check(data):
         return
 
     redis_publisher = await create_async_redis_client()
+    pool = await get_async_pool()
 
     try:
-        async with await get_async_connection_context() as conn:
+        async with pool.connection() as conn:
             async with conn.cursor() as cur:
                 try:
                     await cur.execute("BEGIN")
@@ -672,8 +674,14 @@ async def main():
         )
     except KeyboardInterrupt:
         logger.warning("Shutting down matches_worker...")
+        # Ensure pool cleanup on shutdown
+        from db.connection import close_async_pool
+        await close_async_pool()
     except Exception as e:
         logger.error(f"Error in main: {e}")
+        # Ensure pool cleanup on error
+        from db.connection import close_async_pool
+        await close_async_pool()
 
 
 if __name__ == "__main__":
