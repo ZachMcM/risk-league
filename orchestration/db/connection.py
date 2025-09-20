@@ -21,8 +21,8 @@ def get_pool():
                 database_url = getenv_required("DATABASE_URL")
                 _pool = ConnectionPool(
                     database_url,
-                    min_size=10,
-                    max_size=50,
+                    min_size=1,
+                    max_size=5,
                     timeout=30.0,
                     max_idle=300.0
                 )
@@ -61,8 +61,8 @@ async def get_async_pool():
                 database_url = getenv_required("DATABASE_URL")
                 _async_pool = AsyncConnectionPool(
                     database_url,
-                    min_size=10,
-                    max_size=50,
+                    min_size=1,
+                    max_size=5,
                     timeout=30.0,
                     max_idle=300.0,
                     open=False

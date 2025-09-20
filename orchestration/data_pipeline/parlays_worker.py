@@ -57,8 +57,6 @@ def get_perfect_play_multiplier(pick_count: int) -> float:
 def get_flex_multiplier(pick_count: int, hit_count: int) -> float:
     """Gets the multiplier for a flex play given the number of picks and hits"""
     flex_payouts: Dict[str, float] = {
-        # 2-pick flex (edge case when 3+ pick flex has ties)
-        "2-2": 1.25,  # Same payout as 3-2 flex
         # 3-pick flex
         "3-3": 2.25,
         "3-2": 1.25,
