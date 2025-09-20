@@ -296,11 +296,11 @@ async def _resolve_match(
 
     # Update match user statuses
     await cur.execute(
-        "UPDATE match_user SET status = %s::match_user_status WHERE id = %s",
+        "UPDATE match_user SET status = %s::match_status WHERE id = %s",
         (match_user1_status, match_user1["id"])
     )
     await cur.execute(
-        "UPDATE match_user SET status = %s::match_user_status WHERE id = %s",
+        "UPDATE match_user SET status = %s::match_status WHERE id = %s",
         (match_user2_status, match_user2["id"])
     )
 
