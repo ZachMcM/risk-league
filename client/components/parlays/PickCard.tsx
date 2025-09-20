@@ -26,44 +26,50 @@ export default function PickCard({ initialData }: { initialData: Pick }) {
   return (
     <Card key={pick.id}>
       <CardContent className="p-4 flex flex-col gap-4">
-        <View className="flex flex-row items-center gap-8">
-          {pick.prop.game.homeTeam.image && pick.prop.game.awayTeam.image && (
-            <View className="relative">
-              <View
-                style={{
-                  backgroundColor: `#${pick.prop.game.homeTeam.color}`,
-                }}
-                className="p-1.5 rounded-xl border-4 border-card overflow-hidden"
-              >
-                <Image
-                  style={{ height: 12.5, width: 12.5 }}
-                  contentFit="contain"
-                  source={{
-                    uri: pick.prop.game.homeTeam.image,
+        <View className="flex flex-row items-center gap-1">
+          {pick.prop.game.startTime <= new Date().toISOString() &&
+            !pick.prop.resolved && (
+              <View className="h-2.5 w-2.5 animate-pulse rounded-full bg-destructive" />
+            )}
+          <View className="flex flex-row items-center gap-8">
+            {pick.prop.game.homeTeam.image && pick.prop.game.awayTeam.image && (
+              <View className="relative">
+                <View
+                  style={{
+                    backgroundColor: `#${pick.prop.game.homeTeam.color}`,
                   }}
-                />
-              </View>
-              <View
-                style={{
-                  backgroundColor: `#${pick.prop.game.awayTeam.color}`,
-                }}
-                className="p-1.5 rounded-xl border-4 border-card overflow-hidden absolute -right-6"
-              >
-                <Image
-                  style={{ height: 12.5, width: 12.5 }}
-                  contentFit="contain"
-                  source={{
-                    uri: pick.prop.game.awayTeam.image,
+                  className="p-1.5 rounded-xl border-4 border-card overflow-hidden"
+                >
+                  <Image
+                    style={{ height: 12.5, width: 12.5 }}
+                    contentFit="contain"
+                    source={{
+                      uri: pick.prop.game.homeTeam.image,
+                    }}
+                  />
+                </View>
+                <View
+                  style={{
+                    backgroundColor: `#${pick.prop.game.awayTeam.color}`,
                   }}
-                />
+                  className="p-1.5 rounded-xl border-4 border-card overflow-hidden absolute -right-6"
+                >
+                  <Image
+                    style={{ height: 12.5, width: 12.5 }}
+                    contentFit="contain"
+                    source={{
+                      uri: pick.prop.game.awayTeam.image,
+                    }}
+                  />
+                </View>
               </View>
-            </View>
-          )}
-          <Text className="text-muted-foreground font-normal">
-            {pick.prop.game.awayTeam.abbreviation} @{" "}
-            {pick.prop.game.homeTeam.abbreviation} •{" "}
-            {moment(pick.prop.game.startTime).format("m/d, h:mm A")}
-          </Text>
+            )}
+            <Text className="text-muted-foreground font-normal">
+              {pick.prop.game.awayTeam.abbreviation} @{" "}
+              {pick.prop.game.homeTeam.abbreviation} •{" "}
+              {moment(pick.prop.game.startTime).format("m/d, h:mm A")}
+            </Text>
+          </View>
         </View>
         <Separator />
         <View className="flex flex-row items-center gap-4">

@@ -407,6 +407,65 @@ export function RealTimeProvider({ children }: { children: ReactNode }) {
     );
 
     socket.on(
+      "opp-parlay-placed",
+      ({
+        image,
+        username,
+        stake,
+        legs,
+        type,
+        matchId,
+      }: {
+        image: string;
+        username: string;
+        stake: number;
+        legs: number;
+        type: "perfect" | "flex";
+        matchId: number;
+      }) => {
+        const toastId = toast.custom(
+          <Pressable
+            className="m-3"
+            onPress={() => {
+              if (router.canDismiss()) {
+                router.dismissAll();
+              }
+              router.navigate({
+                pathname: "/match/[matchId]",
+                params: {
+                  matchId,
+                },
+              });
+              toast.dismiss(toastId);
+            }}
+          >
+            <Card className="border-0">
+              <CardContent className="w-full flex flex-row gap-3 items-center px-4 py-3">
+                <ProfileImage
+                  className="h-12 w-12"
+                  image={image}
+                  username={username}
+                />
+                <View className="flex flex-col flex-1">
+                  <Text className="font-bold text-lg">
+                    {username} placed a bet
+                  </Text>
+                  <Text
+                    className="text-muted-foreground font-semibold"
+                    numberOfLines={2}
+                  >
+                    {username} created a {legs} leg {type} parlay with a $
+                    {stake}. Get in the match and make a better bet today!
+                  </Text>
+                </View>
+              </CardContent>
+            </Card>
+          </Pressable>
+        );
+      }
+    );
+
+    socket.on(
       "friendly-match-request-declined",
       ({
         image,

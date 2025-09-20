@@ -1,4 +1,4 @@
-import { and, desc, eq, gt, InferInsertModel, lt } from "drizzle-orm";
+import { and, desc, eq, gt, InferInsertModel, lt, ne } from "drizzle-orm";
 import { Router } from "express";
 import { MIN_STAKE_PCT } from "../config";
 import { db } from "../db";
@@ -15,6 +15,7 @@ import { logger } from "../logger";
 import { authMiddleware } from "../middleware";
 import { handleError } from "../utils/handleError";
 import { invalidateQueries } from "../utils/invalidateQueries";
+import { io } from "..";
 
 export const parlaysRoute = Router();
 
@@ -288,6 +289,36 @@ parlaysRoute.post("/parlays", authMiddleware, async (req, res) => {
       );
 
       res.json({ parlayId: parlayResult.id });
+
+      const otherMatchUser = (await db.query.matchUser.findFirst({
+        where: and(
+          eq(matchUser.matchId, matchId),
+          ne(matchUser.id, matchUserResult.id)
+        ),
+        columns: {
+          id: true,
+        },
+        with: {
+          user: {
+            columns: {
+              username: true,
+              id: true,
+              image: true,
+            },
+          },
+        },
+      }))!;
+
+      io.of("/realtime")
+        .to(`user:${otherMatchUser.user.id}`)
+        .emit("opp-parlay-placed", {
+          matchId,
+          stake,
+          legs: picks.length,
+          type,
+          username: otherMatchUser.user.username,
+          image: otherMatchUser.user.image,
+        });
       return;
     }
     const dynastyLeagueId = parseInt(req.query.dynastyLeagueId as string);
@@ -378,7 +409,6 @@ parlaysRoute.post("/parlays", authMiddleware, async (req, res) => {
       ]),
       ["career", dynastyLeagueUserResult.userId]
     );
-
     res.json({ parlayId: parlayResult.id });
   } catch (error: any) {
     logger.error(
