@@ -21,22 +21,21 @@ async def find_matches_to_resolve():
                 # 1. Match is not already resolved
                 # 2. No props are available for the league (games have started/finished)
                 # 3. Match was created within the last 24 hours (avoid processing very old matches)
-                query = """
+                # Use literal string to avoid parameter substitution issues
+                await cur.execute("""
                     SELECT DISTINCT m.id, m.league
                     FROM match m
                     WHERE m.resolved = false
-                    AND m.created_at > NOW() - INTERVAL '%s hours'
+                    AND m.created_at AT TIME ZONE 'UTC' > (NOW() AT TIME ZONE 'UTC') - INTERVAL '24 hours'
                     AND NOT EXISTS (
                         SELECT 1
                         FROM prop p
                         JOIN game g ON p.game_id = g.game_id
                         WHERE g.league = m.league
                         AND p.status = 'not_resolved'
-                        AND g.start_time > NOW()
+                        AND g.start_time AT TIME ZONE 'UTC' > (NOW() AT TIME ZONE 'UTC')
                     )
-                """
-
-                await cur.execute(query, (MAX_MATCH_AGE_HOURS,))
+                """)
                 matches = await cur.fetchall()
 
                 return [{"match_id": match[0], "league": match[1]} for match in matches]

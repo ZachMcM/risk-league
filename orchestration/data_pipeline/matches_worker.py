@@ -197,7 +197,7 @@ async def handle_parlay_resolved(data):
                         JOIN game g ON p.game_id = g.game_id
                         WHERE g.league = %s
                         AND p.status = 'not_resolved'
-                        AND g.start_time > NOW()
+                        AND g.start_time AT TIME ZONE 'UTC' > (NOW() AT TIME ZONE 'UTC')
                     """
 
                     await cur.execute(props_available_query, (match_res[2],))  # match_league
@@ -573,7 +573,7 @@ async def handle_match_check(data):
                         JOIN game g ON p.game_id = g.game_id
                         WHERE g.league = %s
                         AND p.status = 'not_resolved'
-                        AND g.start_time > NOW()
+                        AND g.start_time AT TIME ZONE 'UTC' > (NOW() AT TIME ZONE 'UTC')
                     """
 
                     await cur.execute(props_available_query, (match_res[2],))  # match_league
