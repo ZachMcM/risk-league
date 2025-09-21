@@ -34,7 +34,7 @@ export default function FriendlyMatchDialog({
       await getTodayProps({
         league: "MLB",
       }),
-    staleTime: 1440 * 60 * 1000,
+    staleTime: 60 * 1000,
   });
 
   const { data: nbaProps } = useQuery({
@@ -43,7 +43,7 @@ export default function FriendlyMatchDialog({
       await getTodayProps({
         league: "NBA",
       }),
-    staleTime: 1440 * 60 * 1000,
+    staleTime: 60 * 1000,
   });
 
   const { data: nflProps } = useQuery({
@@ -52,7 +52,7 @@ export default function FriendlyMatchDialog({
       await getTodayProps({
         league: "NFL",
       }),
-    staleTime: 1440 * 60 * 1000,
+    staleTime: 60 * 1000,
   });
 
   const { data: ncaafbProps } = useQuery({
@@ -61,7 +61,7 @@ export default function FriendlyMatchDialog({
       await getTodayProps({
         league: "NCAAFB",
       }),
-    staleTime: 1440 * 60 * 1000,
+    staleTime: 60 * 1000,
   });
 
   const { data: ncaabbProps } = useQuery({
@@ -70,7 +70,7 @@ export default function FriendlyMatchDialog({
       await getTodayProps({
         league: "NCAABB",
       }),
-    staleTime: 1440 * 60 * 1000,
+    staleTime: 60 * 1000,
   });
 
   const { mutate: sendFriendlyMatchRequest } = useMutation({

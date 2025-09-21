@@ -29,7 +29,7 @@ export default function Props() {
       await getTodayProps({
         dynastyLeagueId,
       }),
-    staleTime: 1440 * 60 * 1000,
+    staleTime: 60 * 1000,
   });
 
   return (
