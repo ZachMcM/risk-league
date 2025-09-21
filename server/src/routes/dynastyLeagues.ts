@@ -578,10 +578,10 @@ dynastyLeaguesRoute.get(
           totalStaked,
           totalParlays,
           parlaysWon: du.parlays.filter(
-            (parlay) => parlay.payout > 0
+            (parlay) => parlay.payout > 0 && parlay.resolved
           ).length,
           parlaysLost: du.parlays.filter(
-            (parlay) => parlay.payout == 0
+            (parlay) => parlay.payout == 0 && parlay.resolved
           ).length,
           parlaysInProgress: du.parlays.filter((parlay) => !parlay.resolved)
             .length,
@@ -827,7 +827,9 @@ dynastyLeaguesRoute.get("/dynastyLeagues", authMiddleware, async (_, res) => {
       orderBy: desc(dynastyLeagueUser.createdAt),
     });
 
-    const dynastyLeagueIds = dynastyLeagueUserResults.map(({ dynastyLeagueId }) => dynastyLeagueId);
+    const dynastyLeagueIds = dynastyLeagueUserResults.map(
+      ({ dynastyLeagueId }) => dynastyLeagueId
+    );
     res.json(dynastyLeagueIds);
   } catch (error) {
     handleError(error, res, "Dynasty Leagues");
