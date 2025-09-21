@@ -1,0 +1,51 @@
+{
+  "regularAdjectives": [
+    "blazing", "swift", "mighty", "fierce", "rapid", "bold", "elite", "prime", "ace", "clutch",
+    "savage", "brutal", "lethal", "deadly", "vicious", "ruthless", "dominant", "supreme", "legendary", "epic",
+    "turbo", "nitro", "hyper", "mega", "ultra", "super", "mad", "wild", "crazy", "insane",
+    "golden", "silver", "bronze", "diamond", "platinum", "steel", "iron", "titanium", "chrome", "neon",
+    "lucky", "jackpot", "royal", "flush", "straight", "bluffing", "betting", "rolling", "spinning", "winning",
+    "risky", "bold", "daring", "fearless", "confident", "smooth", "slick", "sharp", "quick", "smart",
+    "pro", "noob", "veteran", "rookie", "master", "expert", "casual", "hardcore", "tryhard", "sweaty",
+    "toxic", "based", "cracked", "goated", "diff", "built", "stacked", "loaded", "broken", "overpowered",
+    "dark", "shadow", "ghost", "phantom", "stealth", "silent", "hidden", "secret", "mystic", "cosmic",
+    "frozen", "burning", "electric", "atomic", "nuclear", "laser", "cyber", "digital", "virtual", "pixel",
+    "twisted", "warped", "bent", "broken", "shattered", "crushed", "smashed", "wrecked", "destroyed", "obliterated"
+  ],
+  "regularNouns": [
+    "striker", "defender", "goalkeeper", "captain", "rookie", "veteran", "champion", "mvp", "allstar", "legend",
+    "runner", "jumper", "thrower", "catcher", "pitcher", "batter", "scorer", "shooter", "blocker", "tackler",
+    "racer", "driver", "rider", "swimmer", "diver", "climber", "fighter", "boxer", "wrestler", "archer",
+    "ball", "puck", "bat", "stick", "racket", "glove", "helmet", "jersey", "cleats", "goal",
+    "touchdown", "homerun", "slam", "dunk", "spike", "serve", "shot", "pass", "kick", "throw",
+    "ace", "king", "queen", "jack", "joker", "dealer", "player", "gambler", "bettor", "roller",
+    "chips", "cards", "dice", "slots", "jackpot", "royal", "flush", "straight", "pair", "bluff",
+    "poker", "blackjack", "roulette", "craps", "bingo", "lottery", "scratch", "spin", "wheel", "table",
+    "gamer", "player", "noob", "pro", "tryhard", "casual", "sweat", "carry", "feeder", "smurf",
+    "camper", "rusher", "flanker", "sniper", "tank", "dps", "support", "healer", "buffer", "debuffer",
+    "killer", "slayer", "destroyer", "crusher", "wrecker", "hunter", "predator", "beast", "monster", "demon",
+    "loot", "gear", "weapon", "armor", "shield", "sword", "blade", "gun", "rifle", "pistol",
+    "bomb", "grenade", "rocket", "missile", "laser", "plasma", "energy", "power", "force", "magic",
+    "spell", "potion", "scroll", "rune", "crystal", "gem", "coin", "gold", "silver", "treasure",
+    "wolf", "tiger", "lion", "bear", "eagle", "hawk", "falcon", "shark", "dragon", "phoenix",
+    "viper", "cobra", "panther", "leopard", "cheetah", "fox", "raven", "crow", "owl", "bat",
+    "bull", "ram", "stallion", "mustang", "rhino", "elephant", "gorilla", "ape", "monkey", "snake",
+    "bot", "ai", "cyber", "digital", "virtual", "pixel", "bit", "byte", "code", "hack",
+    "virus", "trojan", "worm", "bug", "glitch", "lag", "ping", "fps", "resolution", "graphics",
+    "ninja", "samurai", "warrior", "knight", "assassin", "spy", "agent", "operative", "soldier", "marine",
+    "phantom", "ghost", "shadow", "specter", "wraith", "spirit", "soul", "essence", "void", "abyss",
+    "storm", "thunder", "lightning", "fire", "ice", "frost", "blaze", "inferno", "tsunami", "earthquake"
+  ],
+  "sportsAdjectives": [
+    "clutch", "mvp", "elite", "pro", "rookie", "veteran", "champion", "allstar", "legendary", "dominant",
+    "swift", "agile", "strong", "fast", "quick", "smooth", "sharp", "precise", "accurate", "deadly"
+  ],
+  "gamblingNouns": [
+    "chips", "cards", "dice", "dealer", "player", "bettor", "roller", "gambler", "ace", "king",
+    "jackpot", "royal", "flush", "straight", "bluff", "poker", "blackjack", "slots", "roulette", "lottery"
+  ],
+  "gamingSlang": [
+    "noob", "pro", "tryhard", "sweat", "carry", "feeder", "camper", "rusher", "sniper", "tank",
+    "goat", "beast", "demon", "god", "king", "lord", "master", "ace", "clutch", "cracked"
+  ]
+}

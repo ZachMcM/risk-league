@@ -1,27 +1,19 @@
 import { and, eq, InferSelectModel } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import {
-  adjectives,
   DEFAULT_PROFANITY,
-  nouns,
   uniqueUsernameGenerator,
 } from "unique-username-generator";
 import { io } from "..";
-import {
-  GAMBLING_NOUNS,
-  GAMING_SLANG,
-  MIN_PCT_TOTAL_STAKED,
-  REGULAR_ADJECTIVES,
-  REGULAR_NOUNS,
-  SPORTS_ADJECTIVES,
-} from "../config";
+import { MIN_PCT_TOTAL_STAKED } from "../config";
 import { db } from "../db";
 import { leagueType, matchUser, parlay, pick, prop, user } from "../db/schema";
 import { logger } from "../logger";
-import { createMatch, removeFromQueue } from "../sockets/matchmaking";
+import { createMatch } from "../sockets/matchmaking";
 import { Rank } from "../types/ranks";
-import { getRank } from "./getRank";
 import { getAvailablePropsForUser } from "./getAvailableProps";
+import { getRank } from "./getRank";
+import { getCombinedDictionaries } from "./usernameDictionaries";
 
 export async function initializeBotParlays(botId: string, matchId: number) {
   logger.info(`Initializing bot parlays for bot ${botId} in match ${matchId}`);
@@ -240,11 +232,10 @@ export async function createBot(targetRank: Rank): Promise<string> {
   ] as const;
 
   const botId = nanoid();
+  const [combinedAdjectives, combinedNouns] = getCombinedDictionaries();
+
   const username = uniqueUsernameGenerator({
-    dictionaries: [
-      [...REGULAR_ADJECTIVES, ...adjectives, ...SPORTS_ADJECTIVES],
-      [...REGULAR_NOUNS, ...GAMBLING_NOUNS, ...GAMING_SLANG, ...nouns],
-    ],
+    dictionaries: [combinedAdjectives, combinedNouns],
     profanityList: DEFAULT_PROFANITY,
     style: caseStyles[Math.floor(Math.random() * caseStyles.length)],
   });
