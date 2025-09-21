@@ -44,6 +44,9 @@ class ParlayResult(TypedDict):
 
 def get_perfect_play_multiplier(pick_count: int) -> float:
     """Gets the multiplier for a perfect play parlay given the number of picks"""
+    if pick_count < 2:
+        return 1
+    
     multipliers: Dict[int, float] = {
         2: 3.0,
         3: 5.0,
@@ -56,6 +59,9 @@ def get_perfect_play_multiplier(pick_count: int) -> float:
 
 def get_flex_multiplier(pick_count: int, hit_count: int) -> float:
     """Gets the multiplier for a flex play given the number of picks and hits"""
+    if pick_count < 3:
+        return 1
+    
     flex_payouts: Dict[str, float] = {
         # 3-pick flex
         "3-3": 2.25,
