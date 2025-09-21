@@ -293,7 +293,7 @@ parlaysRoute.post("/parlays", authMiddleware, async (req, res) => {
       const otherMatchUser = (await db.query.matchUser.findFirst({
         where: and(
           eq(matchUser.matchId, matchId),
-          ne(matchUser.id, matchUserResult.id)
+          ne(matchUser.userId, matchUserResult.userId)
         ),
         columns: {
           id: true,
