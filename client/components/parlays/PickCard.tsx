@@ -15,6 +15,8 @@ import { Text } from "../ui/text";
 import moment from "moment";
 import { formatName } from "~/utils/stringUtils";
 import PlayerImage from "../ui/player-image";
+import { Icon } from "../ui/icon";
+import { Minus } from "lucide-react-native";
 
 export default function PickCard({ initialData }: { initialData: Pick }) {
   const { data: pick } = useQuery({
@@ -28,7 +30,8 @@ export default function PickCard({ initialData }: { initialData: Pick }) {
       <CardContent className="p-4 flex flex-col gap-4">
         <View className="flex flex-row items-center gap-1">
           {pick.prop.game.startTime <= new Date().toISOString() &&
-            !pick.prop.resolved && (
+            !pick.prop.resolved &&
+            pick.status === "not_resolved" && (
               <View className="h-2.5 w-2.5 animate-pulse rounded-full bg-destructive" />
             )}
           <View className="flex flex-row items-center gap-8">
@@ -122,9 +125,12 @@ export default function PickCard({ initialData }: { initialData: Pick }) {
                       size={16}
                       className="text-foreground"
                     />
+                  ) : pick.status == "missed" ? (
+                    <X strokeWidth={3} size={16} className="text-foreground" />
                   ) : (
-                    pick.status == "missed" && (
-                      <X
+                    pick.status == "tie" && (
+                      <Icon
+                        as={Minus}
                         strokeWidth={3}
                         size={16}
                         className="text-foreground"
