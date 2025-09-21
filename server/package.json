@@ -28,6 +28,7 @@
     "ioredis": "^5.6.1",
     "morgan": "^1.10.0",
     "multer": "^2.0.2",
+    "nanoid": "^5.1.5",
     "node-json-logger": "^0.2.1",
     "pg": "^8.16.3",
     "rate-limit-redis": "^4.2.1",
@@ -35,6 +36,7 @@
     "resend": "^6.0.1",
     "socket.io": "^4.8.1",
     "typescript": "^5.8.3",
+    "unique-username-generator": "^1.5.1",
     "zod": "^4.0.17"
   },
   "devDependencies": {

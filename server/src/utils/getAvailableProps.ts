@@ -9,12 +9,22 @@ import {
   prop,
 } from "../db/schema";
 
-export async function getAvailablePropsForUser(
-  userId: string,
-  matchId?: number,
-  dynastyLeagueId?: number,
-  fullData: boolean = false
-): Promise<{ hasAvailableProps: boolean; availablePropsCount: number; league?: string; props?: any[] }> {
+export async function getAvailablePropsForUser({
+  userId,
+  matchId,
+  dynastyLeagueId,
+  fullData,
+}: {
+  userId: string;
+  matchId?: number;
+  dynastyLeagueId?: number;
+  fullData: boolean;
+}): Promise<{
+  hasAvailableProps: boolean;
+  availablePropsCount: number;
+  league?: string;
+  props?: any[];
+}> {
   const propsPickedAlready: number[] = [];
   let league: string | undefined;
 
@@ -120,7 +130,10 @@ export async function getAvailablePropsForUser(
         lt(game.startTime, endTime),
         gt(game.startTime, new Date().toISOString()),
         eq(game.league, league as any),
-        notInArray(prop.id, propsPickedAlready.length > 0 ? propsPickedAlready : [-1])
+        notInArray(
+          prop.id,
+          propsPickedAlready.length > 0 ? propsPickedAlready : [-1]
+        )
       )
     );
 
@@ -133,7 +146,10 @@ export async function getAvailablePropsForUser(
   }
 
   const extendedAvailableProps = await db.query.prop.findMany({
-    where: inArray(prop.id, availablePropIds.map(p => p.id)),
+    where: inArray(
+      prop.id,
+      availablePropIds.map((p) => p.id)
+    ),
     with: {
       game: {
         with: {
