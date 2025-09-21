@@ -243,6 +243,8 @@ export async function createBot(targetRank: Rank): Promise<string> {
   await db.insert(user).values({
     id: botId,
     name: username,
+    username,
+    displayUsername: username,
     email: `${username}@bot.riskleague.app`,
     points: targetRank.minPoints + Math.floor(Math.random() * 50),
     isBot: true,
