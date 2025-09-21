@@ -126,30 +126,37 @@ async def handle_stats_updated(data):
                         # Prepare batch queries for better performance
                         update_params = []
 
-                        # First, get all existing props in a single query
+                        # First, get all existing props in batches to avoid parameter limit
+                        existing_props = []
                         if len(stats_list) > 0:
-                            # Build parameterized query for all stats at once
-                            placeholders = []
-                            all_params = []
+                            # Process in batches to avoid PostgreSQL's 65535 parameter limit
+                            # Each stat entry uses 4 parameters, so batch size of 16000 = 64000 params (safely under limit)
+                            batch_size = 16000
 
-                            for stat_entry in stats_list:
-                                placeholders.append("(%s, %s, %s, %s)")
-                                all_params.extend([
-                                    stat_entry["player_id"],
-                                    stat_entry["stat_name"],
-                                    stat_entry["league"],
-                                    stat_entry["game_id"]
-                                ])
+                            for i in range(0, len(stats_list), batch_size):
+                                batch = stats_list[i:i + batch_size]
+                                placeholders = []
+                                batch_params = []
 
-                            # Single query to get all matching props
-                            batch_select_query = f"""
-                                SELECT id, line, status, player_id, stat_name, league, game_id
-                                FROM prop p
-                                WHERE (p.player_id, p.stat_name, p.league, p.game_id) IN ({', '.join(placeholders)})
-                            """
+                                for stat_entry in batch:
+                                    placeholders.append("(%s, %s, %s, %s)")
+                                    batch_params.extend([
+                                        stat_entry["player_id"],
+                                        stat_entry["stat_name"],
+                                        stat_entry["league"],
+                                        stat_entry["game_id"]
+                                    ])
 
-                            await cur.execute(batch_select_query, all_params)
-                            existing_props = await cur.fetchall()
+                                # Query for this batch
+                                batch_select_query = f"""
+                                    SELECT id, line, status, player_id, stat_name, league, game_id
+                                    FROM prop p
+                                    WHERE (p.player_id, p.stat_name, p.league, p.game_id) IN ({', '.join(placeholders)})
+                                """
+
+                                await cur.execute(batch_select_query, batch_params)
+                                batch_props = await cur.fetchall()
+                                existing_props.extend(batch_props)
 
                             # Create lookup dictionary for faster access
                             props_lookup = {}
