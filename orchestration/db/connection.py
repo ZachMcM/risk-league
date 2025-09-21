@@ -22,7 +22,7 @@ def get_pool():
                 _pool = ConnectionPool(
                     database_url,
                     min_size=1,
-                    max_size=20,
+                    max_size=10,
                     timeout=30.0,
                     max_idle=300.0
                 )
@@ -62,7 +62,7 @@ async def get_async_pool():
                 _async_pool = AsyncConnectionPool(
                     database_url,
                     min_size=1,
-                    max_size=20,
+                    max_size=10,
                     timeout=30.0,
                     max_idle=300.0,
                     open=False
