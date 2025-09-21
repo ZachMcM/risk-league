@@ -4,7 +4,6 @@ import {
   foreignKey,
   index,
   integer,
-  json,
   pgEnum,
   pgTable,
   primaryKey,
@@ -12,6 +11,7 @@ import {
   text,
   timestamp,
 } from "drizzle-orm/pg-core";
+import { v4 as uuidv4 } from "uuid";
 
 export const matchStatus = pgEnum("match_status", [
   "not_resolved",
@@ -542,7 +542,7 @@ export const dynastyLeagueUser = pgTable(
 export const dynastyLeagueInvitation = pgTable("dynasty_league_invitation", {
   id: text("id")
     .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
+    .$defaultFn(() => uuidv4()),
   createdAt: timestamp("created_at", {
     withTimezone: true,
     mode: "string",
