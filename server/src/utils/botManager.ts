@@ -168,13 +168,13 @@ export async function createBotParlay(botId: string, matchId: number) {
         },
       }))!;
 
-      const botAcc = (await db.query.user.findFirst({
+      const botAcc = await db.query.user.findFirst({
         where: eq(user.id, botId),
         columns: {
           username: true,
-          image: true
-        }
-      }))
+          image: true,
+        },
+      });
 
       io.of("/realtime")
         .to(`user:${otherMatchUser.user.id}`)
@@ -228,7 +228,9 @@ export function generateBotParlay(
     if (currTotalStaked == 0) {
       stake = (Math.random() * (0.7 - 0.5) + 0.5) * minTotalStaked;
     } else {
-      stake = Math.random() * (botBalance - minTotalStaked) + minTotalStaked;
+      stake =
+        Math.random() * (botBalance - (minTotalStaked - currTotalStaked)) +
+        (minTotalStaked - currTotalStaked);
     }
   } else {
     stake = Math.floor(botBalance * (0.2 + Math.random() * 0.4));
