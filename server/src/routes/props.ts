@@ -210,13 +210,18 @@ propsRoute.get(
         .orderBy(desc(game.startTime))
         .limit(5);
 
-      const propsWithPastResults = extendedAvailableProps.map((prop) => ({
-        ...prop,
-        previousResults: prevGameStats.map((prev) => ({
-          time: prev.game.startTime,
-          value: (prev.stats as any)[prop.statName] || 0,
-        })),
-      }));
+      const propsWithPastResults = extendedAvailableProps.map((prop) => {
+        // Convert snake_case to camelCase for database column lookup
+        const camelCaseStatName = prop.statName.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
+
+        return {
+          ...prop,
+          previousResults: prevGameStats.map((prev) => ({
+            time: prev.game.startTime,
+            value: (prev.stats as any)[camelCaseStatName] || 0,
+          })),
+        };
+      });
 
       const gameIds = [
         ...new Set(extendedAvailableProps.map((prop) => prop.gameId)),

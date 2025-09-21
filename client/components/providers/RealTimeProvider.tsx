@@ -454,8 +454,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
                     className="text-muted-foreground font-semibold"
                     numberOfLines={2}
                   >
-                    {username} created a {legs} leg {type} parlay with a $
-                    {stake}. Get in the match and make a better bet today!
+                    Get in the match and make a better bet today!
                   </Text>
                 </View>
               </CardContent>

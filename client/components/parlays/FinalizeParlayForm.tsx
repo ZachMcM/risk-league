@@ -379,10 +379,10 @@ export default function FinalizeParlayForm({
               {(totalStaked < minTotalStaked || totalParlays < minParlays) && (
                 <Text className="font-semibold text-destructive text-center">
                   {totalStaked < minTotalStaked &&
-                    `You need to stake $${minTotalStaked - totalStaked} more. `}
+                    `You need to stake $${Math.ceil(minTotalStaked - totalStaked)} more. `}
                   {totalParlays < minParlays &&
                     `You need to place ${
-                      minParlays - totalParlays
+                      Math.ceil(minParlays - totalParlays)
                     } more parlays`}
                 </Text>
               )}

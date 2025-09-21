@@ -1,6 +1,6 @@
 import { router } from "expo-router";
-import { useEffect } from "react";
-import { View } from "react-native";
+import { useEffect, useState } from "react";
+import { Pressable, View } from "react-native";
 import { toast } from "sonner-native";
 import { authClient } from "~/lib/auth-client";
 import { AlertTriangle } from "~/lib/icons/AlertTriangle";
@@ -14,6 +14,8 @@ import ProfileImage from "../ui/profile-image";
 import { Text } from "../ui/text";
 import MatchStatsDialog from "./MatchStatsDialog";
 import { MIN_PARLAYS_REQUIRED, MIN_PCT_TOTAL_STAKED } from "~/lib/config";
+import { Icon } from "../ui/icon";
+import { X } from "lucide-react-native";
 
 export default function MatchDetails({ match }: { match: ExtendedMatch }) {
   const { data: currentUserData } = authClient.useSession();
@@ -39,50 +41,20 @@ export default function MatchDetails({ match }: { match: ExtendedMatch }) {
     otherMatchUser.balance
   );
 
+  const [minParlaysAlert, setMinParlaysAlert] = useState(
+    currentMatchUser.totalParlays < MIN_PARLAYS_REQUIRED
+  );
+  const [minTotalStakedAlert, setMinTotalStakedAlert] = useState(
+    currentMatchUser.totalStaked < minTotalStaked
+  );
+
   useEffect(() => {
-    let stakeToast: string | number | undefined;
-    let parlaysToast: string | number | undefined;
-    if (!match.resolved) {
-      if (currentMatchUser.totalStaked < minTotalStaked) {
-        stakeToast = toast.custom(
-          <Alert variant="destructive">
-            <AlertTriangle className="text-destructive" size={20} />
-            <AlertTitle className="text-foreground">
-              You need to stake ${minTotalStaked - currentMatchUser.totalStaked}{" "}
-              more!
-            </AlertTitle>
-          </Alert>,
-          {
-            duration: Infinity,
-            position: "bottom-center",
-          }
-        );
-      }
-      if (currentMatchUser.totalParlays < MIN_PARLAYS_REQUIRED) {
-        parlaysToast = toast.custom(
-          <Alert variant="destructive">
-            <AlertTriangle className="text-destructive" size={20} />
-            <AlertTitle className="text-foreground">
-              You need to create{" "}
-              {MIN_PARLAYS_REQUIRED - currentMatchUser.totalParlays} more parlay
-              {MIN_PARLAYS_REQUIRED - currentMatchUser.totalParlays > 1 && "s"}!
-            </AlertTitle>
-          </Alert>,
-          {
-            duration: Infinity,
-            position: "bottom-center",
-          }
-        );
-      }
-    }
+    setMinParlaysAlert(currentMatchUser.totalParlays < MIN_PARLAYS_REQUIRED);
+    setMinTotalStakedAlert(currentMatchUser.totalStaked < minTotalStaked);
 
     return () => {
-      if (stakeToast) {
-        toast.dismiss(stakeToast);
-      }
-      if (parlaysToast) {
-        toast.dismiss(parlaysToast);
-      }
+      setMinParlaysAlert(currentMatchUser.totalParlays < MIN_PARLAYS_REQUIRED);
+      setMinTotalStakedAlert(currentMatchUser.totalStaked < minTotalStaked);
     };
   }, [match]);
 
@@ -123,6 +95,38 @@ export default function MatchDetails({ match }: { match: ExtendedMatch }) {
           <Text className="capitalize text-sm">{badgeText}</Text>
         </Badge>
       </View>
+      {(minTotalStakedAlert || minParlaysAlert) && (
+        <View className="flex flex-col gap-2">
+          {minTotalStakedAlert && (
+            <Alert variant="destructive" className="items-center">
+              <AlertTriangle className="text-destructive" size={20} />
+              <AlertTitle className="text-foreground">
+                You need to stake $
+                {minTotalStaked - currentMatchUser.totalStaked} more!
+              </AlertTitle>
+              <Pressable onPress={() => setMinTotalStakedAlert(false)}>
+                <Icon as={X} size={16} className="text-muted-foreground" />
+              </Pressable>
+            </Alert>
+          )}
+          {minParlaysAlert && (
+            <Alert variant="destructive" className="items-center">
+              <AlertTriangle className="text-destructive" size={20} />
+              <AlertTitle className="text-foreground">
+                You need to create{" "}
+                {MIN_PARLAYS_REQUIRED - currentMatchUser.totalParlays} more
+                parlay
+                {MIN_PARLAYS_REQUIRED - currentMatchUser.totalParlays > 1 &&
+                  "s"}
+                !
+              </AlertTitle>
+              <Pressable onPress={() => setMinParlaysAlert(false)}>
+                <Icon as={X} size={16} className="text-muted-foreground" />
+              </Pressable>
+            </Alert>
+          )}
+        </View>
+      )}
       <View className="flex flex-row items-center justify-between">
         <View className="flex flex-row items-center gap-2">
           <MatchStatsDialog match={match} />
