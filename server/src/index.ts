@@ -59,6 +59,22 @@ subClientForHandlers
       }
     });
 
+    subClientForHandlers.subscribe("notification", (message) => {
+      try {
+        const { receiverIdsList, event, data } = JSON.parse(message) as {
+          receiverIdsList: string[];
+          event: string;
+          data: any;
+        };
+
+        for (const receiverId of receiverIdsList) {
+          io.of("/realtime").to(`user:${receiverId}`).emit(event, data);
+        }
+      } catch (error) {
+        logger.error("Error handling notification message");
+      }
+    });
+
     logger.info("Redis invalidation handler configured");
   })
   .catch((error) => {

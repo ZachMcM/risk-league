@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useLocalSearchParams } from "expo-router";
 import { ActivityIndicator } from "react-native";
 import FinalizeParlayForm from "~/components/parlays/FinalizeParlayForm";
-import { getDynastyLeagueUsers } from "~/endpoints";
+import { getDynastyLeague, getDynastyLeagueUsers } from "~/endpoints";
 import { authClient } from "~/lib/auth-client";
 
 export default function FinalizeParlay() {
@@ -14,6 +14,11 @@ export default function FinalizeParlay() {
     queryFn: async () => await getDynastyLeagueUsers(dynastyLeagueId),
   });
 
+  const { data: dynastyLeague, isPending: isDynastyLeaguePending } = useQuery({
+    queryKey: ["dynasty-league", dynastyLeagueId],
+    queryFn: async () => await getDynastyLeague(dynastyLeagueId),
+  });
+
   const currentUserIndex = dynastyLeagueUsers?.findIndex(
     (dynastyLeagueUser) => dynastyLeagueUser.userId == currentUserData?.user.id
   )!;
@@ -21,15 +26,18 @@ export default function FinalizeParlay() {
 
   const { data: currentUserData } = authClient.useSession();
 
-  return areUsersPending ? (
+  return areUsersPending || isDynastyLeaguePending ? (
     <ActivityIndicator className="text-foreground" />
   ) : (
-    <FinalizeParlayForm
-      balance={currentDynastyLeagueUser.balance}
-      startingBalance={currentDynastyLeagueUser.startingBalance}
-      totalStaked={currentDynastyLeagueUser.totalStaked}
-      totalParlays={currentDynastyLeagueUser.totalParlays}
-      dynastyLeagueId={dynastyLeagueId}
-    />
+    dynastyLeague && (
+      <FinalizeParlayForm
+        balance={currentDynastyLeagueUser.balance}
+        totalStaked={currentDynastyLeagueUser.totalStaked}
+        totalParlays={currentDynastyLeagueUser.totalParlays}
+        minParlays={dynastyLeague.minParlays}
+        minTotalStaked={dynastyLeague.minTotalStaked}
+        dynastyLeagueId={dynastyLeagueId}
+      />
+    )
   );
 }

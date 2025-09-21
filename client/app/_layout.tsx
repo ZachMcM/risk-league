@@ -25,12 +25,12 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import mobileAds from "react-native-google-mobile-ads";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Toaster } from "sonner-native";
-import { RealTimeProvider } from "~/components/providers/RealTimeProvider";
 import { SplashScreenController } from "~/components/ui/splash";
 import { setAndroidNavigationBar } from "~/lib/android-navigation-bar";
 import { authClient } from "~/lib/auth-client";
 import { NAV_THEME } from "~/lib/constants";
 import { useColorScheme } from "~/lib/useColorScheme";
+import { RealtimeProvider } from "~/components/providers/RealtimeProvider";
 
 onlineManager.setEventListener((setOnline) => {
   return NetInfo.addEventListener((state) => {
@@ -89,13 +89,13 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <GestureHandlerRootView>
           <QueryClientProvider client={queryClient}>
-            <RealTimeProvider>
+            <RealtimeProvider>
               <ThemeProvider value={DARK_THEME}>
                 <SplashScreenController />
                 <RootNavigatior />
                 <StatusBar style={isDarkColorScheme ? "light" : "dark"} />
               </ThemeProvider>
-            </RealTimeProvider>
+            </RealtimeProvider>
             <Toaster
               toastOptions={{
                 style: {

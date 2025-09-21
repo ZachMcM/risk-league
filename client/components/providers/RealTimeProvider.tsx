@@ -16,7 +16,7 @@ const RealtimeContext = createContext<{ isConnected: boolean }>({
   isConnected: false,
 });
 
-export function RealTimeProvider({ children }: { children: ReactNode }) {
+export function RealtimeProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
   const { data: currentUserData } = authClient.useSession();
   const [isConnected, setIsConnected] = useState(false);

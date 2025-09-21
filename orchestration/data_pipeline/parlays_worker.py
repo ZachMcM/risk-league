@@ -46,7 +46,7 @@ def get_perfect_play_multiplier(pick_count: int) -> float:
     """Gets the multiplier for a perfect play parlay given the number of picks"""
     if pick_count < 2:
         return 1
-    
+
     multipliers: Dict[int, float] = {
         2: 3.0,
         3: 5.0,
@@ -61,7 +61,7 @@ def get_flex_multiplier(pick_count: int, hit_count: int) -> float:
     """Gets the multiplier for a flex play given the number of picks and hits"""
     if pick_count < 3:
         return 1
-    
+
     flex_payouts: Dict[str, float] = {
         # 3-pick flex
         "3-3": 2.25,
@@ -274,9 +274,11 @@ async def handle_pick_resolved(data):
         logger.error(f"Error handling pick resolved: {e}")
     finally:
         await redis_publisher.aclose()
-        
+
     end_time = time()
-    logger.info(f"Updated parlay of pick_id {pick_id}. Completed in {end_time - start_time:.2f}s")
+    logger.info(
+        f"Updated parlay of pick_id {pick_id}. Completed in {end_time - start_time:.2f}s"
+    )
 
 
 async def _publish_parlay_resolved_messages(
@@ -301,12 +303,18 @@ async def _publish_parlay_resolved_messages(
             )
         )
 
-        # Publish parlay resolved event
         publish_tasks.append(
             publish_message_async(
                 redis_publisher,
-                "parlay_resolved",
-                {"parlayId": parlay_id, "matchId": user_context["match_id"]},
+                "notification",
+                {
+                    "receiverIdsList": [user_context["user_id"]],
+                    "event": "match-parlay-resolved",
+                    "data": {
+                        "matchId": user_context["match_id"],
+                        "parlayId": parlay_id,
+                    },
+                },
             )
         )
 
@@ -327,6 +335,21 @@ async def _publish_parlay_resolved_messages(
         publish_tasks.append(
             publish_message_async(
                 redis_publisher, "invalidate_queries", {"keys": invalidation_keys}
+            )
+        )
+
+        publish_tasks.append(
+            publish_message_async(
+                redis_publisher,
+                "notification",
+                {
+                    "receiverIdsList": [user_context["user_id"]],
+                    "event": "dynasty-league-parlay-resolved",
+                    "data": {
+                        "dynastyLeagueId": user_context["dynasty_league_id"],
+                        "parlayId": parlay_id,
+                    },
+                },
             )
         )
 
@@ -369,11 +392,13 @@ async def main():
         logger.warning("Shutting down parlays_worker...")
         # Ensure pool cleanup on shutdown
         from db.connection import close_async_pool
+
         await close_async_pool()
     except Exception as e:
         logger.error(f"Error in main: {e}")
         # Ensure pool cleanup on error
         from db.connection import close_async_pool
+
         await close_async_pool()
 
 
