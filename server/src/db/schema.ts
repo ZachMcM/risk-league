@@ -4,6 +4,7 @@ import {
   foreignKey,
   index,
   integer,
+  json,
   pgEnum,
   pgTable,
   primaryKey,
@@ -78,6 +79,7 @@ export const user = pgTable("user", {
   displayUsername: text("display_username"),
   points: doublePrecision().default(1000).notNull(),
   banner: text(),
+  isBot: boolean("is_bot").default(false).notNull(),
 });
 
 export const session = pgTable("session", {
