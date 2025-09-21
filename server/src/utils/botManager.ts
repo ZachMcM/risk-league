@@ -7,7 +7,15 @@ import {
 import { io } from "..";
 import { MIN_PCT_TOTAL_STAKED } from "../config";
 import { db } from "../db";
-import { leagueType, matchUser, parlay, pick, prop, user } from "../db/schema";
+import {
+  cosmetic,
+  leagueType,
+  matchUser,
+  parlay,
+  pick,
+  prop,
+  user,
+} from "../db/schema";
 import { logger } from "../logger";
 import { createMatch } from "../sockets/matchmaking";
 import { Rank } from "../types/ranks";
@@ -281,6 +289,17 @@ export async function createBot(targetRank: Rank): Promise<string> {
     style: caseStyles[Math.floor(Math.random() * caseStyles.length)],
   });
 
+  const allDefaultCosmetics = await db.query.cosmetic.findMany({
+    where: eq(cosmetic.isDefault, true),
+  });
+
+  const defaultImages = allDefaultCosmetics
+    .filter((dc) => dc.type == "image")
+    .map((image) => image.url);
+  const defaultBanners = allDefaultCosmetics
+    .filter((dc) => dc.type == "banner")
+    .map((banner) => banner.url);
+
   await db.insert(user).values({
     id: botId,
     name: username,
@@ -289,7 +308,8 @@ export async function createBot(targetRank: Rank): Promise<string> {
     email: `${username}@bot.riskleague.app`,
     points: targetRank.minPoints + Math.floor(Math.random() * 50),
     isBot: true,
-    // TODO randomly select image
+    image: defaultImages[Math.floor(Math.random() * defaultImages.length)],
+    banner: defaultBanners[Math.floor(Math.random() * defaultBanners.length)],
   });
 
   return botId;
