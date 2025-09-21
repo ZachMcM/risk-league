@@ -162,12 +162,18 @@ propsRoute.get(
             gt(game.startTime, new Date().toISOString()),
             eq(game.league, league),
             eq(prop.playerId, playerId),
-            notInArray(prop.id, propsPickedAlready.length > 0 ? propsPickedAlready : [-1])
+            notInArray(
+              prop.id,
+              propsPickedAlready.length > 0 ? propsPickedAlready : [-1]
+            )
           )
         );
 
       const extendedAvailableProps = await db.query.prop.findMany({
-        where: inArray(prop.id, availablePropIds.map(p => p.id)),
+        where: inArray(
+          prop.id,
+          availablePropIds.map((p) => p.id)
+        ),
         with: {
           game: {
             with: {
@@ -212,7 +218,10 @@ propsRoute.get(
 
       const propsWithPastResults = extendedAvailableProps.map((prop) => {
         // Convert snake_case to camelCase for database column lookup
-        const camelCaseStatName = prop.statName.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
+        const camelCaseStatName = prop.statName.replace(
+          /_([a-z])/g,
+          (_, letter) => letter.toUpperCase()
+        );
 
         return {
           ...prop,
@@ -286,7 +295,9 @@ propsRoute.get("/props/today/count", async (req, res) => {
         )
       );
 
-    const uniqueGameIds = [...new Set(availablePropsCount.map(item => item.gameId))];
+    const uniqueGameIds = [
+      ...new Set(availablePropsCount.map((item) => item.gameId)),
+    ];
 
     res.json({
       availableProps: availablePropsCount.length,
@@ -318,12 +329,12 @@ propsRoute.get("/props/today", authMiddleware, async (req, res) => {
     }
 
     if (matchId || dynastyLeagueId) {
-      const result = await getAvailablePropsForUser(
-        res.locals.userId!,
+      const result = await getAvailablePropsForUser({
+        userId: res.locals.userId!,
         matchId,
         dynastyLeagueId,
-        true
-      );
+        fullData: true,
+      });
       res.json(result.props);
     } else if (league) {
       if (!leagueType.enumValues.includes(league)) {
@@ -356,7 +367,10 @@ propsRoute.get("/props/today", authMiddleware, async (req, res) => {
         );
 
       const extendedAvailableProps = await db.query.prop.findMany({
-        where: inArray(prop.id, availablePropIds.map(p => p.id)),
+        where: inArray(
+          prop.id,
+          availablePropIds.map((p) => p.id)
+        ),
         with: {
           game: {
             with: {
@@ -374,7 +388,7 @@ propsRoute.get("/props/today", authMiddleware, async (req, res) => {
 
       res.json(extendedAvailableProps);
     } else {
-      res.json({ error: "Please pass in league, matchId, or dynastyLeagueId"})
+      res.json({ error: "Please pass in league, matchId, or dynastyLeagueId" });
     }
   } catch (error) {
     handleError(error, res, "Props route");

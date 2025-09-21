@@ -1,12 +1,17 @@
+import { eq } from "drizzle-orm";
 import { Socket } from "socket.io";
 import { io } from "..";
-import { logger } from "../logger";
-import { eq } from "drizzle-orm";
+import {
+  BOT_TIMER_MS,
+  MAX_STARTING_BALANCE,
+  MIN_STARTING_BALANCE,
+} from "../config";
 import { db } from "../db";
 import { leagueType, match, matchUser, user } from "../db/schema";
+import { logger } from "../logger";
 import { redis } from "../redis";
+import { createBotMatch } from "../utils/botManager";
 import { getRank } from "../utils/getRank";
-import { MAX_STARTING_BALANCE, MIN_STARTING_BALANCE } from "../config";
 import { invalidateQueries } from "../utils/invalidateQueries";
 
 export async function createMatch({
@@ -149,6 +154,22 @@ export async function matchMakingHandler(socket: Socket) {
 
   await addToQueue(userId, league);
 
+  const botTimer = setTimeout(async () => {
+    // Use atomic operation to check and remove user from queue
+    const queueKey = getQueueKey(league);
+    const removedCount = await redis.lRem(queueKey, 1, userId);
+
+    // Only create bot match if user was actually in queue
+    if (removedCount > 0) {
+      logger.info(
+        `User ${userId} waited ${
+          BOT_TIMER_MS / 1000
+        }s, creating bot match`
+      );
+      await createBotMatch(userId, league);
+    }
+  }, BOT_TIMER_MS);
+
   const tryMatchmaking = async () => {
     // Clean up any invalid entries first
     await cleanInvalidEntries();
@@ -156,6 +177,8 @@ export async function matchMakingHandler(socket: Socket) {
     const pair = await getPair(league);
 
     if (pair) {
+      clearTimeout(botTimer);
+
       const matchId = await createMatch({
         user1Id: pair.user1,
         user2Id: pair.user2,
@@ -181,11 +204,13 @@ export async function matchMakingHandler(socket: Socket) {
 
   socket.on("disconnect", () => {
     logger.info(`User ${userId} disconnected`);
+    clearTimeout(botTimer);
     removeFromQueue(userId, league);
   });
 
   socket.on("cancel-search", () => {
     logger.info(`User ${userId} cancelled search`);
+    clearTimeout(botTimer);
     removeFromQueue(userId, league);
     socket.disconnect();
   });
