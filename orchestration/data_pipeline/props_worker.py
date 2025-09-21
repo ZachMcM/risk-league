@@ -121,50 +121,79 @@ async def handle_stats_updated(data):
                 await cur.execute("BEGIN")
 
                 try:
-                    for stat_entry in stats_list:
-                        select_query = """
-                            SELECT id, line, status
-                            FROM prop
-                            WHERE player_id = %s AND stat_name = %s
-                            AND league = %s AND game_id = %s
-                        """
+                    # Batch process stats to reduce database round trips
+                    if stats_list:
+                        # Prepare batch queries for better performance
+                        update_params = []
 
-                        await cur.execute(
-                            select_query,
-                            (
-                                stat_entry["player_id"],
-                                stat_entry["stat_name"],
-                                stat_entry["league"],
-                                stat_entry["game_id"],
-                            ),
-                        )
+                        # First, get all existing props in a single query
+                        if len(stats_list) > 0:
+                            # Build parameterized query for all stats at once
+                            placeholders = []
+                            all_params = []
 
-                        rows = await cur.fetchone()
+                            for stat_entry in stats_list:
+                                placeholders.append("(%s, %s, %s, %s)")
+                                all_params.extend([
+                                    stat_entry["player_id"],
+                                    stat_entry["stat_name"],
+                                    stat_entry["league"],
+                                    stat_entry["game_id"]
+                                ])
 
-                        if not rows:
-                            continue
+                            # Single query to get all matching props
+                            batch_select_query = f"""
+                                SELECT id, line, status, player_id, stat_name, league, game_id
+                                FROM prop p
+                                WHERE (p.player_id, p.stat_name, p.league, p.game_id) IN ({', '.join(placeholders)})
+                            """
 
-                        update_query = """
-                            UPDATE prop
-                            SET current_value = %s, status = %s
-                            WHERE id = %s
-                            RETURNING id
-                        """
+                            await cur.execute(batch_select_query, all_params)
+                            existing_props = await cur.fetchall()
 
-                        status = (
-                            "resolved"
-                            if stat_entry["status"] in ["completed", "final"]
-                            or stat_entry["current_value"] > rows[1]
-                            else "not_resolved"
-                        )
+                            # Create lookup dictionary for faster access
+                            props_lookup = {}
+                            for prop_row in existing_props:
+                                key = (prop_row[3], prop_row[4], prop_row[5], prop_row[6])  # player_id, stat_name, league, game_id
+                                props_lookup[key] = (prop_row[0], prop_row[1], prop_row[2])  # id, line, status
 
-                        await cur.execute(
-                            update_query, (stat_entry["current_value"], status, rows[0])
-                        )
-                        result = await cur.fetchone()
+                            # Process updates in batch
+                            for stat_entry in stats_list:
+                                key = (
+                                    stat_entry["player_id"],
+                                    stat_entry["stat_name"],
+                                    stat_entry["league"],
+                                    stat_entry["game_id"]
+                                )
 
-                        if result:
-                            props_updated.append(result)
+                                if key not in props_lookup:
+                                    continue
+
+                                prop_id, line, _ = props_lookup[key]
+
+                                status = (
+                                    "resolved"
+                                    if stat_entry["status"] in ["completed", "final"]
+                                    or stat_entry["current_value"] > line
+                                    else "not_resolved"
+                                )
+
+                                update_params.append((stat_entry["current_value"], status, prop_id))
+
+                            # Batch update all props
+                            if update_params:
+                                update_query = """
+                                    UPDATE prop
+                                    SET current_value = %s, status = %s
+                                    WHERE id = %s
+                                    RETURNING id
+                                """
+
+                                for params in update_params:
+                                    await cur.execute(update_query, params)
+                                    result = await cur.fetchone()
+                                    if result:
+                                        props_updated.append(result)
 
                     await cur.execute("COMMIT")
 
