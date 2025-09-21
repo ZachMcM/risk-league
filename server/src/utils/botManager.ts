@@ -1,4 +1,4 @@
-import { and, eq, InferSelectModel } from "drizzle-orm";
+import { and, eq, InferSelectModel, ne } from "drizzle-orm";
 import { v4 as uuidv4 } from "uuid";
 import {
   DEFAULT_PROFANITY,
@@ -14,6 +14,7 @@ import { Rank } from "../types/ranks";
 import { getAvailablePropsForUser } from "./getAvailableProps";
 import { getRank } from "./getRank";
 import { getCombinedDictionaries } from "./usernameDictionaries";
+import { invalidateQueries } from "./invalidateQueries";
 
 export async function initializeBotParlays(botId: string, matchId: number) {
   logger.info(`Initializing bot parlays for bot ${botId} in match ${matchId}`);
@@ -123,6 +124,11 @@ export async function createBotParlay(botId: string, matchId: number) {
         minTotalStaked
       );
 
+      await db
+        .update(matchUser)
+        .set({ balance: balance - parlayData.stake })
+        .where(eq(matchUser.id, botMatchUserRes.id));
+
       const [newParlay] = await db
         .insert(parlay)
         .values({
@@ -140,6 +146,38 @@ export async function createBotParlay(botId: string, matchId: number) {
       }));
 
       await db.insert(pick).values(pickData);
+
+      invalidateQueries(["match", matchId]);
+
+      const otherMatchUser = (await db.query.matchUser.findFirst({
+        where: and(
+          eq(matchUser.matchId, matchId),
+          ne(matchUser.userId, botMatchUserRes.userId)
+        ),
+        columns: {
+          id: true,
+        },
+        with: {
+          user: {
+            columns: {
+              username: true,
+              id: true,
+              image: true,
+            },
+          },
+        },
+      }))!;
+
+      io.of("/realtime")
+        .to(`user:${otherMatchUser.user.id}`)
+        .emit("opp-parlay-placed", {
+          matchId,
+          stake: parlayData.stake,
+          legs: parlayData.selectedProps.length,
+          type: parlayData.type,
+          username: otherMatchUser.user.username,
+          image: otherMatchUser.user.image,
+        });
 
       logger.info(
         `Created parlay ${newParlay.id} for bot ${botId} in match ${matchId}`

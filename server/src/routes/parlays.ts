@@ -265,13 +265,13 @@ parlaysRoute.post("/parlays", authMiddleware, async (req, res) => {
         })
         .returning({ id: parlay.id });
 
-      for (const pickEntry of picks) {
-        await db.insert(pick).values({
-          propId: pickEntry.prop.id!,
-          parlayId: parlayResult.id,
-          choice: pickEntry.choice,
-        });
-      }
+      const pickData = picks.map((pickEntry) => ({
+        choice: pickEntry.choice as (typeof choiceType.enumValues)[number],
+        propId: pickEntry.prop.id!,
+        parlayId: parlayResult.id,
+      }));
+
+      await db.insert(pick).values(pickData);
 
       // Send invalidation message to update client queries
       invalidateQueries(
