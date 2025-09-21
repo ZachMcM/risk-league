@@ -4,7 +4,7 @@ import { ActivityIndicator } from "react-native";
 import FinalizeParlayForm from "~/components/parlays/FinalizeParlayForm";
 import { getMatch } from "~/endpoints";
 import { authClient } from "~/lib/auth-client";
-import { MIN_PARLAYS_REQUIRED } from "~/lib/config";
+import { MIN_PARLAYS_REQUIRED, MIN_PCT_TOTAL_STAKED } from "~/lib/config";
 import { ExtendedMatchUser } from "~/types/match";
 
 export default function FinalizeParlay() {
@@ -30,7 +30,7 @@ export default function FinalizeParlay() {
     <FinalizeParlayForm
       totalStaked={totalStaked}
       minParlays={MIN_PARLAYS_REQUIRED}
-      minTotalStaked={startingBalance * startingBalance}
+      minTotalStaked={startingBalance * MIN_PCT_TOTAL_STAKED}
       totalParlays={totalParlays}
       balance={balance}
       matchId={matchId}
