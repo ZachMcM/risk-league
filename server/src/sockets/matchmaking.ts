@@ -155,16 +155,18 @@ export async function matchMakingHandler(socket: Socket) {
   await addToQueue(userId, league);
 
   const botTimer = setTimeout(async () => {
+    // Use atomic operation to check and remove user from queue
     const queueKey = getQueueKey(league);
-    const queue = await redis.lRange(queueKey, 0, -1);
+    const removedCount = await redis.lRem(queueKey, 1, userId);
 
-    if (queue.includes(userId)) {
+    // Only create bot match if user was actually in queue
+    if (removedCount > 0) {
       logger.info(
         `User ${userId} waited ${
           BOT_TIMER_MS / 1000
         }s, creating bot match`
       );
-      await createBotMatch(userId, league)
+      await createBotMatch(userId, league);
     }
   }, BOT_TIMER_MS);
 
@@ -202,11 +204,13 @@ export async function matchMakingHandler(socket: Socket) {
 
   socket.on("disconnect", () => {
     logger.info(`User ${userId} disconnected`);
+    clearTimeout(botTimer);
     removeFromQueue(userId, league);
   });
 
   socket.on("cancel-search", () => {
     logger.info(`User ${userId} cancelled search`);
+    clearTimeout(botTimer);
     removeFromQueue(userId, league);
     socket.disconnect();
   });

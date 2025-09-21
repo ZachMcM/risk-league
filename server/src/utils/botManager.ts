@@ -61,7 +61,7 @@ export async function createBotMatch(userId: string, league: string) {
 
     const botId = await createBot(userRank);
 
-    await removeFromQueue(userId, league);
+    // User already removed from queue atomically in timer
     const matchId = await createMatch({
       user1Id: userId,
       user2Id: botId,
@@ -140,18 +140,22 @@ export async function createBotParlay(botId: string, matchId: number) {
         })
         .returning({ id: parlay.id });
 
-      parlayData.selectedProps.forEach(async (propEntry, i) => {
-        await db.insert(pick).values({
-          choice: parlayData.choices[i],
-          propId: propEntry.id,
-          parlayId: newParlay.id,
-        });
-      });
+      // Batch insert all picks in a single operation
+      const pickData = parlayData.selectedProps.map((propEntry, i) => ({
+        choice: parlayData.choices[i],
+        propId: propEntry.id,
+        parlayId: newParlay.id,
+      }));
+
+      await db.insert(pick).values(pickData);
 
       logger.info(
         `Created parlay ${newParlay.id} for bot ${botId} in match ${matchId}`
       );
     } else {
+      logger.warn(`Insufficient conditions for bot parlay: balance=${balance}, 
+  props=${availableProps?.length}`);
+      return;
     }
   } catch (error) {
     logger.error(
