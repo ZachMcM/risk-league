@@ -114,77 +114,108 @@ async def handle_stats_updated(data):
 
     props_updated = []
 
-    try:
-        pool = await get_async_pool()
-        async with pool.connection() as conn:
-            async with conn.cursor() as cur:
-                await cur.execute("BEGIN")
+    max_retries = 3
+    retry_delay = 2
 
-                try:
-                    for stat_entry in stats_list:
-                        select_query = """
-                            SELECT id, line, status
-                            FROM prop
-                            WHERE player_id = %s AND stat_name = %s
-                            AND league = %s AND game_id = %s
-                        """
+    for attempt in range(max_retries):
+        try:
+            pool = await get_async_pool()
+            async with pool.connection() as conn:
+                async with conn.cursor() as cur:
+                    await cur.execute("BEGIN")
 
-                        await cur.execute(
-                            select_query,
-                            (
-                                stat_entry["player_id"],
-                                stat_entry["stat_name"],
-                                stat_entry["league"],
-                                stat_entry["game_id"],
-                            ),
-                        )
+                    try:
+                        # Process stats in batches to avoid overwhelming the connection pool
+                        BATCH_SIZE = 100
+                        for i in range(0, len(stats_list), BATCH_SIZE):
+                            batch = stats_list[i:i + BATCH_SIZE]
 
-                        rows = await cur.fetchone()
+                            # Build batch SELECT query
+                            if not batch:
+                                continue
 
-                        if not rows:
-                            continue
+                            select_conditions = []
+                            select_params = []
+                            for stat_entry in batch:
+                                select_conditions.append("(player_id = %s AND stat_name = %s AND league = %s AND game_id = %s)")
+                                select_params.extend([
+                                    stat_entry["player_id"],
+                                    stat_entry["stat_name"],
+                                    stat_entry["league"],
+                                    stat_entry["game_id"]
+                                ])
 
-                        update_query = """
-                            UPDATE prop
-                            SET current_value = %s, status = %s
-                            WHERE id = %s
-                            RETURNING id
-                        """
+                            batch_select_query = f"""
+                                SELECT id, line, status, player_id, stat_name, league, game_id
+                                FROM prop
+                                WHERE {' OR '.join(select_conditions)}
+                            """
 
-                        status = (
-                            "resolved"
-                            if stat_entry["status"] in ["completed", "final"]
-                            or stat_entry["current_value"] > rows[1]
-                            else "not_resolved"
-                        )
+                            await cur.execute(batch_select_query, select_params)
+                            existing_props = await cur.fetchall()
 
-                        await cur.execute(
-                            update_query, (stat_entry["current_value"], status, rows[0])
-                        )
-                        result = await cur.fetchone()
+                            # Create lookup for existing props
+                            props_lookup = {}
+                            for prop in existing_props:
+                                key = (prop[3], prop[4], prop[5], prop[6])  # player_id, stat_name, league, game_id
+                                props_lookup[key] = {"id": prop[0], "line": prop[1], "status": prop[2]}
 
-                        if result:
-                            props_updated.append(result)
+                            # Prepare batch updates
+                            update_data = []
+                            for stat_entry in batch:
+                                key = (stat_entry["player_id"], stat_entry["stat_name"], stat_entry["league"], stat_entry["game_id"])
+                                if key in props_lookup:
+                                    prop_info = props_lookup[key]
+                                    status = (
+                                        "resolved"
+                                        if stat_entry["status"] in ["completed", "final"]
+                                        or stat_entry["current_value"] > prop_info["line"]
+                                        else "not_resolved"
+                                    )
+                                    update_data.append((stat_entry["current_value"], status, prop_info["id"]))
 
-                    await cur.execute("COMMIT")
+                            # Execute batch update if we have data
+                            if update_data:
+                                update_query = """
+                                    UPDATE prop
+                                    SET current_value = %s, status = %s
+                                    WHERE id = %s
+                                    RETURNING id
+                                """
 
-                except Exception as e:
-                    await cur.execute("ROLLBACK")
-                    logger.error(f"Database transaction failed: {e}")
-                    raise e
+                                for update_params in update_data:
+                                    await cur.execute(update_query, update_params)
+                                    result = await cur.fetchone()
+                                    if result:
+                                        props_updated.append(result)
 
-        # Publish all Redis messages in parallel
-        if props_updated:
-            publish_tasks = [
-                publish_message_async(redis_publisher, "prop_updated", {"id": prop[0]})
-                for prop in props_updated
-            ]
-            await asyncio.gather(*publish_tasks)
+                        await cur.execute("COMMIT")
+                        break  # Success, exit retry loop
 
-    except Exception as e:
-        logger.error(f"Error handling stats update: {e}")
-    finally:
-        await redis_publisher.aclose()
+                    except Exception as e:
+                        await cur.execute("ROLLBACK")
+                        logger.error(f"Database transaction failed: {e}")
+                        raise e
+
+        except Exception as e:
+            if "PoolTimeout" in str(e) and attempt < max_retries - 1:
+                logger.warning(f"Connection pool timeout on attempt {attempt + 1}/{max_retries}, retrying in {retry_delay}s")
+                await asyncio.sleep(retry_delay)
+                retry_delay *= 2  # Exponential backoff
+                continue
+            else:
+                logger.error(f"Error handling stats update: {e}")
+                break
+
+    # Publish all Redis messages in parallel
+    if props_updated:
+        publish_tasks = [
+            publish_message_async(redis_publisher, "prop_updated", {"id": prop[0]})
+            for prop in props_updated
+        ]
+        await asyncio.gather(*publish_tasks)
+
+    await redis_publisher.aclose()
 
     end_time = time()
     logger.info(f"Updated {len(props_updated)} props. Completed in {end_time - start_time:.2f}s")

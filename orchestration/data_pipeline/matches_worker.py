@@ -1,5 +1,9 @@
 from utils import setup_logger
-from redis_utils import create_async_redis_client, publish_message_async, listen_for_messages_async
+from redis_utils import (
+    create_async_redis_client,
+    publish_message_async,
+    listen_for_messages_async,
+)
 from db.connection import get_async_pool
 import asyncio
 from typing import TypedDict, Optional, List, Tuple
@@ -63,6 +67,7 @@ def recalculate_points(current_points: List[float], winner: Optional[int]) -> Li
     r_prime_b = r_b + K * (s_b - e_b)
 
     return [round(r_prime_a), round(r_prime_b)]
+
 
 async def handle_parlay_resolved(data):
     """Handles incoming parlay_resolved messages asynchronously"""
@@ -165,27 +170,31 @@ async def handle_parlay_resolved(data):
                                 "id": p[0],
                                 "stake": float(p[1]),
                                 "resolved": p[2],
-                                "payout": float(p[3]) if p[3] is not None else None
+                                "payout": float(p[3]) if p[3] is not None else None,
                             }
                             for p in parlays_res
                         ]
 
-                        match_users_data.append({
-                            "id": mu_row[0],
-                            "user_id": mu_row[1],
-                            "balance": float(mu_row[2]),
-                            "starting_balance": float(mu_row[3]),
-                            "points_snapshot": float(mu_row[4]),
-                            "points_delta": float(mu_row[5]),
-                            "status": mu_row[6],
-                            "parlays": parlays
-                        })
+                        match_users_data.append(
+                            {
+                                "id": mu_row[0],
+                                "user_id": mu_row[1],
+                                "balance": float(mu_row[2]),
+                                "starting_balance": float(mu_row[3]),
+                                "points_snapshot": float(mu_row[4]),
+                                "points_delta": float(mu_row[5]),
+                                "status": mu_row[6],
+                                "parlays": parlays,
+                            }
+                        )
 
                     # Check if all parlays are resolved
                     for mu_data in match_users_data:
                         for parlay in mu_data["parlays"]:
                             if not parlay["resolved"]:
-                                logger.info(f"Match {match_id} cannot be resolved - parlay {parlay['id']} not resolved")
+                                logger.info(
+                                    f"Match {match_id} cannot be resolved - parlay {parlay['id']} not resolved"
+                                )
                                 await cur.execute("COMMIT")
                                 return
 
@@ -200,15 +209,21 @@ async def handle_parlay_resolved(data):
                         AND g.start_time AT TIME ZONE 'UTC' > (NOW() AT TIME ZONE 'UTC')
                     """
 
-                    await cur.execute(props_available_query, (match_res[2],))  # match_league
+                    await cur.execute(
+                        props_available_query, (match_res[2],)
+                    )  # match_league
                     props_count_res = await cur.fetchone()
 
                     if props_count_res and props_count_res[0] > 0:
-                        logger.info(f"Match {match_id} cannot be resolved - props still available")
+                        logger.info(
+                            f"Match {match_id} cannot be resolved - props still available"
+                        )
                         await cur.execute("COMMIT")
                         return
 
-                    logger.info(f"Match {match_id} resolution triggered by parlay {parlay_id}")
+                    logger.info(
+                        f"Match {match_id} resolution triggered by parlay {parlay_id}"
+                    )
 
                     # Resolve the match
                     await _resolve_match(
@@ -219,7 +234,11 @@ async def handle_parlay_resolved(data):
 
                     # Publish Redis messages for cache invalidation
                     await _publish_match_resolved_messages(
-                        redis_publisher, match_id, match_users_data
+                        redis_publisher,
+                        match_id,
+                        match_users_data,
+                        match_res[1],
+                        match_res[2],
                     )
 
                 except Exception as e:
@@ -231,9 +250,11 @@ async def handle_parlay_resolved(data):
         logger.error(f"Error handling parlay resolved: {e}")
     finally:
         await redis_publisher.aclose()
-        
+
     end_time = time()
-    logger.info(f"Updated match of parlay_id {parlay_id}. Completed in {end_time - start_time:.2f}s")
+    logger.info(
+        f"Updated match of parlay_id {parlay_id}. Completed in {end_time - start_time:.2f}s"
+    )
 
 
 async def _resolve_match(
@@ -241,9 +262,7 @@ async def _resolve_match(
 ):
     """Resolve match by determining winner and updating all related data"""
     # Update match as resolved
-    await cur.execute(
-        "UPDATE match SET resolved = true WHERE id = %s", (match_id,)
-    )
+    await cur.execute("UPDATE match SET resolved = true WHERE id = %s", (match_id,))
 
     match_user1 = match_users_data[0]
     match_user2 = match_users_data[1]
@@ -253,8 +272,12 @@ async def _resolve_match(
     match_user2_total_staked = sum(p["stake"] for p in match_user2["parlays"])
 
     # Calculate minimum required stakes
-    match_user1_min_staked = round(match_user1["starting_balance"] * MIN_PCT_TOTAL_STAKED)
-    match_user2_min_staked = round(match_user2["starting_balance"] * MIN_PCT_TOTAL_STAKED)
+    match_user1_min_staked = round(
+        match_user1["starting_balance"] * MIN_PCT_TOTAL_STAKED
+    )
+    match_user2_min_staked = round(
+        match_user2["starting_balance"] * MIN_PCT_TOTAL_STAKED
+    )
 
     # Determine winner and statuses
     winner = None
@@ -263,12 +286,12 @@ async def _resolve_match(
 
     # Check disqualification conditions
     user1_disqualified = (
-        len(match_user1["parlays"]) < MIN_PARLAYS_REQUIRED or
-        match_user1_total_staked < match_user1_min_staked
+        len(match_user1["parlays"]) < MIN_PARLAYS_REQUIRED
+        or match_user1_total_staked < match_user1_min_staked
     )
     user2_disqualified = (
-        len(match_user2["parlays"]) < MIN_PARLAYS_REQUIRED or
-        match_user2_total_staked < match_user2_min_staked
+        len(match_user2["parlays"]) < MIN_PARLAYS_REQUIRED
+        or match_user2_total_staked < match_user2_min_staked
     )
 
     if user1_disqualified and not user2_disqualified:
@@ -297,30 +320,48 @@ async def _resolve_match(
     # Update match user statuses
     await cur.execute(
         "UPDATE match_user SET status = %s::match_status WHERE id = %s",
-        (match_user1_status, match_user1["id"])
+        (match_user1_status, match_user1["id"]),
     )
     await cur.execute(
         "UPDATE match_user SET status = %s::match_status WHERE id = %s",
-        (match_user2_status, match_user2["id"])
+        (match_user2_status, match_user2["id"]),
     )
 
     # Update ELO points for competitive matches
     if match_type == "competitive":
         await _update_elo_points(
-            cur, match_user1, match_user2, match_user1_status, match_user2_status, winner
+            cur,
+            match_user1,
+            match_user2,
+            match_user1_status,
+            match_user2_status,
+            winner,
         )
 
     # Update battle pass XP
     await _update_battle_pass_xp(
-        cur, match_user1["user_id"], len(match_user1["parlays"]), match_user1_total_staked, match_user1_status
+        cur,
+        match_user1["user_id"],
+        len(match_user1["parlays"]),
+        match_user1_total_staked,
+        match_user1_status,
     )
     await _update_battle_pass_xp(
-        cur, match_user2["user_id"], len(match_user2["parlays"]), match_user2_total_staked, match_user2_status
+        cur,
+        match_user2["user_id"],
+        len(match_user2["parlays"]),
+        match_user2_total_staked,
+        match_user2_status,
     )
 
 
 async def _update_elo_points(
-    cur, match_user1: dict, match_user2: dict, status1: str, status2: str, winner: Optional[int]
+    cur,
+    match_user1: dict,
+    match_user2: dict,
+    status1: str,
+    status2: str,
+    winner: Optional[int],
 ):
     """Update ELO points for competitive matches"""
     if status1 == "disqualified" and status2 == "disqualified":
@@ -349,21 +390,21 @@ async def _update_elo_points(
 
     await cur.execute(
         "UPDATE match_user SET points_delta = %s WHERE id = %s",
-        (points_delta1, match_user1["id"])
+        (points_delta1, match_user1["id"]),
     )
     await cur.execute(
         "UPDATE match_user SET points_delta = %s WHERE id = %s",
-        (points_delta2, match_user2["id"])
+        (points_delta2, match_user2["id"]),
     )
 
     # Update user points (minimum 1000)
     await cur.execute(
         "UPDATE public.user SET points = %s WHERE id = %s",
-        (max(1000, new_points[0]), match_user1["user_id"])
+        (max(1000, new_points[0]), match_user1["user_id"]),
     )
     await cur.execute(
         "UPDATE public.user SET points = %s WHERE id = %s",
-        (max(1000, new_points[1]), match_user2["user_id"])
+        (max(1000, new_points[1]), match_user2["user_id"]),
     )
 
 
@@ -398,12 +439,9 @@ async def _update_battle_pass_xp(
     parlay_bonus = parlay_count * 10
     staking_bonus = int(total_staked / 10)
 
-    multiplier = {
-        "win": 1.5,
-        "draw": 1.2,
-        "loss": 1.0,
-        "disqualified": 0.5
-    }.get(match_status, 1.0)
+    multiplier = {"win": 1.5, "draw": 1.2, "loss": 1.0, "disqualified": 0.5}.get(
+        match_status, 1.0
+    )
 
     total_xp = int((base_xp + parlay_bonus + staking_bonus) * multiplier)
     xp_gained = max(25, total_xp)
@@ -415,12 +453,16 @@ async def _update_battle_pass_xp(
 
         await cur.execute(
             "UPDATE user_battle_pass_progress SET current_xp = %s WHERE id = %s",
-            (new_xp, progress_id)
+            (new_xp, progress_id),
         )
 
 
 async def _publish_match_resolved_messages(
-    redis_publisher, match_id: int, match_users_data: List[dict]
+    redis_publisher,
+    match_id: int,
+    match_users_data: List[dict],
+    match_type: str,
+    league: str,
 ):
     """Publish Redis messages for match resolution"""
     publish_tasks = []
@@ -440,14 +482,27 @@ async def _publish_match_resolved_messages(
         ["user", user1_id, "rank"],
         ["user", user2_id, "rank"],
         ["career", user1_id],
-        ["career", user2_id]
+        ["career", user2_id],
     ]
 
     publish_tasks.append(
         publish_message_async(
+            redis_publisher, "invalidate_queries", {"keys": invalidation_keys}
+        )
+    )
+
+    publish_tasks.append(
+        publish_message_async(
             redis_publisher,
-            "invalidate_queries",
-            {"keys": invalidation_keys}
+            "notification",
+            {
+                "receiverIdsList": [
+                    match_users_data[0]["user_id"],
+                    match_users_data[1]["user_id"],
+                ],
+                "event": "match-ended",
+                "data": {"type": match_type, "league": league, "id": match_id},
+            },
         )
     )
 
@@ -538,21 +593,23 @@ async def handle_match_check(data):
                                 "id": p[0],
                                 "stake": float(p[1]),
                                 "resolved": p[2],
-                                "payout": float(p[3]) if p[3] is not None else None
+                                "payout": float(p[3]) if p[3] is not None else None,
                             }
                             for p in parlays_res
                         ]
 
-                        match_users_data.append({
-                            "id": mu_row[0],
-                            "user_id": mu_row[1],
-                            "balance": float(mu_row[2]),
-                            "starting_balance": float(mu_row[3]),
-                            "points_snapshot": float(mu_row[4]),
-                            "points_delta": float(mu_row[5]),
-                            "status": mu_row[6],
-                            "parlays": parlays
-                        })
+                        match_users_data.append(
+                            {
+                                "id": mu_row[0],
+                                "user_id": mu_row[1],
+                                "balance": float(mu_row[2]),
+                                "starting_balance": float(mu_row[3]),
+                                "points_snapshot": float(mu_row[4]),
+                                "points_delta": float(mu_row[5]),
+                                "status": mu_row[6],
+                                "parlays": parlays,
+                            }
+                        )
 
                     # Check if any parlays are still unresolved
                     unresolved_parlays = []
@@ -562,7 +619,9 @@ async def handle_match_check(data):
                                 unresolved_parlays.append(parlay["id"])
 
                     if unresolved_parlays:
-                        logger.info(f"Match {match_id} cannot be resolved - parlays {unresolved_parlays} not resolved")
+                        logger.info(
+                            f"Match {match_id} cannot be resolved - parlays {unresolved_parlays} not resolved"
+                        )
                         await cur.execute("COMMIT")
                         return
 
@@ -576,11 +635,15 @@ async def handle_match_check(data):
                         AND g.start_time AT TIME ZONE 'UTC' > (NOW() AT TIME ZONE 'UTC')
                     """
 
-                    await cur.execute(props_available_query, (match_res[2],))  # match_league
+                    await cur.execute(
+                        props_available_query, (match_res[2],)
+                    )  # match_league
                     props_count_res = await cur.fetchone()
 
                     if props_count_res and props_count_res[0] > 0:
-                        logger.info(f"Match {match_id} cannot be resolved - props still available")
+                        logger.info(
+                            f"Match {match_id} cannot be resolved - props still available"
+                        )
                         await cur.execute("COMMIT")
                         return
 
@@ -595,7 +658,11 @@ async def handle_match_check(data):
 
                     # Publish Redis messages for cache invalidation
                     await _publish_match_resolved_messages(
-                        redis_publisher, match_id, match_users_data
+                        redis_publisher,
+                        match_id,
+                        match_users_data,
+                        match_res[1],
+                        match_res[2],
                     )
 
                 except Exception as e:
@@ -609,7 +676,9 @@ async def handle_match_check(data):
         await redis_publisher.aclose()
 
     end_time = time()
-    logger.info(f"Processed match_check for match_id {match_id}. Completed in {end_time - start_time:.2f}s")
+    logger.info(
+        f"Processed match_check for match_id {match_id}. Completed in {end_time - start_time:.2f}s"
+    )
 
 
 async def handle_parlay_resolved_safe(data):
@@ -668,19 +737,18 @@ async def main():
     """Main function that listens for both parlay_resolved and match_check messages."""
     try:
         # Run both listeners concurrently
-        await asyncio.gather(
-            listen_for_parlay_resolved(),
-            listen_for_match_check()
-        )
+        await asyncio.gather(listen_for_parlay_resolved(), listen_for_match_check())
     except KeyboardInterrupt:
         logger.warning("Shutting down matches_worker...")
         # Ensure pool cleanup on shutdown
         from db.connection import close_async_pool
+
         await close_async_pool()
     except Exception as e:
         logger.error(f"Error in main: {e}")
         # Ensure pool cleanup on error
         from db.connection import close_async_pool
+
         await close_async_pool()
 
 

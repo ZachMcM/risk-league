@@ -16,7 +16,7 @@ const RealtimeContext = createContext<{ isConnected: boolean }>({
   isConnected: false,
 });
 
-export function RealTimeProvider({ children }: { children: ReactNode }) {
+export function RealtimeProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
   const { data: currentUserData } = authClient.useSession();
   const [isConnected, setIsConnected] = useState(false);
@@ -454,8 +454,7 @@ export function RealTimeProvider({ children }: { children: ReactNode }) {
                     className="text-muted-foreground font-semibold"
                     numberOfLines={2}
                   >
-                    {username} created a {legs} leg {type} parlay with a $
-                    {stake}. Get in the match and make a better bet today!
+                    Get in the match and make a better bet today!
                   </Text>
                 </View>
               </CardContent>

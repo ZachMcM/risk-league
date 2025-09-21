@@ -31,7 +31,7 @@ export default function Player() {
         playerId,
         matchId,
       }),
-    staleTime: 1440 * 60 * 1000,
+    staleTime: 60 * 1000,
   });
 
   return (

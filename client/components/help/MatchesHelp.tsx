@@ -69,16 +69,6 @@ export default function MatchesHelp({
             </Pressable>
             <Separator />
             <Pressable
-              onPress={() => scrollToSection("parlays")}
-              className="flex flex-row items-center gap-2 p-2 rounded-lg active:bg-muted"
-            >
-              <Blocks className="text-primary" size={20} />
-              <Text className="font-semibold text-primary">
-                Building Parlays
-              </Text>
-            </Pressable>
-            <Separator />
-            <Pressable
               onPress={() => scrollToSection("timeline")}
               className="flex flex-row items-center gap-2 p-2 rounded-lg active:bg-muted"
             >
@@ -215,55 +205,6 @@ export default function MatchesHelp({
               <Text className="text-muted-foreground font-semibold">
                 You can only start Friendly Matches with friends, these matches
                 do not count toward your rank.
-              </Text>
-            </View>
-          </CardContent>
-        </Card>
-      </View>
-      <View
-        onLayout={(event) => {
-          const { y } = event.nativeEvent.layout;
-          handleSectionLayout("parlays", y);
-        }}
-      >
-        <Card>
-          <CardContent className="flex flex-col gap-4 p-6">
-            <View className="flex flex-row items-center gap-2">
-              <Blocks className="text-primary" />
-              <Text className="font-bold text-xl">Building Parlays</Text>
-            </View>
-            <Text className="text-muted-foreground font-semibold">
-              Parlays also have some guidelines to ensure fairness.
-            </Text>
-            <View className="flex flex-col gap-1">
-              <Text className="font-bold text-xl">Max Parlay Picks</Text>
-              <Text className="text-muted-foreground font-semibold">
-                An individual parlay can have at most 6 picks.
-              </Text>
-            </View>
-            <View className="flex flex-col gap-1">
-              <Text className="font-bold text-xl">Flex Plays</Text>
-              <Text className="text-muted-foreground font-semibold">
-                Flex plays have lower multipliers but don't require you to hit
-                on every pick of the parlay. You must have at least 3 picks in a
-                parlay to chosoe the Flex Play option. The multipliers scale
-                with pick count.
-              </Text>
-            </View>
-            <View className="flex flex-col gap-1">
-              <Text className="font-bold text-xl">Perfect Plays</Text>
-              <Text className="text-muted-foreground font-semibold">
-                Perfect plays have higher multipliers but require you to hit on
-                every pick of the parlay. You must have at least 2 picks in a
-                parlay to choose the Flex Play option. The multipliers scale
-                with pick count.
-              </Text>
-            </View>
-            <View className="flex flex-col gap-1">
-              <Text className="font-bold text-xl">Minimum Stake</Text>
-              <Text className="text-muted-foreground font-semibold">
-                Users must stake {MIN_STAKE_PCT * 100}% of their current balance
-                for an individual parlay.
               </Text>
             </View>
           </CardContent>
