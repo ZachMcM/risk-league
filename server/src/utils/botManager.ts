@@ -1,5 +1,5 @@
 import { and, eq, InferSelectModel } from "drizzle-orm";
-import { nanoid } from "nanoid";
+import { v4 as uuidv4 } from "uuid";
 import {
   DEFAULT_PROFANITY,
   uniqueUsernameGenerator,
@@ -231,7 +231,7 @@ export async function createBot(targetRank: Rank): Promise<string> {
     "titleCase",
   ] as const;
 
-  const botId = nanoid();
+  const botId = uuidv4();
   const [combinedAdjectives, combinedNouns] = getCombinedDictionaries();
 
   const username = uniqueUsernameGenerator({
