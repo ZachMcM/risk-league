@@ -610,6 +610,13 @@
       "when": 1758343284132,
       "tag": "0086_silent_absorbing_man",
       "breakpoints": true
+    },
+    {
+      "idx": 87,
+      "version": "7",
+      "when": 1758486961904,
+      "tag": "0087_hot_genesis",
+      "breakpoints": true
     }
   ]
 }
