@@ -42,6 +42,13 @@ export async function initializeBotParlays(botId: string, matchId: number) {
       createBotParlay(botId, matchId);
     }, 600000 + Math.random() * 300000);
   }
+
+  // Optional fourth parlay: 10-15 minutes (30% chance)
+  if (Math.random() < 0.2) {
+    setTimeout(() => {
+      createBotParlay(botId, matchId);
+    }, 2 * 600000 + Math.random() * (2 * 300000));
+  }
 }
 
 export async function createBotMatch(userId: string, league: string) {
