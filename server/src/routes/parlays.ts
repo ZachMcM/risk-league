@@ -10,6 +10,7 @@ import {
   parlay,
   pick,
   prop,
+  user,
 } from "../db/schema";
 import { logger } from "../logger";
 import { authMiddleware } from "../middleware";
@@ -309,6 +310,14 @@ parlaysRoute.post("/parlays", authMiddleware, async (req, res) => {
         },
       }))!;
 
+      const currUser = (await db.query.user.findFirst({
+        where: eq(user.id, res.locals.userId!),
+        columns: {
+          username: true,
+          image: true
+        }
+      }))
+
       io.of("/realtime")
         .to(`user:${otherMatchUser.user.id}`)
         .emit("opp-parlay-placed", {
@@ -316,8 +325,8 @@ parlaysRoute.post("/parlays", authMiddleware, async (req, res) => {
           stake,
           legs: picks.length,
           type,
-          username: otherMatchUser.user.username,
-          image: otherMatchUser.user.image,
+          username: currUser?.username,
+          image: currUser?.image,
         });
       return;
     }

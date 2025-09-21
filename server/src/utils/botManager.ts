@@ -168,6 +168,14 @@ export async function createBotParlay(botId: string, matchId: number) {
         },
       }))!;
 
+      const botAcc = (await db.query.user.findFirst({
+        where: eq(user.id, botId),
+        columns: {
+          username: true,
+          image: true
+        }
+      }))
+
       io.of("/realtime")
         .to(`user:${otherMatchUser.user.id}`)
         .emit("opp-parlay-placed", {
@@ -175,8 +183,8 @@ export async function createBotParlay(botId: string, matchId: number) {
           stake: parlayData.stake,
           legs: parlayData.selectedProps.length,
           type: parlayData.type,
-          username: otherMatchUser.user.username,
-          image: otherMatchUser.user.image,
+          username: botAcc?.username,
+          image: botAcc?.image,
         });
 
       logger.info(
@@ -217,7 +225,7 @@ export function generateBotParlay(
   let stake;
 
   if (currTotalStaked < minTotalStaked) {
-    if (botBalance == 0) {
+    if (currTotalStaked == 0) {
       stake = (Math.random() * (0.7 - 0.5) + 0.5) * minTotalStaked;
     } else {
       stake = Math.random() * (botBalance - minTotalStaked) + minTotalStaked;
