@@ -112,10 +112,8 @@ export default function PickCard({ initialData }: { initialData: Pick }) {
               <View
                 className={cn(
                   "h-6 w-6 border-2 border-border rounded-full flex justify-center items-center",
-                  pick.status != "not_resolved" &&
-                    (pick.status == "hit" && "bg-success border-success",
-                    pick.status == "missed" &&
-                      "bg-destructive border-destructive")
+                  pick.status === "hit" && "bg-success border-success",
+                  pick.status === "missed" && "bg-destructive border-destructive"
                 )}
               >
                 {pick.status != "not_resolved" &&
