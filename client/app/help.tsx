@@ -7,6 +7,7 @@ import ModalContainer from "~/components/ui/modal-container";
 import { ScrollContainer } from "~/components/ui/scroll-container";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import DynastyHelp from "~/components/help/DynastyHelp";
+import ParlaysHelp from "~/components/help/ParlaysHelp";
 
 export default function Help() {
   const scrollViewRef = useRef<ScrollView>(null);
@@ -41,12 +42,21 @@ export default function Help() {
               <TabsTrigger value="matches">
                 <Text>Matches</Text>
               </TabsTrigger>
+              <TabsTrigger value="parlays">
+                <Text>Parlays</Text>
+              </TabsTrigger>
               <TabsTrigger value="dynasty">
                 <Text>Dynasty</Text>
               </TabsTrigger>
             </TabsList>
             <TabsContent value="matches" className="px-4 pt-4">
               <MatchesHelp
+                handleSectionLayout={handleSectionLayout}
+                scrollToSection={scrollToSection}
+              />
+            </TabsContent>
+            <TabsContent value="parlays" className="px-4 pt-4">
+              <ParlaysHelp
                 handleSectionLayout={handleSectionLayout}
                 scrollToSection={scrollToSection}
               />
