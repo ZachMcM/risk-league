@@ -214,19 +214,22 @@ async def handle_pick_resolved(data):
                     # Update user balance
                     user_context = None
                     if parlay_res[4]:  # match_user_id
-                        # Update match user balance
-                        match_user_balance = float(parlay_res[6])  # match_user_balance
-                        new_balance = match_user_balance + payout
-
+                        # Update match user balance atomically
                         update_balance_query = """
                             UPDATE match_user
-                            SET balance = %s
+                            SET balance = balance + %s
                             WHERE id = %s
                         """
 
                         await cur.execute(
-                            update_balance_query, (new_balance, parlay_res[4])
+                            update_balance_query, (payout, parlay_res[4])
                         )
+
+                        # Check if the update affected any rows
+                        if cur.rowcount == 0:
+                            logger.error(f"No match_user found with id {parlay_res[4]} - balance not updated")
+                        else:
+                            logger.info(f"Updated balance for match_user {parlay_res[4]} by {payout} (affected {cur.rowcount} rows)")
 
                         user_context = {
                             "type": "match",
@@ -235,21 +238,22 @@ async def handle_pick_resolved(data):
                         }
 
                     elif parlay_res[5]:  # dynasty_league_user_id
-                        # Update dynasty league user balance
-                        dynasty_user_balance = float(
-                            parlay_res[9]
-                        )  # dynasty_league_user_balance
-                        new_balance = dynasty_user_balance + payout
-
+                        # Update dynasty league user balance atomically
                         update_balance_query = """
                             UPDATE dynasty_league_user
-                            SET balance = %s
+                            SET balance = balance + %s
                             WHERE id = %s
                         """
 
                         await cur.execute(
-                            update_balance_query, (new_balance, parlay_res[5])
+                            update_balance_query, (payout, parlay_res[5])
                         )
+
+                        # Check if the update affected any rows
+                        if cur.rowcount == 0:
+                            logger.error(f"No dynasty_league_user found with id {parlay_res[5]} - balance not updated")
+                        else:
+                            logger.info(f"Updated balance for dynasty_league_user {parlay_res[5]} by {payout} (affected {cur.rowcount} rows)")
 
                         user_context = {
                             "type": "dynasty_league",

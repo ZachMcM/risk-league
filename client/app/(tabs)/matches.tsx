@@ -19,7 +19,7 @@ export default function Matches() {
   const { data: unresolvedMatchIds, isPending: unresolvedMatchesPending } =
     useQuery({
       queryKey: ["match-ids", currentUserData?.user.id, "unresolved"],
-      queryFn: async () => await getMatchIds(false),
+      queryFn: async () => await getMatchIds(false), 
     });
 
   const { data: resolvedMatchIds, isPending: resolvedMatchesPending } = useQuery(
