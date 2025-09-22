@@ -45,11 +45,11 @@ export default function ParlaysHelp({
             </Pressable>
             <Separator />
             <Pressable
-              onPress={() => scrollToSection("parlays")}
+              onPress={() => scrollToSection("ties")}
               className="flex flex-row items-center gap-2 p-2 rounded-lg active:bg-muted"
             >
               <Icon as={MinusCircle} className="text-primary" size={20} />
-              <Text className="font-semibold text-primary">Ties</Text>
+              <Text className="font-semibold text-primary">Pick Ties</Text>
             </Pressable>
           </View>
         </CardContent>
@@ -113,10 +113,10 @@ export default function ParlaysHelp({
           <CardContent className="flex flex-col gap-4 p-6">
             <View className="flex flex-row items-center gap-2">
               <Icon as={MinusCircle} size={24} className="text-primary" />
-              <Text className="font-bold text-xl">Ties</Text>
+              <Text className="font-bold text-xl">Pick Ties</Text>
             </View>
             <Text className="text-muted-foreground font-semibold">
-              Risk League policy for pick ties
+              Risk League policy for pick ties (Line = Final Value).
             </Text>
             <View className="flex flex-col gap-1">
               <Text className="font-bold text-xl">Ties Policy</Text>
