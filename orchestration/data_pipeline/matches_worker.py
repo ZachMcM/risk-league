@@ -367,27 +367,31 @@ async def _update_elo_points(
     if status1 == "disqualified" and status2 == "disqualified":
         return
 
-    # Get current user points
+    # Get current user points atomically using SELECT FOR UPDATE
     await cur.execute(
-        "SELECT points FROM public.user WHERE id = %s", (match_user1["user_id"],)
+        "SELECT id, points FROM public.user WHERE id = %s FOR UPDATE",
+        (match_user1["user_id"],)
     )
-    user1_points_res = await cur.fetchone()
+    user1_res = await cur.fetchone()
 
     await cur.execute(
-        "SELECT points FROM public.user WHERE id = %s", (match_user2["user_id"],)
+        "SELECT id, points FROM public.user WHERE id = %s FOR UPDATE",
+        (match_user2["user_id"],)
     )
-    user2_points_res = await cur.fetchone()
+    user2_res = await cur.fetchone()
 
-    if not user1_points_res or not user2_points_res:
+    if not user1_res or not user2_res:
         return
 
-    current_points = [float(user1_points_res[0]), float(user2_points_res[0])]
+    current_points = [float(user1_res[1]), float(user2_res[1])]
+
     new_points = recalculate_points(current_points, winner)
 
-    # Update match user points deltas
+    # Calculate points deltas
     points_delta1 = max(0, new_points[0] - current_points[0])
     points_delta2 = max(0, new_points[1] - current_points[1])
 
+    # Update match user points deltas
     await cur.execute(
         "UPDATE match_user SET points_delta = %s WHERE id = %s",
         (points_delta1, match_user1["id"]),
@@ -397,14 +401,14 @@ async def _update_elo_points(
         (points_delta2, match_user2["id"]),
     )
 
-    # Update user points (minimum 1000)
+    # Update user points atomically with minimum constraint
     await cur.execute(
-        "UPDATE public.user SET points = %s WHERE id = %s",
-        (max(1000, new_points[0]), match_user1["user_id"]),
+        "UPDATE public.user SET points = GREATEST(1000, %s) WHERE id = %s",
+        (new_points[0], match_user1["user_id"]),
     )
     await cur.execute(
-        "UPDATE public.user SET points = %s WHERE id = %s",
-        (max(1000, new_points[1]), match_user2["user_id"]),
+        "UPDATE public.user SET points = GREATEST(1000, %s) WHERE id = %s",
+        (new_points[1], match_user2["user_id"]),
     )
 
 
@@ -446,14 +450,15 @@ async def _update_battle_pass_xp(
     total_xp = int((base_xp + parlay_bonus + staking_bonus) * multiplier)
     xp_gained = max(25, total_xp)
 
-    # Update each active battle pass
+    # Update each active battle pass atomically
     for bp_row in battle_passes_res:
-        battle_pass_id, progress_id, current_xp = bp_row
-        new_xp = (current_xp or 0) + xp_gained
+        progress_id = bp_row[1]
 
         await cur.execute(
-            "UPDATE user_battle_pass_progress SET current_xp = %s WHERE id = %s",
-            (new_xp, progress_id),
+            """UPDATE user_battle_pass_progress
+               SET current_xp = COALESCE(current_xp, 0) + %s
+               WHERE id = %s""",
+            (xp_gained, progress_id),
         )
 
 
