@@ -160,6 +160,11 @@ async def handle_stats_updated(data):
                                 key = (prop[3], prop[4], prop[5], prop[6])  # player_id, stat_name, league, game_id
                                 props_lookup[key] = {"id": prop[0], "line": prop[1], "status": prop[2]}
 
+                            # Create lookup for players who have stats in this game
+                            players_with_stats = set()
+                            for stat_entry in batch:
+                                players_with_stats.add((stat_entry["player_id"], stat_entry["game_id"]))
+
                             # Prepare batch updates
                             update_data = []
                             for stat_entry in batch:
@@ -173,6 +178,31 @@ async def handle_stats_updated(data):
                                         else "not_resolved"
                                     )
                                     update_data.append((stat_entry["current_value"], status, prop_info["id"]))
+
+                            # Check for props where player didn't play (DNP)
+                            # Find all props for completed games that don't have corresponding stats
+                            if batch and batch[0]["status"] in ["completed", "final"]:
+                                # Get all props for completed games in this batch using a single query
+                                game_ids = list(set(stat_entry["game_id"] for stat_entry in batch))
+
+                                if game_ids:
+                                    # Use ANY clause to get all props for all games in one query
+                                    dnp_select_query = """
+                                        SELECT id, player_id, game_id
+                                        FROM prop
+                                        WHERE game_id = ANY(%s) AND status = 'not_resolved'
+                                    """
+                                    await cur.execute(dnp_select_query, (game_ids,))
+                                    all_game_props = await cur.fetchall()
+
+                                    for prop in all_game_props:
+                                        prop_id, player_id, game_id = prop[0], prop[1], prop[2]
+                                        player_game_key = (player_id, game_id)
+
+                                        # If player has no stats for this game, mark as did_not_play
+                                        if player_game_key not in players_with_stats:
+                                            update_data.append((0.0, "did_not_play", prop_id))
+                                            logger.info(f"Marking prop {prop_id} as did_not_play for player {player_id} in game {game_id}")
 
                             # Execute batch update if we have data
                             if update_data:
