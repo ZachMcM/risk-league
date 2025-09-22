@@ -6,7 +6,7 @@ from redis_utils import (
 )
 from db.connection import get_async_pool
 import asyncio
-from typing import TypedDict, Optional, List, Tuple
+from typing import TypedDict, Optional, List
 from datetime import datetime
 from time import time
 
@@ -227,7 +227,7 @@ async def handle_parlay_resolved(data):
 
                     # Resolve the match
                     await _resolve_match(
-                        cur, match_id, match_res[1], match_res[2], match_users_data
+                        cur, match_id, match_res[1], match_users_data
                     )
 
                     await cur.execute("COMMIT")
@@ -258,7 +258,7 @@ async def handle_parlay_resolved(data):
 
 
 async def _resolve_match(
-    cur, match_id: int, match_type: str, match_league: str, match_users_data: List[dict]
+    cur, match_id: int, match_type: str, match_users_data: List[dict]
 ):
     """Resolve match by determining winner and updating all related data"""
     # Update match as resolved
@@ -387,9 +387,9 @@ async def _update_elo_points(
 
     new_points = recalculate_points(current_points, winner)
 
-    # Calculate points deltas
-    points_delta1 = max(0, new_points[0] - current_points[0])
-    points_delta2 = max(0, new_points[1] - current_points[1])
+    # Calculate points deltas (can be negative for losses)
+    points_delta1 = new_points[0] - current_points[0]
+    points_delta2 = new_points[1] - current_points[1]
 
     # Update match user points deltas
     await cur.execute(
@@ -656,7 +656,7 @@ async def handle_match_check(data):
 
                     # Resolve the match
                     await _resolve_match(
-                        cur, match_id, match_res[1], match_res[2], match_users_data
+                        cur, match_id, match_res[1], match_users_data
                     )
 
                     await cur.execute("COMMIT")
