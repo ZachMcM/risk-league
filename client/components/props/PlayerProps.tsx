@@ -6,11 +6,11 @@ import { cn } from "~/utils/cn";
 import { formatName } from "~/utils/stringUtils";
 import { useCreateParlay } from "../providers/CreateParlayProvider";
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "../ui/accordion";
+  SimpleAccordion,
+  SimpleAccordionContent,
+  SimpleAccordionItem,
+  SimpleAccordionTrigger,
+} from "../ui/simple-accordion";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { Card, CardContent } from "../ui/card";
@@ -102,9 +102,9 @@ export default function PlayerProps({
           </CardContent>
         </Card>
       ))}
-      <Accordion type="multiple" className="flex flex-col gap-4">
+      <SimpleAccordion type="multiple" className="flex flex-col gap-4">
         {playerProps.props.map((prop) => (
-          <AccordionItem
+          <SimpleAccordionItem
             key={prop.id}
             value={prop.id.toString()}
             className="border-b-0"
@@ -113,7 +113,7 @@ export default function PlayerProps({
               <CardContent className="p-4">
                 <View className="flex flex-row items-center justify-between flex-1">
                   <View className="flex flex-row items-center gap-3">
-                    <AccordionTrigger />
+                    <SimpleAccordionTrigger />
                     <View className="flex flex-col">
                       <Text className="font-bold text-2xl">{prop.line}</Text>
                       <Text className="text-muted-foreground">
@@ -150,7 +150,7 @@ export default function PlayerProps({
                     ))}
                   </View>
                 </View>
-                <AccordionContent className="flex flex-1 flex-col gap-3 mt-6">
+                <SimpleAccordionContent className="flex flex-1 flex-col gap-3 mt-6">
                   <View className="flex flex-row justify-between items-center relative">
                     <View className="absolute inset-0 h-24 pointer-events-none">
                       <View
@@ -228,12 +228,12 @@ export default function PlayerProps({
                       avg last {prop.previousResults.length}
                     </Text>
                   </View>
-                </AccordionContent>
+                </SimpleAccordionContent>
               </CardContent>
             </Card>
-          </AccordionItem>
+          </SimpleAccordionItem>
         ))}
-      </Accordion>
+      </SimpleAccordion>
       <Pressable
         className="flex flex-row items-center gap-2 rounded-full self-end"
         onPress={() => {
