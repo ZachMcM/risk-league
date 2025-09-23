@@ -22,7 +22,7 @@ export function getUsernameDictionaries(): UsernameDictionaries {
   }
 
   try {
-    const filePath = join(__dirname, '../data/username-dictionaries.json');
+    const filePath = join(__dirname, '../../data/username-dictionaries.json');
     const fileContent = readFileSync(filePath, 'utf8');
     cachedDictionaries = JSON.parse(fileContent) as UsernameDictionaries;
     return cachedDictionaries;
