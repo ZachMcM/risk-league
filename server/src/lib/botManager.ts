@@ -216,7 +216,89 @@ export function generateBotParlay(
   selectedProps: InferSelectModel<typeof prop>[];
   choices: Array<"over" | "under">;
 } {
-  let pickCount = 2 + Math.floor(Math.random() * 4);
+  // If less than 3 available props, force perfect type with 2 picks
+  if (availableProps.length < 3) {
+    const selectedProps = selectRandomProps(availableProps, 2);
+
+    let stake;
+
+    if (currTotalStaked < minTotalStaked) {
+      if (currTotalStaked == 0) {
+        stake = (Math.random() * (0.7 - 0.5) + 0.5) * minTotalStaked;
+      } else {
+        const minNeeded = minTotalStaked - currTotalStaked;
+        const availableBalance = botBalance - minNeeded;
+
+        // Weighted distribution: 70% chance small (0-30%), 20% medium (30-60%), 10% large (60-90%)
+        const rand = Math.random();
+        let multiplier;
+
+        if (rand < 0.7) {
+          // Small stake: 0-30% of available balance
+          multiplier = Math.random() * 0.3;
+        } else if (rand < 0.9) {
+          // Medium stake: 30-60% of available balance
+          multiplier = 0.3 + Math.random() * 0.3;
+        } else {
+          // Large stake: 60-90% of available balance
+          multiplier = 0.6 + Math.random() * 0.3;
+        }
+
+        stake = minNeeded + (availableBalance * multiplier);
+      }
+    } else {
+      stake = Math.floor(botBalance * (0.2 + Math.random() * 0.4));
+    }
+
+    return {
+      type: "perfect",
+      stake,
+      pickCount: 2,
+      selectedProps,
+      choices: selectedProps.map((prop) =>
+        prop.choices.length == 1
+          ? prop.choices[0]
+          : Math.random() > 0.5
+          ? "over"
+          : "under"
+      ) as Array<"over" | "under">,
+    };
+  }
+
+  // Determine parlay type first, then pick count based on type preference
+  const typeRand = Math.random();
+  const type: "perfect" | "flex" = typeRand < 0.5 ? "perfect" : "flex";
+
+  let pickCount: number;
+
+  if (type === "perfect") {
+    // Perfect parlays favor low legs (2-3): 70% chance for 2-3, 30% for 4-6
+    const perfectRand = Math.random();
+    if (perfectRand < 0.7) {
+      // 2-3 legs (weighted toward lower)
+      pickCount = Math.random() < 0.6 ? 2 : 3;
+    } else {
+      // 4-6 legs
+      pickCount = 4 + Math.floor(Math.random() * 3);
+    }
+  } else {
+    // Flex parlays favor high legs (4-6): 30% chance for 2-3, 70% for 4-6
+    const flexRand = Math.random();
+    if (flexRand < 0.3) {
+      // 2-3 legs
+      pickCount = Math.random() < 0.5 ? 2 : 3;
+    } else {
+      // 4-6 legs (weighted toward higher)
+      const highLegRand = Math.random();
+      if (highLegRand < 0.4) {
+        pickCount = 4;
+      } else if (highLegRand < 0.7) {
+        pickCount = 5;
+      } else {
+        pickCount = 6;
+      }
+    }
+  }
 
   if (pickCount > availableProps.length) {
     pickCount = availableProps.length;
@@ -254,7 +336,7 @@ export function generateBotParlay(
   }
 
   return {
-    type: pickCount == 2 ? "perfect" : Math.random() > 0.65 ? "perfect" : "flex",
+    type,
     stake,
     pickCount,
     selectedProps,
