@@ -229,16 +229,32 @@ export function generateBotParlay(
     if (currTotalStaked == 0) {
       stake = (Math.random() * (0.7 - 0.5) + 0.5) * minTotalStaked;
     } else {
-      stake =
-        Math.random() * (botBalance - (minTotalStaked - currTotalStaked)) +
-        (minTotalStaked - currTotalStaked);
+      const minNeeded = minTotalStaked - currTotalStaked;
+      const availableBalance = botBalance - minNeeded;
+
+      // Weighted distribution: 70% chance small (0-30%), 20% medium (30-60%), 10% large (60-90%)
+      const rand = Math.random();
+      let multiplier;
+
+      if (rand < 0.7) {
+        // Small stake: 0-30% of available balance
+        multiplier = Math.random() * 0.3;
+      } else if (rand < 0.9) {
+        // Medium stake: 30-60% of available balance
+        multiplier = 0.3 + Math.random() * 0.3;
+      } else {
+        // Large stake: 60-90% of available balance
+        multiplier = 0.6 + Math.random() * 0.3;
+      }
+
+      stake = minNeeded + (availableBalance * multiplier);
     }
   } else {
     stake = Math.floor(botBalance * (0.2 + Math.random() * 0.4));
   }
 
   return {
-    type: pickCount == 2 ? "perfect" : Math.random() > 0.5 ? "perfect" : "flex",
+    type: pickCount == 2 ? "perfect" : Math.random() > 0.65 ? "perfect" : "flex",
     stake,
     pickCount,
     selectedProps,
