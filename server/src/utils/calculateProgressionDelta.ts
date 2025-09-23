@@ -1,3 +1,4 @@
+import { ranks } from "../types/ranks";
 import { calculateProgression } from "./calculateProgression";
 import { findRank } from "./findRank";
 
@@ -7,6 +8,10 @@ export function calculateProgressionDelta(
 ) {
   const oldRank = findRank(pointsSnapshot);
   const newRank = findRank(pointsSnapshot + pointsDelta);
+
+  if (pointsDelta + pointsSnapshot < ranks[0].minPoints) {
+    return 0
+  }
 
   if (
     !oldRank ||
