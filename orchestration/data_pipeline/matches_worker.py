@@ -9,6 +9,7 @@ import asyncio
 from typing import TypedDict, Optional, List
 from datetime import datetime
 from time import time
+import traceback
 
 logger = setup_logger(__name__)
 
@@ -244,10 +245,12 @@ async def handle_parlay_resolved(data):
                 except Exception as e:
                     await cur.execute("ROLLBACK")
                     logger.error(f"Database transaction failed: {e}")
+                    logger.error(f"Full traceback: {traceback.format_exc()}")
                     raise e
 
     except Exception as e:
         logger.error(f"Error handling parlay resolved: {e}")
+        logger.error(f"Full traceback: {traceback.format_exc()}")
     finally:
         await redis_publisher.aclose()
 
@@ -677,6 +680,7 @@ async def handle_match_check(data):
 
     except Exception as e:
         logger.error(f"Error handling match check: {e}")
+        logger.error(f"Full traceback: {traceback.format_exc()}")
     finally:
         await redis_publisher.aclose()
 
@@ -692,7 +696,7 @@ async def handle_parlay_resolved_safe(data):
         await handle_parlay_resolved(data)
     except Exception as e:
         logger.error(f"Error handling parlay_resolved message: {e}", exc_info=True)
-
+        logger.error(f"Full traceback: {traceback.format_exc()}")
 
 async def handle_match_check_safe(data):
     """Safe wrapper for handle_match_check that prevents listener crashes"""
@@ -700,7 +704,7 @@ async def handle_match_check_safe(data):
         await handle_match_check(data)
     except Exception as e:
         logger.error(f"Error handling match_check message: {e}", exc_info=True)
-
+        logger.error(f"Full traceback: {traceback.format_exc()}")
 
 async def listen_for_parlay_resolved():
     """Function that listens for a parlay_resolved message on redis"""
@@ -714,6 +718,7 @@ async def listen_for_parlay_resolved():
             )
         except Exception as e:
             logger.error(f"Error in parlay_resolved listener, restarting: {e}")
+            logger.error(f"Full traceback: {traceback.format_exc()}")
             await asyncio.sleep(5)  # Brief delay before restart
         finally:
             if redis_subscriber:
@@ -732,6 +737,7 @@ async def listen_for_match_check():
             )
         except Exception as e:
             logger.error(f"Error in match_check listener, restarting: {e}")
+            logger.error(f"Full traceback: {traceback.format_exc()}")
             await asyncio.sleep(5)  # Brief delay before restart
         finally:
             if redis_subscriber:
@@ -751,6 +757,7 @@ async def main():
         await close_async_pool()
     except Exception as e:
         logger.error(f"Error in main: {e}")
+        logger.error(f"Full traceback: {traceback.format_exc()}")
         # Ensure pool cleanup on error
         from db.connection import close_async_pool
 
