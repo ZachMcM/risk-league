@@ -6,4 +6,4 @@ export const USER_IMAGES_BUCKET = "user-images"
 
 export const BOT_TIMER_MS = 90000
 
-export const MIN_PCT_TOTAL_STAKED = 0.6;
+export const MIN_PCT_TOTAL_STAKED = 0.5;

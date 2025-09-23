@@ -1,6 +1,6 @@
 import { Rank } from "~/types/rank";
 
-export const MIN_PCT_TOTAL_STAKED = 0.6;
+export const MIN_PCT_TOTAL_STAKED = 0.5;
 export const MIN_PARLAYS_REQUIRED = 2;
 export const MIN_STARTING_BALANCE = 200;
 export const MAX_STARTING_BALANCE = 400;

@@ -13,7 +13,7 @@ from time import time
 logger = setup_logger(__name__)
 
 MIN_PARLAYS_REQUIRED = 2
-MIN_PCT_TOTAL_STAKED = 0.6
+MIN_PCT_TOTAL_STAKED = 0.5
 K = 32  # Elo rating constant
 
 
