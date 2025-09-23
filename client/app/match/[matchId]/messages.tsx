@@ -106,7 +106,7 @@ export default function Messages() {
                   <ProfileImage
                     className="h-20 w-20"
                     username={otherMatchUser.user.username}
-                    image={otherMatchUser.user.username}
+                    image={otherMatchUser.user.image}
                   />
                   <Text className="font-bold text-xl text-center">
                     {otherMatchUser.user.username}
