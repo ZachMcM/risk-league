@@ -19,10 +19,10 @@ import {
 import { logger } from "../logger";
 import { createMatch } from "../sockets/matchmaking";
 import { Rank } from "../types/ranks";
-import { getAvailablePropsForUser } from "./getAvailableProps";
-import { getRank } from "./getRank";
+import { getAvailablePropsForUser } from "../utils/getAvailableProps";
+import { getRank } from "../utils/getRank";
 import { getCombinedDictionaries } from "./usernameDictionaries";
-import { invalidateQueries } from "./invalidateQueries";
+import { invalidateQueries } from "../utils/invalidateQueries";
 
 export async function initializeBotParlays(botId: string, matchId: number) {
   logger.info(`Initializing bot parlays for bot ${botId} in match ${matchId}`);

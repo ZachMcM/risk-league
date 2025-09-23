@@ -60,7 +60,7 @@ export default function Match() {
     if (
       isAdLoaded &&
       match &&
-      new Date().getTime() - sqlToJsDate(match.createdAt).getTime() <= 10000
+      new Date().getTime() - sqlToJsDate(match.createdAt).getTime() <= 20000
     ) {
       toast.dismiss();
       showAd();

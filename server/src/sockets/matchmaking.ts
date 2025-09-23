@@ -10,7 +10,7 @@ import { db } from "../db";
 import { leagueType, match, matchUser, user } from "../db/schema";
 import { logger } from "../logger";
 import { redis } from "../redis";
-import { createBotMatch } from "../utils/botManager";
+import { createBotMatch } from "../lib/botManager";
 import { getRank } from "../utils/getRank";
 import { invalidateQueries } from "../utils/invalidateQueries";
 

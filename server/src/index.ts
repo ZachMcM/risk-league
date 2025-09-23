@@ -8,7 +8,7 @@ import { Server } from "socket.io";
 import { createAdapter } from "@socket.io/redis-adapter";
 import { logger } from "./logger";
 import { routes } from "./routes";
-import { auth } from "./utils/auth";
+import { auth } from "./lib/auth";
 import { socketServer } from "./sockets";
 import rateLimit from "express-rate-limit";
 import RedisStore from "rate-limit-redis";

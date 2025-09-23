@@ -41,7 +41,7 @@ export default function DynastyLeagueDetails({
       isAdLoaded &&
       new Date().getTime() -
         sqlToJsDate(currentDynastyLeagueUser.createdAt).getTime() <=
-        10000
+        20000
     ) {
       toast.dismiss();
       showAd();
