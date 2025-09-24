@@ -144,8 +144,19 @@ async def handle_pick_resolved(data):
                         await cur.execute("ROLLBACK")
                         return
 
-                    # Check if parlay is already resolved
-                    if parlay_res[3]:  # resolved column
+                    # Lock the parlay row to prevent concurrent processing
+                    lock_parlay_query = """
+                        SELECT id, resolved
+                        FROM parlay
+                        WHERE id = %s
+                        FOR UPDATE
+                    """
+
+                    await cur.execute(lock_parlay_query, (parlay_res[0],))
+                    locked_parlay = await cur.fetchone()
+
+                    # Check if parlay is already resolved after acquiring lock
+                    if locked_parlay and locked_parlay[1]:  # resolved column
                         logger.info(f"Parlay {parlay_res[0]} is already resolved")
                         await cur.execute("COMMIT")
                         return
@@ -202,7 +213,7 @@ async def handle_pick_resolved(data):
                         f"Parlay {parlay_res[0]} resolution triggered by pick {pick_id}, payout: {payout}"
                     )
 
-                    # Update parlay as resolved
+                    # Update parlay as resolved (safe due to FOR UPDATE lock)
                     update_parlay_query = """
                         UPDATE parlay
                         SET payout = %s, resolved = true
