@@ -1,8 +1,8 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { router } from "expo-router";
-import { ReactNode, useRef, useState } from "react";
-import { ActivityIndicator, View } from "react-native";
+import { ReactNode, useRef, useState, useEffect } from "react";
+import { ActivityIndicator, View, AppState } from "react-native";
 import { io } from "socket.io-client";
 import { toast } from "sonner-native";
 import { getTodayPropsCount } from "~/endpoints";
@@ -109,6 +109,27 @@ export default function PlayButton({
     setIsLoading(false);
     setProgress(0);
   };
+
+  useEffect(() => {
+    const handleAppStateChange = (nextAppState: string) => {
+      if (nextAppState === 'background' || nextAppState === 'inactive') {
+        if (isLoading) {
+          cancelMatchmaking();
+          setIsLoading(false)
+        }
+      }
+    };
+
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+
+    return () => {
+      if (isLoading) {
+        cancelMatchmaking();
+        setIsLoading(false)
+      }
+      subscription?.remove();
+    };
+  }, [isLoading]);
 
   function handlePress() {
     if (isLoading) {

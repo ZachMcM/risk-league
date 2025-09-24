@@ -68,13 +68,14 @@ export default function ImagesLocker() {
         ) : (
           images && (
             <View className="flex flex-1 flex-col gap-4">
+              <Text className="font-bold text-2xl">Select Image</Text>
               <FlashList
                 numColumns={3}
                 estimatedItemSize={120}
                 showsVerticalScrollIndicator={false}
                 data={images}
                 renderItem={({ item, index }) => (
-                  <GridItemWrapper gap={12} index={index} numCols={3}>
+                  <GridItemWrapper gap={16} index={index} numCols={3}>
                     <View className="flex flex-col gap-2">
                       <Pressable
                         className="rounded-full items-center"
@@ -89,9 +90,9 @@ export default function ImagesLocker() {
                           )}
                         />
                       </Pressable>
-                      <Text className="text-center font-bold">
+                      {/* <Text className="text-center font-bold">
                         {item.title}
-                      </Text>
+                      </Text> */}
                     </View>
                   </GridItemWrapper>
                 )}

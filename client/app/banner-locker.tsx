@@ -43,7 +43,7 @@ function BannerItem({
           style={{ width: "100%", height: "100%" }}
         />
       </Pressable>
-      <Text className="text-start font-bold text-lg">{title}</Text>
+      {/* <Text className="text-start font-bold text-lg">{title}</Text> */}
     </View>
   );
 }
@@ -105,12 +105,13 @@ export default function BannerLocker() {
         ) : (
           banners && (
             <View className="flex flex-1 flex-col gap-4">
+              <Text className="font-bold text-2xl">Select Banner</Text>
               <FlashList
                 estimatedItemSize={60}
                 showsVerticalScrollIndicator={false}
                 data={banners}
                 renderItem={({ item, index }) => (
-                  <GridItemWrapper index={index} gap={12} numCols={1}>
+                  <GridItemWrapper index={index} gap={16} numCols={1}>
                     <BannerItem
                       index={index}
                       url={item.url}

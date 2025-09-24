@@ -106,7 +106,6 @@ export default function RootLayout() {
                     ? "hsl(223.8136 0% 15.5096%)" // from --border .dark:root
                     : "hsl(223.8136 0.0001% 89.8161%)", // from --border .root
                   borderWidth: 1,
-                  zIndex: -1,
                 },
               }}
             />
