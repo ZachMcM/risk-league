@@ -1,11 +1,10 @@
-import logging
 import sys
 import time
-
 import requests
-from utils import server_req
+from utils import setup_logger, server_req
+import requests
 
-logger = logging.getLogger(__name__)
+logger = setup_logger(__name__)
 
 
 def search_espn_player(name):
@@ -24,11 +23,9 @@ def search_espn_player(name):
 def main():
     try:
         if len(sys.argv) < 2:
-            logger.error(
-                "Invalid command arguments you must provide a league argument (MLB, NBA, NFL)"
-            )
-            sys.exit(1)
-
+          logger.error("Invalid command arguments you must provide a league argument (MLB, NBA, NFL)")
+          sys.exit(1)
+          
         league = sys.argv[1]
 
         starting_index = 0
@@ -37,16 +34,14 @@ def main():
             starting_index = int(sys.argv[2])
 
         total_scraped = 0
-
+        
         players_list: list[dict] = server_req(
             route=f"/players/league/{league}/active", method="GET"
         ).json()
 
         for i in range(starting_index, len(players_list)):
             player = players_list[i]
-            logger.info(
-                f"Processing player {player['name']} {i + 1}/{len(players_list)}"
-            )
+            logger.info(f"Processing player {player['name']} {i + 1}/{len(players_list)}")
             headshot_url = search_espn_player(player["name"])
             if headshot_url:
                 response = requests.get(headshot_url)
@@ -63,9 +58,7 @@ def main():
 
                 time.sleep(0.1)
 
-        logger.info(
-            f"Scraped a total of {total_scraped}/{len(players_list) - (starting_index + 1)}"
-        )
+        logger.info(f"Scraped a total of {total_scraped}/{len(players_list) - (starting_index + 1)}")
 
     except Exception as e:
         logger.error(f"Error in main: {e}")

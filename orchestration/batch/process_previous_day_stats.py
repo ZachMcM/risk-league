@@ -1,14 +1,13 @@
-import logging
+import json
 import sys
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
+from utils import data_feeds_req, setup_logger
 from constants import LEAGUES
 from shared.game_processor import process_game
-from utils import data_feeds_req
 
-logger = logging.getLogger(__name__)
-
+logger = setup_logger(__name__)
 
 def main():
     try:

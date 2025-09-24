@@ -1,12 +1,11 @@
+from utils import setup_logger
+from redis_utils import create_async_redis_client, publish_message_async
+from db.connection import get_async_pool
 import asyncio
-import logging
 from datetime import datetime
 from time import time
 
-from db.connection import get_async_pool
-from redis_utils import create_async_redis_client, publish_message_async
-
-logger = logging.getLogger(__name__)
+logger = setup_logger(__name__)
 
 POLL_INTERVAL_SECONDS = 300  # 5 minutes
 MAX_MATCH_AGE_HOURS = 24  # Don't process matches older than 24 hours
@@ -23,8 +22,7 @@ async def find_matches_to_resolve():
                 # 2. No props are available for the league (games have started/finished)
                 # 3. Match was created within the last 24 hours (avoid processing very old matches)
                 # Use literal string to avoid parameter substitution issues
-                await cur.execute(
-                    """
+                await cur.execute("""
                     SELECT DISTINCT m.id, m.league
                     FROM match m
                     WHERE m.resolved = false
@@ -37,8 +35,7 @@ async def find_matches_to_resolve():
                         AND p.status = 'not_resolved'
                         AND g.start_time AT TIME ZONE 'UTC' > (NOW() AT TIME ZONE 'UTC')
                     )
-                """
-                )
+                """)
                 matches = await cur.fetchall()
 
                 return [{"match_id": match[0], "league": match[1]} for match in matches]
@@ -63,7 +60,7 @@ async def send_match_check_messages(matches):
                 "matchId": match["match_id"],
                 "league": match["league"],
                 "triggered_by": "poller",
-                "timestamp": datetime.now().isoformat(),
+                "timestamp": datetime.now().isoformat()
             }
 
             publish_tasks.append(
@@ -94,9 +91,7 @@ async def poll_matches():
             matches_to_check = await find_matches_to_resolve()
 
             if matches_to_check:
-                logger.info(
-                    f"Found {len(matches_to_check)} matches to check for resolution"
-                )
+                logger.info(f"Found {len(matches_to_check)} matches to check for resolution")
                 await send_match_check_messages(matches_to_check)
             else:
                 logger.info("No matches found that need resolution checking")
@@ -121,13 +116,11 @@ async def main():
         logger.warning("Shutting down matches_poller...")
         # Ensure pool cleanup on shutdown
         from db.connection import close_async_pool
-
         await close_async_pool()
     except Exception as e:
         logger.error(f"Error in main: {e}")
         # Ensure pool cleanup on error
         from db.connection import close_async_pool
-
         await close_async_pool()
 
 

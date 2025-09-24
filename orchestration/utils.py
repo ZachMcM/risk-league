@@ -1,11 +1,10 @@
-import json
-import logging
 import os
-from datetime import datetime, timezone
-from typing import Literal, Optional
-
-from dotenv import load_dotenv
+import logging
+import json
 from pythonjsonlogger.json import JsonFormatter
+from dotenv import load_dotenv
+from typing import Literal, Optional
+from datetime import datetime, timezone
 
 load_dotenv()
 
@@ -24,6 +23,46 @@ class UnicodeJsonFormatter(JsonFormatter):
     def jsonify_log_record(self, log_record):
         """Override to ensure Unicode characters are not escaped."""
         return json.dumps(log_record, ensure_ascii=False, default=str)
+
+
+def setup_logger(name: str, level: int = logging.INFO):
+    """Creates a new logger with proper JSON configuration.
+
+    Args:
+        name: Logger name (defaults to calling module name)
+        level: Logging level (defaults to INFO)
+
+    Returns:
+        Configured logger instance
+    """
+    import sys
+    
+    logger = logging.getLogger(name)
+
+    # Avoid adding multiple handlers to the same logger
+    if logger.handlers:
+        return logger
+
+    logger.setLevel(level)
+
+    # Create handler for INFO and below (stdout)
+    stdout_handler = logging.StreamHandler(sys.stdout)
+    stdout_handler.setLevel(logging.DEBUG)
+    stdout_handler.addFilter(lambda record: record.levelno < logging.WARNING)
+    stdout_handler.setFormatter(UnicodeJsonFormatter())
+
+    # Create handler for WARNING and above (stderr)
+    stderr_handler = logging.StreamHandler(sys.stderr)
+    stderr_handler.setLevel(logging.WARNING)
+    stderr_handler.setFormatter(UnicodeJsonFormatter())
+
+    logger.addHandler(stdout_handler)
+    logger.addHandler(stderr_handler)
+
+    # Prevent propagation to root logger to avoid duplicate messages
+    logger.propagate = False
+
+    return logger
 
 
 def server_req(
@@ -55,7 +94,7 @@ def server_req(
 
     url = f"{SERVER_API_BASE_URL}{route}"
     headers = {"x-api-key": API_KEY}
-
+    
     # Only set Content-Type for JSON if no files are being sent
     if not files:
         headers["Content-Type"] = "application/json"
@@ -63,19 +102,13 @@ def server_req(
     if method == "GET":
         response = requests.get(url, headers=headers, params=params, timeout=30)
     elif method == "POST":
-        response = requests.post(
-            url, headers=headers, data=body, files=files, params=params, timeout=30
-        )
+        response = requests.post(url, headers=headers, data=body, files=files, params=params, timeout=30)
     elif method == "PUT":
-        response = requests.put(
-            url, headers=headers, data=body, files=files, params=params, timeout=30
-        )
+        response = requests.put(url, headers=headers, data=body, files=files, params=params, timeout=30)
     elif method == "DELETE":
         response = requests.delete(url, headers=headers, params=params, timeout=30)
     elif method == "PATCH":
-        response = requests.patch(
-            url, headers=headers, data=body, files=files, params=params, timeout=30
-        )
+        response = requests.patch(url, headers=headers, data=body, files=files, params=params, timeout=30)
     else:
         raise ValueError(f"Unsupported HTTP method: {method}")
 
@@ -132,3 +165,5 @@ def convert_to_iso_utc(date_string: str):
     parsed_date = parsed_date.replace(tzinfo=timezone.utc)
 
     return parsed_date.isoformat()
+
+

@@ -1,10 +1,9 @@
-import asyncio
 import json
-import logging
+import asyncio
 
 import redis
 import redis.asyncio as redis_async
-from utils import getenv_required
+from utils import getenv_required, setup_logger
 
 REDIS_HOST = getenv_required("REDIS_HOST")
 REDIS_PORT = int(getenv_required("REDIS_PORT"))
@@ -19,11 +18,14 @@ def create_redis_client() -> redis.Redis:
 async def create_async_redis_client() -> redis_async.Redis:
     """Makes a new async redis client object"""
     return redis_async.Redis(
-        host=REDIS_HOST, port=REDIS_PORT, password=REDIS_PW, decode_responses=True
+        host=REDIS_HOST,
+        port=REDIS_PORT,
+        password=REDIS_PW,
+        decode_responses=True
     )
 
 
-logger = logging.getLogger(__name__)
+logger = setup_logger(__name__)
 
 
 def publish_message(redis_client: redis.Redis, channel: str, message_data: dict):
@@ -55,9 +57,7 @@ def listen_for_messages(redis_client: redis.Redis, channel: str, callback):
                 logger.error(f"Error parsing message: {e}")
 
 
-async def publish_message_async(
-    redis_client: redis_async.Redis, channel: str, message_data: dict
-):
+async def publish_message_async(redis_client: redis_async.Redis, channel: str, message_data: dict):
     """Publishes a message to Redis asynchronously.
 
     Args:
@@ -68,9 +68,7 @@ async def publish_message_async(
     await redis_client.publish(channel, json.dumps(message_data))
 
 
-async def listen_for_messages_async(
-    redis_client: redis_async.Redis, channel: str, callback
-):
+async def listen_for_messages_async(redis_client: redis_async.Redis, channel: str, callback):
     """Listen for messages on a Redis channel and call async callback function.
 
     Args:
@@ -97,11 +95,7 @@ async def listen_for_messages_async(
     async for message in pubsub.listen():
         if message["type"] == "message":
             try:
-                data = (
-                    json.loads(message["data"])
-                    if isinstance(message["data"], str)
-                    else message["data"]
-                )
+                data = json.loads(message["data"]) if isinstance(message["data"], str) else message["data"]
 
                 # Create task with monitoring
                 task = asyncio.create_task(callback(data))
@@ -113,16 +107,12 @@ async def listen_for_messages_async(
                 # Log stats every 100 messages or 60 seconds
                 current_time = asyncio.get_event_loop().time()
                 if total_messages % 100 == 0 or (current_time - last_log_time) > 60:
-                    logger.info(
-                        f"[{channel}] Active tasks: {active_tasks}, Total processed: {total_messages}"
-                    )
+                    logger.info(f"[{channel}] Active tasks: {active_tasks}, Total processed: {total_messages}")
                     last_log_time = current_time
 
                     # Warn if tasks are piling up (might indicate downstream issues)
                     if active_tasks > 500:
-                        logger.warning(
-                            f"[{channel}] High task count: {active_tasks} - check downstream performance"
-                        )
+                        logger.warning(f"[{channel}] High task count: {active_tasks} - check downstream performance")
 
             except json.JSONDecodeError as e:
                 logger.error(f"Error parsing message: {e}")

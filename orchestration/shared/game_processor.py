@@ -1,15 +1,12 @@
-import logging
+from extract_stats.main import (LEAGUE_CONFIG, extract_player_stats,
+                                extract_team_stats)
+from utils import setup_logger
+from db.games import insert_game, Game
+from db.stats.baseball import insert_baseball_team_stats, insert_baseball_player_stats
+from db.stats.football import insert_football_team_stats, insert_football_player_stats
+from db.stats.basketball import insert_basketball_team_stats, insert_basketball_player_stats
 
-from db.games import Game, insert_game
-from db.stats.baseball import insert_baseball_player_stats, insert_baseball_team_stats
-from db.stats.basketball import (
-    insert_basketball_player_stats,
-    insert_basketball_team_stats,
-)
-from db.stats.football import insert_football_player_stats, insert_football_team_stats
-from extract_stats.main import LEAGUE_CONFIG, extract_player_stats, extract_team_stats
-
-logger = logging.getLogger(__name__)
+logger = setup_logger(__name__)
 
 # Mapping of sports to their respective database insertion functions
 SPORT_DB_FUNCTIONS = {
@@ -26,7 +23,6 @@ SPORT_DB_FUNCTIONS = {
         "player_insert": insert_basketball_player_stats,
     },
 }
-
 
 def process_game(game, league):
     """Process a single game for the given league."""
@@ -64,9 +60,7 @@ def process_game(game, league):
         try:
             team_stats_result = db_functions["team_insert"](team_stats_list)
             team_stats_inserted = len(team_stats_result)
-            logger.info(
-                f"Successfully inserted {team_stats_inserted} team stat entries"
-            )
+            logger.info(f"Successfully inserted {team_stats_inserted} team stat entries")
         except Exception as e:
             logger.error(f"Error inserting team stats for game {game['game_ID']}: {e}")
             raise
@@ -77,13 +71,9 @@ def process_game(game, league):
         try:
             player_stats_result = db_functions["player_insert"](player_stats_list)
             player_stats_inserted = len(player_stats_result)
-            logger.info(
-                f"Successfully inserted {player_stats_inserted}/{total_player_stats} player stat entries"
-            )
+            logger.info(f"Successfully inserted {player_stats_inserted}/{total_player_stats} player stat entries")
         except Exception as e:
-            logger.error(
-                f"Error inserting player stats for game {game['game_ID']}: {e}"
-            )
+            logger.error(f"Error inserting player stats for game {game['game_ID']}: {e}")
             raise
 
     logger.info(

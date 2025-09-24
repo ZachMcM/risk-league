@@ -1,16 +1,12 @@
-import logging
-from typing import TypedDict
-
 import psycopg
-
+from typing import TypedDict
+from utils import setup_logger
 from .connection import get_connection_context
 
-logger = logging.getLogger(__name__)
-
+logger = setup_logger(__name__)
 
 class Team(TypedDict):
     """Team from API response"""
-
     team_id: int
     league: str
     full_name: str
@@ -19,7 +15,6 @@ class Team(TypedDict):
     mascot: str
     arena: str
     conference: str
-
 
 def insert_teams(teams_data: list[Team]) -> list[int]:
     """
@@ -54,19 +49,16 @@ def insert_teams(teams_data: list[Team]) -> list[int]:
 
                 team_ids = []
                 for team_data in teams_data:
-                    cur.execute(
-                        insert_query,
-                        (
-                            team_data["team_id"],
-                            team_data["league"],
-                            team_data["full_name"],
-                            team_data["abbreviation"],
-                            team_data["location"],
-                            team_data["mascot"],
-                            team_data["arena"],
-                            team_data["conference"],
-                        ),
-                    )
+                    cur.execute(insert_query, (
+                        team_data['team_id'],
+                        team_data['league'],
+                        team_data['full_name'],
+                        team_data['abbreviation'],
+                        team_data['location'],
+                        team_data['mascot'],
+                        team_data['arena'],
+                        team_data['conference']
+                    ))
                     result = cur.fetchone()
                     if result:
                         team_ids.append(result[0])
@@ -80,7 +72,6 @@ def insert_teams(teams_data: list[Team]) -> list[int]:
     except Exception as e:
         logger.error(f"Unexpected error inserting teams: {e}")
         raise
-
 
 def get_teams_by_league(league: str) -> list[Team]:
     """
@@ -112,14 +103,14 @@ def get_teams_by_league(league: str) -> list[Team]:
                 teams = []
                 for row in rows:
                     team: Team = {
-                        "team_id": row[0],
-                        "league": row[1],
-                        "full_name": row[2],
-                        "abbreviation": row[3],
-                        "location": row[4],
-                        "mascot": row[5],
-                        "arena": row[6],
-                        "conference": row[7],
+                        'team_id': row[0],
+                        'league': row[1],
+                        'full_name': row[2],
+                        'abbreviation': row[3],
+                        'location': row[4],
+                        'mascot': row[5],
+                        'arena': row[6],
+                        'conference': row[7]
                     }
                     teams.append(team)
 
@@ -133,10 +124,7 @@ def get_teams_by_league(league: str) -> list[Team]:
         logger.error(f"Unexpected error getting teams by league: {e}")
         raise
 
-
-def update_team_colors(
-    team_id: int, league: str, color: str, alternate_color: str
-) -> None:
+def update_team_colors(team_id: int, league: str, color: str, alternate_color: str) -> None:
     """
     Update a team's colors.
     Replicates PUT /teams/:id/league/:league/colors functionality.
@@ -162,13 +150,9 @@ def update_team_colors(
                 cur.execute(update_query, (color, alternate_color, team_id, league))
 
                 if cur.rowcount == 0:
-                    logger.warning(
-                        f"No team found with ID {team_id} in league {league}"
-                    )
+                    logger.warning(f"No team found with ID {team_id} in league {league}")
                 else:
-                    logger.info(
-                        f"Successfully updated colors for team {team_id} in {league}"
-                    )
+                    logger.info(f"Successfully updated colors for team {team_id} in {league}")
 
     except psycopg.Error as e:
         logger.error(f"Database error updating team colors: {e}")
@@ -176,7 +160,6 @@ def update_team_colors(
     except Exception as e:
         logger.error(f"Unexpected error updating team colors: {e}")
         raise
-
 
 def update_team_image(team_id: int, league: str, image_url: str) -> None:
     """
@@ -203,13 +186,9 @@ def update_team_image(team_id: int, league: str, image_url: str) -> None:
                 cur.execute(update_query, (image_url, team_id, league))
 
                 if cur.rowcount == 0:
-                    logger.warning(
-                        f"No team found with ID {team_id} in league {league}"
-                    )
+                    logger.warning(f"No team found with ID {team_id} in league {league}")
                 else:
-                    logger.info(
-                        f"Successfully updated image for team {team_id} in {league}"
-                    )
+                    logger.info(f"Successfully updated image for team {team_id} in {league}")
 
     except psycopg.Error as e:
         logger.error(f"Database error updating team image: {e}")

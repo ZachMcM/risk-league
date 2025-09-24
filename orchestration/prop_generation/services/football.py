@@ -1,36 +1,35 @@
-import logging
 import sys
 import traceback
 from datetime import datetime
 from time import time
 from zoneinfo import ZoneInfo
-
-import numpy
-from db.games import Game, insert_game
-from db.players import Player, get_active_players_for_team
-from db.props import Prop, insert_prop
+from db.games import insert_game, Game
+from db.props import insert_prop, Prop
+from db.players import get_active_players_for_team, Player
 from db.stats.football import (
     FootballPlayerStats,
     FootballTeamStats,
     LeagueAverages,
-    get_football_league_averages,
-    get_football_opponent_stats_for_player,
     get_football_player_stats,
     get_football_team_stats,
     get_football_team_stats_for_player,
+    get_football_opponent_stats_for_player,
+    get_football_league_averages
 )
+
+import numpy
 from prop_generation.configs.football import (
     ELIGIBILITY_THRESHOLDS,
-    MIN_LINE_FOR_UNDER,
     SAMPLE_SIZE,
+    MIN_LINE_FOR_UNDER,
     get_football_prop_configs,
     get_football_stats_list,
 )
 from prop_generation.generator.base import GameStats
 from prop_generation.generator.main import BasePropGenerator
-from utils import data_feeds_req
+from utils import data_feeds_req, setup_logger
 
-logger = logging.getLogger(__name__)
+logger = setup_logger(__name__)
 
 
 def is_stat_eligible_for_player(
@@ -84,7 +83,9 @@ def main():
                     config = configs[stat]
                     logger.info(f"Fetching league average {stat} for {position}")
                     league_position_avg: LeagueAverages = get_football_league_averages(
-                        league=league, stat=config.stat_name, position=position
+                        league=league,
+                        stat=config.stat_name,
+                        position=position
                     )
                     leagues_averages[stat][position] = league_position_avg["average"]
 
@@ -106,9 +107,7 @@ def main():
                 insert_game(game_data)
 
                 for index, team_id in enumerate(team_ids):
-                    team_active_players_data: list[Player] = (
-                        get_active_players_for_team(league, team_id)
-                    )
+                    team_active_players_data: list[Player] = get_active_players_for_team(league, team_id)
 
                     for player in team_active_players_data:
                         if player["position"] not in [
@@ -120,15 +119,13 @@ def main():
                             "WR",
                         ]:
                             continue
-
+                        
                         logger.info(f"Processing player {player['name']}")
 
-                        player_stats_list: list[FootballPlayerStats] = (
-                            get_football_player_stats(
-                                league=league,
-                                player_id=player["player_id"],
-                                limit=SAMPLE_SIZE,
-                            )
+                        player_stats_list: list[FootballPlayerStats] = get_football_player_stats(
+                            league=league,
+                            player_id=player['player_id'],
+                            limit=SAMPLE_SIZE
                         )
 
                         if not player_stats_list:
@@ -163,26 +160,20 @@ def main():
                         if not eligible_stats:
                             continue
 
-                        team_stats_list: list[FootballTeamStats] = (
-                            get_football_team_stats_for_player(
-                                league=league,
-                                player_id=player["player_id"],
-                                limit=SAMPLE_SIZE,
-                            )
+                        team_stats_list: list[FootballTeamStats] = get_football_team_stats_for_player(
+                            league=league,
+                            player_id=player['player_id'],
+                            limit=SAMPLE_SIZE
                         )
-                        prev_opponent_stats_list: list[FootballTeamStats] = (
-                            get_football_opponent_stats_for_player(
-                                league=league,
-                                player_id=player["player_id"],
-                                limit=SAMPLE_SIZE,
-                            )
+                        prev_opponent_stats_list: list[FootballTeamStats] = get_football_opponent_stats_for_player(
+                            league=league,
+                            player_id=player['player_id'],
+                            limit=SAMPLE_SIZE
                         )
-                        curr_opponents_stats_list: list[FootballTeamStats] = (
-                            get_football_team_stats(
-                                league=league,
-                                team_id=team_ids[1] if index == 0 else team_ids[0],
-                                limit=SAMPLE_SIZE,
-                            )
+                        curr_opponents_stats_list: list[FootballTeamStats] = get_football_team_stats(
+                            league=league,
+                            team_id=team_ids[1] if index == 0 else team_ids[0],
+                            limit=SAMPLE_SIZE
                         )
 
                         games_stats_data = GameStats(
