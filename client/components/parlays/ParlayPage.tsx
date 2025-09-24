@@ -20,6 +20,7 @@ import {
   getFlexMultiplierTable,
   getPerfectPlayMultiplier,
 } from "~/utils/multiplierUtils";
+import { sqlToJsDate } from "~/utils/dateUtils";
 
 export default function ParlayPage({ parlayId }: { parlayId: number }) {
   const { data: parlay, isPending: isParlayPending } = useQuery({
@@ -109,9 +110,7 @@ export default function ParlayPage({ parlayId }: { parlayId: number }) {
                 </View>
                 <View className="flex flex-col items-center flex-1 w-full">
                   <Text className="text-muted-foreground font-semibold">
-                    {!parlay.resolved
-                      ? "Potential Payout"
-                      : "Payout"}
+                    {!parlay.resolved ? "Potential Payout" : "Payout"}
                   </Text>
                   <Text className="font-bold text-2xl">
                     $
@@ -130,9 +129,15 @@ export default function ParlayPage({ parlayId }: { parlayId: number }) {
                 </View>
               </View>
               <View className="flex flex-col gap-4">
-                {parlay.picks.map((pick) => (
-                  <PickCard initialData={pick} key={pick.id} />
-                ))}
+                {parlay.picks
+                  .sort(
+                    (a, b) =>
+                      sqlToJsDate(a.createdAt).getTime() -
+                      sqlToJsDate(b.createdAt).getTime()
+                  )
+                  .map((pick) => (
+                    <PickCard initialData={pick} key={pick.id} />
+                  ))}
               </View>
             </View>
           )
