@@ -35,8 +35,31 @@ def setup_logger(name: str, level: int = logging.INFO):
     Returns:
         Configured logger instance
     """
-    logging.basicConfig(level=logging.INFO)
-    return logging.getLogger(name)
+    logger = logging.getLogger(name)
+
+    # Avoid adding handlers multiple times
+    if logger.handlers:
+        return logger
+
+    logger.setLevel(level)
+
+    # Create console handler
+    handler = logging.StreamHandler()
+    handler.setLevel(level)
+
+    # Create JSON formatter
+    formatter = UnicodeJsonFormatter(
+        fmt='%(asctime)s %(name)s %(levelname)s %(message)s'
+    )
+    handler.setFormatter(formatter)
+
+    # Add handler to logger
+    logger.addHandler(handler)
+
+    # Prevent duplicate logs from propagating to root logger
+    logger.propagate = False
+
+    return logger
 
 
 def server_req(
