@@ -35,34 +35,8 @@ def setup_logger(name: str, level: int = logging.INFO):
     Returns:
         Configured logger instance
     """
-    import sys
-    
-    logger = logging.getLogger(name)
-
-    # Avoid adding multiple handlers to the same logger
-    if logger.handlers:
-        return logger
-
-    logger.setLevel(level)
-
-    # Create handler for INFO and below (stdout)
-    stdout_handler = logging.StreamHandler(sys.stdout)
-    stdout_handler.setLevel(logging.DEBUG)
-    stdout_handler.addFilter(lambda record: record.levelno < logging.WARNING)
-    stdout_handler.setFormatter(UnicodeJsonFormatter())
-
-    # Create handler for WARNING and above (stderr)
-    stderr_handler = logging.StreamHandler(sys.stderr)
-    stderr_handler.setLevel(logging.WARNING)
-    stderr_handler.setFormatter(UnicodeJsonFormatter())
-
-    logger.addHandler(stdout_handler)
-    logger.addHandler(stderr_handler)
-
-    # Prevent propagation to root logger to avoid duplicate messages
-    logger.propagate = False
-
-    return logger
+    logging.basicConfig(level=logging.INFO)
+    return logging.getLogger(name)
 
 
 def server_req(
