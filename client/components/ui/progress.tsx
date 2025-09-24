@@ -95,7 +95,7 @@ function Progress({
             style={{
               left: `${Math.max(
                 0,
-                Math.min(percentage - 5, value! > 100 ? 87.5 : value! > 10 ? 92.5 : 95)
+                Math.min(percentage - 5, value! >= 100 ? 87.5 : value! >= 10 ? 90 : 95)
               )}%`,
             }}
             className={cn(progressTextVariants({ variant }))}

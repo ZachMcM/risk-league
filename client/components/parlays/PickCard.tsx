@@ -91,8 +91,7 @@ export default function PickCard({ initialData }: { initialData: Pick }) {
               <View className="flex flex-col gap-1">
                 <View className="flex flex-row items-center gap-1">
                   <Text className="font-bold">
-                    {formatName(pick.prop.player.name).firstName[0]}.{" "}
-                    {formatName(pick.prop.player.name).lastName}
+                    {pick.prop.player.name}
                   </Text>
                   <Text className="text-muted-foreground">
                     • {pick.prop.player.position}
@@ -109,33 +108,41 @@ export default function PickCard({ initialData }: { initialData: Pick }) {
                   </Text>
                 </View>
               </View>
-              <View
-                className={cn(
-                  "h-6 w-6 border-2 border-border rounded-full flex justify-center items-center",
-                  pick.status === "hit" && "bg-success border-success",
-                  pick.status === "missed" && "bg-destructive border-destructive"
-                )}
-              >
-                {pick.status != "not_resolved" &&
-                  (pick.status == "hit" ? (
-                    <Check
-                      strokeWidth={3}
-                      size={16}
-                      className="text-foreground"
-                    />
-                  ) : pick.status == "missed" ? (
-                    <X strokeWidth={3} size={16} className="text-foreground" />
-                  ) : (
-                    pick.status == "tie" && (
-                      <Icon
-                        as={Minus}
+              {pick.status == "tie" ? (
+                <Text className="font-semibold text-lg uppercase">
+                  TIE
+                </Text>
+              ) : pick.status == "did_not_play" ? (
+                <Text className="font-semibold text-lg uppercase">
+                  DNP
+                </Text>
+              ) : (
+                <View
+                  className={cn(
+                    "h-6 w-6 border-2 border-border rounded-full flex justify-center items-center",
+                    pick.status === "hit" && "bg-success border-success",
+                    pick.status === "missed" &&
+                      "bg-destructive border-destructive"
+                  )}
+                >
+                  {pick.status != "not_resolved" &&
+                    (pick.status == "hit" ? (
+                      <Check
                         strokeWidth={3}
                         size={16}
                         className="text-foreground"
                       />
-                    )
-                  ))}
-              </View>
+                    ) : (
+                      pick.status == "missed" && (
+                        <X
+                          strokeWidth={3}
+                          size={16}
+                          className="text-foreground"
+                        />
+                      )
+                    ))}
+                </View>
+              )}
             </View>
             <Progress
               value={pick.prop.currentValue}
