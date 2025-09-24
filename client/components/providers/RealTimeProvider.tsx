@@ -10,6 +10,7 @@ import { Message } from "~/types/message";
 import { Card, CardContent } from "../ui/card";
 import ProfileImage from "../ui/profile-image";
 import { Text } from "../ui/text";
+import LeagueLogo from "../ui/league-logos/LeagueLogo";
 
 const RealtimeContext = createContext<{ isConnected: boolean }>({
   isConnected: false,
@@ -144,48 +145,48 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
       }
     );
 
-    // socket.on(
-    //   "match-ended",
-    //   ({
-    //     type,
-    //     league,
-    //     id,
-    //   }: {
-    //     type: "competitive" | "friendly";
-    //     league: League;
-    //     id: number;
-    //   }) => {
-    //     const toastId = toast.custom(
-    //       <Pressable
-    //         className="m-3"
-    //         onPress={() => {
-    //           if (router.canDismiss()) {
-    //             router.dismissAll();
-    //           }
-    //           router.navigate({
-    //             pathname: "/match/[matchId]",
-    //             params: { matchId: id },
-    //           });
-    //           toast.dismiss(toastId);
-    //         }}
-    //       >
-    //         <Card className="border-0">
-    //           <CardContent className="w-full flex flex-row gap-4 items-center px-4 py-3">
-    //             <LeagueLogo league={league} size={32} />
-    //             <View className="flex flex-col flex-1">
-    //               <Text className="font-bold">
-    //                 One of your {league.toUpperCase()} {type} matches ended!
-    //               </Text>
-    //               <Text className="text-muted-foreground font-semibold">
-    //                 Click here to view the results!
-    //               </Text>
-    //             </View>
-    //           </CardContent>
-    //         </Card>
-    //       </Pressable>
-    //     );
-    //   }
-    // );
+    socket.on(
+      "match-ended",
+      ({
+        type,
+        league,
+        id,
+      }: {
+        type: "competitive" | "friendly";
+        league: League;
+        id: number;
+      }) => {
+        const toastId = toast.custom(
+          <Pressable
+            className="m-3"
+            onPress={() => {
+              if (router.canDismiss()) {
+                router.dismissAll();
+              }
+              router.navigate({
+                pathname: "/match/[matchId]",
+                params: { matchId: id },
+              });
+              toast.dismiss(toastId);
+            }}
+          >
+            <Card className="border-0">
+              <CardContent className="w-full flex flex-row gap-4 items-center px-4 py-3">
+                <LeagueLogo league={league} size={32} />
+                <View className="flex flex-col flex-1">
+                  <Text className="font-bold">
+                    One of your {league.toUpperCase()} {type} matches ended!
+                  </Text>
+                  <Text className="text-muted-foreground font-semibold">
+                    Click here to view the results!
+                  </Text>
+                </View>
+              </CardContent>
+            </Card>
+          </Pressable>
+        );
+      }
+    );
 
     socket.on(
       "friend-request-received",
