@@ -528,13 +528,24 @@ async def handle_match_check(data):
         return
 
     redis_publisher = await create_async_redis_client()
-    pool = await get_async_pool()
 
-    try:
-        async with pool.connection() as conn:
-            async with conn.cursor() as cur:
-                try:
-                    await cur.execute("BEGIN")
+    # Retry logic for database connection issues
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            pool = await get_async_pool()
+            async with pool.connection() as conn:
+                async with conn.cursor() as cur:
+                    try:
+                        await cur.execute("BEGIN")
+                    except Exception as e:
+                        try:
+                            await cur.execute("ROLLBACK")
+                        except Exception:
+                            # Connection is already lost, rollback will fail
+                            pass
+                        logger.error(f"Database transaction failed: {e}")
+                        raise
 
                     # Get match with all related data
                     match_query = """
@@ -673,16 +684,30 @@ async def handle_match_check(data):
                         match_res[2],
                     )
 
-                except Exception as e:
-                    await cur.execute("ROLLBACK")
-                    logger.error(f"Database transaction failed: {e}")
-                    raise e
+            # If we get here, the operation succeeded
+            break
 
-    except Exception as e:
-        logger.error(f"Error handling match check: {e}")
-        logger.error(f"Full traceback: {traceback.format_exc()}")
-    finally:
-        await redis_publisher.aclose()
+        except Exception as e:
+            error_msg = str(e)
+            is_connection_error = any(keyword in error_msg.lower() for keyword in [
+                'connection', 'ssl', 'bad', 'closed', 'lost', 'network', 'timeout'
+            ])
+
+            if is_connection_error:
+                logger.warning(f"Database connection issue (attempt {attempt + 1}/{max_retries}): {error_msg}")
+            else:
+                logger.error(f"Error handling match check (attempt {attempt + 1}/{max_retries}): {e}")
+
+            if attempt == max_retries - 1:
+                logger.error(f"All retry attempts failed. Final error: {error_msg}")
+                logger.error(f"Full traceback: {traceback.format_exc()}")
+                break
+            else:
+                # Wait briefly before retrying, longer for connection errors
+                wait_time = 1.0 if is_connection_error else 0.5
+                await asyncio.sleep(wait_time)
+
+    await redis_publisher.aclose()
 
     end_time = time()
     logger.info(

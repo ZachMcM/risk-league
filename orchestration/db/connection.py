@@ -12,6 +12,7 @@ _pool_lock = threading.Lock()
 _async_pool = None
 _async_pool_lock = None
 
+
 def get_pool():
     """Get or create the connection pool (thread-safe singleton)"""
     global _pool
@@ -20,15 +21,12 @@ def get_pool():
             if _pool is None:
                 database_url = getenv_required("DATABASE_URL")
                 _pool = ConnectionPool(
-                    database_url,
-                    min_size=1,
-                    max_size=15,
-                    timeout=30.0,
-                    max_idle=300.0
+                    database_url, min_size=1, max_size=15, timeout=30.0, max_idle=300.0
                 )
                 atexit.register(close_pool)
                 logger.info("Database connection pool created")
     return _pool
+
 
 def close_pool():
     """Close the connection pool"""
@@ -38,9 +36,11 @@ def close_pool():
         _pool = None
         logger.info("Database connection pool closed")
 
+
 def get_connection():
     """Get a database connection from the pool"""
     return get_pool().connection()
+
 
 def get_connection_context():
     """Get a connection context manager from the pool"""
@@ -61,11 +61,13 @@ async def get_async_pool():
                 database_url = getenv_required("DATABASE_URL")
                 _async_pool = AsyncConnectionPool(
                     database_url,
-                    min_size=1,
-                    max_size=15,
-                    timeout=30.0,
-                    max_idle=300.0,
-                    open=False
+                    min_size=2,
+                    max_size=8,  # Lower for PlanetScale
+                    timeout=15.0,  # Shorter timeout for PlanetScale
+                    max_idle=60.0,  # 1 minute - PlanetScale friendly
+                    max_lifetime=1800.0,  # 30 minutes - prevent stale connections
+                    reconnect_timeout=2.0,  # Fast reconnection
+                    open=False,
                 )
                 await _async_pool.open()
                 atexit.register(close_async_pool_sync)
@@ -108,3 +110,30 @@ async def get_async_connection_context():
     """Get an async connection context manager from the pool"""
     pool = await get_async_pool()
     return pool.connection()
+
+
+async def get_healthy_async_connection():
+    """Get a healthy async connection, testing it before returning"""
+    pool = await get_async_pool()
+    max_attempts = 3
+
+    for attempt in range(max_attempts):
+        try:
+            async with pool.connection() as conn:
+                # Test connection with a simple query
+                async with conn.cursor() as cur:
+                    await cur.execute("SELECT 1")
+                    await cur.fetchone()
+                # Connection is healthy, return a new connection from pool
+                return pool.connection()
+        except Exception as e:
+            logger.warning(
+                f"Connection health check failed (attempt {attempt + 1}/{max_attempts}): {e}"
+            )
+            if attempt == max_attempts - 1:
+                raise
+            # Brief wait before retry
+            await asyncio.sleep(0.1)
+
+    # Should not reach here
+    raise Exception("Failed to get healthy connection")
