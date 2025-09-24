@@ -1,13 +1,15 @@
+import logging
 from contextlib import asynccontextmanager
 
 from fastapi import Depends, FastAPI, HTTPException, Request
 from redis_utils import create_async_redis_client, publish_message_async
-from utils import getenv_required, setup_logger
+from utils import getenv_required
 
-logger = setup_logger(__name__)
+logger = logging.getLogger(__name__)
+
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(_: FastAPI):
     """Handle application startup and shutdown"""
     # Startup
     logger.info(f"Setting up FastAPI on port {getenv_required('PORT')}")

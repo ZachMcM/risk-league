@@ -1,10 +1,11 @@
+import logging
 import sys
 
-from utils import data_feeds_req, setup_logger
 from constants import LEAGUES
-from db.teams import insert_teams, Team
+from db.teams import Team, insert_teams
+from utils import data_feeds_req
 
-logger = setup_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def main():
@@ -41,7 +42,7 @@ def main():
                         ),
                         "mascot": team["mascot"],
                         "arena": team["arena"],
-                        "conference": team["conf"]
+                        "conference": team["conf"],
                     }
                 )
 

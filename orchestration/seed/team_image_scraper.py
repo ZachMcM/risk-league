@@ -1,10 +1,11 @@
+import logging
 import sys
 import time
-import requests
-from utils import setup_logger, server_req
-import requests
 
-logger = setup_logger(__name__)
+import requests
+from utils import server_req
+
+logger = logging.getLogger(__name__)
 
 
 def search_espn_team(name):

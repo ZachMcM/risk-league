@@ -1,17 +1,18 @@
-from utils import setup_logger
-from redis_utils import (
-    create_async_redis_client,
-    publish_message_async,
-    listen_for_messages_async,
-)
-from db.connection import get_async_pool
 import asyncio
-from typing import TypedDict, Optional, List
+import logging
+import traceback
 from datetime import datetime
 from time import time
-import traceback
+from typing import List, Optional, TypedDict
 
-logger = setup_logger(__name__)
+from db.connection import get_async_pool
+from redis_utils import (
+    create_async_redis_client,
+    listen_for_messages_async,
+    publish_message_async,
+)
+
+logger = logging.getLogger(__name__)
 
 MIN_PARLAYS_REQUIRED = 2
 MIN_PCT_TOTAL_STAKED = 0.5
@@ -227,9 +228,7 @@ async def handle_parlay_resolved(data):
                     )
 
                     # Resolve the match
-                    await _resolve_match(
-                        cur, match_id, match_res[1], match_users_data
-                    )
+                    await _resolve_match(cur, match_id, match_res[1], match_users_data)
 
                     await cur.execute("COMMIT")
 
@@ -373,13 +372,13 @@ async def _update_elo_points(
     # Get current user points atomically using SELECT FOR UPDATE
     await cur.execute(
         "SELECT id, points FROM public.user WHERE id = %s FOR UPDATE",
-        (match_user1["user_id"],)
+        (match_user1["user_id"],),
     )
     user1_res = await cur.fetchone()
 
     await cur.execute(
         "SELECT id, points FROM public.user WHERE id = %s FOR UPDATE",
-        (match_user2["user_id"],)
+        (match_user2["user_id"],),
     )
     user2_res = await cur.fetchone()
 
@@ -669,9 +668,7 @@ async def handle_match_check(data):
                     logger.info(f"Match {match_id} resolution triggered by match_check")
 
                     # Resolve the match
-                    await _resolve_match(
-                        cur, match_id, match_res[1], match_users_data
-                    )
+                    await _resolve_match(cur, match_id, match_res[1], match_users_data)
 
                     await cur.execute("COMMIT")
 
@@ -689,14 +686,27 @@ async def handle_match_check(data):
 
         except Exception as e:
             error_msg = str(e)
-            is_connection_error = any(keyword in error_msg.lower() for keyword in [
-                'connection', 'ssl', 'bad', 'closed', 'lost', 'network', 'timeout'
-            ])
+            is_connection_error = any(
+                keyword in error_msg.lower()
+                for keyword in [
+                    "connection",
+                    "ssl",
+                    "bad",
+                    "closed",
+                    "lost",
+                    "network",
+                    "timeout",
+                ]
+            )
 
             if is_connection_error:
-                logger.warning(f"Database connection issue (attempt {attempt + 1}/{max_retries}): {error_msg}")
+                logger.warning(
+                    f"Database connection issue (attempt {attempt + 1}/{max_retries}): {error_msg}"
+                )
             else:
-                logger.error(f"Error handling match check (attempt {attempt + 1}/{max_retries}): {e}")
+                logger.error(
+                    f"Error handling match check (attempt {attempt + 1}/{max_retries}): {e}"
+                )
 
             if attempt == max_retries - 1:
                 logger.error(f"All retry attempts failed. Final error: {error_msg}")
@@ -723,6 +733,7 @@ async def handle_parlay_resolved_safe(data):
         logger.error(f"Error handling parlay_resolved message: {e}", exc_info=True)
         logger.error(f"Full traceback: {traceback.format_exc()}")
 
+
 async def handle_match_check_safe(data):
     """Safe wrapper for handle_match_check that prevents listener crashes"""
     try:
@@ -730,6 +741,7 @@ async def handle_match_check_safe(data):
     except Exception as e:
         logger.error(f"Error handling match_check message: {e}", exc_info=True)
         logger.error(f"Full traceback: {traceback.format_exc()}")
+
 
 async def listen_for_parlay_resolved():
     """Function that listens for a parlay_resolved message on redis"""

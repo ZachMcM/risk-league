@@ -1,12 +1,13 @@
+import logging
 import sys
 import traceback
-
-from constants import LEAGUES
-from db.players import insert_players, Player
-from utils import data_feeds_req, setup_logger
 from time import time
 
-logger = setup_logger(__name__)
+from constants import LEAGUES
+from db.players import Player, insert_players
+from utils import data_feeds_req
+
+logger = logging.getLogger(__name__)
 
 
 def main():
@@ -54,10 +55,12 @@ def main():
                     "position": player.get("position") or "N/A",
                     "number": player["number"],
                     "height": player["height"],
-                    "weight": int(float(player["weight"])) if player["weight"] else None,
+                    "weight": (
+                        int(float(player["weight"])) if player["weight"] else None
+                    ),
                     "status": player.get("status", "INACT") or "INACT",
                     "league": league,
-                    "updated_at": ""  # Will be set by database
+                    "updated_at": "",  # Will be set by database
                 }
                 batch.append(player_data)
 
@@ -66,7 +69,9 @@ def main():
                     try:
                         inserted_ids = insert_players(batch)
                         total_upserted += len(inserted_ids)
-                        logger.info(f"Successfully upserted batch of {len(inserted_ids)} players, {len(players) - total_upserted} left")
+                        logger.info(
+                            f"Successfully upserted batch of {len(inserted_ids)} players, {len(players) - total_upserted} left"
+                        )
                     except Exception as e:
                         logger.error(f"Failed to insert batch for {league}: {e}")
                         logger.error(f"Full traceback: {traceback.format_exc()}")
@@ -75,7 +80,9 @@ def main():
                     batch = []  # Reset batch
 
             end_time = time()
-            print(f"{total_upserted} {league} players upserted in {end_time - start_time:.2f}s")
+            print(
+                f"{total_upserted} {league} players upserted in {end_time - start_time:.2f}s"
+            )
 
     except Exception as e:
         logger.error(f"Fatal error in upsert_players: {e}")

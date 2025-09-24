@@ -1,37 +1,38 @@
+import logging
 import sys
 import traceback
 from datetime import datetime
 from time import time
 from zoneinfo import ZoneInfo
-from db.games import insert_game, Game
-from db.props import insert_prop, Prop
-from db.players import get_active_players_for_team, Player
+
+import numpy
+from db.games import Game, insert_game
+from db.players import Player, get_active_players_for_team
+from db.props import Prop, insert_prop
 from db.stats.baseball import (
     BaseballPlayerStats,
     BaseballTeamStats,
     LeagueAverages,
+    get_baseball_league_averages,
+    get_baseball_opponent_stats_for_player,
     get_baseball_player_stats,
     get_baseball_team_stats,
     get_baseball_team_stats_for_player,
-    get_baseball_opponent_stats_for_player,
-    get_baseball_league_averages,
 )
-
-import numpy
 from prop_generation.configs.baseball import (
     BATTING_STATS,
-    PITCHING_STATS,
-    SAMPLE_SIZE,
     ELIGIBILITY_THRESHOLDS,
     MIN_LINE_FOR_UNDER,
+    PITCHING_STATS,
+    SAMPLE_SIZE,
     get_baseball_prop_configs,
     get_baseball_stats_list,
 )
 from prop_generation.generator.base import GameStats
 from prop_generation.generator.main import BasePropGenerator
-from utils import data_feeds_req, setup_logger
+from utils import data_feeds_req
 
-logger = setup_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def main() -> None:

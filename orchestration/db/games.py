@@ -1,17 +1,20 @@
-import psycopg
+import logging
 from typing import TypedDict
-from utils import setup_logger
+
+import psycopg
+
 from .connection import get_connection_context
 
-logger = setup_logger(__name__)
+logger = logging.getLogger(__name__)
+
 
 class Game(TypedDict):
-  game_id: str
-  start_time: str
-  home_team_id: int
-  away_team_id: int
-  league: str
-  
+    game_id: str
+    start_time: str
+    home_team_id: int
+    away_team_id: int
+    league: str
+
 
 def insert_game(game_data: Game):
     """
@@ -39,13 +42,16 @@ def insert_game(game_data: Game):
                 """
 
                 # Execute single insert
-                cur.execute(insert_query, (
-                    game_data['game_id'],
-                    game_data['start_time'],
-                    game_data['home_team_id'],
-                    game_data['away_team_id'],
-                    game_data["league"]
-                ))
+                cur.execute(
+                    insert_query,
+                    (
+                        game_data["game_id"],
+                        game_data["start_time"],
+                        game_data["home_team_id"],
+                        game_data["away_team_id"],
+                        game_data["league"],
+                    ),
+                )
 
                 # Fetch the returned game ID
                 result = cur.fetchone()

@@ -1,9 +1,12 @@
+import logging
+from typing import TypedDict
+
 import psycopg
-from typing import TypedDict, Literal
-from utils import setup_logger
+
 from .connection import get_connection_context
 
-logger = setup_logger(__name__)
+logger = logging.getLogger(__name__)
+
 
 class Prop(TypedDict):
     line: float
@@ -13,6 +16,7 @@ class Prop(TypedDict):
     league: str
     game_id: str
     choices: list[str]
+
 
 def insert_prop(prop_data: Prop) -> str:
     """
@@ -37,13 +41,13 @@ def insert_prop(prop_data: Prop) -> str:
                     RETURNING id
                 """
                 params = (
-                    prop_data['line'],
-                    prop_data['stat_name'],
-                    prop_data['stat_display_name'],
-                    prop_data['player_id'],
-                    prop_data['league'],
-                    prop_data['game_id'],
-                    prop_data['choices'],
+                    prop_data["line"],
+                    prop_data["stat_name"],
+                    prop_data["stat_display_name"],
+                    prop_data["player_id"],
+                    prop_data["league"],
+                    prop_data["game_id"],
+                    prop_data["choices"],
                 )
 
                 cur.execute(insert_query, params)

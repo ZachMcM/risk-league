@@ -1,26 +1,22 @@
 import asyncio
-import aiohttp
+import logging
 from datetime import datetime, timedelta
-from zoneinfo import ZoneInfo
-from db.connection import get_async_pool
+from time import time
 from typing import TypedDict
+from zoneinfo import ZoneInfo
+
+import aiohttp
+from db.connection import get_async_pool
 from extract_stats.main import extract_player_stats
+from prop_generation.configs.baseball import get_baseball_stats_list
+from prop_generation.configs.basketball import get_basketball_stats_list
+from prop_generation.configs.football import get_football_stats_list
 from redis_utils import (
     create_async_redis_client,
     listen_for_messages_async,
     publish_message_async,
 )
-from utils import getenv_required, setup_logger
-from prop_generation.configs.football import (
-    get_football_stats_list,
-)
-from prop_generation.configs.baseball import (
-    get_baseball_stats_list,
-)
-from prop_generation.configs.basketball import (
-    get_basketball_stats_list,
-)
-from time import time
+from utils import getenv_required
 
 VALID_FOOTBALL_STATS = get_football_stats_list()
 VALID_BASKETBALL_STATS = get_basketball_stats_list()
@@ -34,7 +30,7 @@ LEAGUE_VALID_STATS = {
     "NCAABB": VALID_BASKETBALL_STATS,
 }
 
-logger = setup_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class StatEntry(TypedDict):
@@ -128,7 +124,7 @@ async def handle_stats_updated(data):
                         # Process stats in batches to avoid overwhelming the connection pool
                         BATCH_SIZE = 100
                         for i in range(0, len(stats_list), BATCH_SIZE):
-                            batch = stats_list[i:i + BATCH_SIZE]
+                            batch = stats_list[i : i + BATCH_SIZE]
 
                             # Build batch SELECT query
                             if not batch:
@@ -137,13 +133,17 @@ async def handle_stats_updated(data):
                             select_conditions = []
                             select_params = []
                             for stat_entry in batch:
-                                select_conditions.append("(player_id = %s AND stat_name = %s AND league = %s AND game_id = %s)")
-                                select_params.extend([
-                                    stat_entry["player_id"],
-                                    stat_entry["stat_name"],
-                                    stat_entry["league"],
-                                    stat_entry["game_id"]
-                                ])
+                                select_conditions.append(
+                                    "(player_id = %s AND stat_name = %s AND league = %s AND game_id = %s)"
+                                )
+                                select_params.extend(
+                                    [
+                                        stat_entry["player_id"],
+                                        stat_entry["stat_name"],
+                                        stat_entry["league"],
+                                        stat_entry["game_id"],
+                                    ]
+                                )
 
                             batch_select_query = f"""
                                 SELECT id, line, status, player_id, stat_name, league, game_id
@@ -157,33 +157,59 @@ async def handle_stats_updated(data):
                             # Create lookup for existing props
                             props_lookup = {}
                             for prop in existing_props:
-                                key = (prop[3], prop[4], prop[5], prop[6])  # player_id, stat_name, league, game_id
-                                props_lookup[key] = {"id": prop[0], "line": prop[1], "status": prop[2]}
+                                key = (
+                                    prop[3],
+                                    prop[4],
+                                    prop[5],
+                                    prop[6],
+                                )  # player_id, stat_name, league, game_id
+                                props_lookup[key] = {
+                                    "id": prop[0],
+                                    "line": prop[1],
+                                    "status": prop[2],
+                                }
 
                             # Create lookup for players who have stats in this game
                             players_with_stats = set()
                             for stat_entry in batch:
-                                players_with_stats.add((stat_entry["player_id"], stat_entry["game_id"]))
+                                players_with_stats.add(
+                                    (stat_entry["player_id"], stat_entry["game_id"])
+                                )
 
                             # Prepare batch updates
                             update_data = []
                             for stat_entry in batch:
-                                key = (stat_entry["player_id"], stat_entry["stat_name"], stat_entry["league"], stat_entry["game_id"])
+                                key = (
+                                    stat_entry["player_id"],
+                                    stat_entry["stat_name"],
+                                    stat_entry["league"],
+                                    stat_entry["game_id"],
+                                )
                                 if key in props_lookup:
                                     prop_info = props_lookup[key]
                                     status = (
                                         "resolved"
-                                        if stat_entry["status"] in ["completed", "final"]
-                                        or stat_entry["current_value"] > prop_info["line"]
+                                        if stat_entry["status"]
+                                        in ["completed", "final"]
+                                        or stat_entry["current_value"]
+                                        > prop_info["line"]
                                         else "not_resolved"
                                     )
-                                    update_data.append((stat_entry["current_value"], status, prop_info["id"]))
+                                    update_data.append(
+                                        (
+                                            stat_entry["current_value"],
+                                            status,
+                                            prop_info["id"],
+                                        )
+                                    )
 
                             # Check for props where player didn't play (DNP)
                             # Find all props for completed games that don't have corresponding stats
                             if batch and batch[0]["status"] in ["completed", "final"]:
                                 # Get all props for completed games in this batch using a single query
-                                game_ids = list(set(stat_entry["game_id"] for stat_entry in batch))
+                                game_ids = list(
+                                    set(stat_entry["game_id"] for stat_entry in batch)
+                                )
 
                                 if game_ids:
                                     # Use ANY clause to get all props for all games in one query
@@ -196,13 +222,21 @@ async def handle_stats_updated(data):
                                     all_game_props = await cur.fetchall()
 
                                     for prop in all_game_props:
-                                        prop_id, player_id, game_id = prop[0], prop[1], prop[2]
+                                        prop_id, player_id, game_id = (
+                                            prop[0],
+                                            prop[1],
+                                            prop[2],
+                                        )
                                         player_game_key = (player_id, game_id)
 
                                         # If player has no stats for this game, mark as did_not_play
                                         if player_game_key not in players_with_stats:
-                                            update_data.append((0.0, "did_not_play", prop_id))
-                                            logger.info(f"Marking prop {prop_id} as did_not_play for player {player_id} in game {game_id}")
+                                            update_data.append(
+                                                (0.0, "did_not_play", prop_id)
+                                            )
+                                            logger.info(
+                                                f"Marking prop {prop_id} as did_not_play for player {player_id} in game {game_id}"
+                                            )
 
                             # Execute batch update if we have data
                             if update_data:
@@ -229,7 +263,9 @@ async def handle_stats_updated(data):
 
         except Exception as e:
             if "PoolTimeout" in str(e) and attempt < max_retries - 1:
-                logger.warning(f"Connection pool timeout on attempt {attempt + 1}/{max_retries}, retrying in {retry_delay}s")
+                logger.warning(
+                    f"Connection pool timeout on attempt {attempt + 1}/{max_retries}, retrying in {retry_delay}s"
+                )
                 await asyncio.sleep(retry_delay)
                 retry_delay *= 2  # Exponential backoff
                 continue
@@ -248,7 +284,9 @@ async def handle_stats_updated(data):
     await redis_publisher.aclose()
 
     end_time = time()
-    logger.info(f"Updated {len(props_updated)} props. Completed in {end_time - start_time:.2f}s")
+    logger.info(
+        f"Updated {len(props_updated)} props. Completed in {end_time - start_time:.2f}s"
+    )
 
 
 async def handle_stats_updated_safe(data):
@@ -285,11 +323,13 @@ async def main():
         logger.warning("Shutting down props_worker...")
         # Ensure pool cleanup on shutdown
         from db.connection import close_async_pool
+
         await close_async_pool()
     except Exception as e:
         logger.error(f"Error in main: {e}")
         # Ensure pool cleanup on error
         from db.connection import close_async_pool
+
         await close_async_pool()
 
 

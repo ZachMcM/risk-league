@@ -1,22 +1,31 @@
+import logging
 import sys
 from datetime import datetime, timedelta
-from utils import data_feeds_req, setup_logger
+
 from extract_stats.main import LEAGUE_CONFIG
 from shared.game_processor import process_game
+from utils import data_feeds_req
 
-logger = setup_logger(__name__)
+logger = logging.getLogger(__name__)
+
 
 def main():
     try:
         if len(sys.argv) < 3:
-            logger.error("Usage: python process_games.py <league> <start_date> <end_date>")
+            logger.error(
+                "Usage: python process_games.py <league> <start_date> <end_date>"
+            )
             logger.error("For MLB: python process_games.py MLB <start_date> <end_date>")
-            logger.error("For others: python process_games.py <NBA|NCAABB|NFL|NCAAFB> <start_date> <end_date>")
+            logger.error(
+                "For others: python process_games.py <NBA|NCAABB|NFL|NCAAFB> <start_date> <end_date>"
+            )
             sys.exit(1)
 
         league = sys.argv[1]
         if league not in LEAGUE_CONFIG:
-            logger.error(f"Invalid league: {league}. Must be one of: {', '.join(LEAGUE_CONFIG.keys())}")
+            logger.error(
+                f"Invalid league: {league}. Must be one of: {', '.join(LEAGUE_CONFIG.keys())}"
+            )
             sys.exit(1)
 
         start_date_str = sys.argv[2]
@@ -36,18 +45,20 @@ def main():
         while current_date <= end_date:
             date_str = current_date.strftime("%Y-%m-%d")
             feed_req = data_feeds_req(f"/live/{date_str}/{league}")
-            
+
             if feed_req.status_code == 304:
                 logger.info(f"No new data for {date_str}")
                 current_date += timedelta(days=1)
                 continue
-                
+
             feed_data = feed_req.json()
             games = feed_data["data"][league]
 
             for game in games:
                 if game["status"] != "completed":
-                    logger.info(f"Skipping game {game['game_ID']} - status: {game['status']}")
+                    logger.info(
+                        f"Skipping game {game['game_ID']} - status: {game['status']}"
+                    )
                     continue
 
                 team_stats_count, player_stats_count = process_game(game, league)

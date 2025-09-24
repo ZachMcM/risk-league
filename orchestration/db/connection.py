@@ -1,10 +1,12 @@
-from psycopg_pool import ConnectionPool, AsyncConnectionPool
-from utils import getenv_required, setup_logger
-import threading
-import atexit
 import asyncio
+import atexit
+import logging
+import threading
 
-logger = setup_logger(__name__)
+from psycopg_pool import AsyncConnectionPool, ConnectionPool
+from utils import getenv_required
+
+logger = logging.getLogger(__name__)
 
 _pool = None
 _pool_lock = threading.Lock()

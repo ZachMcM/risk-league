@@ -1,10 +1,12 @@
+import logging
+from typing import TypedDict
+
 import psycopg
-from typing import TypedDict, cast
-from utils import setup_logger
-from .connection import get_connection_context
 from utils import data_feeds_req
 
-logger = setup_logger(__name__)
+from .connection import get_connection_context
+
+logger = logging.getLogger(__name__)
 
 
 class Player(TypedDict):
@@ -191,13 +193,18 @@ def get_active_players_for_team(league: str, team_id: int) -> list[Player]:
                     # Find the team by matching team_id in the array
                     team_found = False
                     for team_data in league_data:
-                        if isinstance(team_data, dict) and team_data.get("team_id") == team_id:
+                        if (
+                            isinstance(team_data, dict)
+                            and team_data.get("team_id") == team_id
+                        ):
                             team_injuries = team_data.get("injuries", [])
                             team_found = True
                             break
 
                     if not team_found:
-                        logger.warning(f"No injury data found for team {team_id} in league {league}")
+                        logger.warning(
+                            f"No injury data found for team {team_id} in league {league}"
+                        )
                         team_injuries = []
 
                     injured_ids_list = [
@@ -214,12 +221,17 @@ def get_active_players_for_team(league: str, team_id: int) -> list[Player]:
                     league_depth_data = league_depth_charts_data["data"][league]
 
                     for _, team_data in league_depth_data.items():
-                        if isinstance(team_data, dict) and team_data.get("team_id") == team_id:
+                        if (
+                            isinstance(team_data, dict)
+                            and team_data.get("team_id") == team_id
+                        ):
                             team_depth_chart = team_data
                             break
 
                     if not team_depth_chart:
-                        logger.warning(f"No depth chart found for team {team_id} in league {league}")
+                        logger.warning(
+                            f"No depth chart found for team {team_id} in league {league}"
+                        )
                         team_depth_chart = {}
 
                     depth_chart_ids: list[int] = []
@@ -231,24 +243,37 @@ def get_active_players_for_team(league: str, team_id: int) -> list[Player]:
 
                         if isinstance(depth_chart_entry, dict):
                             for depth, player_info in depth_chart_entry.items():
-                                if isinstance(player_info, dict) and "id" in player_info:
+                                if (
+                                    isinstance(player_info, dict)
+                                    and "id" in player_info
+                                ):
                                     if league == "NFL":
                                         # NFL-specific filtering logic
                                         if (
                                             (position == "QB" and depth == "1")
-                                            or (position in ["WR1", "WR2", "WR3"] and depth == "1")
+                                            or (
+                                                position in ["WR1", "WR2", "WR3"]
+                                                and depth == "1"
+                                            )
                                             or (position == "PK" and depth == "1")
-                                            or (position == "TE" and depth in ["1", "2"])
-                                            or (position == "RB" and depth in ["1", "2", "3"])
+                                            or (
+                                                position == "TE" and depth in ["1", "2"]
+                                            )
+                                            or (
+                                                position == "RB"
+                                                and depth in ["1", "2", "3"]
+                                            )
                                         ):
                                             depth_chart_ids.append(player_info["id"])
                                     else:
                                         # For other leagues (like MLB), include all depth chart players
                                         depth_chart_ids.append(player_info["id"])
-                                    
+
                     # Handle empty lists to avoid SQL errors
                     if not injured_ids_list:
-                        injured_ids_list = [-1]  # Use impossible ID to avoid empty NOT IN
+                        injured_ids_list = [
+                            -1
+                        ]  # Use impossible ID to avoid empty NOT IN
                     if not depth_chart_ids:
                         depth_chart_ids = [-1]  # Use impossible ID to avoid empty ANY
 
@@ -265,7 +290,10 @@ def get_active_players_for_team(league: str, team_id: int) -> list[Player]:
                             )
                     """
 
-                    cur.execute(active_players_query, (team_id, league, injured_ids_list, depth_chart_ids))
+                    cur.execute(
+                        active_players_query,
+                        (team_id, league, injured_ids_list, depth_chart_ids),
+                    )
                     rows = cur.fetchall()
 
                     for row in rows:
