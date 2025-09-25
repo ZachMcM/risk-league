@@ -1002,14 +1002,12 @@ export const footballTeamStats = pgTable(
       .default(0)
       .notNull(),
     // constrained by external API
-    passingTouchdowns: integer("passing_touchdowns"),
-    rushingTouchdowns: integer("rushing_touchdowns"),
-    specialTeamsTouchdowns: integer("special_teams_touchdowns"),
-    passingYardsAllowed: integer("passing_yards_allowed"),
-    rushingYardsAllowed: integer("rushing_yards_allowed"),
-    offenseTouchdowns: integer("offense_touchdowns"),
-    // Extended football team stats
+    passingTouchdowns: integer("passing_touchdowns").default(0).notNull(),
+    rushingTouchdowns: integer("rushing_touchdowns").default(0).notNull(),
+    passingYardsAllowed: integer("passing_yards_allowed").default(0).notNull(),
+    rushingYardsAllowed: integer("rushing_yards_allowed").default(0).notNull(),
     completionsAllowed: integer("completions_allowed").default(0).notNull(),
+    completions: integer().default(0).notNull(),
     passingTouchdownsAllowed: integer("passing_touchdowns_allowed")
       .default(0)
       .notNull(),

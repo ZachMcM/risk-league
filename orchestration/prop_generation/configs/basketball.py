@@ -35,8 +35,8 @@ ELIGIBILITY_THRESHOLDS = {
     "rebounds_assists": 1.25,
 }
 
-SAMPLE_SIZE = 15
-MIN_LINE_FOR_UNDER = 5
+SAMPLE_SIZE = 11
+MIN_LINE_FOR_UNDER = 6
 
 
 @register_basketball_stat

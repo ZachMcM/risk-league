@@ -2,31 +2,65 @@
 Football statistics extraction and extended calculations.
 """
 
-from db.stats.football import FootballPlayerStats, FootballTeamStats
-
 
 def calculate_football_player_extended_stats(player_stats):
     """Calculate extended football player statistics."""
 
     # Passing efficiency stats
-    completion_pct = player_stats["completions"] / player_stats["passing_attempts"] if player_stats["passing_attempts"] > 0 else 0
-    yards_per_attempt = player_stats["passing_yards"] / player_stats["passing_attempts"] if player_stats["passing_attempts"] > 0 else 0
-    yards_per_completion = player_stats["passing_yards"] / player_stats["completions"] if player_stats["completions"] > 0 else 0
+    completion_pct = (
+        player_stats["completions"] / player_stats["passing_attempts"]
+        if player_stats["passing_attempts"] > 0
+        else 0
+    )
+    yards_per_attempt = (
+        player_stats["passing_yards"] / player_stats["passing_attempts"]
+        if player_stats["passing_attempts"] > 0
+        else 0
+    )
+    yards_per_completion = (
+        player_stats["passing_yards"] / player_stats["completions"]
+        if player_stats["completions"] > 0
+        else 0
+    )
 
     # Rushing efficiency
-    yards_per_carry = player_stats["rushing_yards"] / player_stats["rushing_attempts"] if player_stats["rushing_attempts"] > 0 else 0
+    yards_per_carry = (
+        player_stats["rushing_yards"] / player_stats["rushing_attempts"]
+        if player_stats["rushing_attempts"] > 0
+        else 0
+    )
 
     # Receiving efficiency
-    yards_per_reception = player_stats["receiving_yards"] / player_stats["receptions"] if player_stats["receptions"] > 0 else 0
+    yards_per_reception = (
+        player_stats["receiving_yards"] / player_stats["receptions"]
+        if player_stats["receptions"] > 0
+        else 0.0
+    )
 
     # Field goal percentage
-    field_goal_pct = player_stats["field_goals_made"] / player_stats["field_goals_attempted"] if player_stats["field_goals_attempted"] > 0 else 0
-    extra_point_pct = player_stats["extra_points_made"] / player_stats["extra_points_attempted"] if player_stats["extra_points_attempted"] > 0 else 0
+    field_goal_pct = (
+        player_stats["field_goals_made"] / player_stats["field_goals_attempted"]
+        if player_stats["field_goals_attempted"] > 0
+        else 0.0
+    )
+    extra_point_pct = (
+        player_stats["extra_points_made"] / player_stats["extra_points_attempted"]
+        if player_stats["extra_points_attempted"] > 0
+        else 0.0
+    )
 
     # Combination stats
-    receiving_rushing_touchdowns = player_stats["receiving_touchdowns"] + player_stats["rushing_touchdowns"]
-    passing_rushing_touchdowns = player_stats["passing_touchdowns"] + player_stats["rushing_touchdowns"]
-    total_yards = player_stats["passing_yards"] + player_stats["rushing_yards"] + player_stats["receiving_yards"]
+    receiving_rushing_touchdowns = (
+        player_stats["receiving_touchdowns"] + player_stats["rushing_touchdowns"]
+    )
+    passing_rushing_touchdowns = (
+        player_stats["passing_touchdowns"] + player_stats["rushing_touchdowns"]
+    )
+    total_yards = float(
+        player_stats["passing_yards"]
+        + player_stats["rushing_yards"]
+        + player_stats["receiving_yards"]
+    )
 
     return {
         "completion_pct": round(completion_pct, 4),
@@ -56,15 +90,27 @@ def calculate_football_team_extended_stats(game, team, team_stats, opp_team_stat
             opp_player_stats.append(player_stats)
 
     # Calculate "allowed" stats from opponent team/player performance
-    passing_yards_allowed = opp_team_stats.get("passing_yards", 0)
-    rushing_yards_allowed = opp_team_stats.get("rushing_yards", 0)
+    passing_yards_allowed = team_stats.get(
+        "total_passing_yards_allowed",
+        sum(p.get("passing_yards", 0) for p in opp_player_stats),
+    )
+    rushing_yards_allowed = team_stats.get(
+        "total_rushing_yards_allowed",
+        sum(p.get("rushing_yards", 0) for p in opp_player_stats),
+    )
 
     # Aggregate opponent completions from player stats
     completions_allowed = sum(p.get("completions", 0) for p in opp_player_stats)
 
     # Team touchdowns allowed (opponent's scoring)
-    passing_touchdowns_allowed = opp_team_stats.get("passing_touchdowns", 0)
-    rushing_touchdowns_allowed = opp_team_stats.get("rushing_touchdowns", 0)
+    passing_touchdowns_allowed = opp_team_stats.get(
+        "passing_touchdowns",
+        sum(p.get("passing_touchdowns", 0) for p in opp_player_stats),
+    )
+    rushing_touchdowns_allowed = opp_team_stats.get(
+        "rushing_touchdowns",
+        sum(p.get("rushing_touchdowns", 0) for p in opp_player_stats),
+    )
 
     return {
         "passing_yards_allowed": passing_yards_allowed,
@@ -82,6 +128,11 @@ def extract_football_team_stats(game, team, league):
     # Get opponent team stats for extended calculations
     opp_team = "away_team" if team == "home_team" else "home_team"
     opp_team_stats = game["full_box"][opp_team]["team_stats"]
+
+    team_player_stats = []
+    if "player_box" in game and team in game["player_box"]:
+        for _, player_stats in game["player_box"][team].items():
+            team_player_stats.append(player_stats)
 
     base_stats = {
         "game_id": game["game_ID"],
@@ -110,13 +161,34 @@ def extract_football_team_stats(game, team, league):
         "interception_touchdowns": team_stats.get("interception_touchdowns", 0),
         "fumble_return_touchdowns": team_stats.get("fumble_return_touchdowns", 0),
         "defense_fumble_recoveries": team_stats.get("defense_fumble_recoveries", 0),
-        "field_goal_return_touchdowns": team_stats.get("field_goal_return_touchdowns", 0),
-        "two_point_conversion_returns": team_stats.get("two_point_conversion_returns", 0),
-        "two_point_conversion_attempts": team_stats.get("two_point_conversion_attempts", 0),
+        "field_goal_return_touchdowns": team_stats.get(
+            "field_goal_return_touchdowns", 0
+        ),
+        "two_point_conversion_returns": team_stats.get(
+            "two_point_conversion_returns", 0
+        ),
+        "two_point_conversion_attempts": team_stats.get(
+            "two_point_conversion_attempts", 0
+        ),
+        "completions": team_stats.get(
+            "completions", sum(p.get("completions", 0) for p in team_player_stats)
+        ),
+        "passing_touchdowns": team_stats.get(
+            "passing_touchdowns",
+            sum(p.get("passing_touchdowns", 0) for p in team_player_stats),
+        ),
+        "rushing_touchdowns": team_stats.get(
+            "rushing_touchdowns",
+            sum(p.get("rushing_touchdowns", 0) for p in team_player_stats),
+        ),
+        "two_point_conversion_succeeded": team_stats.get("two_point_conversion_succeeded", 0),
+        "points_against_defense_special_teams": team_stats.get("points_against_defense_special_teams", 0)
     }
 
     # Calculate extended stats
-    extended_stats = calculate_football_team_extended_stats(game, team, team_stats, opp_team_stats)
+    extended_stats = calculate_football_team_extended_stats(
+        game, team, team_stats, opp_team_stats
+    )
 
     return {**base_stats, **extended_stats}
 

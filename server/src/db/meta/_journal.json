@@ -617,6 +617,27 @@
       "when": 1758486961904,
       "tag": "0087_hot_genesis",
       "breakpoints": true
+    },
+    {
+      "idx": 88,
+      "version": "7",
+      "when": 1758814548531,
+      "tag": "0088_quick_steve_rogers",
+      "breakpoints": true
+    },
+    {
+      "idx": 89,
+      "version": "7",
+      "when": 1758823536905,
+      "tag": "0089_crazy_spyke",
+      "breakpoints": true
+    },
+    {
+      "idx": 90,
+      "version": "7",
+      "when": 1758825682260,
+      "tag": "0090_goofy_power_man",
+      "breakpoints": true
     }
   ]
 }

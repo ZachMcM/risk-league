@@ -21,9 +21,9 @@ ELIGIBILITY_THRESHOLDS = {
     "at_bats": 1.5
 }
 
-SAMPLE_SIZE = 20
+SAMPLE_SIZE = 17
 
-MIN_LINE_FOR_UNDER = 5
+MIN_LINE_FOR_UNDER = 6
 
 PITCHING_STATS = [
     "pitching_strikeouts",

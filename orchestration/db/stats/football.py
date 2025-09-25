@@ -50,6 +50,7 @@ class FootballPlayerStats(TypedDict):
     extra_point_pct: float
     receiving_rushing_touchdowns: int
     passing_rushing_touchdowns: int
+    total_yards: float
 
 class FootballTeamStats(TypedDict):
     id: Optional[int]
@@ -82,6 +83,16 @@ class FootballTeamStats(TypedDict):
     field_goal_return_touchdowns: int
     two_point_conversion_returns: int
     two_point_conversion_attempts: int
+    passing_yards_allowed: int
+    completions_allowed: int
+    rushing_yards_allowed: int
+    passing_touchdowns_allowed: int
+    rushing_touchdowns_allowed: int
+    completions: int
+    passing_touchdowns: int
+    rushing_touchdowns: int
+    two_point_conversion_succeeded: int
+    points_against_defense_special_teams: int
 
 def insert_football_team_stats(team_stats: Union[FootballTeamStats, List[FootballTeamStats]]) -> List[dict]:
     """Insert football team stats into the database"""
@@ -103,7 +114,10 @@ def insert_football_team_stats(team_stats: Union[FootballTeamStats, List[Footbal
                         punt_return_touchdowns, blocked_kick_touchdowns, blocked_punt_touchdowns,
                         interception_touchdowns, fumble_return_touchdowns, defense_fumble_recoveries,
                         field_goal_return_touchdowns, two_point_conversion_returns,
-                        two_point_conversion_attempts
+                        two_point_conversion_attempts, passing_yards_allowed, completions_allowed,
+                        rushing_yards_allowed, passing_touchdowns_allowed, rushing_touchdowns_allowed,
+                        completions, passing_touchdowns, rushing_touchdowns,
+                        two_point_conversion_succeeded, points_against_defense_special_teams
                     ) VALUES (
                         %(team_id)s, %(game_id)s, %(league)s, %(score)s, %(sacks)s, %(safeties)s,
                         %(penalties_total)s, %(penalties_yards)s, %(turnovers)s, %(first_downs)s,
@@ -114,7 +128,10 @@ def insert_football_team_stats(team_stats: Union[FootballTeamStats, List[Footbal
                         %(blocked_punt_touchdowns)s, %(interception_touchdowns)s,
                         %(fumble_return_touchdowns)s, %(defense_fumble_recoveries)s,
                         %(field_goal_return_touchdowns)s, %(two_point_conversion_returns)s,
-                        %(two_point_conversion_attempts)s
+                        %(two_point_conversion_attempts)s, %(passing_yards_allowed)s, %(completions_allowed)s,
+                        %(rushing_yards_allowed)s, %(passing_touchdowns_allowed)s, %(rushing_touchdowns_allowed)s,
+                        %(completions)s, %(passing_touchdowns)s, %(rushing_touchdowns)s,
+                        %(two_point_conversion_succeeded)s, %(points_against_defense_special_teams)s
                     )
                     RETURNING team_id, game_id;
                 """
