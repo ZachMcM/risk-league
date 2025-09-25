@@ -1,4 +1,4 @@
-import { and, desc, eq, gt, gte, lt, notInArray, inArray } from "drizzle-orm";
+import { and, desc, eq, gt, gte, lt, notInArray, inArray, asc } from "drizzle-orm";
 import { Router } from "express";
 import moment from "moment";
 import { db } from "../db";
@@ -213,7 +213,7 @@ propsRoute.get(
             eq(fromTable.status, "ACT")
           )
         )
-        .orderBy(desc(game.startTime))
+        .orderBy(asc(game.startTime))
         .limit(5);
 
       const propsWithPastResults = extendedAvailableProps.map((prop) => {

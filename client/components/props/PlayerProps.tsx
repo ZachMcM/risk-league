@@ -144,7 +144,7 @@ function PropAccordion({
                       <Text className="text-lg font-semibold text-center">
                         {result.value}
                       </Text>
-                      <Text className="!text-sm text-muted-foreground text-center">
+                      <Text className="text-sm text-muted-foreground text-center">
                         {gameDate}
                       </Text>
                     </View>
