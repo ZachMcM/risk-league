@@ -957,7 +957,6 @@ export const footballTeamStats = pgTable(
     totalYards: doublePrecision("total_yards").default(0.0).notNull(),
     blockedKicks: integer("blocked_kicks").default(0).notNull(),
     blockedPunts: integer("blocked_punts").default(0).notNull(),
-    kicksBlocked: integer("kicks_blocked").default(0).notNull(),
     passingYards: integer("passing_yards").default(0).notNull(),
     puntsBlocked: integer("punts_blocked").default(0).notNull(),
     rushingYards: integer("rushing_yards").default(0).notNull(),

@@ -1,0 +1,1 @@
+ALTER TABLE "football_team_stats" DROP COLUMN "kicks_blocked";
