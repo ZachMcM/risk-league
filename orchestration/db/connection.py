@@ -10,7 +10,7 @@ _pool = None
 _pool_lock = threading.Lock()
 
 _async_pool = None
-_async_pool_lock = None
+_async_pool_lock = asyncio.Lock()
 
 
 def get_pool():
@@ -52,26 +52,24 @@ async def get_async_pool():
     global _async_pool, _async_pool_lock
 
     if _async_pool is None:
-        # Initialize lock if not already done
-        if _async_pool_lock is None:
-            _async_pool_lock = asyncio.Lock()
-
         async with _async_pool_lock:
             if _async_pool is None:
-                database_url = getenv_required("DATABASE_URL")
-                _async_pool = AsyncConnectionPool(
-                    database_url,
-                    min_size=2,
-                    max_size=15,  # Lower for PlanetScale
-                    timeout=30.0,  # Shorter timeout for PlanetScale
-                    max_idle=60.0,  # 1 minute - PlanetScale friendly
-                    max_lifetime=1800.0,  # 30 minutes - prevent stale connections
-                    reconnect_timeout=2.0,  # Fast reconnection
-                    open=False,
-                )
-                await _async_pool.open()
-                atexit.register(close_async_pool_sync)
-                logger.info("Async database connection pool created")
+                try:
+                    database_url = getenv_required("DATABASE_URL")
+                    _async_pool = AsyncConnectionPool(
+                        database_url,
+                        min_size=2,
+                        max_size=15,
+                        timeout=30.0,
+                        max_idle=300.0,  # Match sync pool settings
+                        max_lifetime=1800.0,  # 30 minutes - prevent stale connections
+                        reconnect_timeout=2.0,  # Fast reconnection
+                    )
+                    atexit.register(close_async_pool_sync)
+                    logger.info("Async database connection pool created successfully")
+                except Exception as e:
+                    logger.error(f"Failed to create async connection pool: {e}")
+                    raise
     return _async_pool
 
 
@@ -108,8 +106,12 @@ async def close_async_pool():
 
 async def get_async_connection_context():
     """Get an async connection context manager from the pool"""
-    pool = await get_async_pool()
-    return pool.connection()
+    try:
+        pool = await get_async_pool()
+        return pool.connection()
+    except Exception as e:
+        logger.error(f"Failed to get async connection context: {e}")
+        raise
 
 
 async def get_healthy_async_connection():
