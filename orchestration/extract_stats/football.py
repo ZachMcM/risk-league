@@ -151,7 +151,7 @@ def extract_football_team_stats(game, team, league):
         "passing_yards": team_stats.get("passing_yards", 0),
         "punts_blocked": team_stats.get("punts_blocked", 0),
         "rushing_yards": team_stats.get("rushing_yards", 0),
-        "defense_touchdowns": team_stats.get("defense_interceptions", 0),
+        "defense_touchdowns": team_stats.get("defense_touchdowns", 0),
         "defense_interceptions": team_stats.get("defense_interceptions", 0),
         "kick_return_touchdowns": team_stats.get("kick_return_touchdowns", 0),
         "punt_return_touchdowns": team_stats.get("punt_return_touchdowns", 0),
