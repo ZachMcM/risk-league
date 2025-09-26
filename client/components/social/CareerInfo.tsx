@@ -122,11 +122,11 @@ export default function CareerInfo({ userId }: { userId: string }) {
                     <Text className="font-bold text-lg">
                       {career.parlayStats.total == 0
                         ? "0%"
-                        : `${Math.round(
+                        : `${(
                             (career.parlayStats.wins /
                               career.parlayStats.total) *
-                              100
-                          )}%`}
+                            100
+                          ).toFixed(2)}%`}
                     </Text>
                   </View>
                   <Progress
@@ -157,9 +157,7 @@ export default function CareerInfo({ userId }: { userId: string }) {
                       <Star className="text-muted-foreground" size={16} />
                     </View>
                     <View className="flex flex-col gap-1 items-center">
-                      <PlayerImage
-                        image={career.mostBetPlayer.player.image}
-                      />
+                      <PlayerImage image={career.mostBetPlayer.player.image} />
                       <Text className="text-2xl font-bold text-center">
                         {career.mostBetPlayer.player.name}
                       </Text>
@@ -219,8 +217,10 @@ export default function CareerInfo({ userId }: { userId: string }) {
                     <Text className="font-bold text-2xl text-primary text-center">
                       {career.matchStats.total == 0
                         ? 0
-                        : (career.matchStats.wins / career.matchStats.total) *
-                          100}
+                        : (
+                            (career.matchStats.wins / career.matchStats.total) *
+                            100
+                          ).toFixed(2)}
                       %
                     </Text>
                     <Text className="text-muted-foreground text-center">
@@ -231,8 +231,11 @@ export default function CareerInfo({ userId }: { userId: string }) {
                     <Text className="font-bold text-2xl text-primary text-center">
                       {career.parlayStats.total == 0
                         ? 0
-                        : (career.parlayStats.wins / career.parlayStats.total) *
-                          100}
+                        : (
+                            (career.parlayStats.wins /
+                              career.parlayStats.total) *
+                            100
+                          ).toFixed(2)}
                       %
                     </Text>
                     <Text className="text-muted-foreground text-center">
