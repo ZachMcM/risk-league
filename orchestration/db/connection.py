@@ -21,8 +21,14 @@ def get_pool():
             if _pool is None:
                 database_url = getenv_required("DATABASE_URL")
                 _pool = ConnectionPool(
-                    database_url, min_size=1, max_size=15, timeout=30.0, max_idle=300.0
+                    database_url,
+                    min_size=1,
+                    max_size=15,
+                    timeout=30.0,
+                    max_idle=300.0,
+                    open=False,
                 )
+                _pool.open()
                 atexit.register(close_pool)
                 logger.info("Database connection pool created")
     return _pool
@@ -64,7 +70,9 @@ async def get_async_pool():
                         max_idle=300.0,  # Match sync pool settings
                         max_lifetime=1800.0,  # 30 minutes - prevent stale connections
                         reconnect_timeout=2.0,  # Fast reconnection
+                        open=False,
                     )
+                    await _async_pool.open()
                     atexit.register(close_async_pool_sync)
                     logger.info("Async database connection pool created successfully")
                 except Exception as e:
