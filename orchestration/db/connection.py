@@ -62,8 +62,8 @@ async def get_async_pool():
                 _async_pool = AsyncConnectionPool(
                     database_url,
                     min_size=2,
-                    max_size=8,  # Lower for PlanetScale
-                    timeout=15.0,  # Shorter timeout for PlanetScale
+                    max_size=15,  # Lower for PlanetScale
+                    timeout=30.0,  # Shorter timeout for PlanetScale
                     max_idle=60.0,  # 1 minute - PlanetScale friendly
                     max_lifetime=1800.0,  # 30 minutes - prevent stale connections
                     reconnect_timeout=2.0,  # Fast reconnection
