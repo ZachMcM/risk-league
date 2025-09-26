@@ -16,7 +16,7 @@ logger = setup_logger(__name__)
 MIN_PARLAYS_REQUIRED = 2
 MIN_PCT_TOTAL_STAKED = 0.5
 K = 32  # Elo rating constant
-
+BATTLE_PASS_ID = 1
 
 class MatchUserResult(TypedDict):
     id: int
@@ -491,6 +491,8 @@ async def _publish_match_resolved_messages(
         ["user", user2_id, "rank"],
         ["career", user1_id],
         ["career", user2_id],
+        ["battle-pass", BATTLE_PASS_ID, "progress", user1_id],
+        ["battle-pass", BATTLE_PASS_ID, "progress", user2_id]
     ]
 
     publish_tasks.append(
