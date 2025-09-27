@@ -21,6 +21,7 @@ from prop_generation.configs.basketball import (
     get_basketball_stats_list,
 )
 from time import time
+import sys
 
 VALID_FOOTBALL_STATS = get_football_stats_list()
 VALID_BASKETBALL_STATS = get_basketball_stats_list()
@@ -37,7 +38,7 @@ LEAGUE_VALID_STATS = {
 logger = setup_logger(__name__)
 
 # Semaphore to limit concurrent handlers and prevent connection pool exhaustion
-_semaphore = asyncio.Semaphore(6)
+_semaphore = asyncio.Semaphore(8)
 
 
 class StatEntry(TypedDict):
@@ -264,15 +265,15 @@ async def handle_stats_updated_safe(data):
             logger.error(f"Error handling stats_updated message: {e}", exc_info=True)
 
 
-async def listen_for_stats_updated():
+async def listen_for_stats_updated(provided_league: str):
     """Function that listens for stats updated messages on the redis server"""
     while True:
         redis_subscriber = None
         try:
             redis_subscriber = await create_async_redis_client()
-            logger.info("Listening for stats updated messages...")
+            logger.info(f"Listening for stats updated {provided_league} messages...")
             await listen_for_messages_async(
-                redis_subscriber, "stats_updated", handle_stats_updated_safe
+                redis_subscriber, f"stats_updated_{provided_league}", handle_stats_updated_safe
             )
         except Exception as e:
             logger.error(f"Error in listener, restarting: {e}")
@@ -285,7 +286,13 @@ async def listen_for_stats_updated():
 async def main():
     """Main function that listens for stats updated messages."""
     try:
-        await listen_for_stats_updated()
+        if len(sys.argv) < 2:
+            logger.error("You need to provide a league command line arg")
+            sys.exit(1)
+
+        provided_league = sys.argv[1]   
+    
+        await listen_for_stats_updated(provided_league)
     except KeyboardInterrupt:
         logger.warning("Shutting down props_worker...")
         # Ensure pool cleanup on shutdown

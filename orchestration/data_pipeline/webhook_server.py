@@ -62,6 +62,6 @@ async def handle_webhook(
 
     # Use async Redis client
     redis_client = await get_redis_client()
-    await publish_message_async(redis_client, "stats_updated", {"league": league_id})
+    await publish_message_async(redis_client, f"stats_updated_{league_id}", {"league": league_id})
 
     return {"success": True}
