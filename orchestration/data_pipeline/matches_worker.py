@@ -13,6 +13,9 @@ import traceback
 
 logger = setup_logger(__name__)
 
+# Semaphore to limit concurrent handlers and prevent connection pool exhaustion
+_semaphore = asyncio.Semaphore(8)
+
 MIN_PARLAYS_REQUIRED = 2
 MIN_PCT_TOTAL_STAKED = 0.5
 K = 32  # Elo rating constant
@@ -125,11 +128,14 @@ async def handle_parlay_resolved(data):
 
                     match_id = match_res[0]
 
-                    # Check if match is already resolved
-                    if match_res[3]:  # match_resolved
+                    # Acquire exclusive lock on match to prevent concurrent resolution
+                    await cur.execute("SELECT id FROM match WHERE id = %s AND resolved = false FOR UPDATE", (match_id,))
+                    lock_result = await cur.fetchone()
+                    if not lock_result:
                         logger.info(f"Match {match_id} is already resolved")
                         await cur.execute("COMMIT")
                         return
+
 
                     # Get all match users with parlays
                     match_users_query = """
@@ -557,11 +563,14 @@ async def handle_match_check(data):
                         await cur.execute("ROLLBACK")
                         return
 
-                    # Check if match is already resolved
-                    if match_res[3]:  # match_resolved
+                    # Acquire exclusive lock on match to prevent concurrent resolution
+                    await cur.execute("SELECT id FROM match WHERE id = %s AND resolved = false FOR UPDATE", (match_id,))
+                    lock_result = await cur.fetchone()
+                    if not lock_result:
                         logger.info(f"Match {match_id} is already resolved")
                         await cur.execute("COMMIT")
                         return
+
 
                     # Get all match users with parlays
                     match_users_query = """
@@ -694,19 +703,21 @@ async def handle_match_check(data):
 
 async def handle_parlay_resolved_safe(data):
     """Safe wrapper for handle_parlay_resolved that prevents listener crashes"""
-    try:
-        await handle_parlay_resolved(data)
-    except Exception as e:
-        logger.error(f"Error handling parlay_resolved message: {e}", exc_info=True)
-        logger.error(f"Full traceback: {traceback.format_exc()}")
+    async with _semaphore:
+        try:
+            await handle_parlay_resolved(data)
+        except Exception as e:
+            logger.error(f"Error handling parlay_resolved message: {e}", exc_info=True)
+            logger.error(f"Full traceback: {traceback.format_exc()}")
 
 async def handle_match_check_safe(data):
     """Safe wrapper for handle_match_check that prevents listener crashes"""
-    try:
-        await handle_match_check(data)
-    except Exception as e:
-        logger.error(f"Error handling match_check message: {e}", exc_info=True)
-        logger.error(f"Full traceback: {traceback.format_exc()}")
+    async with _semaphore:
+        try:
+            await handle_match_check(data)
+        except Exception as e:
+            logger.error(f"Error handling match_check message: {e}", exc_info=True)
+            logger.error(f"Full traceback: {traceback.format_exc()}")
 
 async def listen_for_parlay_resolved():
     """Function that listens for a parlay_resolved message on redis"""

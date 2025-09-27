@@ -11,6 +11,9 @@ from time import time
 
 logger = setup_logger(__name__)
 
+# Semaphore to limit concurrent handlers and prevent connection pool exhaustion
+_semaphore = asyncio.Semaphore(8)
+
 
 class PickResult(TypedDict):
     id: int
@@ -375,10 +378,11 @@ async def _publish_parlay_resolved_messages(
 
 async def handle_pick_resolved_safe(data):
     """Safe wrapper for handle_pick_resolved that prevents listener crashes"""
-    try:
-        await handle_pick_resolved(data)
-    except Exception as e:
-        logger.error(f"Error handling pick_resolved message: {e}", exc_info=True)
+    async with _semaphore:
+        try:
+            await handle_pick_resolved(data)
+        except Exception as e:
+            logger.error(f"Error handling pick_resolved message: {e}", exc_info=True)
 
 
 async def listen_for_pick_resolved():

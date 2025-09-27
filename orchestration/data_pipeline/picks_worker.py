@@ -10,6 +10,9 @@ from time import time
 
 logger = setup_logger(__name__)
 
+# Semaphore to limit concurrent handlers and prevent connection pool exhaustion
+_semaphore = asyncio.Semaphore(12)
+
 
 async def handle_prop_updated(data):
     """Handle incoming prop_updated messages asynchronously"""
@@ -182,10 +185,11 @@ async def handle_prop_updated(data):
 
 async def handle_prop_updated_safe(data):
     """Safe wrapper for handle_prop_updated that prevents listener crashes"""
-    try:
-        await handle_prop_updated(data)
-    except Exception as e:
-        logger.error(f"Error handling prop_updated message: {e}", exc_info=True)
+    async with _semaphore:
+        try:
+            await handle_prop_updated(data)
+        except Exception as e:
+            logger.error(f"Error handling prop_updated message: {e}", exc_info=True)
 
 
 async def listen_for_prop_updated():
