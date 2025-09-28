@@ -138,7 +138,7 @@ async def process_single_game(game, league):
                             dnp_select_query = """
                                 SELECT id, player_id, game_id
                                 FROM prop
-                                WHERE game_id = %s AND status = 'not_resolved'
+                                WHERE game_id = %s AND (status = 'not_resolved' OR status = 'did_not_play')
                             """
                             await cur.execute(dnp_select_query, (game_id,))
                             all_game_props = await cur.fetchall()
