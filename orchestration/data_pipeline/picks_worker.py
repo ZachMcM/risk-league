@@ -10,8 +10,6 @@ from time import time
 
 logger = setup_logger(__name__)
 
-# Semaphore to limit concurrent handlers and prevent connection pool exhaustion
-_semaphore = asyncio.Semaphore(12)
 
 async def handle_prop_updated(data):
     """Handle incoming prop_updated messages asynchronously"""
@@ -132,9 +130,7 @@ async def handle_prop_updated(data):
                             WHERE prop_id = %s
                         """
 
-                        await cur.execute(
-                            related_picks_query, (updated_prop["id"],)
-                        )
+                        await cur.execute(related_picks_query, (updated_prop["id"],))
                         related_picks_res_list = await cur.fetchall()
 
                         for related_picks_res in related_picks_res_list:
@@ -174,19 +170,20 @@ async def handle_prop_updated(data):
         logger.error(f"Error handling prop update: {e}")
     finally:
         await redis_publisher.aclose()
-        
+
     end_time = time()
     if picks_to_invalidate:
-        logger.info(f"Updated/invalidated {len(picks_to_invalidate)} picks related to prop_id {prop_id}. Completed in {end_time - start_time:.2f}s")
+        logger.info(
+            f"Updated/invalidated {len(picks_to_invalidate)} picks related to prop_id {prop_id}. Completed in {end_time - start_time:.2f}s"
+        )
 
 
 async def handle_prop_updated_safe(data):
     """Safe wrapper for handle_prop_updated that prevents listener crashes"""
-    async with _semaphore:
-        try:
-            await handle_prop_updated(data)
-        except Exception as e:
-            logger.error(f"Error handling prop_updated message: {e}", exc_info=True)
+    try:
+        await handle_prop_updated(data)
+    except Exception as e:
+        logger.error(f"Error handling prop_updated message: {e}", exc_info=True)
 
 
 async def listen_for_prop_updated():
@@ -215,11 +212,13 @@ async def main():
         logger.warning("Shutting down picks_worker...")
         # Ensure pool cleanup on shutdown
         from db.connection import close_async_pool
+
         await close_async_pool()
     except Exception as e:
         logger.error(f"Error in main: {e}")
         # Ensure pool cleanup on error
         from db.connection import close_async_pool
+
         await close_async_pool()
 
 
