@@ -38,7 +38,7 @@ export default function PropCard({ prop }: { prop: Prop }) {
             <PlayerImage image={prop.player.image} className="h-16 w-16" />
             <Text className="font-bold text-center">
               {formatName(prop.player.name).firstName[0]}.{" "}
-              {formatName(prop.player.name).lastName}
+              {formatName(prop.player.name).lastName} • {prop.player.position}
             </Text>
             <Text className="text-muted-foreground text-sm text-center font-normal">
               {prop.game.homeTeamId == prop.player.teamId
