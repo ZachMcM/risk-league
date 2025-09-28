@@ -8,17 +8,22 @@ export const authMiddleware = async (
   res: Response,
   next: NextFunction
 ) => {
-  const session = await auth.api.getSession({
-    headers: fromNodeHeaders(req.headers),
-  });
+  try {
+    const session = await auth.api.getSession({
+      headers: fromNodeHeaders(req.headers),
+    });
 
-  if (!session) {
-    res.status(401).json({ error: "Unauthorized" });
-    return;
+    if (!session) {
+      res.status(401).json({ error: "Unauthorized" });
+      return;
+    }
+
+    res.locals.userId = session.user.id;
+    next();
+  } catch (error) {
+    console.error("Failed to get session:", error);
+    res.status(503).json({ error: "Service temporarily unavailable" });
   }
-
-  res.locals.userId = session.user.id;
-  next();
 };
 
 export const apiKeyMiddleware = async (
