@@ -234,15 +234,17 @@ async def handle_pick_resolved(data):
                             WHERE id = %s
                         """
 
-                        await cur.execute(
-                            update_balance_query, (payout, parlay_res[4])
-                        )
+                        await cur.execute(update_balance_query, (payout, parlay_res[4]))
 
                         # Check if the update affected any rows
                         if cur.rowcount == 0:
-                            logger.error(f"No match_user found with id {parlay_res[4]} - balance not updated")
+                            logger.error(
+                                f"No match_user found with id {parlay_res[4]} - balance not updated"
+                            )
                         else:
-                            logger.info(f"Updated balance for match_user {parlay_res[4]} by {payout} (affected {cur.rowcount} rows)")
+                            logger.info(
+                                f"Updated balance for match_user {parlay_res[4]} by {payout} (affected {cur.rowcount} rows)"
+                            )
 
                         user_context = {
                             "type": "match",
@@ -258,15 +260,17 @@ async def handle_pick_resolved(data):
                             WHERE id = %s
                         """
 
-                        await cur.execute(
-                            update_balance_query, (payout, parlay_res[5])
-                        )
+                        await cur.execute(update_balance_query, (payout, parlay_res[5]))
 
                         # Check if the update affected any rows
                         if cur.rowcount == 0:
-                            logger.error(f"No dynasty_league_user found with id {parlay_res[5]} - balance not updated")
+                            logger.error(
+                                f"No dynasty_league_user found with id {parlay_res[5]} - balance not updated"
+                            )
                         else:
-                            logger.info(f"Updated balance for dynasty_league_user {parlay_res[5]} by {payout} (affected {cur.rowcount} rows)")
+                            logger.info(
+                                f"Updated balance for dynasty_league_user {parlay_res[5]} by {payout} (affected {cur.rowcount} rows)"
+                            )
 
                         user_context = {
                             "type": "dynasty_league",
@@ -368,6 +372,10 @@ async def _publish_parlay_resolved_messages(
                     },
                 },
             )
+        )
+
+        publish_tasks.append(
+            publish_message_async(redis_publisher, "parlay_resolved", {"id": parlay_id})
         )
 
     # Execute all Redis publishes in parallel

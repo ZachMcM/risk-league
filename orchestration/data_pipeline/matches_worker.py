@@ -76,9 +76,9 @@ def recalculate_points(current_points: List[float], winner: Optional[int]) -> Li
 async def handle_parlay_resolved(data):
     """Handles incoming parlay_resolved messages asynchronously"""
     start_time = time()
-    parlay_id = data.get("parlayId")
+    parlay_id = data.get("id")
     if not parlay_id:
-        logger.error("Received parlay_resolved message without parlayId")
+        logger.error("Received parlay_resolved message without id")
         return
 
     redis_publisher = await create_async_redis_client()
