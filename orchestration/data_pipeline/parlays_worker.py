@@ -160,7 +160,6 @@ async def handle_pick_resolved(data):
 
                     # Check if parlay is already resolved after acquiring lock
                     if locked_parlay and locked_parlay[1]:  # resolved column
-                        logger.info(f"Parlay {parlay_res[0]} is already resolved")
                         await cur.execute("COMMIT")
                         return
 

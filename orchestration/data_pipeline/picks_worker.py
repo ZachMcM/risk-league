@@ -179,8 +179,6 @@ async def handle_prop_updated(data):
     end_time = time()
     if picks_to_invalidate:
         logger.info(f"Updated/invalidated {len(picks_to_invalidate)} picks related to prop_id {prop_id}. Completed in {end_time - start_time:.2f}s")
-    else:
-        logger.info(f"No picks to update for prop_id {prop_id}. Completed in {end_time - start_time:.2f}s")
 
 
 async def handle_prop_updated_safe(data):
