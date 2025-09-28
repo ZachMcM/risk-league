@@ -12,7 +12,7 @@ from time import time
 logger = setup_logger(__name__)
 
 # Semaphore to limit concurrent handlers and prevent connection pool exhaustion
-_semaphore = asyncio.Semaphore(8)
+_semaphore = asyncio.Semaphore(15)
 
 
 class PickResult(TypedDict):
