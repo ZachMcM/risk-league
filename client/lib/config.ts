@@ -228,6 +228,30 @@ export const propStats = [
     displayName: "Passing+Rushing TDs",
     leagues: ["NFL", "NCAAFB"],
   },
+  {
+    displayName: "Completions",
+    leagues: ["NFL", "NCAAFB"],
+  },
+  {
+    displayName: "Passing Attempts",
+    leagues: ["NFL", "NCAAFB"],
+  },
+  {
+    displayName: "Rushing Attempts",
+    leagues: ["NFL", "NCAAFB"],
+  },
+  {
+    displayName: "Rushing Long",
+    leagues: ["NFL", "NCAAFB"],
+  },
+  {
+    displayName: "Receiving Long",
+    leagues: ["NFL", "NCAAFB"],
+  },
+  {
+    displayName: "Receptions",
+    leagues: ["NFL", "NCAAFB"],
+  },
 ];
 
 
