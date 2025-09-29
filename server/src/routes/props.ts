@@ -213,7 +213,7 @@ propsRoute.get(
             eq(fromTable.status, "ACT")
           )
         )
-        .orderBy(asc(game.startTime))
+        .orderBy(desc(game.startTime))
         .limit(5);
 
       const propsWithPastResults = extendedAvailableProps.map((prop) => {
