@@ -157,7 +157,7 @@ export default function Home() {
             </View>
           )
         )}
-        {/* <BannerAdWrapper /> */}
+        <BannerAdWrapper />
         <CompetitiveMatchLeagues />
       </View>
     </ScrollContainer>
