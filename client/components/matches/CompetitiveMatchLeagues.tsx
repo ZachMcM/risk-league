@@ -25,7 +25,7 @@ export default function CompetitiveMatchLeagues() {
     .map(item => item.league);
 
   return (
-    <View className="flex flex-col px-6 gap-4 w-full">
+    <View className="flex flex-1 flex-col px-6 gap-4 w-full">
       <Text className="text-3xl font-bold">Competitive</Text>
       <ScrollView
         horizontal

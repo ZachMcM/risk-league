@@ -2,7 +2,13 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
 import moment from "moment";
 import { Fragment, useEffect, useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, View } from "react-native";
+import {
+  ActivityIndicator,
+  Keyboard,
+  Pressable,
+  ScrollView,
+  View,
+} from "react-native";
 import { FakeCurrencyInput } from "react-native-currency-input";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
@@ -163,6 +169,7 @@ export default function FinalizeParlayForm({
       setFormError(err);
       return;
     }
+    Keyboard.dismiss();
     createParlay();
   }
 
@@ -233,6 +240,7 @@ export default function FinalizeParlayForm({
                           delimiter=","
                           separator="."
                           precision={2}
+                          onSubmitEditing={handleSubmitParlay}
                           style={{
                             color: "hsl(223.8136 0.0004% 98.0256%)",
                             fontWeight: 500,
@@ -379,11 +387,13 @@ export default function FinalizeParlayForm({
               {(totalStaked < minTotalStaked || totalParlays < minParlays) && (
                 <Text className="font-semibold text-destructive text-center">
                   {totalStaked < minTotalStaked &&
-                    `You need to stake $${Math.ceil(minTotalStaked - totalStaked)} more. `}
+                    `You need to stake $${Math.ceil(
+                      minTotalStaked - totalStaked
+                    )} more. `}
                   {totalParlays < minParlays &&
-                    `You need to place ${
-                      Math.ceil(minParlays - totalParlays)
-                    } more parlays`}
+                    `You need to place ${Math.ceil(
+                      minParlays - totalParlays
+                    )} more parlays`}
                 </Text>
               )}
               {formError && (
