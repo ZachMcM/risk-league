@@ -77,6 +77,7 @@ export default function SignUp() {
       {
         onError: ({ error }) => {
           toast.error(error.message);
+          setIsLoading(false)
         },
         onRequest: () => {
           setIsLoading(true);

@@ -54,6 +54,7 @@ export default function SignIn() {
       {
         onError: ({ error, response, request }) => {
           toast.error(error.message ?? response.text);
+          setIsLoading(false)
         },
         onRequest: () => {
           setIsLoading(true);

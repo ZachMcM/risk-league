@@ -90,8 +90,8 @@ export default function ResetPassword() {
     <Container>
       <View className="flex flex-1 w-full justify-center items-center gap-4 p-6">
         <View className="flex flex-col items-center gap-1">
-          <Text className="text-4xl font-bold">Reset Password</Text>
-          <Text className="text-muted-foreground text-xl font-semibold">
+          <Text className="text-4xl font-bold text-center">Reset Password</Text>
+          <Text className="text-muted-foreground text-xl text-center font-semibold">
             Reset your Risk League account password
           </Text>
         </View>
