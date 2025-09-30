@@ -371,9 +371,10 @@ async def _publish_parlay_resolved_messages(
             )
         )
 
-        publish_tasks.append(
-            publish_message_async(redis_publisher, "parlay_resolved", {"id": parlay_id})
-        )
+    # Publish parlay_resolved message for match resolution (applies to both match and dynasty league)
+    publish_tasks.append(
+        publish_message_async(redis_publisher, "parlay_resolved", {"id": parlay_id})
+    )
 
     # Execute all Redis publishes in parallel
     if publish_tasks:
