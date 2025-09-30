@@ -67,27 +67,21 @@ export default function SignUp() {
   const [isLoading, setIsLoading] = useState(false);
 
   async function onSubmit({ email, username, password, name }: FormValues) {
-    await authClient.signUp.email(
+    setIsLoading(true)
+    const { error } = await authClient.signUp.email(
       {
         email,
         username,
         password,
         name,
       },
-      {
-        onError: ({ error }) => {
-          toast.error(error.message);
-          setIsLoading(false)
-        },
-        onRequest: () => {
-          setIsLoading(true);
-        },
-        onSuccess: () => {
-          toast.success("Successfully signed up");
-          setIsLoading(false);
-        },
-      }
     );
+    setIsLoading(false)
+    if (error) {
+      toast.error(error.message ?? "An error occurred, please try again.");
+    } else {
+      toast.success("Successfully signed up");
+    }
   }
 
   return (

@@ -23,7 +23,7 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>;
 
-export default function SignIn() {
+export default function ForgotPassword() {
   const { control, handleSubmit } = useForm({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -34,25 +34,21 @@ export default function SignIn() {
   const [isPending, setIsPending] = useState(false);
 
   async function onSubmit({ email }: FormValues) {
-    await authClient.requestPasswordReset(
-      {
-        email,
-        redirectTo: "riskleague://reset-password",
-      },
-      {
-        onRequest: () => {
-          setIsPending(true);
-        },
-        onError: ({ error }) => {
-          setIsPending(false);
-          toast.error(error.message);
-        },
-        onSuccess: () => {
-          setIsPending(false);
-          toast.success("Successfully sent reset password email");
-        },
-      }
-    );
+    setIsPending(true);
+    const { error } = await authClient.forgetPassword.emailOtp({
+      email,
+    });
+
+    setIsPending(false);
+    if (error) {
+      toast.error(error.message ?? "An error occurred, please try again.");
+    } else {
+      toast.success("Successfully sent otp password email");
+      router.navigate({
+        pathname: "/reset-password",
+        params: { email },
+      });
+    }
   }
 
   return (
@@ -95,7 +91,9 @@ export default function SignIn() {
             className="flex-row gap-2 items-center"
           >
             <Text className="font-bold">Forgot Password</Text>
-            {isPending && <ActivityIndicator className="text-primary-foreground" />}
+            {isPending && (
+              <ActivityIndicator className="text-primary-foreground" />
+            )}
           </Button>
         </View>
         <Pressable

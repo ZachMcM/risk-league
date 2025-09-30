@@ -131,7 +131,14 @@ export function RootNavigatior() {
           }}
         />
       </Stack.Protected>
-      <Stack.Protected guard={currentUserData != null && !isSessionPending}>
+      <Stack.Protected guard={currentUserData == null && !isSessionPending}>
+        <Stack.Screen name="index" options={{ headerShown: false }} />
+        <Stack.Screen name="signin" options={{ headerShown: false }} />
+        <Stack.Screen name="signup" options={{ headerShown: false }} />
+        <Stack.Screen name="reset-password" options={{ headerShown: false }} />
+        <Stack.Screen name="forgot-password" options={{ headerShown: false }} />
+      </Stack.Protected>
+      <Stack.Protected guard={currentUserData !== null && !isSessionPending}>
         <Stack.Screen
           name="(tabs)"
           options={{
@@ -181,13 +188,6 @@ export function RootNavigatior() {
           name="image-locker"
           options={{ headerShown: false, presentation: "modal" }}
         />
-      </Stack.Protected>
-      <Stack.Protected guard={currentUserData == null && !isSessionPending}>
-        <Stack.Screen name="index" options={{ headerShown: false }} />
-        <Stack.Screen name="signin" options={{ headerShown: false }} />
-        <Stack.Screen name="signup" options={{ headerShown: false }} />
-        <Stack.Screen name="reset-password" options={{ headerShown: false }} />
-        <Stack.Screen name="forgot-password" options={{ headerShown: false }} />
       </Stack.Protected>
     </Stack>
   );

@@ -46,25 +46,17 @@ export default function SignIn() {
   const [isLoading, setIsLoading] = useState(false);
 
   async function onSubmit({ username, password }: FormValues) {
-    await authClient.signIn.username(
-      {
-        username,
-        password,
-      },
-      {
-        onError: ({ error, response, request }) => {
-          toast.error(error.message ?? response.text);
-          setIsLoading(false)
-        },
-        onRequest: () => {
-          setIsLoading(true);
-        },
-        onSuccess: () => {
-          toast.success("Successfully signed in");
-          setIsLoading(false);
-        },
-      }
-    );
+    setIsLoading(true);
+    const { error } = await authClient.signIn.username({
+      username,
+      password,
+    });
+    setIsLoading(false);
+    if (error) {
+      toast.error(error.message ?? "An error occurred, please try again.");
+    } else {
+      toast.success("Successfully signed in");
+    }
   }
 
   const { isPending } = authClient.useSession();
