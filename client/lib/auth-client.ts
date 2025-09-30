@@ -29,6 +29,11 @@ export const authClient = createAuthClient({
           input: false,
           required: false,
         },
+        expoPushToken: {
+          type: "string",
+          input: false,
+          required: false
+        }
       },
     }),
   ],

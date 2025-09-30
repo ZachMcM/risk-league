@@ -62,7 +62,9 @@ subClientForHandlers
 
     subClientForHandlers.subscribe("notification", async (message) => {
       try {
-        const { receiverIdsList, event, data, pushNotification } = JSON.parse(message) as {
+        const { receiverIdsList, event, data, pushNotification } = JSON.parse(
+          message
+        ) as {
           receiverIdsList: string[];
           event: string;
           data: any;

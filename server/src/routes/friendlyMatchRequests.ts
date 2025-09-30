@@ -13,7 +13,10 @@ import { io } from "..";
 import { invalidateQueries } from "../utils/invalidateQueries";
 import { createMatch } from "../sockets/matchmaking";
 import { handleError } from "../utils/handleError";
-import { sendPushNotification, sendPushNotifications } from "../pushNotifications";
+import {
+  sendPushNotification,
+  sendPushNotifications,
+} from "../pushNotifications";
 
 export const friendlyMatchRequestsRoute = Router();
 
@@ -165,7 +168,9 @@ friendlyMatchRequestsRoute.patch(
         sendPushNotification(
           recipientId,
           "Match Request Declined",
-          `${userResult?.username || "Someone"} declined your friendly match request`,
+          `${
+            userResult?.username || "Someone"
+          } declined your friendly match request`,
           { league: updatedRequest.league }
         );
 

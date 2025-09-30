@@ -193,8 +193,15 @@ export async function createBotParlay(botId: string, matchId: number) {
       sendPushNotification(
         otherMatchUser.user.id,
         "Opponent Parlay Placed",
-        `${botAcc?.username || "Bot"} placed a ${parlayData.selectedProps.length}-leg ${parlayData.type} parlay!`,
-        { matchId, stake: parlayData.stake, legs: parlayData.selectedProps.length, type: parlayData.type }
+        `${botAcc?.username || "Bot"} placed a ${
+          parlayData.selectedProps.length
+        }-leg ${parlayData.type} parlay!`,
+        {
+          matchId,
+          stake: parlayData.stake,
+          legs: parlayData.selectedProps.length,
+          type: parlayData.type,
+        }
       );
 
       logger.info(
@@ -253,7 +260,7 @@ export function generateBotParlay(
           multiplier = 0.6 + Math.random() * 0.3;
         }
 
-        stake = minNeeded + (availableBalance * multiplier);
+        stake = minNeeded + availableBalance * multiplier;
       }
     } else {
       stake = Math.floor(botBalance * (0.2 + Math.random() * 0.4));
@@ -338,7 +345,7 @@ export function generateBotParlay(
         multiplier = 0.6 + Math.random() * 0.3;
       }
 
-      stake = minNeeded + (availableBalance * multiplier);
+      stake = minNeeded + availableBalance * multiplier;
     }
   } else {
     stake = Math.floor(botBalance * (0.2 + Math.random() * 0.4));

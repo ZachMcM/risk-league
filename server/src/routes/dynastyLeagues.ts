@@ -724,7 +724,7 @@ dynastyLeaguesRoute.post(
         sendPushNotifications({
           userIds: recipientIds,
           title: "Dynasty League Message",
-          body: `${messageWithUser.user.username || "Someone"}: ${req.body.content.substring(0, 50)}${req.body.content.length > 50 ? "..." : ""}`,
+          body: `${messageWithUser?.user.username || "Someone"}: ${req.body.content.substring(0, 50)}${req.body.content.length > 50 ? "..." : ""}`,
           data: { dynastyLeagueId: parseInt(req.params.id) },
         });
       }

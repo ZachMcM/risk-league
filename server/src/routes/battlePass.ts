@@ -26,7 +26,12 @@ battlePassRoute.post(
         userId: res.locals.userId!,
       });
 
-      invalidateQueries(["battle-pass", battlePassId, "progress", res.locals.userId!]);
+      invalidateQueries([
+        "battle-pass",
+        battlePassId,
+        "progress",
+        res.locals.userId!,
+      ]);
       res.json({ success: true });
     } catch (error) {
       handleError(error, res, "Battle Pass");
@@ -36,7 +41,7 @@ battlePassRoute.post(
 
 battlePassRoute.get("/battle-pass/active", authMiddleware, async (_, res) => {
   try {
-    const now = (new Date()).toISOString();
+    const now = new Date().toISOString();
     const activeBattlePasses = await db.query.battlePass.findMany({
       where: and(
         eq(battlePass.isActive, true),

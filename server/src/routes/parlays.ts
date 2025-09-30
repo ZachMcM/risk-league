@@ -311,13 +311,13 @@ parlaysRoute.post("/parlays", authMiddleware, async (req, res) => {
         },
       }))!;
 
-      const currUser = (await db.query.user.findFirst({
+      const currUser = await db.query.user.findFirst({
         where: eq(user.id, res.locals.userId!),
         columns: {
           username: true,
-          image: true
-        }
-      }))
+          image: true,
+        },
+      });
 
       io.of("/realtime")
         .to(`user:${otherMatchUser.user.id}`)
@@ -334,7 +334,9 @@ parlaysRoute.post("/parlays", authMiddleware, async (req, res) => {
       sendPushNotification(
         otherMatchUser.user.id,
         "Opponent Parlay Placed",
-        `${currUser?.username || "Opponent"} placed a ${picks.length}-leg ${type} parlay!`,
+        `${currUser?.username || "Opponent"} placed a ${
+          picks.length
+        }-leg ${type} parlay!`,
         { matchId, stake, legs: picks.length, type }
       );
 

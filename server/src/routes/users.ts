@@ -19,6 +19,29 @@ import { invalidateQueries } from "../utils/invalidateQueries";
 
 export const usersRoute = Router();
 
+usersRoute.patch("/users/expo-push-token", authMiddleware, async (req, res) => {
+  try {
+    const userId = res.locals.userId!;
+    const expoPushToken = req.query.value;
+
+    if (!expoPushToken || typeof expoPushToken !== "string") {
+      res.status(400).json({ error: "Missing expo push token value" });
+      return;
+    }
+
+    await db
+      .update(user)
+      .set({
+        expoPushToken,
+      })
+      .where(eq(user.id, userId));
+
+    res.json({ success: true });
+  } catch (error) {
+    handleError(error, res, "User");
+  }
+});
+
 usersRoute.patch("/users/banner", authMiddleware, async (req, res) => {
   try {
     const userId = res.locals.userId!;
