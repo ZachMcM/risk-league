@@ -17,13 +17,13 @@ export const auth = betterAuth({
   trustedOrigins: ["riskleague://", "riskleague://reset-password"],
   emailAndPassword: {
     enabled: true,
-    sendResetPassword: async ({ user, url }) => {
+    sendResetPassword: async ({ user, url, token }) => {
       await resend.emails.send({
         from: "Risk League <noreply@auth.riskleague.app>",
         to: user.email,
         subject: "Password Reset from Risk League",
         html: `
-          <p>Click the link to reset your password: <a href="${url}">${url}</a>.</p>
+          <p>Click the link to reset your password: <a href="${url}?token=${token}">${url}?token=${token}</a>.</p>
         `,
       });
     },
