@@ -13,7 +13,7 @@ export default function DynastyHeader() {
   return (
     <View
       style={{ marginTop: insets.top }}
-      className="flex flex-row items-center justify-between p-4"
+      className="flex flex-row items-center justify-between p-6"
     >
       <Text className="font-bold text-4xl">Dynasty</Text>
       <Button

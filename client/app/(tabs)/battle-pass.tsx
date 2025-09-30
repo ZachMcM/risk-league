@@ -188,14 +188,14 @@ export default function BattlePass() {
   }, [battlePassProgress?.currentXp]);
 
   return (
-    <ScrollContainer>
+    <ScrollContainer className="p-0 flex flex-col">
+      <BannerAdWrapper />
       {battlePassProgressPending || allCosmeticsPending ? (
         <ActivityIndicator className="text-foreground" />
       ) : (
         battlePassProgress &&
         allCosmetics && (
-          <View className="flex flex-1 flex-col gap-6">
-            <BannerAdWrapper />
+          <View className="flex flex-1 flex-col gap-6 p-6">
             {battlePassProgress.currentXp === null || nextTier === null ? (
               <Card>
                 <CardContent className="p-4 flex flex-row gap-4 items-center">

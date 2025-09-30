@@ -14,7 +14,7 @@ export default function PageHeader({
   return (
     <View
       style={{ marginTop: insets.top }}
-      className="flex flex-row items-center gap-2 p-4"
+      className="flex flex-row items-center gap-2 p-6"
     >
       <Text className="font-bold text-4xl">{title}</Text>
     </View>

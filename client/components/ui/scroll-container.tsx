@@ -28,7 +28,7 @@ export function ScrollContainer({
         }}
         showsVerticalScrollIndicator={false}
       >
-        <View className={cn("flex flex-1 px-4 pt-2 pb-20", className)}>
+        <View className={cn("flex flex-1 p-6 pb-20", className)}>
           {children}
         </View>
       </ScrollView>

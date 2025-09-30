@@ -19,22 +19,22 @@ export default function Matches() {
   const { data: unresolvedMatchIds, isPending: unresolvedMatchesPending } =
     useQuery({
       queryKey: ["match-ids", currentUserData?.user.id, "unresolved"],
-      queryFn: async () => await getMatchIds(false), 
+      queryFn: async () => await getMatchIds(false),
     });
 
-  const { data: resolvedMatchIds, isPending: resolvedMatchesPending } = useQuery(
-    {
+  const { data: resolvedMatchIds, isPending: resolvedMatchesPending } =
+    useQuery({
       queryKey: ["match-ids", currentUserData?.user.id, "resolved"],
       queryFn: async () => await getMatchIds(true),
-    }
-  );
+    });
 
   const [matchStatus, setMatchStatus] = useState(
     unresolvedMatchIds?.length == 0 ? "completed" : "in-progress"
   );
 
   return (
-    <Container className="pt-4 pb-0 px-0">
+    <Container className="p-0 flex flex-col gap-6">
+      <BannerAdWrapper />
       <Tabs
         value={matchStatus}
         onValueChange={setMatchStatus}
@@ -84,11 +84,6 @@ export default function Matches() {
                 </GridItemWrapper>
               )}
               keyExtractor={(item) => item.toString()}
-              ListHeaderComponent={
-                <GridItemWrapper index={0} numCols={1} gap={16}>
-                  <BannerAdWrapper />
-                </GridItemWrapper>
-              }
             />
           )}
         </TabsContent>
@@ -128,11 +123,6 @@ export default function Matches() {
                 </GridItemWrapper>
               )}
               keyExtractor={(item) => item.toString()}
-              ListHeaderComponent={
-                <GridItemWrapper index={0} numCols={1} gap={16}>
-                  <BannerAdWrapper />
-                </GridItemWrapper>
-              }
             />
           )}
         </TabsContent>

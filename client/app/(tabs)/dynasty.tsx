@@ -57,7 +57,8 @@ export default function Dynasty() {
   }, []);
 
   return (
-    <Container className="pt-4 pb-0 px-0">
+    <Container className="p-0 flex flex-col gap-6">
+      <BannerAdWrapper />
       <Tabs className="flex flex-1 flex-col" value={tab} onValueChange={setTab}>
         <TabsList>
           <TabsTrigger value="my-leagues">
@@ -98,11 +99,6 @@ export default function Dynasty() {
                 );
               }}
               keyExtractor={(item) => item.toString()}
-              ListHeaderComponent={
-                <GridItemWrapper index={0} numCols={1} gap={16}>
-                  <BannerAdWrapper />
-                </GridItemWrapper>
-              }
             />
           )}
         </TabsContent>
@@ -150,11 +146,6 @@ export default function Dynasty() {
                 </GridItemWrapper>
               )}
               keyExtractor={(item) => `search-${item.id}`}
-              ListHeaderComponent={
-                <GridItemWrapper index={0} numCols={1} gap={16}>
-                  <BannerAdWrapper />
-                </GridItemWrapper>
-              }
             />
           )}
         </TabsContent>

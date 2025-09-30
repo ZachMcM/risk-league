@@ -46,20 +46,23 @@ export default function Home() {
   );
 
   return (
-    <ScrollContainer safeAreaInsets>
-      <OnboardingDialog
-        isOpen={onboardingDialog}
-        close={() => setOnboardingDialog(false)}
-        onOpenChange={setOnboardingDialog}
-      />
-      <ProfileBanner
-        image={currentUserData?.user.image!}
-        username={currentUserData?.user.username!}
-        header={currentUserData?.user.banner!}
-        userId={currentUserData?.user.id!}
-      />
-      <View className="flex flex-1 flex-col gap-6 pt-20">
-        <View className="flex flex-row items-center justify-between">
+    <ScrollContainer className="p-0" safeAreaInsets>
+      <View className="p-6">
+        <OnboardingDialog
+          isOpen={onboardingDialog}
+          close={() => setOnboardingDialog(false)}
+          onOpenChange={setOnboardingDialog}
+        />
+        <ProfileBanner
+          image={currentUserData?.user.image!}
+          username={currentUserData?.user.username!}
+          header={currentUserData?.user.banner!}
+          userId={currentUserData?.user.id!}
+        />        
+      </View>
+
+      <View className="flex flex-1 flex-col gap-6">
+        <View className="px-6 pt-12 flex flex-row items-center justify-between">
           <View className="flex flex-row items-center gap-3">
             {userRank?.rank && <RankIcon rank={userRank.rank} />}
             <Text className="font-bold text-2xl">
@@ -132,7 +135,7 @@ export default function Home() {
           userRank &&
           userRank.nextRank &&
           userRank.progression !== null && (
-            <View className="flex flex-col gap-2">
+            <View className="flex flex-col gap-2 px-6">
               <View className="flex flex-row items-center justify-between">
                 <Text className="font-semibold text-muted-foreground text-xl">
                   Progress to next rank
@@ -154,7 +157,7 @@ export default function Home() {
             </View>
           )
         )}
-        <BannerAdWrapper />
+        {/* <BannerAdWrapper /> */}
         <CompetitiveMatchLeagues />
       </View>
     </ScrollContainer>

@@ -73,7 +73,8 @@ export default function Friends() {
   const [tabsValue, setTabsValue] = useState(searchParams.tab ?? "friends");
 
   return (
-    <Container className="pt-4 pb-0 px-0">
+    <Container className="p-0 flex fle-col gap-6">
+      <BannerAdWrapper />
       <View className="flex flex-col gap-8 flex-1">
         {friendlyMatchRequests?.length !== 0 && (
           <View className="flex flex-col gap-2 px-4">
@@ -141,11 +142,6 @@ export default function Friends() {
               </View>
             ) : (
               <FlashList
-                ListHeaderComponent={
-                  <GridItemWrapper index={0} numCols={1} gap={16}>
-                    <BannerAdWrapper />
-                  </GridItemWrapper>
-                }
                 data={searchResults}
                 contentContainerStyle={{
                   paddingBottom: 24,
@@ -177,11 +173,6 @@ export default function Friends() {
               </View>
             ) : (
               <FlashList
-                ListHeaderComponent={
-                  <GridItemWrapper index={0} numCols={1} gap={16}>
-                    <BannerAdWrapper />
-                  </GridItemWrapper>
-                }
                 contentContainerStyle={{
                   paddingHorizontal: 12,
                   paddingVertical: 16,
@@ -223,11 +214,6 @@ export default function Friends() {
               </View>
             ) : (
               <FlashList
-                ListHeaderComponent={
-                  <GridItemWrapper index={0} numCols={1} gap={16}>
-                    <BannerAdWrapper />
-                  </GridItemWrapper>
-                }
                 data={friends}
                 contentContainerStyle={{
                   paddingHorizontal: 12,
