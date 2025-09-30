@@ -47,6 +47,8 @@ export default function ResetPassword() {
     }
   }
 
+  console.log(token)
+
   const { control, handleSubmit } = useForm({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -150,7 +152,7 @@ export default function ResetPassword() {
             className="flex-row gap-2 items-center"
           >
             <Text className="font-bold">Confirm</Text>
-            {isPending && <ActivityIndicator className="text-foreground" />}
+            {isPending || isLoading && <ActivityIndicator className="text-foreground" />}
           </Button>
         </View>
       </View>
