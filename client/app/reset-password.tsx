@@ -11,6 +11,7 @@ import { Text } from "~/components/ui/text";
 import { toast } from "sonner-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { Container } from "~/components/ui/container";
+import { useState } from "react";
 
 const schema = z
   .object({
@@ -54,6 +55,8 @@ export default function ResetPassword() {
     },
   });
 
+  const [isLoading, setIsLoading] = useState(false)
+
   const { isPending } = authClient.useSession();
 
   async function onSubmit({ password }: FormValues) {
@@ -64,8 +67,15 @@ export default function ResetPassword() {
       },
       {
         onError: ({ error }) => {
+          setIsLoading(false)
           toast.error(error.message);
         },
+        onRequest: () => {
+          setIsLoading(true)
+        },
+        onSuccess: () => {
+          setIsLoading(false)
+        }
       }
     );
   }
