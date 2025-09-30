@@ -13,6 +13,7 @@ import { io } from "..";
 import { invalidateQueries } from "../utils/invalidateQueries";
 import { createMatch } from "../sockets/matchmaking";
 import { handleError } from "../utils/handleError";
+import { sendPushNotification, sendPushNotifications } from "../pushNotifications";
 
 export const friendlyMatchRequestsRoute = Router();
 
@@ -148,18 +149,25 @@ friendlyMatchRequestsRoute.patch(
           ["friendly-match-requests", updatedRequest.incomingId]
         );
 
+        const recipientId =
+          updatedRequest.incomingId == res.locals.userId
+            ? updatedRequest.outgoingId
+            : updatedRequest.incomingId;
+
         io.of("/realtime")
-          .to(
-            `user:${
-              updatedRequest.incomingId == res.locals.userId
-                ? updatedRequest.outgoingId
-                : updatedRequest.incomingId
-            }`
-          )
+          .to(`user:${recipientId}`)
           .emit("friendly-match-request-declined", {
             ...userResult,
             league: updatedRequest.league,
           });
+
+        // Send push notification
+        sendPushNotification(
+          recipientId,
+          "Match Request Declined",
+          `${userResult?.username || "Someone"} declined your friendly match request`,
+          { league: updatedRequest.league }
+        );
 
         res.json({ success: true });
         return;
@@ -189,6 +197,14 @@ friendlyMatchRequestsRoute.patch(
             matchId: newMatchId,
           });
       }
+
+      // Send push notifications
+      sendPushNotifications({
+        userIds: [updatedRequest.outgoingId, updatedRequest.incomingId],
+        title: "Match Ready!",
+        body: "Your friendly match has been accepted and is ready to play!",
+        data: { matchId: newMatchId },
+      });
 
       res.json({ success: true });
     } catch (error) {
@@ -258,6 +274,14 @@ friendlyMatchRequestsRoute.post(
       io.of("/realtime")
         .to(`user:${incomingId}`)
         .emit("friendly-match-request-received", { ...userResult, league });
+
+      // Send push notification
+      sendPushNotification(
+        incomingId,
+        "Friendly Match Request",
+        `${userResult?.username || "Someone"} wants to play a friendly match!`,
+        { league, requesterId: userResult?.id }
+      );
 
       res.json(newFriendlyMatchRequest);
     } catch (error) {

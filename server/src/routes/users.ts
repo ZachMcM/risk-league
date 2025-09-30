@@ -446,6 +446,27 @@ usersRoute.get("/users/:id/career", authMiddleware, async (req, res) => {
   }
 });
 
+usersRoute.patch("/users/push-token", authMiddleware, async (req, res) => {
+  try {
+    const userId = res.locals.userId!;
+    const { token } = req.body;
+
+    if (!token || typeof token !== "string") {
+      res.status(400).json({ error: "Invalid push token" });
+      return;
+    }
+
+    await db
+      .update(user)
+      .set({ expoPushToken: token })
+      .where(eq(user.id, userId));
+
+    res.json({ success: true });
+  } catch (error) {
+    handleError(error, res, "Users");
+  }
+});
+
 usersRoute.get("/users/:id", authMiddleware, async (req, res) => {
   try {
     const userId = req.params.id;

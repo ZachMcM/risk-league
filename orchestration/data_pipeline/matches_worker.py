@@ -518,6 +518,10 @@ async def _publish_match_resolved_messages(
                 ],
                 "event": "match-ended",
                 "data": {"type": match_type, "league": league, "id": match_id},
+                "pushNotification": {
+                    "title": "Match Ended",
+                    "body": "Your match has ended. Check your results!",
+                },
             },
         )
     )

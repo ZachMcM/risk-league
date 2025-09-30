@@ -17,6 +17,7 @@ import { authMiddleware } from "../middleware";
 import { handleError } from "../utils/handleError";
 import { invalidateQueries } from "../utils/invalidateQueries";
 import { io } from "..";
+import { sendPushNotification } from "../pushNotifications";
 
 export const parlaysRoute = Router();
 
@@ -328,6 +329,15 @@ parlaysRoute.post("/parlays", authMiddleware, async (req, res) => {
           username: currUser?.username,
           image: currUser?.image,
         });
+
+      // Send push notification
+      sendPushNotification(
+        otherMatchUser.user.id,
+        "Opponent Parlay Placed",
+        `${currUser?.username || "Opponent"} placed a ${picks.length}-leg ${type} parlay!`,
+        { matchId, stake, legs: picks.length, type }
+      );
+
       return;
     }
     const dynastyLeagueId = parseInt(req.query.dynastyLeagueId as string);

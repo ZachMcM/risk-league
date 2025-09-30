@@ -21,6 +21,7 @@ import {
 import { authMiddleware } from "../middleware";
 import { handleError } from "../utils/handleError";
 import { invalidateQueries } from "../utils/invalidateQueries";
+import { sendPushNotifications } from "../pushNotifications";
 import {
   getFlexMultiplier,
   getPerfectPlayMultiplier,
@@ -712,6 +713,20 @@ dynastyLeaguesRoute.post(
         io.of("/realtime")
           .to(`user:${user.userId}`)
           .emit("dynasty-league-message-received", messageWithUser);
+      }
+
+      // Send push notifications (exclude sender)
+      const recipientIds = dynastyLeagueUsers
+        .filter((u) => u.userId !== res.locals.userId!)
+        .map((u) => u.userId);
+
+      if (recipientIds.length > 0) {
+        sendPushNotifications({
+          userIds: recipientIds,
+          title: "Dynasty League Message",
+          body: `${messageWithUser.user.username || "Someone"}: ${req.body.content.substring(0, 50)}${req.body.content.length > 50 ? "..." : ""}`,
+          data: { dynastyLeagueId: parseInt(req.params.id) },
+        });
       }
 
       res.json(newMessage.id);
