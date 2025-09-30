@@ -8,7 +8,9 @@
     "scheme": "riskleague",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.zachmcm.client",
@@ -22,7 +24,9 @@
         "backgroundColor": "#000000"
       },
       "package": "com.zachmcm.client",
-      "permissions": ["android.permission.RECORD_AUDIO"]
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -49,12 +53,16 @@
       [
         "react-native-google-mobile-ads",
         {
-          "androidAppId": "ca-app-pub-6463484676927404~4050880826",
-          "iosAppId": "ca-app-pub-6463484676927404~4050880826"
+          "iosAppId": "ca-app-pub-7972955391905307~3082161857"
         }
       ],
-      ["expo-router"],
-      ["expo-font", {}],
+      [
+        "expo-router"
+      ],
+      [
+        "expo-font",
+        {}
+      ],
       [
         "expo-image-picker",
         {
@@ -68,9 +76,8 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "85cea908-7910-497b-a514-7598be112331"
+        "projectId": "04b4e29c-4d9d-4dd6-b5a4-2616b1acb951"
       }
-    },
-    "owner": "zachriskleague"
+    }
   }
 }
