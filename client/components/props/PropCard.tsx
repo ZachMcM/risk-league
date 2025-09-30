@@ -9,6 +9,7 @@ import { Button } from "../ui/button";
 import { Card, CardContent } from "../ui/card";
 import PlayerImage from "../ui/player-image";
 import { Text } from "../ui/text";
+import { Badge } from "../ui/badge";
 
 export default function PropCard({ prop }: { prop: Prop }) {
   const searchParams = useLocalSearchParams() as { matchId: string };
@@ -35,10 +36,17 @@ export default function PropCard({ prop }: { prop: Prop }) {
       >
         <CardContent className="px-4 pt-2 pb-4 flex flex-col items-center gap-2.5">
           <View className="flex flex-col gap-1 items-center">
-            <PlayerImage image={prop.player.image} className="h-16 w-16" />
+            <View className="flex flex-col items-center justify-center">
+              <PlayerImage image={prop.player.image} className="h-20 w-20" />
+              <Badge variant="secondary" className="-mt-3">
+                <Text>
+                  {prop.player.team.abbreviation} • {prop.player.position}
+                </Text>
+              </Badge>
+            </View>
             <Text className="font-bold text-center">
               {formatName(prop.player.name).firstName[0]}.{" "}
-              {formatName(prop.player.name).lastName} • {prop.player.position}
+              {formatName(prop.player.name).lastName}
             </Text>
             <Text className="text-muted-foreground text-sm text-center font-normal">
               {prop.game.homeTeamId == prop.player.teamId

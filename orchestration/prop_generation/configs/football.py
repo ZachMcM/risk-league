@@ -55,7 +55,7 @@ ELIGIBILITY_THRESHOLDS = {
 }
 
 SAMPLE_SIZE = 6
-MIN_LINE_FOR_UNDER = 10
+MIN_LINE_FOR_UNDER = 4.5
 
 
 @register_football_stat

@@ -1,10 +1,9 @@
 import { useRouter } from "expo-router";
-import { Pressable, View } from "react-native";
+import { View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Text } from "../ui/text";
-import { ChevronLeft } from "~/lib/icons/ChevronLeft";
 import { Plus } from "~/lib/icons/Plus";
 import { Button } from "../ui/button";
+import { Text } from "../ui/text";
 
 export default function DynastyHeader() {
   const router = useRouter();

@@ -11,6 +11,7 @@ import { Text } from "~/components/ui/text";
 import { toast } from "sonner-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { Container } from "~/components/ui/container";
+import { useState } from "react";
 
 const schema = z
   .object({
@@ -27,6 +28,7 @@ const schema = z
     confirmPassword: z
       .string()
       .min(1, { message: "Confirm Password is required" }),
+    otp: z.string().min(1, { message: "One Time Password is required" }),
   })
   .refine(({ password, confirmPassword }) => confirmPassword === password, {
     message: "Passwords don't match",
@@ -36,54 +38,82 @@ const schema = z
 type FormValues = z.infer<typeof schema>;
 
 export default function ResetPassword() {
-  const { token } = useLocalSearchParams() as { token: string | undefined };
-
-  if (!token) {
-    if (router.canGoBack()) {
-      router.back();
-    } else {
-      router.navigate("/");
-    }
-  }
-
   const { control, handleSubmit } = useForm({
     resolver: zodResolver(schema),
     defaultValues: {
       password: "",
       confirmPassword: "",
+      otp: "",
     },
   });
 
+  const [isLoading, setIsLoading] = useState(false);
+
   const { isPending } = authClient.useSession();
 
-  async function onSubmit({ password }: FormValues) {
-    await authClient.resetPassword(
-      {
-        newPassword: password,
-        token,
-      },
-      {
-        onError: ({ error }) => {
-          toast.error(error.message);
-        },
-      }
-    );
+  const { email } = useLocalSearchParams() as { email: string | undefined };
+
+  if (!email) {
+    router.navigate("/");
   }
 
-  if (!token) {
-    return null;
+  async function onSubmit({ password, otp }: FormValues) {
+    if (!email) {
+      toast.error("Invalid OTP");
+      router.navigate("/");
+      return;
+    }
+
+    setIsLoading(true);
+    const { error } = await authClient.emailOtp.resetPassword({
+      email,
+      otp,
+      password,
+    });
+
+    setIsLoading(false);
+    if (error) {
+      toast.error(error.message || "An error occurred, please try again.");
+    } else {
+      toast.success("Successfully reset password");
+      router.navigate("/signin");
+    }
   }
 
   return (
     <Container>
       <View className="flex flex-1 w-full justify-center items-center gap-4 p-6">
         <View className="flex flex-col items-center gap-1">
-          <Text className="text-4xl font-bold">Reset Password</Text>
-          <Text className="text-muted-foreground text-xl font-semibold">
-            Reset your Risk League account password
+          <Text className="text-4xl font-bold text-center">Reset Password</Text>
+          <Text className="text-muted-foreground text-xl text-center font-semibold">
+            Reset your Risk League password
           </Text>
         </View>
         <View className="flex flex-col w-full gap-6">
+          <Controller
+            control={control}
+            rules={{ required: true }}
+            render={({
+              field: { onChange, onBlur, value },
+              fieldState: { error },
+            }) => (
+              <View className="flex flex-col gap-2">
+                <Label>One Time Password</Label>
+                <Input
+                  placeholder="1234567"
+                  onBlur={onBlur}
+                  onChangeText={onChange}
+                  secureTextEntry
+                  className={cn(error && "border-destructive")}
+                  value={value}
+                />
+                {error && (
+                  <Text className="text-destructive">{error.message}</Text>
+                )}
+              </View>
+            )}
+            name="otp"
+          />
           <Controller
             control={control}
             rules={{ required: true }}
@@ -140,7 +170,8 @@ export default function ResetPassword() {
             className="flex-row gap-2 items-center"
           >
             <Text className="font-bold">Confirm</Text>
-            {isPending && <ActivityIndicator className="text-foreground" />}
+            {isPending ||
+              (isLoading && <ActivityIndicator className="text-foreground" />)}
           </Button>
         </View>
       </View>

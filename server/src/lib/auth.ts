@@ -4,6 +4,7 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { username } from "better-auth/plugins";
 import { db } from "../db";
 import { resend } from "../resend";
+import { emailOTP } from "better-auth/plugins";
 
 export const auth = betterAuth({
   plugins: [
@@ -13,20 +14,23 @@ export const auth = betterAuth({
       maxUsernameLength: 16,
     }),
     expo(),
+    emailOTP({
+      overrideDefaultEmailVerification: true,
+      async sendVerificationOTP({ email, otp, type }) {
+        if (type == "forget-password") {
+          await resend.emails.send({
+            from: "Risk League <noreply@auth.riskleague.app>",
+            to: email,
+            subject: "Risk League Reset Password",
+            html: `This is your one time password: ${otp}. Do not share it with anyone`,
+          });
+        }
+      },
+    }),
   ],
   trustedOrigins: ["riskleague://", "riskleague://reset-password"],
   emailAndPassword: {
     enabled: true,
-    sendResetPassword: async ({ user, url }) => {
-      await resend.emails.send({
-        from: "Risk League <noreply@auth.riskleague.app>",
-        to: user.email,
-        subject: "Password Reset from Risk League",
-        html: `
-          <p>Click the link to reset your password: <a href="${url}">${url}</a>.</p>
-        `,
-      });
-    },
   },
   database: drizzleAdapter(db, {
     provider: "pg",

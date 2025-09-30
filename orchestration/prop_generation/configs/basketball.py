@@ -36,7 +36,7 @@ ELIGIBILITY_THRESHOLDS = {
 }
 
 SAMPLE_SIZE = 11
-MIN_LINE_FOR_UNDER = 6
+MIN_LINE_FOR_UNDER = 4.5
 
 
 @register_basketball_stat

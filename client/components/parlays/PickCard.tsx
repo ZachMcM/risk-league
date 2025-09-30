@@ -44,7 +44,7 @@ export default function PickCard({ initialData }: { initialData: Pick }) {
                   className="p-1.5 rounded-xl border-4 border-card overflow-hidden"
                 >
                   <Image
-                    style={{ height: 12.5, width: 12.5 }}
+                    style={{ height: 16, width: 16 }}
                     contentFit="contain"
                     source={{
                       uri: pick.prop.game.homeTeam.image,
@@ -58,7 +58,7 @@ export default function PickCard({ initialData }: { initialData: Pick }) {
                   className="p-1.5 rounded-xl border-4 border-card overflow-hidden absolute -right-6"
                 >
                   <Image
-                    style={{ height: 12.5, width: 12.5 }}
+                    style={{ height: 16, width: 16 }}
                     contentFit="contain"
                     source={{
                       uri: pick.prop.game.awayTeam.image,
@@ -78,6 +78,7 @@ export default function PickCard({ initialData }: { initialData: Pick }) {
         <View className="flex flex-row items-center gap-4">
           <PlayerImage
             className={cn(
+              "w-16 h-16",
               pick.status == "hit"
                 ? "border-success"
                 : pick.status == "missed"
@@ -90,9 +91,7 @@ export default function PickCard({ initialData }: { initialData: Pick }) {
             <View className="flex flex-row items-center justify-between">
               <View className="flex flex-col gap-1">
                 <View className="flex flex-row items-center gap-1">
-                  <Text className="font-bold">
-                    {pick.prop.player.name}
-                  </Text>
+                  <Text className="font-bold">{pick.prop.player.name}</Text>
                   <Text className="text-muted-foreground">
                     • {pick.prop.player.position}
                   </Text>
@@ -109,13 +108,9 @@ export default function PickCard({ initialData }: { initialData: Pick }) {
                 </View>
               </View>
               {pick.status == "tie" ? (
-                <Text className="font-semibold text-lg uppercase">
-                  TIE
-                </Text>
+                <Text className="font-semibold text-lg uppercase">TIE</Text>
               ) : pick.status == "did_not_play" ? (
-                <Text className="font-semibold text-lg uppercase">
-                  DNP
-                </Text>
+                <Text className="font-semibold text-lg uppercase">DNP</Text>
               ) : (
                 <View
                   className={cn(
