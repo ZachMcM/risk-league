@@ -43,7 +43,6 @@ function BannerItem({
           style={{ width: "100%", height: "100%" }}
         />
       </Pressable>
-      {/* <Text className="text-start font-bold text-lg">{title}</Text> */}
     </View>
   );
 }

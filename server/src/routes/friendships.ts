@@ -8,6 +8,7 @@ import { authMiddleware } from "../middleware";
 import { findRank } from "../utils/findRank";
 import { invalidateQueries } from "../utils/invalidateQueries";
 import { handleError } from "../utils/handleError";
+import { sendPushNotification } from "../pushNotifications";
 
 export const friendshipsRoute = Router();
 
@@ -144,6 +145,14 @@ friendshipsRoute.post("/friendships", authMiddleware, async (req, res) => {
       .to(`user:${incomingId}`)
       .emit("friend-request-received", outgoingUser);
 
+    // Send push notification
+    sendPushNotification(
+      incomingId,
+      "Friend Request",
+      `${outgoingUser?.username || "Someone"} sent you a friend request!`,
+      { requesterId: outgoingUser?.id }
+    );
+
     res.json(newFriendRequest);
   } catch (error) {
     handleError(error, res, "Friendships route");
@@ -261,6 +270,14 @@ friendshipsRoute.patch("/friendships", authMiddleware, async (req, res) => {
     io.of("/realtime")
       .to(`user:${outgoingId}`)
       .emit("friend-request-accepted", incomingUser);
+
+    // Send push notification
+    sendPushNotification(
+      outgoingId,
+      "Friend Request Accepted",
+      `${incomingUser?.username || "Someone"} accepted your friend request!`,
+      { accepterId: incomingUser?.id }
+    );
 
     res.json(updatedFriendship);
   } catch (error) {

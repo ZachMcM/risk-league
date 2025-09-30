@@ -50,6 +50,11 @@ export const auth = betterAuth({
         input: false,
         required: false,
       },
+      expoPushToken: {
+        type: "string",
+        input: false,
+        required: false,
+      },
     },
   },
 });

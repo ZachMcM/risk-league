@@ -61,6 +61,13 @@ export async function serverRequest({
   return data;
 }
 
+export async function patchUserExpoPushToken(value: string) {
+  await serverRequest({
+    endpoint: `/users/expo-push-token?value=${value}`,
+    method: "PATCH",
+  });
+}
+
 export async function getUser(id: string): Promise<User> {
   const user = await serverRequest({ endpoint: `/users/${id}`, method: "GET" });
   return user;

@@ -332,6 +332,10 @@ async def _publish_parlay_resolved_messages(
                         "matchId": user_context["match_id"],
                         "parlayId": parlay_id,
                     },
+                    "pushNotification": {
+                        "title": "Parlay Resolved",
+                        "body": "Your match parlay has been resolved!",
+                    },
                 },
             )
         )
@@ -366,6 +370,10 @@ async def _publish_parlay_resolved_messages(
                     "data": {
                         "dynastyLeagueId": user_context["dynasty_league_id"],
                         "parlayId": parlay_id,
+                    },
+                    "pushNotification": {
+                        "title": "Parlay Resolved",
+                        "body": "Your dynasty league parlay has been resolved!",
                     },
                 },
             )

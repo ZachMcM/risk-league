@@ -80,6 +80,7 @@ export const user = pgTable("user", {
   points: doublePrecision().default(1000).notNull(),
   banner: text(),
   isBot: boolean("is_bot").default(false).notNull(),
+  expoPushToken: text("expo_push_token"),
 });
 
 export const session = pgTable("session", {

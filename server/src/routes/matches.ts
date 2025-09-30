@@ -2,11 +2,7 @@ import { and, desc, eq, ne } from "drizzle-orm";
 import { Router } from "express";
 import { io } from "..";
 import { db } from "../db";
-import {
-  match,
-  matchUser,
-  message
-} from "../db/schema";
+import { match, matchUser, message } from "../db/schema";
 import { logger } from "../logger";
 import { authMiddleware } from "../middleware";
 import { calculateProgressionDelta } from "../utils/calculateProgressionDelta";

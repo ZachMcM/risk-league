@@ -162,9 +162,7 @@ export async function matchMakingHandler(socket: Socket) {
     // Only create bot match if user was actually in queue
     if (removedCount > 0) {
       logger.info(
-        `User ${userId} waited ${
-          BOT_TIMER_MS / 1000
-        }s, creating bot match`
+        `User ${userId} waited ${BOT_TIMER_MS / 1000}s, creating bot match`
       );
       await createBotMatch(userId, league);
     }
