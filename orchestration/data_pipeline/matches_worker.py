@@ -1,4 +1,4 @@
-from utils import setup_logger
+from utils import setup_logger, async_server_req
 from redis_utils import (
     create_async_redis_client,
     publish_message_async,
@@ -237,13 +237,16 @@ async def handle_parlay_resolved(data):
                     await cur.execute("COMMIT")
 
                     # Publish Redis messages for cache invalidation
-                    await _publish_match_resolved_messages(
-                        redis_publisher,
-                        match_id,
-                        match_users_data,
-                        match_res[1],
-                        match_res[2],
-                    )
+                    try:
+                        await _publish_match_resolved_messages(
+                            redis_publisher,
+                            match_id,
+                            match_users_data,
+                            match_res[1],
+                            match_res[2],
+                        )
+                    except Exception as e:
+                        logger.error(e)
 
                 except Exception as e:
                     await cur.execute("ROLLBACK")
@@ -475,9 +478,7 @@ async def _publish_match_resolved_messages(
     match_type: str,
     league: str,
 ):
-    """Publish Redis messages for match resolution"""
-    publish_tasks = []
-
+    """Publish cache invalidation via Redis and send push notifications via HTTP"""
     user1_id = match_users_data[0]["user_id"]
     user2_id = match_users_data[1]["user_id"]
 
@@ -498,23 +499,16 @@ async def _publish_match_resolved_messages(
         ["battle-pass", BATTLE_PASS_ID, "progress", user2_id]
     ]
 
-    publish_tasks.append(
+    # Publish cache invalidation via Redis and send notification via HTTP in parallel
+    await asyncio.gather(
         publish_message_async(
             redis_publisher, "invalidate_queries", {"keys": invalidation_keys}
-        )
-    )
-
-    publish_tasks.append(
-        publish_message_async(
-            redis_publisher,
-            "notification",
-            {
-                "receiverIdsList": [
-                    match_users_data[0]["user_id"],
-                    match_users_data[1]["user_id"],
-                ],
-                "event": "match-ended",
-                "data": {"type": match_type, "league": league, "id": match_id},
+        ),
+        async_server_req(
+            route="/push-notifications",
+            method="POST",
+            body={
+                "receiverIdsList": [user1_id, user2_id],
                 "pushNotification": {
                     "title": "Match Ended",
                     "body": "Your match has ended. Check your results!",
@@ -525,10 +519,6 @@ async def _publish_match_resolved_messages(
             },
         )
     )
-
-    # Execute all Redis publishes in parallel
-    if publish_tasks:
-        await asyncio.gather(*publish_tasks)
 
 
 async def handle_match_check(data):

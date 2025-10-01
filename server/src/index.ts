@@ -14,7 +14,7 @@ import rateLimit from "express-rate-limit";
 import RedisStore from "rate-limit-redis";
 import { redis } from "./redis";
 import { invalidateQueries } from "./utils/invalidateQueries";
-import { sendPushNotifications } from "./pushNotifications";
+import { sendPushNotifications } from "./routes/pushNotifications";
 const port = process.env.PORT;
 
 const app = express();
@@ -57,29 +57,6 @@ subClientForHandlers
         }
       } catch (error) {
         logger.error("Error handling query invalidation:", error);
-      }
-    });
-
-    subClientForHandlers.subscribe("notification", async (message) => {
-      try {
-        const { receiverIdsList, event, data, pushNotification } = JSON.parse(
-          message
-        ) as {
-          receiverIdsList: string[];
-          event: string;
-          data: any;
-          pushNotification: { title: string; body: string };
-        };
-
-        // Send push notifications if provided
-        await sendPushNotifications({
-          userIds: receiverIdsList,
-          title: pushNotification.title,
-          body: pushNotification.body,
-          data: { event, ...data },
-        });
-      } catch (error) {
-        logger.error("Error handling notification message");
       }
     });
 

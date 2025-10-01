@@ -1,8 +1,12 @@
 import { Expo, ExpoPushMessage, ExpoPushTicket } from "expo-server-sdk";
-import { db } from "./db";
-import { user } from "./db/schema";
+import { db } from "../db";
+import { user } from "../db/schema";
 import { inArray } from "drizzle-orm";
-import { logger } from "./logger";
+import { logger } from "../logger";
+import { Router } from "express";
+import { apiKeyMiddleware } from "../middleware";
+import { handleError } from "../utils/handleError";
+import * as z from "zod";
 
 const expo = new Expo();
 
@@ -106,3 +110,44 @@ export async function sendPushNotification(
     data,
   });
 }
+
+export const pushNotificationsRoute = Router();
+
+const pushNotificationReqBodySchema = z.object({
+  receiverIdsList: z.string().array(),
+  pushNotification: z.object({
+    title: z.string(),
+    body: z.string(),
+    data: z.any(),
+  }),
+});
+
+type PushNotificationReqBody = z.infer<typeof pushNotificationReqBodySchema>;
+
+pushNotificationsRoute.post(
+  "/push-notifications",
+  apiKeyMiddleware,
+  async (req, res) => {
+    try {
+      const reqBody = req.body as PushNotificationReqBody;
+
+      pushNotificationReqBodySchema.parse(reqBody);
+
+      const {
+        receiverIdsList: userIds,
+        pushNotification: { title, body, data },
+      } = reqBody;
+
+      await sendPushNotifications({
+        userIds,
+        title,
+        data,
+        body,
+      });
+
+      res.json({ success: true })
+    } catch (error) {
+      handleError(error, res, "Push Notifications");
+    }
+  }
+);

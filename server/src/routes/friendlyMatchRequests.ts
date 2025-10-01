@@ -1,22 +1,21 @@
-import { Router } from "express";
-import { authMiddleware } from "../middleware";
-import { db } from "../db";
 import { and, eq, or } from "drizzle-orm";
+import { Router } from "express";
+import { io } from "..";
+import { db } from "../db";
 import {
   friendlyMatchRequest,
   friendship,
   leagueType,
   user,
 } from "../db/schema";
-import { logger } from "../logger";
-import { io } from "..";
-import { invalidateQueries } from "../utils/invalidateQueries";
+import { authMiddleware } from "../middleware";
 import { createMatch } from "../sockets/matchmaking";
 import { handleError } from "../utils/handleError";
+import { invalidateQueries } from "../utils/invalidateQueries";
 import {
   sendPushNotification,
   sendPushNotifications,
-} from "../pushNotifications";
+} from "./pushNotifications";
 
 export const friendlyMatchRequestsRoute = Router();
 

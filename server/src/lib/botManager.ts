@@ -23,7 +23,7 @@ import { getAvailablePropsForUser } from "../utils/getAvailableProps";
 import { getRank } from "../utils/getRank";
 import { getCombinedDictionaries } from "./usernameDictionaries";
 import { invalidateQueries } from "../utils/invalidateQueries";
-import { sendPushNotification } from "../pushNotifications";
+import { sendPushNotification } from "../routes/pushNotifications";
 
 export async function initializeBotParlays(botId: string, matchId: number) {
   logger.info(`Initializing bot parlays for bot ${botId} in match ${matchId}`);
@@ -190,7 +190,7 @@ export async function createBotParlay(botId: string, matchId: number) {
           stake: parlayData.stake,
           legs: parlayData.selectedProps.length,
           type: parlayData.type,
-          url: `/match/${matchId}`
+          url: `/match/${matchId}`,
         }
       );
 

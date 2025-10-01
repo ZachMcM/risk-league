@@ -1,4 +1,4 @@
-from utils import setup_logger
+from utils import setup_logger, async_server_req
 import asyncio
 from typing import TypedDict, Optional, Dict, List
 from redis_utils import (
@@ -279,9 +279,12 @@ async def handle_pick_resolved(data):
 
                     # Publish Redis messages for cache invalidation and real-time updates
                     if user_context:
-                        await _publish_parlay_resolved_messages(
-                            redis_publisher, parlay_res[0], user_context
-                        )
+                        try:
+                            await _publish_parlay_resolved_messages(
+                                redis_publisher, parlay_res[0], user_context
+                            )
+                        except Exception as e:
+                            logger.error(e)
 
                 except Exception as e:
                     await cur.execute("ROLLBACK")
@@ -302,8 +305,9 @@ async def handle_pick_resolved(data):
 async def _publish_parlay_resolved_messages(
     redis_publisher, parlay_id: int, user_context: dict
 ):
-    """Publish Redis messages for parlay resolution"""
-    publish_tasks = []
+    """Publish cache invalidation via Redis and send push notifications via HTTP"""
+    redis_tasks = []
+    notification_task = None
 
     if user_context["type"] == "match":
         # Invalidate cache queries
@@ -315,32 +319,26 @@ async def _publish_parlay_resolved_messages(
             ["career", user_context["user_id"]],
         ]
 
-        publish_tasks.append(
+        redis_tasks.append(
             publish_message_async(
                 redis_publisher, "invalidate_queries", {"keys": invalidation_keys}
             )
         )
 
-        publish_tasks.append(
-            publish_message_async(
-                redis_publisher,
-                "notification",
-                {
-                    "receiverIdsList": [user_context["user_id"]],
-                    "event": "match-parlay-resolved",
+        # Send push notification via HTTP
+        notification_task = async_server_req(
+            route="/push-notifications",
+            method="POST",
+            body={
+                "receiverIdsList": [user_context["user_id"]],
+                "pushNotification": {
+                    "title": "Parlay Resolved",
+                    "body": "Your match parlay has been resolved!",
                     "data": {
-                        "matchId": user_context["match_id"],
-                        "parlayId": parlay_id,
-                    },
-                    "pushNotification": {
-                        "title": "Parlay Resolved",
-                        "body": "Your match parlay has been resolved!",
-                        "data": {
-                            "url": f"/match/{user_context['match_id']}?openSubRoute=parlay&subRouteId={parlay_id}"
-                        },
+                        "url": f"/match/{user_context['match_id']}?openSubRoute=parlay&subRouteId={parlay_id}"
                     },
                 },
-            )
+            },
         )
 
     elif user_context["type"] == "dynasty_league":
@@ -357,42 +355,39 @@ async def _publish_parlay_resolved_messages(
             ["career", user_context["user_id"]],
         ]
 
-        publish_tasks.append(
+        redis_tasks.append(
             publish_message_async(
                 redis_publisher, "invalidate_queries", {"keys": invalidation_keys}
             )
         )
 
-        publish_tasks.append(
-            publish_message_async(
-                redis_publisher,
-                "notification",
-                {
-                    "receiverIdsList": [user_context["user_id"]],
-                    "event": "dynasty-league-parlay-resolved",
+        # Send push notification via HTTP
+        notification_task = async_server_req(
+            route="/push-notifications",
+            method="POST",
+            body={
+                "receiverIdsList": [user_context["user_id"]],
+                "pushNotification": {
+                    "title": "Parlay Resolved",
+                    "body": "Your dynasty league parlay has been resolved!",
                     "data": {
-                        "dynastyLeagueId": user_context["dynasty_league_id"],
-                        "parlayId": parlay_id,
-                    },
-                    "pushNotification": {
-                        "title": "Parlay Resolved",
-                        "body": "Your dynasty league parlay has been resolved!",
-                        "data": {
-                            "url": f"/dynastyLeague/{user_context['dynasty_league_id']}?openSubRoute=parlay&subRouteId={parlay_id}"
-                        }
-                    },
+                        "url": f"/dynastyLeague/{user_context['dynasty_league_id']}?openSubRoute=parlay&subRouteId={parlay_id}"
+                    }
                 },
-            )
+            },
         )
 
     # Publish parlay_resolved message for match resolution (applies to both match and dynasty league)
-    publish_tasks.append(
+    redis_tasks.append(
         publish_message_async(redis_publisher, "parlay_resolved", {"id": parlay_id})
     )
 
-    # Execute all Redis publishes in parallel
-    if publish_tasks:
-        await asyncio.gather(*publish_tasks)
+    # Execute Redis tasks and HTTP notification in parallel
+    tasks = redis_tasks
+    if notification_task:
+        tasks.append(notification_task)
+
+    await asyncio.gather(*tasks)
 
 
 async def handle_pick_resolved_safe(data):

@@ -15,7 +15,7 @@ import {
 } from "../db/schema";
 import { logger } from "../logger";
 import { authMiddleware } from "../middleware";
-import { sendPushNotification } from "../pushNotifications";
+import { sendPushNotification } from "./pushNotifications";
 import { handleError } from "../utils/handleError";
 import { invalidateQueries } from "../utils/invalidateQueries";
 

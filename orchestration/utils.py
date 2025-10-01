@@ -164,3 +164,76 @@ def convert_to_iso_utc(date_string: str):
     return parsed_date.isoformat()
 
 
+async def async_server_req(
+    route: str,
+    method: Literal["GET", "POST", "PUT", "DELETE", "PATCH"],
+    body: Optional[dict] = None,
+    params: Optional[dict] = None,
+):
+    """Make authenticated async requests to the server API.
+
+    Args:
+        route: API route (e.g., '/push-notifications')
+        method: HTTP method
+        body: Dictionary body for request (optional)
+        params: Dictionary of query parameters (optional)
+
+    Returns:
+        Response status code and text
+
+    Raises:
+        Exception: If response status is not 200
+    """
+    import aiohttp
+
+    SERVER_API_BASE_URL = getenv_required("SERVER_API_BASE_URL")
+    API_KEY = getenv_required("API_KEY")
+
+    url = f"{SERVER_API_BASE_URL}{route}"
+    headers = {
+        "x-api-key": API_KEY,
+        "Content-Type": "application/json",
+    }
+
+    async with aiohttp.ClientSession() as session:
+        if method == "GET":
+            async with session.get(
+                url, headers=headers, params=params, timeout=aiohttp.ClientTimeout(total=30)
+            ) as response:
+                status = response.status
+                text = await response.text()
+        elif method == "POST":
+            async with session.post(
+                url, headers=headers, json=body, params=params, timeout=aiohttp.ClientTimeout(total=30)
+            ) as response:
+                status = response.status
+                text = await response.text()
+        elif method == "PUT":
+            async with session.put(
+                url, headers=headers, json=body, params=params, timeout=aiohttp.ClientTimeout(total=30)
+            ) as response:
+                status = response.status
+                text = await response.text()
+        elif method == "DELETE":
+            async with session.delete(
+                url, headers=headers, params=params, timeout=aiohttp.ClientTimeout(total=30)
+            ) as response:
+                status = response.status
+                text = await response.text()
+        elif method == "PATCH":
+            async with session.patch(
+                url, headers=headers, json=body, params=params, timeout=aiohttp.ClientTimeout(total=30)
+            ) as response:
+                status = response.status
+                text = await response.text()
+        else:
+            raise ValueError(f"Unsupported HTTP method: {method}")
+
+        if status not in [200, 304]:
+            raise Exception(
+                f"Server request failed: {status}. Response: {text}"
+            )
+
+        return status, text
+
+

@@ -21,7 +21,7 @@ import {
 import { authMiddleware } from "../middleware";
 import { handleError } from "../utils/handleError";
 import { invalidateQueries } from "../utils/invalidateQueries";
-import { sendPushNotifications } from "../pushNotifications";
+import { sendPushNotifications } from "./pushNotifications";
 import {
   getFlexMultiplier,
   getPerfectPlayMultiplier,
@@ -718,8 +718,15 @@ dynastyLeaguesRoute.post(
         sendPushNotifications({
           userIds: recipientIds,
           title: "Dynasty League Message",
-          body: `${messageWithUser?.user.username || "Someone"}: ${req.body.content.substring(0, 50)}${req.body.content.length > 50 ? "..." : ""}`,
-          data: { dynastyLeagueId: parseInt(req.params.id), url: `/dynastyLeague/${req.params.id}?openSubRoute=messages` },
+          body: `${
+            messageWithUser?.user.username || "Someone"
+          }: ${req.body.content.substring(0, 50)}${
+            req.body.content.length > 50 ? "..." : ""
+          }`,
+          data: {
+            dynastyLeagueId: parseInt(req.params.id),
+            url: `/dynastyLeague/${req.params.id}?openSubRoute=messages`,
+          },
         });
       }
 

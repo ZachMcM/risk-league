@@ -12,6 +12,7 @@ import { teamsRoute } from "./teams";
 import { usersRoute } from "./users";
 import { leaderboardRoute } from "./leaderboard";
 import { dynastyLeaguesRoute } from "./dynastyLeagues";
+import { pushNotificationsRoute } from "./pushNotifications";
 
 export const routes = express.Router();
 
@@ -28,3 +29,4 @@ routes.use(playersRoute);
 routes.use(leaderboardRoute);
 routes.use(dynastyLeaguesRoute);
 routes.use(battlePassRoute);
+routes.use(pushNotificationsRoute)

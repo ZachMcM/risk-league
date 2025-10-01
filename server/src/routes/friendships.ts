@@ -1,14 +1,12 @@
 import { and, eq, or } from "drizzle-orm";
 import { Router } from "express";
-import { io } from "..";
 import { db } from "../db";
 import { friendlyMatchRequest, friendship, user } from "../db/schema";
-import { logger } from "../logger";
 import { authMiddleware } from "../middleware";
 import { findRank } from "../utils/findRank";
-import { invalidateQueries } from "../utils/invalidateQueries";
 import { handleError } from "../utils/handleError";
-import { sendPushNotification } from "../pushNotifications";
+import { invalidateQueries } from "../utils/invalidateQueries";
+import { sendPushNotification } from "./pushNotifications";
 
 export const friendshipsRoute = Router();
 

@@ -1,4 +1,5 @@
 import { Tabs } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import DynastyHeader from "~/components/dynasty/DynastyHeader";
 import PageHeader from "~/components/ui/page-header";
 import { BATTLE_PASS_NAME } from "~/lib/config";
@@ -13,6 +14,8 @@ import { useColorScheme } from "~/lib/useColorScheme";
 export default function TabsLayout() {
   const { isDarkColorScheme } = useColorScheme();
 
+  const safeAreaInsets = useSafeAreaInsets()
+
   return (
     <Tabs
       screenOptions={{
@@ -20,8 +23,7 @@ export default function TabsLayout() {
           backgroundColor: "hsl(var(--background))",
           borderTopColor: "hsl(var(--border))",
           borderTopWidth: 1,
-          paddingBottom: 6,
-          paddingTop: 6,
+          paddingTop: 4,
         },
         tabBarLabelStyle: {
           fontSize: 11,
