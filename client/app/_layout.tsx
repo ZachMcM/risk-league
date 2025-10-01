@@ -10,28 +10,110 @@ import {
 } from "@react-navigation/native";
 import { PortalHost } from "@rn-primitives/portal";
 import {
-  focusManager,
   onlineManager,
   QueryClient,
   QueryClientProvider,
 } from "@tanstack/react-query";
-import { SplashScreen, Stack } from "expo-router";
+import Constants from "expo-constants";
+import * as Device from "expo-device";
+import * as Notifications from "expo-notifications";
+import { router, SplashScreen, Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import * as Updates from "expo-updates";
 import * as React from "react";
 import { useEffect } from "react";
-import type { AppStateStatus } from "react-native";
 import { Appearance, AppState, Platform } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import mobileAds from "react-native-google-mobile-ads";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { Toaster } from "sonner-native";
+import { toast, Toaster } from "sonner-native";
+import { RealtimeProvider } from "~/components/providers/RealtimeProvider";
 import { SplashScreenController } from "~/components/ui/splash";
 import { setAndroidNavigationBar } from "~/lib/android-navigation-bar";
 import { authClient } from "~/lib/auth-client";
 import { NAV_THEME } from "~/lib/constants";
 import { useColorScheme } from "~/lib/useColorScheme";
-import { RealtimeProvider } from "~/components/providers/RealtimeProvider";
+import { patchUserExpoPushToken } from "~/endpoints";
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldPlaySound: true,
+    shouldSetBadge: true,
+    shouldShowBanner: true,
+    shouldShowList: true,
+  }),
+});
+
+async function registerForPushNotificationsAsync() {
+  if (Platform.OS === "android") {
+    await Notifications.setNotificationChannelAsync("default", {
+      name: "default",
+      importance: Notifications.AndroidImportance.MAX,
+      vibrationPattern: [0, 250, 250, 250],
+      lightColor: "#FF231F7C",
+    });
+  }
+
+  if (Device.isDevice) {
+    const { status: existingStatus } =
+      await Notifications.getPermissionsAsync();
+    let finalStatus = existingStatus;
+    if (existingStatus !== "granted") {
+      const { status } = await Notifications.requestPermissionsAsync();
+      finalStatus = status;
+    }
+    if (finalStatus !== "granted") {
+      toast.error(
+        "Permission not granted to get push token for push notification!"
+      );
+      return;
+    }
+    const projectId =
+      Constants?.expoConfig?.extra?.eas?.projectId ??
+      Constants?.easConfig?.projectId;
+    try {
+      const pushTokenString = (
+        await Notifications.getExpoPushTokenAsync({
+          projectId,
+        })
+      ).data;
+      await patchUserExpoPushToken(pushTokenString);
+      return pushTokenString;
+    } catch (e: unknown) {
+      toast.error(`${e}`);
+    }
+  } else {
+    toast.error("Must use physical device for push notifications");
+  }
+}
+
+function useNotificationObserver() {
+  useEffect(() => {
+    function redirect(notification: Notifications.Notification) {
+      const url = notification.request.content.data?.url;
+      if (typeof url === "string") {
+        if (router.canDismiss()) {
+          router.dismiss();
+        }
+        router.push(url as any);
+      }
+    }
+
+    const response = Notifications.getLastNotificationResponse();
+    if (response?.notification) {
+      redirect(response.notification);
+    }
+
+    const subscription = Notifications.addNotificationResponseReceivedListener(
+      (response) => {
+        redirect(response.notification);
+      }
+    );
+
+    return () => {
+      subscription.remove();
+    };
+  }, []);
+}
 
 onlineManager.setEventListener((setOnline) => {
   return NetInfo.addEventListener((state) => {
@@ -64,14 +146,9 @@ export {
 const queryClient = new QueryClient();
 
 export default function RootLayout() {
-  // function onAppStateChange(status: AppStateStatus) {
-  //   if (Platform.OS !== "web") {
-  //     focusManager.setFocused(status === "active");
-  //     if (status === "active") {
-  //       Updates.reloadAsync();
-  //     }
-  //   }
-  // }
+  useEffect(() => {
+    registerForPushNotificationsAsync();
+  }, []);
 
   useEffect(() => {
     mobileAds()
@@ -83,6 +160,8 @@ export default function RootLayout() {
 
     return () => subscription.remove();
   }, []);
+
+  useNotificationObserver();
 
   usePlatformSpecificSetup();
   const { isDarkColorScheme, setColorScheme } = useColorScheme();

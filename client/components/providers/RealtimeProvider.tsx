@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { usePathname } from "expo-router";
+import { router, usePathname } from "expo-router";
 import { createContext, ReactNode, useEffect, useRef, useState } from "react";
 import { AppState } from "react-native";
 import { io, Socket } from "socket.io-client";
@@ -13,9 +13,16 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
   const { data: currentUserData } = authClient.useSession();
   const [isConnected, setIsConnected] = useState(false);
-  const pathname = usePathname();
   const socketRef = useRef<Socket | null>(null);
   const isUnmountingRef = useRef(false);
+  const queryClientRef = useRef(queryClient);
+  const userIdRef = useRef(currentUserData?.user?.id);
+
+  // Keep refs updated without triggering reconnects
+  useEffect(() => {
+    queryClientRef.current = queryClient;
+    userIdRef.current = currentUserData?.user?.id;
+  });
 
   useEffect(() => {
     if (!currentUserData?.user?.id) {
@@ -30,7 +37,6 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
       auth: {
         userId: currentUserData.user.id,
       },
-      forceNew: true, // Force new connection to prevent stale connections
     });
 
     socketRef.current = socket;
@@ -55,10 +61,39 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
     });
 
     socket.on("data-invalidated", (queryKey: string[]) => {
-      queryClient.invalidateQueries({
-        queryKey,
-      });
+      if (!isUnmountingRef.current && queryClientRef.current) {
+        queryClientRef.current.invalidateQueries({
+          queryKey,
+        });
+      }
     });
+
+    socket.on(
+      "friendly-match-request-accepted",
+      async ({ matchId }: { matchId: number }) => {
+        if (isUnmountingRef.current) return;
+
+        const userId = userIdRef.current;
+        const qc = queryClientRef.current;
+
+        if (!userId || !qc) return;
+
+        await qc.invalidateQueries({
+          queryKey: ["match-ids", userId, "unresolved"],
+        });
+        await qc.invalidateQueries({
+          queryKey: ["match", matchId],
+        });
+
+        if (router.canDismiss()) {
+          router.dismissAll();
+        }
+        router.navigate({
+          pathname: "/match/[matchId]",
+          params: { matchId },
+        });
+      }
+    );
 
     const handleAppStateChange = (nextAppState: string) => {
       if (nextAppState === "background" && socket?.connected) {
@@ -85,24 +120,17 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
         // Remove all listeners first to prevent events during cleanup
         socketRef.current.removeAllListeners();
 
-        // Disconnect forcefully with a timeout
-        const disconnectTimeout = setTimeout(() => {
-          if (socketRef.current) {
-            socketRef.current.close();
-          }
-        }, 100);
-
         if (socketRef.current.connected) {
           socketRef.current.disconnect();
         }
 
-        clearTimeout(disconnectTimeout);
+        socketRef.current.close();
         socketRef.current = null;
       }
 
       setIsConnected(false);
     };
-  }, [queryClient, currentUserData?.user.id, pathname]);
+  }, [currentUserData?.user.id]);
 
   return (
     <RealtimeContext.Provider value={{ isConnected }}>

@@ -157,13 +157,6 @@ friendlyMatchRequestsRoute.patch(
             ? updatedRequest.outgoingId
             : updatedRequest.incomingId;
 
-        io.of("/realtime")
-          .to(`user:${recipientId}`)
-          .emit("friendly-match-request-declined", {
-            ...userResult,
-            league: updatedRequest.league,
-          });
-
         // Send push notification
         sendPushNotification(
           recipientId,
@@ -208,7 +201,7 @@ friendlyMatchRequestsRoute.patch(
         userIds: [updatedRequest.outgoingId, updatedRequest.incomingId],
         title: "Match Ready!",
         body: "Your friendly match has been accepted and is ready to play!",
-        data: { matchId: newMatchId },
+        data: { matchId: newMatchId, url: `/match/${newMatchId}` },
       });
 
       res.json({ success: true });
@@ -276,16 +269,12 @@ friendlyMatchRequestsRoute.post(
         },
       });
 
-      io.of("/realtime")
-        .to(`user:${incomingId}`)
-        .emit("friendly-match-request-received", { ...userResult, league });
-
       // Send push notification
       sendPushNotification(
         incomingId,
         "Friendly Match Request",
         `${userResult?.username || "Someone"} wants to play a friendly match!`,
-        { league, requesterId: userResult?.id }
+        { league, requesterId: userResult?.id, url: `/(tabs)/social` }
       );
 
       res.json(newFriendlyMatchRequest);

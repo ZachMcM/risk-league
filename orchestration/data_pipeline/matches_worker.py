@@ -518,6 +518,9 @@ async def _publish_match_resolved_messages(
                 "pushNotification": {
                     "title": "Match Ended",
                     "body": "Your match has ended. Check your results!",
+                    "data": {
+                        "url": f"/match/{match_id}"
+                    }
                 },
             },
         )

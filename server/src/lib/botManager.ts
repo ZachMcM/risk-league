@@ -178,17 +178,6 @@ export async function createBotParlay(botId: string, matchId: number) {
         },
       });
 
-      io.of("/realtime")
-        .to(`user:${otherMatchUser.user.id}`)
-        .emit("opp-parlay-placed", {
-          matchId,
-          stake: parlayData.stake,
-          legs: parlayData.selectedProps.length,
-          type: parlayData.type,
-          username: botAcc?.username,
-          image: botAcc?.image,
-        });
-
       // Send push notification
       sendPushNotification(
         otherMatchUser.user.id,
@@ -201,6 +190,7 @@ export async function createBotParlay(botId: string, matchId: number) {
           stake: parlayData.stake,
           legs: parlayData.selectedProps.length,
           type: parlayData.type,
+          url: `/match/${matchId}`
         }
       );
 

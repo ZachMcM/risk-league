@@ -1,6 +1,6 @@
 import { FlashList } from "@shopify/flash-list";
 import { useQuery } from "@tanstack/react-query";
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams, usePathname } from "expo-router";
 import { debounce } from "lodash";
 import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
@@ -43,6 +43,8 @@ export default function Friends() {
 
   const [searchQuery, setSearchQuery] = useState("");
 
+  const pathname = usePathname();
+
   const {
     data: searchResults,
     refetch: reSearch,
@@ -64,7 +66,7 @@ export default function Friends() {
     if (searchParams.tab) {
       setTabsValue(searchParams.tab);
     }
-  }, [searchParams.tab]);
+  }, [searchParams.tab, pathname]);
 
   useEffect(() => {
     setSearchQuery("");

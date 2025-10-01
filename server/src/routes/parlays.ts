@@ -1,5 +1,6 @@
 import { and, desc, eq, gt, InferInsertModel, lt, ne } from "drizzle-orm";
 import { Router } from "express";
+import { io } from "..";
 import { MIN_STAKE_PCT } from "../config";
 import { db } from "../db";
 import {
@@ -14,10 +15,9 @@ import {
 } from "../db/schema";
 import { logger } from "../logger";
 import { authMiddleware } from "../middleware";
+import { sendPushNotification } from "../pushNotifications";
 import { handleError } from "../utils/handleError";
 import { invalidateQueries } from "../utils/invalidateQueries";
-import { io } from "..";
-import { sendPushNotification } from "../pushNotifications";
 
 export const parlaysRoute = Router();
 
@@ -337,7 +337,7 @@ parlaysRoute.post("/parlays", authMiddleware, async (req, res) => {
         `${currUser?.username || "Opponent"} placed a ${
           picks.length
         }-leg ${type} parlay!`,
-        { matchId, stake, legs: picks.length, type }
+        { matchId, stake, legs: picks.length, type, url: `/match/${matchId}` }
       );
 
       return;

@@ -141,16 +141,12 @@ friendshipsRoute.post("/friendships", authMiddleware, async (req, res) => {
       },
     });
 
-    io.of("/realtime")
-      .to(`user:${incomingId}`)
-      .emit("friend-request-received", outgoingUser);
-
     // Send push notification
     sendPushNotification(
       incomingId,
       "Friend Request",
       `${outgoingUser?.username || "Someone"} sent you a friend request!`,
-      { requesterId: outgoingUser?.id }
+      { requesterId: outgoingUser?.id, url: `/(tabs)/social?tab=requests` }
     );
 
     res.json(newFriendRequest);
@@ -267,16 +263,12 @@ friendshipsRoute.patch("/friendships", authMiddleware, async (req, res) => {
       },
     });
 
-    io.of("/realtime")
-      .to(`user:${outgoingId}`)
-      .emit("friend-request-accepted", incomingUser);
-
     // Send push notification
     sendPushNotification(
       outgoingId,
       "Friend Request Accepted",
       `${incomingUser?.username || "Someone"} accepted your friend request!`,
-      { accepterId: incomingUser?.id }
+      { accepterId: incomingUser?.id, url: `/(tabs)/social?tab=friends` }
     );
 
     res.json(updatedFriendship);
