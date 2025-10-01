@@ -22,6 +22,9 @@ class UnicodeJsonFormatter(JsonFormatter):
 
     def jsonify_log_record(self, log_record):
         """Override to ensure Unicode characters are not escaped."""
+        # Rename levelname to severity for Railway compatibility
+        if 'levelname' in log_record:
+            log_record['severity'] = log_record.pop('levelname')
         return json.dumps(log_record, ensure_ascii=False, default=str)
 
 
