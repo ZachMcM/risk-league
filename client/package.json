@@ -116,7 +116,9 @@
     "victory-native": "^41.19.3",
     "zod": "^3.25.76",
     "expo-dev-client": "~5.2.4",
-    "expo-device": "~7.1.4"
+    "expo-device": "~7.1.4",
+    "expo-constants": "~17.1.7",
+    "expo-updates": "~0.28.17"
   },
   "devDependencies": {
     "@babel/core": "^7.26.0",

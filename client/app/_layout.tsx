@@ -17,6 +17,7 @@ import {
 } from "@tanstack/react-query";
 import { SplashScreen, Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import * as Updates from "expo-updates";
 import * as React from "react";
 import { useEffect } from "react";
 import type { AppStateStatus } from "react-native";
@@ -66,6 +67,9 @@ export default function RootLayout() {
   function onAppStateChange(status: AppStateStatus) {
     if (Platform.OS !== "web") {
       focusManager.setFocused(status === "active");
+      if (status === "active") {
+        Updates.reloadAsync();
+      }
     }
   }
 

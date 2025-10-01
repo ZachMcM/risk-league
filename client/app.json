@@ -8,9 +8,7 @@
     "scheme": "riskleague",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.zachmcm.client",
@@ -24,9 +22,7 @@
         "backgroundColor": "#000000"
       },
       "package": "com.zachmcm.client",
-      "permissions": [
-        "android.permission.RECORD_AUDIO"
-      ]
+      "permissions": ["android.permission.RECORD_AUDIO"]
     },
     "web": {
       "bundler": "metro",
@@ -56,19 +52,15 @@
           "iosAppId": "ca-app-pub-7972955391905307~3082161857"
         }
       ],
-      [
-        "expo-router"
-      ],
-      [
-        "expo-font",
-        {}
-      ],
+      ["expo-router"],
+      ["expo-font", {}],
       [
         "expo-image-picker",
         {
           "photosPermission": "The app accesses your photos to let you share them with your friends."
         }
-      ]
+      ],
+      ["expo-notifications"]
     ],
     "experiments": {
       "typedRoutes": true

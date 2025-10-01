@@ -23,7 +23,7 @@ def get_pool():
                 _pool = ConnectionPool(
                     database_url,
                     min_size=1,
-                    max_size=15,
+                    max_size=int(getenv_required("POOL_MAX_SIZE")),
                     timeout=30.0,
                     max_idle=300.0,
                     open=False,
@@ -65,7 +65,7 @@ async def get_async_pool():
                     _async_pool = AsyncConnectionPool(
                         database_url,
                         min_size=2,
-                        max_size=15,
+                        max_size=int(getenv_required("POOL_MAX_SIZE")),
                         timeout=30.0,
                         max_idle=300.0,  # Match sync pool settings
                         max_lifetime=1800.0,  # 30 minutes - prevent stale connections

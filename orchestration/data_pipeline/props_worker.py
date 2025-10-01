@@ -37,9 +37,6 @@ LEAGUE_VALID_STATS = {
 
 logger = setup_logger(__name__)
 
-# Semaphore to limit concurrent handlers and prevent connection pool exhaustion
-_semaphore = asyncio.Semaphore(15)
-
 
 class StatEntry(TypedDict):
     player_id: int
@@ -258,11 +255,10 @@ async def handle_stats_updated(data):
 
 async def handle_stats_updated_safe(data):
     """Safe wrapper for handle_stats_updated that prevents listener crashes"""
-    async with _semaphore:
-        try:
-            await handle_stats_updated(data)
-        except Exception as e:
-            logger.error(f"Error handling stats_updated message: {e}", exc_info=True)
+    try:
+        await handle_stats_updated(data)
+    except Exception as e:
+        logger.error(f"Error handling stats_updated message: {e}", exc_info=True)
 
 
 async def listen_for_stats_updated(provided_league: str):
