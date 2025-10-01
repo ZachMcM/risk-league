@@ -60,7 +60,6 @@ export default function Home() {
           userId={currentUserData?.user.id!}
         />        
       </View>
-
       <View className="flex flex-1 flex-col gap-6">
         <View className="px-6 pt-12 flex flex-row items-center justify-between">
           <View className="flex flex-row items-center gap-3">

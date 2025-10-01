@@ -17,10 +17,9 @@ import LeagueLogo from "../ui/league-logos/LeagueLogo";
 import { Text } from "../ui/text";
 
 const messages = [
-  "Finding the best match...",
-  "Searching for opponent...",
+  "Finding a match...",
   "Analyzing ranks...",
-  "Hang tight, almost there...",
+  "Almost there...",
 ];
 
 export default function PlayButton({
@@ -150,7 +149,7 @@ export default function PlayButton({
         !arePropsPending && propsCount === 0 && "opacity-60",
       )}
     >
-      <CardContent className="p-0 flex-1 flex flex-col">
+      <CardContent className="p-0 flex flex-col">
         <View className={"relative overflow-hidden h-36 rounded-t-2xl"}>
           <Image
             contentFit="cover"
@@ -168,7 +167,7 @@ export default function PlayButton({
             style={{ width: "100%", height: "100%" }}
           />
         </View>
-        <View className="flex flex-col items-center gap-4 p-4 flex-1">
+        <View className="flex flex-col items-center gap-4 p-4">
           <View className="flex flex-col gap-3 items-center">
             <View className="flex flex-row items-center gap-2">
               <LeagueLogo size={28} league={league} />
@@ -176,11 +175,9 @@ export default function PlayButton({
                 {league}
               </Text>
             </View>
-            {isLoading && (
-              <ActivityIndicator className="text-muted-foreground" />
-            )}
             {isLoading ? (
               <View className="flex flex-row items-center justify-center gap-2 max-w-xs">
+                <ActivityIndicator className="text-muted-foreground" /> 
                 <Text className="text-muted-foreground">
                   {progress}% {loadingMessage}
                 </Text>

@@ -64,14 +64,14 @@ export {
 const queryClient = new QueryClient();
 
 export default function RootLayout() {
-  function onAppStateChange(status: AppStateStatus) {
-    if (Platform.OS !== "web") {
-      focusManager.setFocused(status === "active");
-      if (status === "active") {
-        Updates.reloadAsync();
-      }
-    }
-  }
+  // function onAppStateChange(status: AppStateStatus) {
+  //   if (Platform.OS !== "web") {
+  //     focusManager.setFocused(status === "active");
+  //     if (status === "active") {
+  //       Updates.reloadAsync();
+  //     }
+  //   }
+  // }
 
   useEffect(() => {
     mobileAds()
@@ -79,7 +79,7 @@ export default function RootLayout() {
       .then((_) => {
         // Initialization complete!
       });
-    const subscription = AppState.addEventListener("change", onAppStateChange);
+    const subscription = AppState.addEventListener("change", () => {});
 
     return () => subscription.remove();
   }, []);
