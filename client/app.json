@@ -60,7 +60,12 @@
           "photosPermission": "The app accesses your photos to let you share them with your friends."
         }
       ],
-      ["expo-notifications"]
+      [
+        "expo-notifications",
+        {
+          "sounds": ["./assets/audio/basketball_swish.wav"]
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

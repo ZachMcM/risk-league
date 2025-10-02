@@ -28,11 +28,11 @@ export default function PlayButton({
   league: League;
   children?: ReactNode;
 }) {
-  const mlbImage = require("~/assets/images/mlb.jpeg");
-  const nbaImage = require("~/assets/images/nba.jpeg");
-  const nflImage = require("~/assets/images/nfl.jpeg");
-  const ncaabbImage = require("~/assets/images/ncaabb.jpeg");
-  const ncaafbImage = require("~/assets/images/ncaafb.jpeg");
+  const mlbImage = require("~/assets/images/league-pictures/mlb.jpg");
+  const nbaImage = require("~/assets/images/league-pictures/nba.jpg");
+  const nflImage = require("~/assets/images/league-pictures/nfl.jpg");
+  const ncaabbImage = require("~/assets/images/league-pictures/ncaabb.jpg");
+  const ncaafbImage = require("~/assets/images/league-pictures/ncaafb.jpg");
 
   const { data: propsData, isPending: arePropsPending } = useQuery({
     queryKey: ["props-games-count", league],
