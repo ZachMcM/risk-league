@@ -22,9 +22,9 @@ class UnicodeJsonFormatter(JsonFormatter):
 
     def jsonify_log_record(self, log_record):
         """Override to ensure Unicode characters are not escaped."""
-        # Rename levelname to severity for Railway compatibility
-        if 'levelname' in log_record:
-            log_record['severity'] = log_record.pop('levelname')
+        # Rename level to severity for Railway compatibility
+        if 'level' in log_record:
+            log_record['severity'] = log_record.pop('level')
         return json.dumps(log_record, ensure_ascii=False, default=str)
 
 
@@ -188,6 +188,8 @@ async def async_server_req(
         Exception: If response status is not 200
     """
     import aiohttp
+    import ssl
+    import certifi
 
     SERVER_API_BASE_URL = getenv_required("SERVER_API_BASE_URL")
     API_KEY = getenv_required("API_KEY")
@@ -198,7 +200,10 @@ async def async_server_req(
         "Content-Type": "application/json",
     }
 
-    async with aiohttp.ClientSession() as session:
+    ssl_context = ssl.create_default_context(cafile=certifi.where())
+    connector = aiohttp.TCPConnector(ssl=ssl_context)
+
+    async with aiohttp.ClientSession(connector=connector) as session:
         if method == "GET":
             async with session.get(
                 url, headers=headers, params=params, timeout=aiohttp.ClientTimeout(total=30)
