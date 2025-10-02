@@ -24,7 +24,7 @@ class UnicodeJsonFormatter(JsonFormatter):
         """Override to ensure Unicode characters are not escaped."""
         # Rename level to severity for Railway compatibility
         if 'level' in log_record:
-            log_record['severity'] = log_record.pop('level')
+            log_record['level'] = log_record['levelname']
         return json.dumps(log_record, ensure_ascii=False, default=str)
 
 
