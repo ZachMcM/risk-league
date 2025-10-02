@@ -150,11 +150,7 @@ export default function ParlayCard({ initialData }: { initialData: Parlay }) {
           </View>
           <View className="flex flex-row items-center">
             {parlay.picks
-              .sort(
-                (a, b) =>
-                  sqlToJsDate(a.createdAt).getTime() -
-                  sqlToJsDate(b.createdAt).getTime()
-              )
+              .sort((a, b) => b.id - a.id)
               .map((pick, i) => (
                 <PlayerImage
                   key={pick.id}
