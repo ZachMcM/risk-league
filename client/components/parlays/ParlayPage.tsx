@@ -130,11 +130,7 @@ export default function ParlayPage({ parlayId }: { parlayId: number }) {
               </View>
               <View className="flex flex-col gap-4">
                 {parlay.picks
-                  .sort(
-                    (a, b) =>
-                      sqlToJsDate(a.createdAt).getTime() -
-                      sqlToJsDate(b.createdAt).getTime()
-                  )
+                  .sort((a, b) => b.id - a.id)
                   .map((pick) => (
                     <PickCard initialData={pick} key={pick.id} />
                   ))}
