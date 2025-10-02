@@ -6,7 +6,6 @@ import {
   DefaultTheme,
   Theme,
   ThemeProvider,
-  useFocusEffect,
 } from "@react-navigation/native";
 import { PortalHost } from "@rn-primitives/portal";
 import {
@@ -34,6 +33,7 @@ import { authClient } from "~/lib/auth-client";
 import { NAV_THEME } from "~/lib/constants";
 import { useColorScheme } from "~/lib/useColorScheme";
 import { patchUserExpoPushToken } from "~/endpoints";
+import type { AppStateStatus } from "react-native";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -122,14 +122,6 @@ onlineManager.setEventListener((setOnline) => {
   });
 });
 
-focusManager.setEventListener((handleFocus) => {
-  const subscription = AppState.addEventListener("change", (status) => {
-    handleFocus(status === "active");
-  });
-
-  return () => subscription.remove();
-});
-
 const LIGHT_THEME: Theme = {
   ...DefaultTheme,
   colors: NAV_THEME.light,
@@ -145,6 +137,25 @@ const usePlatformSpecificSetup = Platform.select({
   default: noop,
 });
 
+function useRefreshOnFocus() {
+  const firstTimeRef = React.useRef(true);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", (status) => {
+      if (status === "active") {
+        if (firstTimeRef.current) {
+          firstTimeRef.current = false;
+          return;
+        }
+
+        queryClient.invalidateQueries();
+      }
+    });
+
+    return () => subscription.remove();
+  }, []);
+}
+
 SplashScreen.preventAutoHideAsync();
 
 export {
@@ -152,13 +163,7 @@ export {
   ErrorBoundary,
 } from "expo-router";
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      refetchOnWindowFocus: true,
-    },
-  },
-});
+const queryClient = new QueryClient();
 
 export default function RootLayout() {
   useEffect(() => {
@@ -173,7 +178,22 @@ export default function RootLayout() {
       });
   }, []);
 
+  // refetch on app focus
+  function onAppStateChange(status: AppStateStatus) {
+    if (Platform.OS !== "web") {
+      focusManager.setFocused(status === "active");
+    }
+  }
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", onAppStateChange);
+
+    return () => subscription.remove();
+  }, []);
+
   useNotificationObserver();
+
+  useRefreshOnFocus()
 
   usePlatformSpecificSetup();
   const { isDarkColorScheme, setColorScheme } = useColorScheme();
@@ -304,21 +324,6 @@ function useSetAndroidNavigationBar() {
   React.useLayoutEffect(() => {
     setAndroidNavigationBar(Appearance.getColorScheme() ?? "light");
   }, []);
-}
-
-export function useRefreshOnFocus<T>(refetch: () => Promise<T>) {
-  const firstTimeRef = React.useRef(true);
-
-  useFocusEffect(
-    React.useCallback(() => {
-      if (firstTimeRef.current) {
-        firstTimeRef.current = false;
-        return;
-      }
-
-      refetch();
-    }, [refetch])
-  );
 }
 
 function noop() {}
