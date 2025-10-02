@@ -13,6 +13,7 @@ import {
   getFlexMultiplier,
   getPerfectPlayMultiplier,
 } from "../utils/parlayMultipliers";
+import { sendPushNotification } from "./pushNotifications";
 
 export const matchesRoute = Router();
 
@@ -198,18 +199,30 @@ matchesRoute.post("/matches/:id/messages", authMiddleware, async (req, res) => {
       },
     });
 
-    const matchUsers = await db.query.matchUser.findMany({
-      where: eq(matchUser.matchId, parseInt(req.params.id)),
+    const otherMatchUser = await db.query.matchUser.findFirst({
+      where: and(
+        eq(matchUser.matchId, parseInt(req.params.id)),
+        ne(matchUser.userId, res.locals.userId!)
+      ),
       columns: {
         userId: true,
       },
     });
 
-    for (const user of matchUsers) {
-      io.of("/realtime")
-        .to(`user:${user.userId}`)
-        .emit("match-message-received", messageWithUser);
+    if (!otherMatchUser) {
+      res.status(500).json({ error: "No other match user found" })
+      return
     }
+
+    sendPushNotification(
+      otherMatchUser.userId,
+      "Match Message",
+      `${messageWithUser?.user.username || "Someone:"} ${content.substring(
+        0,
+        50
+      )}${content.length > 50 ? "..." : ""}`,
+      { url: `/match/${req.params.id}?openSubRoute=messages` }
+    );
 
     res.json(newMessage.id);
   } catch (error) {

@@ -42,12 +42,11 @@ async def check_and_notify_available_props():
                 if len(leagues) == 1:
                     leagues_text = leagues[0]
                 elif len(leagues) == 2:
-                    leagues_text = f"{leagues[0]} and {leagues[1]}"
+                    leagues_text = f"{leagues[0]} or {leagues[1]}"
                 else:
-                    # For 3+ leagues: "League1, League2, and League3"
-                    leagues_text = ", ".join(leagues[:-1]) + f", and {leagues[-1]}"
+                    leagues_text = ", ".join(leagues[:-1]) + f", or {leagues[-1]}"
 
-                body = f"{leagues_text} match{'es' if len(leagues) != 1 else ''} available right now!"
+                body = f"Start a {leagues_text} match right now!"
 
                 # Get all users
                 users_query = """
@@ -81,7 +80,7 @@ async def check_and_notify_available_props():
                             "title": "Start a Match!",
                             "body": body,
                             "data": {
-                                "url": "/"
+                                "url": "/(tabs)"
                             }
                         },
                     },

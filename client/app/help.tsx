@@ -32,7 +32,7 @@ export default function Help() {
     <ModalContainer>
       <ScrollContainer className="pt-10 px-0" ref={scrollViewRef}>
         <View className="flex flex-col gap-4">
-          <Text className="font-bold text-4xl pb-4 px-4">Help</Text>
+          <Text className="font-bold text-4xl pb-6 px-6">Help</Text>
           <Tabs
             value={tab}
             onValueChange={setTab}

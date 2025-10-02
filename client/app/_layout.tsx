@@ -6,10 +6,10 @@ import {
   DefaultTheme,
   Theme,
   ThemeProvider,
-  useFocusEffect,
 } from "@react-navigation/native";
 import { PortalHost } from "@rn-primitives/portal";
 import {
+  focusManager,
   onlineManager,
   QueryClient,
   QueryClientProvider,
@@ -34,6 +34,7 @@ import { NAV_THEME } from "~/lib/constants";
 import { useColorScheme } from "~/lib/useColorScheme";
 import { patchUserExpoPushToken } from "~/endpoints";
 import Purchases, { LOG_LEVEL } from 'react-native-purchases';
+import type { AppStateStatus } from "react-native";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -137,6 +138,25 @@ const usePlatformSpecificSetup = Platform.select({
   default: noop,
 });
 
+function useRefreshOnFocus() {
+  const firstTimeRef = React.useRef(true);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", (status) => {
+      if (status === "active") {
+        if (firstTimeRef.current) {
+          firstTimeRef.current = false;
+          return;
+        }
+
+        queryClient.invalidateQueries();
+      }
+    });
+
+    return () => subscription.remove();
+  }, []);
+}
+
 SplashScreen.preventAutoHideAsync();
 
 export {
@@ -159,7 +179,17 @@ export default function RootLayout() {
       .then((_) => {
         // Initialization complete!
       });
-    const subscription = AppState.addEventListener("change", () => {});
+  }, []);
+
+  // refetch on app focus
+  function onAppStateChange(status: AppStateStatus) {
+    if (Platform.OS !== "web") {
+      focusManager.setFocused(status === "active");
+    }
+  }
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", onAppStateChange);
 
     return () => subscription.remove();
   }, []);
@@ -175,6 +205,8 @@ export default function RootLayout() {
 
   // allows for navigating for 
   useNotificationObserver();
+
+  useRefreshOnFocus()
 
   usePlatformSpecificSetup();
   const { isDarkColorScheme, setColorScheme } = useColorScheme();
@@ -305,21 +337,6 @@ function useSetAndroidNavigationBar() {
   React.useLayoutEffect(() => {
     setAndroidNavigationBar(Appearance.getColorScheme() ?? "light");
   }, []);
-}
-
-export function useRefreshOnFocus<T>(refetch: () => Promise<T>) {
-  const firstTimeRef = React.useRef(true);
-
-  useFocusEffect(
-    React.useCallback(() => {
-      if (firstTimeRef.current) {
-        firstTimeRef.current = false;
-        return;
-      }
-
-      refetch();
-    }, [refetch])
-  );
 }
 
 function noop() {}

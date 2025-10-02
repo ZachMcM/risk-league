@@ -724,7 +724,6 @@ dynastyLeaguesRoute.post(
             req.body.content.length > 50 ? "..." : ""
           }`,
           data: {
-            dynastyLeagueId: parseInt(req.params.id),
             url: `/dynastyLeague/${req.params.id}?openSubRoute=messages`,
           },
         });
