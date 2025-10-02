@@ -3,6 +3,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect } from "react";
 import { ActivityIndicator, View } from "react-native";
 import { useInterstitialAd } from "react-native-google-mobile-ads";
+import Purchases from "react-native-purchases";
 import { toast } from "sonner-native";
 import MatchDetails from "~/components/matches/MatchDetails";
 import ParlaysView from "~/components/parlays/ParlaysView";
@@ -57,14 +58,21 @@ export default function Match() {
   }, [loadAd]);
 
   useEffect(() => {
-    if (
-      isAdLoaded &&
-      match &&
-      new Date().getTime() - sqlToJsDate(match.createdAt).getTime() <= 20000
-    ) {
-      toast.dismiss();
-      showAd();
-    }
+    const showAdIfAllowed = async () => {
+      if (
+        isAdLoaded &&
+        match &&
+        new Date().getTime() - sqlToJsDate(match.createdAt).getTime() <= 20000
+      ) {
+        const customerInfo = await Purchases.getCustomerInfo();
+        if (typeof customerInfo.entitlements.active["No Ads"] === "undefined") {
+          toast.dismiss();
+          showAd();
+        }
+      }
+    };
+
+    showAdIfAllowed();
   }, [isAdLoaded, match]);
 
   return (
