@@ -17,15 +17,14 @@ def getenv_required(key: str) -> str:
     return value
 
 
-class UnicodeJsonFormatter(JsonFormatter):
-    """Custom JSON formatter that preserves Unicode characters like emojis."""
-
-    def jsonify_log_record(self, log_record):
-        """Override to ensure Unicode characters are not escaped."""
-        # Rename level to severity for Railway compatibility
-        if 'level' in log_record:
-            log_record['level'] = log_record['levelname']
-        return json.dumps(log_record, ensure_ascii=False, default=str)
+class CustomRailwayLogFormatter(logging.Formatter):
+    def format(self, record):
+        log_record = {
+            "time": self.formatTime(record),
+            "level": record.levelname,
+            "message": record.getMessage(),
+        }
+        return json.dumps(log_record)
 
 
 def setup_logger(name: str, level: int = logging.INFO):
@@ -39,29 +38,16 @@ def setup_logger(name: str, level: int = logging.INFO):
         Configured logger instance
     """
     logger = logging.getLogger(name)
-
-    # Avoid adding handlers multiple times
-    if logger.handlers:
-        return logger
-
     logger.setLevel(level)
 
-    # Create console handler
     handler = logging.StreamHandler()
-    handler.setLevel(level)
 
-    # Create JSON formatter
-    formatter = UnicodeJsonFormatter(
-        fmt='%(asctime)s %(name)s %(levelname)s %(message)s'
-    )
+    for handler in logger.handlers[:]:
+        logger.removeHandler(handler)
+    formatter = CustomRailwayLogFormatter()
     handler.setFormatter(formatter)
 
-    # Add handler to logger
     logger.addHandler(handler)
-
-    # Prevent duplicate logs from propagating to root logger
-    logger.propagate = False
-
     return logger
 
 
@@ -94,7 +80,7 @@ def server_req(
 
     url = f"{SERVER_API_BASE_URL}{route}"
     headers = {"x-api-key": API_KEY}
-    
+
     # Only set Content-Type for JSON if no files are being sent
     if not files:
         headers["Content-Type"] = "application/json"
@@ -102,13 +88,19 @@ def server_req(
     if method == "GET":
         response = requests.get(url, headers=headers, params=params, timeout=30)
     elif method == "POST":
-        response = requests.post(url, headers=headers, data=body, files=files, params=params, timeout=30)
+        response = requests.post(
+            url, headers=headers, data=body, files=files, params=params, timeout=30
+        )
     elif method == "PUT":
-        response = requests.put(url, headers=headers, data=body, files=files, params=params, timeout=30)
+        response = requests.put(
+            url, headers=headers, data=body, files=files, params=params, timeout=30
+        )
     elif method == "DELETE":
         response = requests.delete(url, headers=headers, params=params, timeout=30)
     elif method == "PATCH":
-        response = requests.patch(url, headers=headers, data=body, files=files, params=params, timeout=30)
+        response = requests.patch(
+            url, headers=headers, data=body, files=files, params=params, timeout=30
+        )
     else:
         raise ValueError(f"Unsupported HTTP method: {method}")
 
@@ -206,31 +198,49 @@ async def async_server_req(
     async with aiohttp.ClientSession(connector=connector) as session:
         if method == "GET":
             async with session.get(
-                url, headers=headers, params=params, timeout=aiohttp.ClientTimeout(total=30)
+                url,
+                headers=headers,
+                params=params,
+                timeout=aiohttp.ClientTimeout(total=30),
             ) as response:
                 status = response.status
                 text = await response.text()
         elif method == "POST":
             async with session.post(
-                url, headers=headers, json=body, params=params, timeout=aiohttp.ClientTimeout(total=30)
+                url,
+                headers=headers,
+                json=body,
+                params=params,
+                timeout=aiohttp.ClientTimeout(total=30),
             ) as response:
                 status = response.status
                 text = await response.text()
         elif method == "PUT":
             async with session.put(
-                url, headers=headers, json=body, params=params, timeout=aiohttp.ClientTimeout(total=30)
+                url,
+                headers=headers,
+                json=body,
+                params=params,
+                timeout=aiohttp.ClientTimeout(total=30),
             ) as response:
                 status = response.status
                 text = await response.text()
         elif method == "DELETE":
             async with session.delete(
-                url, headers=headers, params=params, timeout=aiohttp.ClientTimeout(total=30)
+                url,
+                headers=headers,
+                params=params,
+                timeout=aiohttp.ClientTimeout(total=30),
             ) as response:
                 status = response.status
                 text = await response.text()
         elif method == "PATCH":
             async with session.patch(
-                url, headers=headers, json=body, params=params, timeout=aiohttp.ClientTimeout(total=30)
+                url,
+                headers=headers,
+                json=body,
+                params=params,
+                timeout=aiohttp.ClientTimeout(total=30),
             ) as response:
                 status = response.status
                 text = await response.text()
@@ -238,10 +248,6 @@ async def async_server_req(
             raise ValueError(f"Unsupported HTTP method: {method}")
 
         if status not in [200, 304]:
-            raise Exception(
-                f"Server request failed: {status}. Response: {text}"
-            )
+            raise Exception(f"Server request failed: {status}. Response: {text}")
 
         return status, text
-
-

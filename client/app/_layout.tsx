@@ -10,6 +10,7 @@ import {
 } from "@react-navigation/native";
 import { PortalHost } from "@rn-primitives/portal";
 import {
+  focusManager,
   onlineManager,
   QueryClient,
   QueryClientProvider,
@@ -121,6 +122,14 @@ onlineManager.setEventListener((setOnline) => {
   });
 });
 
+focusManager.setEventListener((handleFocus) => {
+  const subscription = AppState.addEventListener("change", (status) => {
+    handleFocus(status === "active");
+  });
+
+  return () => subscription.remove();
+});
+
 const LIGHT_THEME: Theme = {
   ...DefaultTheme,
   colors: NAV_THEME.light,
@@ -143,7 +152,13 @@ export {
   ErrorBoundary,
 } from "expo-router";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: true,
+    },
+  },
+});
 
 export default function RootLayout() {
   useEffect(() => {
@@ -156,9 +171,6 @@ export default function RootLayout() {
       .then((_) => {
         // Initialization complete!
       });
-    const subscription = AppState.addEventListener("change", () => {});
-
-    return () => subscription.remove();
   }, []);
 
   useNotificationObserver();
