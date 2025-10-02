@@ -319,17 +319,6 @@ parlaysRoute.post("/parlays", authMiddleware, async (req, res) => {
         },
       });
 
-      io.of("/realtime")
-        .to(`user:${otherMatchUser.user.id}`)
-        .emit("opp-parlay-placed", {
-          matchId,
-          stake,
-          legs: picks.length,
-          type,
-          username: currUser?.username,
-          image: currUser?.image,
-        });
-
       // Send push notification
       sendPushNotification(
         otherMatchUser.user.id,
