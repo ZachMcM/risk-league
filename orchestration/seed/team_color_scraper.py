@@ -1,9 +1,8 @@
-import json
 import sys
 import time
 import requests
-from utils import setup_logger, server_req
-import requests
+from utils import setup_logger
+from db.teams import get_teams_by_league, update_team_colors
 
 logger = setup_logger(__name__)
 
@@ -39,30 +38,24 @@ def main():
         if len(sys.argv) > 2:
             starting_index = int(sys.argv[2])
 
-        teams_list: list[dict] = server_req(
-            route=f"/teams/league/{league}", method="GET"
-        ).json()
+        teams_list = get_teams_by_league(league)
 
         for i in range(starting_index, len(teams_list)):
             team = teams_list[i]
-            logger.info(f"Processing team {team['fullName']} {i + 1}/{len(teams_list)}")
-            team_info = search_espn_team(team["fullName"])
+            logger.info(f"Processing team {team['full_name']} {i + 1}/{len(teams_list)}")
+            team_info = search_espn_team(team["full_name"])
             if not team_info:
                 continue
 
             if team_info["color"] and team_info["alternateColor"]:
-                server_req(
-                    route=f"/teams/{team['teamId']}/league/{league}/colors",
-                    method="PUT",
-                    body=json.dumps(
-                        {
-                            "color": team_info["color"],
-                            "alternateColor": team_info["alternateColor"],
-                        }
-                    ),
+                update_team_colors(
+                    team_id=team["team_id"],
+                    league=league,
+                    color=team_info["color"],
+                    alternate_color=team_info["alternateColor"]
                 )
                 logger.info(
-                    f"Updated {team['fullName']} color: {team_info['color']} alternateColor: {team_info['alternateColor']}"
+                    f"Updated {team['full_name']} color: {team_info['color']} alternateColor: {team_info['alternateColor']}"
                 )
 
             time.sleep(0.1)

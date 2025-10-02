@@ -298,14 +298,14 @@ def get_active_players_for_team(league: str, team_id: int) -> list[Player]:
 
 def get_players_by_league(league: str) -> list[Player]:
     """
-    Get all active players for a league.
-    Replicates GET /players/league/:league/active
+    Get all players for a league.
+    Replicates GET /players/league/:league
 
     Args:
         league: The league to filter by
 
     Returns:
-        List of active players for the league
+        List of players for the league
 
     Raises:
         psycopg.Error: If database operation fails
@@ -317,7 +317,7 @@ def get_players_by_league(league: str) -> list[Player]:
                     SELECT number, player_id, status, name, team_id, league,
                            position, updated_at, height, weight
                     FROM player
-                    WHERE league = %s AND status = 'ACT'
+                    WHERE league = %s
                     ORDER BY name
                 """
 
@@ -341,7 +341,7 @@ def get_players_by_league(league: str) -> list[Player]:
                     players.append(player)
 
                 logger.info(
-                    f"Retrieved {len(players)} active players for league {league}"
+                    f"Retrieved {len(players)} players for league {league}"
                 )
                 return players
 

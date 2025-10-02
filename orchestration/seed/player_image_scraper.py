@@ -1,8 +1,8 @@
 import sys
 import time
 import requests
-from utils import setup_logger, server_req
-import requests
+from utils import setup_logger, upload_to_s3
+from db.players import get_players_by_league, update_player_image
 
 logger = setup_logger(__name__)
 
@@ -34,10 +34,8 @@ def main():
             starting_index = int(sys.argv[2])
 
         total_scraped = 0
-        
-        players_list: list[dict] = server_req(
-            route=f"/players/league/{league}/active", method="GET"
-        ).json()
+
+        players_list = get_players_by_league(league)
 
         for i in range(starting_index, len(players_list)):
             player = players_list[i]
@@ -47,14 +45,18 @@ def main():
                 response = requests.get(headshot_url)
                 img_buffer = response.content
 
-                files = {"image": ("headshot.png", img_buffer, "image/png")}
-                server_req(
-                    route=f"/players/{player['playerId']}/league/{league}/image",
-                    method="PUT",
-                    files=files,
+                # Upload to S3 and get the public URL
+                file_path = f"players/{league}/{player['player_id']}.png"
+                image_url = upload_to_s3(img_buffer, file_path, content_type="image/png")
+
+                # Update the database with the image URL
+                update_player_image(
+                    player_id=player["player_id"],
+                    league=league,
+                    image_url=image_url
                 )
                 total_scraped += 1
-                logger.info(f"Updated {player['name']} Headshot URL: {headshot_url}")
+                logger.info(f"Updated {player['name']} Headshot URL: {image_url}")
 
                 time.sleep(0.1)
 
