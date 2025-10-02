@@ -3,10 +3,10 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect } from "react";
 import { ActivityIndicator, View } from "react-native";
 import { useInterstitialAd } from "react-native-google-mobile-ads";
-import Purchases from "react-native-purchases";
 import { toast } from "sonner-native";
 import MatchDetails from "~/components/matches/MatchDetails";
 import ParlaysView from "~/components/parlays/ParlaysView";
+import { useEntitlements } from "~/components/providers/EntitlementsProvider";
 import { Button } from "~/components/ui/button";
 import { ScrollContainer } from "~/components/ui/scroll-container";
 import { Text } from "~/components/ui/text";
@@ -57,23 +57,24 @@ export default function Match() {
     loadAd();
   }, [loadAd]);
 
+  const { adFreeEntitlementPending, adFreeEntitlement } = useEntitlements();
+
   useEffect(() => {
     const showAdIfAllowed = async () => {
       if (
+        !adFreeEntitlementPending &&
+        !adFreeEntitlement &&
         isAdLoaded &&
         match &&
         new Date().getTime() - sqlToJsDate(match.createdAt).getTime() <= 20000
       ) {
-        const customerInfo = await Purchases.getCustomerInfo();
-        if (typeof customerInfo.entitlements.active["No Ads"] === "undefined") {
-          toast.dismiss();
-          showAd();
-        }
+        toast.dismiss();
+        showAd();
       }
     };
 
     showAdIfAllowed();
-  }, [isAdLoaded, match]);
+  }, [isAdLoaded, match, adFreeEntitlement, adFreeEntitlementPending]);
 
   return (
     <ScrollContainer className="p-4">

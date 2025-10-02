@@ -11,6 +11,7 @@ import { sqlToJsDate } from "~/utils/dateUtils";
 import { Alert, AlertTitle } from "../ui/alert";
 import { Icon } from "../ui/icon";
 import { Text } from "../ui/text";
+import { useEntitlements } from "../providers/EntitlementsProvider";
 
 export default function DynastyLeagueDetails({
   dynastyLeagueUsers,
@@ -36,25 +37,31 @@ export default function DynastyLeagueDetails({
     loadAd();
   }, [loadAd]);
 
+  const { adFreeEntitlementPending, adFreeEntitlement } = useEntitlements();
+
   useEffect(() => {
     const showAdIfAllowed = async () => {
       if (
         currentDynastyLeagueUser &&
         isAdLoaded &&
+        !adFreeEntitlementPending &&
+        !adFreeEntitlement &&
         new Date().getTime() -
           sqlToJsDate(currentDynastyLeagueUser.createdAt).getTime() <=
           20000
       ) {
-        const customerInfo = await Purchases.getCustomerInfo();
-        if (typeof customerInfo.entitlements.active["No Ads"] === "undefined") {
-          toast.dismiss();
-          showAd();
-        }
+        toast.dismiss();
+        showAd();
       }
     };
 
     showAdIfAllowed();
-  }, [isAdLoaded, currentDynastyLeagueUser]);
+  }, [
+    isAdLoaded,
+    currentDynastyLeagueUser,
+    adFreeEntitlement,
+    adFreeEntitlementPending,
+  ]);
 
   const [minParlaysAlert, setMinParlaysAlert] = useState(
     currentDynastyLeagueUser.totalParlays < dynastyLeague.minParlays

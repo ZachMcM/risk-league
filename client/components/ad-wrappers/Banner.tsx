@@ -7,31 +7,19 @@ import {
 } from "react-native-google-mobile-ads";
 import Purchases from "react-native-purchases";
 import { adaptiveBannerUnitId } from "~/lib/ads";
+import { useEntitlements } from "../providers/EntitlementsProvider";
 
 export default function BannerAdWrapper() {
-  const [canShowAd, setCanShowAd] = useState(false);
-
   const bannerRef = useRef<BannerAd>(null);
 
   useForeground(() => {
     Platform.OS === "ios" && bannerRef.current?.load();
   });
 
-  useEffect(() => {
-    const checkSubscriptionStatus = async () => {
-      const customerInfo = await Purchases.getCustomerInfo();
-      if (
-        typeof customerInfo.entitlements.active["No Ads"] === "undefined"
-      ) {
-        setCanShowAd(true);
-      }
-    };
-
-    checkSubscriptionStatus()
-  }, []);
+  const { adFreeEntitlementPending, adFreeEntitlement } = useEntitlements()
 
   return (
-    canShowAd && (
+    !adFreeEntitlementPending && !adFreeEntitlement && (
       <BannerAd
         ref={bannerRef}
         unitId={adaptiveBannerUnitId}

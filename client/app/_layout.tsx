@@ -33,8 +33,9 @@ import { authClient } from "~/lib/auth-client";
 import { NAV_THEME } from "~/lib/constants";
 import { useColorScheme } from "~/lib/useColorScheme";
 import { patchUserExpoPushToken } from "~/endpoints";
-import Purchases, { LOG_LEVEL } from 'react-native-purchases';
+import Purchases, { LOG_LEVEL } from "react-native-purchases";
 import type { AppStateStatus } from "react-native";
+import { EntitlementsProvider } from "~/components/providers/EntitlementsProvider";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -196,17 +197,19 @@ export default function RootLayout() {
 
   // setting up revenue cat
   useEffect(() => {
-    Purchases.setLogLevel(LOG_LEVEL.VERBOSE)
+    Purchases.setLogLevel(LOG_LEVEL.VERBOSE);
 
-    if (Platform.OS === 'ios') {
-      Purchases.configure({ apiKey: process.env.EXPO_PUBLIC_REVENUECAT_APPLE_API_KEY! })
+    if (Platform.OS === "ios") {
+      Purchases.configure({
+        apiKey: process.env.EXPO_PUBLIC_REVENUECAT_APPLE_API_KEY!,
+      });
     }
-  }, [])
+  }, []);
 
-  // allows for navigating for 
+  // allows for navigating for
   useNotificationObserver();
 
-  useRefreshOnFocus()
+  useRefreshOnFocus();
 
   usePlatformSpecificSetup();
   const { isDarkColorScheme, setColorScheme } = useColorScheme();
@@ -218,11 +221,13 @@ export default function RootLayout() {
         <GestureHandlerRootView>
           <QueryClientProvider client={queryClient}>
             <RealtimeProvider>
-              <ThemeProvider value={DARK_THEME}>
-                <SplashScreenController />
-                <RootNavigatior />
-                <StatusBar style={isDarkColorScheme ? "light" : "dark"} />
-              </ThemeProvider>
+              <EntitlementsProvider>
+                <ThemeProvider value={DARK_THEME}>
+                  <SplashScreenController />
+                  <RootNavigatior />
+                  <StatusBar style={isDarkColorScheme ? "light" : "dark"} />
+                </ThemeProvider>
+              </EntitlementsProvider>
             </RealtimeProvider>
             <Toaster
               toastOptions={{

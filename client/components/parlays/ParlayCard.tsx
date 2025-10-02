@@ -21,6 +21,7 @@ import { Card, CardContent } from "../ui/card";
 import PlayerImage from "../ui/player-image";
 import { Separator } from "../ui/separator";
 import { Text } from "../ui/text";
+import { useEntitlements } from "../providers/EntitlementsProvider";
 
 export default function ParlayCard({ initialData }: { initialData: Parlay }) {
   const searchParams = useLocalSearchParams<{
@@ -44,22 +45,23 @@ export default function ParlayCard({ initialData }: { initialData: Parlay }) {
     loadAd();
   }, [loadAd]);
 
+  const { adFreeEntitlementPending, adFreeEntitlement } = useEntitlements();
+
   useEffect(() => {
     const showAdIfAllowed = async () => {
       if (
         isAdLoaded &&
+        !adFreeEntitlementPending &&
+        !adFreeEntitlement &&
         new Date().getTime() - sqlToJsDate(parlay.createdAt).getTime() <= 20000
       ) {
-        const customerInfo = await Purchases.getCustomerInfo();
-        if (typeof customerInfo.entitlements.active["No Ads"] === "undefined") {
-          toast.dismiss();
-          showAd();
-        }
+        toast.dismiss();
+        showAd();
       }
     };
 
     showAdIfAllowed();
-  }, [isAdLoaded, parlay]);
+  }, [isAdLoaded, parlay, adFreeEntitlement, adFreeEntitlementPending]);
 
   return (
     <Link
