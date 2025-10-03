@@ -113,7 +113,6 @@ export default function ParlayCard({ initialData }: { initialData: Parlay }) {
             </View>
             <Text className="font-semibold text-muted-foreground">
               {parlay.picks
-                .sort((a, b) => b.id - a.id)
                 .map(
                   (pick) =>
                     `${formatName(pick.prop.player.name).firstName[0]}. ${
@@ -151,7 +150,6 @@ export default function ParlayCard({ initialData }: { initialData: Parlay }) {
           </View>
           <View className="flex flex-row items-center">
             {parlay.picks
-              .sort((a, b) => b.id - a.id)
               .map((pick, i) => (
                 <PlayerImage
                   key={pick.id}

@@ -44,7 +44,7 @@ parlaysRoute.get("/parlays/:id", authMiddleware, async (req, res) => {
               },
             },
           },
-          orderBy: desc(pick.createdAt),
+          orderBy: desc(pick.id),
         },
       },
     });
@@ -79,7 +79,7 @@ parlaysRoute.get("/parlays", authMiddleware, async (req, res) => {
         ),
         with: {
           parlays: {
-            orderBy: (parlay, { desc }) => [desc(parlay.createdAt)],
+            orderBy: (parlay, { desc }) => [desc(parlay.id)],
             with: {
               picks: {
                 with: {
@@ -93,7 +93,7 @@ parlaysRoute.get("/parlays", authMiddleware, async (req, res) => {
                     },
                   },
                 },
-                orderBy: desc(pick.createdAt),
+                orderBy: desc(pick.id),
               },
             },
           },

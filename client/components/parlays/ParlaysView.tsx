@@ -140,7 +140,7 @@ export default function ParlaysView({ parlays }: { parlays: Parlay[] }) {
           </View>
         </View>
       ) : (
-        filteredParlays().sort((a, b) => b.id - a.id).map((parlay) => (
+        filteredParlays().map((parlay) => (
           <ParlayCard key={parlay.id} initialData={parlay} />
         ))
       )}

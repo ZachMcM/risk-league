@@ -839,7 +839,7 @@ dynastyLeaguesRoute.get("/dynastyLeagues", authMiddleware, async (_, res) => {
       columns: {
         dynastyLeagueId: true,
       },
-      orderBy: desc(dynastyLeagueUser.createdAt),
+      orderBy: desc(dynastyLeagueUser.dynastyLeagueId),
     });
 
     const dynastyLeagueIds = dynastyLeagueUserResults.map(

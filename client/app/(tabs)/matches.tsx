@@ -72,7 +72,7 @@ export default function Matches() {
           ) : (
             <FlashList
               showsVerticalScrollIndicator={false}
-              data={unresolvedMatchIds.sort((a, b) => b - a)}
+              data={unresolvedMatchIds}
               contentContainerStyle={{
                 paddingHorizontal: 12,
                 paddingVertical: 16,
@@ -116,7 +116,7 @@ export default function Matches() {
                 paddingVertical: 16,
               }}
               estimatedItemSize={166}
-              data={resolvedMatchIds.sort((a, b) => b - a)}
+              data={resolvedMatchIds}
               renderItem={({ item, index }) => (
                 <GridItemWrapper index={index} numCols={1} gap={16}>
                   <MatchListCard matchId={item} />

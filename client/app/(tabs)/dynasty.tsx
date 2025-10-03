@@ -85,7 +85,7 @@ export default function Dynasty() {
           ) : (
             <FlashList
               showsVerticalScrollIndicator={false}
-              data={leagueIds.map((a, b) => b - a)}
+              data={leagueIds}
               contentContainerStyle={{
                 paddingHorizontal: 12,
                 paddingVertical: 16,

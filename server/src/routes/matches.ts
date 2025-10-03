@@ -39,7 +39,7 @@ matchesRoute.get("/matches", authMiddleware, async (req, res) => {
         columns: {
           matchId: true,
         },
-        orderBy: desc(matchUser.createdAt),
+        orderBy: desc(matchUser.matchId),
         limit: 50,
       });
 
