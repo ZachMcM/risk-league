@@ -98,7 +98,7 @@ export default function MatchDetails({ match }: { match: ExtendedMatch }) {
       {(minTotalStakedAlert || minParlaysAlert) && (
         <View className="flex flex-col gap-2">
           {minTotalStakedAlert && (
-            <Alert variant="destructive" className="items-center">
+            <Alert variant="destructive" className="items-center animate-pulse">
               <AlertTriangle className="text-destructive" size={20} />
               <AlertTitle className="text-foreground">
                 You need to stake $
@@ -110,7 +110,7 @@ export default function MatchDetails({ match }: { match: ExtendedMatch }) {
             </Alert>
           )}
           {minParlaysAlert && (
-            <Alert variant="destructive" className="items-center">
+            <Alert variant="destructive" className="items-center animate-pulse">
               <AlertTriangle className="text-destructive" size={20} />
               <AlertTitle className="text-foreground">
                 You need to create{" "}
