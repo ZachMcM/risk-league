@@ -223,7 +223,7 @@ propsRoute.get(
             eq(fromTable.status, "ACT")
           )
         )
-        .orderBy(asc(game.startTime))
+        .orderBy(desc(game.startTime))
         .limit(5);
 
       const propsWithPastResults = extendedAvailableProps.map((prop) => {
@@ -235,7 +235,7 @@ propsRoute.get(
 
         return {
           ...prop,
-          previousResults: prevGameStats.map((prev) => ({
+          previousResults: prevGameStats.reverse().map((prev) => ({
             time: prev.game.startTime,
             value: (prev.stats as any)[camelCaseStatName] || 0,
           })),
