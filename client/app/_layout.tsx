@@ -17,6 +17,7 @@ import {
 import Constants from "expo-constants";
 import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
+import * as Updates from "expo-updates";
 import { router, SplashScreen, Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import * as React from "react";
@@ -156,6 +157,42 @@ function useRefreshOnFocus() {
   }, []);
 }
 
+function useBackgroundTimeout() {
+  const appState = React.useRef(AppState.currentState);
+  const backgroundTime = React.useRef<number | null>(null);
+  const BACKGROUND_TIMEOUT = 5 * 60 * 1000; // 5 minutes
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", async (nextAppState) => {
+      // Going to background
+      if (
+        appState.current.match(/active/) &&
+        nextAppState.match(/inactive|background/)
+      ) {
+        backgroundTime.current = Date.now();
+      }
+
+      // Coming to foreground
+      if (
+        appState.current.match(/inactive|background/) &&
+        nextAppState === "active"
+      ) {
+        if (backgroundTime.current) {
+          const timeInBackground = Date.now() - backgroundTime.current;
+          if (timeInBackground > BACKGROUND_TIMEOUT) {
+            await Updates.reloadAsync();
+          }
+          backgroundTime.current = null;
+        }
+      }
+
+      appState.current = nextAppState;
+    });
+
+    return () => subscription.remove();
+  }, []);
+}
+
 SplashScreen.preventAutoHideAsync();
 
 export {
@@ -194,6 +231,8 @@ export default function RootLayout() {
   useNotificationObserver();
 
   useRefreshOnFocus();
+
+  useBackgroundTimeout();
 
   usePlatformSpecificSetup();
   const { isDarkColorScheme, setColorScheme } = useColorScheme();
