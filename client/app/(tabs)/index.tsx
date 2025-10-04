@@ -46,7 +46,7 @@ export default function Home() {
   );
 
   return (
-    <ScrollContainer className="p-0" safeAreaInsets>
+    <ScrollContainer className="p-0 pb-8" safeAreaInsets>
       <View className="p-6">
         <OnboardingDialog
           isOpen={onboardingDialog}

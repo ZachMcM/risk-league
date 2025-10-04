@@ -210,8 +210,8 @@ matchesRoute.post("/matches/:id/messages", authMiddleware, async (req, res) => {
     });
 
     if (!otherMatchUser) {
-      res.status(500).json({ error: "No other match user found" })
-      return
+      res.status(500).json({ error: "No other match user found" });
+      return;
     }
 
     sendPushNotification(

@@ -31,6 +31,7 @@ import {
   getFlexMultiplier,
   getPerfectPlayMultiplier,
 } from "~/utils/multiplierUtils";
+import { useAudio } from "../providers/AudioProvider";
 import { Tabs, TabsList, TabsTrigger } from "../ui/tabs";
 
 export default function FinalizeParlayForm({
@@ -59,6 +60,8 @@ export default function FinalizeParlayForm({
   const [stake, setStake] = useState<number | null>(minStake);
   const [type, setType] = useState("perfect");
   const [formError, setFormError] = useState<null | string>(null);
+
+  const { playCashRegister } = useAudio()
 
   useEffect(() => {
     if (formError) {
@@ -126,7 +129,7 @@ export default function FinalizeParlayForm({
             ["dynasty-league", dynastyLeagueId]
           );
         }
-
+        playCashRegister()
         toast.success("Parlay Successfully created", {
           position: "top-center",
         });

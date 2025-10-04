@@ -335,7 +335,7 @@ async def _publish_parlay_resolved_messages(
                     "title": "Parlay Resolved",
                     "body": "Your match parlay has been resolved!",
                     "data": {
-                        "url": f"/match/{user_context['match_id']}?openSubRoute=parlay&subRouteId={parlay_id}"
+                        "url": f"/match/{user_context['match_id']}?openSubRoute=parlays&subRouteId={parlay_id}"
                     },
                 },
             },
@@ -371,7 +371,7 @@ async def _publish_parlay_resolved_messages(
                     "title": "Parlay Resolved",
                     "body": "Your dynasty league parlay has been resolved!",
                     "data": {
-                        "url": f"/dynastyLeague/{user_context['dynasty_league_id']}?openSubRoute=parlay&subRouteId={parlay_id}"
+                        "url": f"/dynastyLeague/{user_context['dynasty_league_id']}?openSubRoute=parlays&subRouteId={parlay_id}"
                     }
                 },
             },

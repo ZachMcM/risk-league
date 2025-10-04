@@ -15,6 +15,7 @@ import { Button } from "../ui/button";
 import { Card, CardContent } from "../ui/card";
 import LeagueLogo from "../ui/league-logos/LeagueLogo";
 import { Text } from "../ui/text";
+import { useAudio } from "../providers/AudioProvider";
 
 const messages = [
   "Finding a match...",
@@ -49,6 +50,8 @@ export default function PlayButton({
   const [progress, setProgress] = useState(0);
   const [loadingMessage, setLoadingMessage] = useState(messages[0]);
 
+  const { playCavalry } = useAudio()
+  
   const startMatchmaking = () => {
     setIsLoading(true);
     setProgress(0);
@@ -76,6 +79,8 @@ export default function PlayButton({
     socket.on("match-found", async ({ matchId }: { matchId: string }) => {
       clearInterval(interval);
       setProgress(100);
+
+      playCavalry()
       setLoadingMessage("Opponent found!");
       toast.success("Opponent found!");
       await queryClient.invalidateQueries({

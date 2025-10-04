@@ -68,7 +68,7 @@ export default function Match() {
   }, [isAdLoaded, match]);
 
   return (
-    <ScrollContainer className="p-4">
+    <ScrollContainer className="p-4 pb-12">
       {isMatchPending ? (
         <ActivityIndicator className="text-foreground p-4" />
       ) : (

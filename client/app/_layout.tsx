@@ -35,6 +35,7 @@ import { NAV_THEME } from "~/lib/constants";
 import { useColorScheme } from "~/lib/useColorScheme";
 import { patchUserExpoPushToken } from "~/endpoints";
 import type { AppStateStatus } from "react-native";
+import { AudioProvider } from "~/components/providers/AudioProvider";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -96,7 +97,7 @@ function useNotificationObserver() {
         if (router.canDismiss()) {
           router.dismiss();
         }
-        router.push(url as any);
+        router.navigate(url as any);
       }
     }
 
@@ -163,31 +164,34 @@ function useBackgroundTimeout() {
   const BACKGROUND_TIMEOUT = 5 * 60 * 1000; // 5 minutes
 
   useEffect(() => {
-    const subscription = AppState.addEventListener("change", async (nextAppState) => {
-      // Going to background
-      if (
-        appState.current.match(/active/) &&
-        nextAppState.match(/inactive|background/)
-      ) {
-        backgroundTime.current = Date.now();
-      }
-
-      // Coming to foreground
-      if (
-        appState.current.match(/inactive|background/) &&
-        nextAppState === "active"
-      ) {
-        if (backgroundTime.current) {
-          const timeInBackground = Date.now() - backgroundTime.current;
-          if (timeInBackground > BACKGROUND_TIMEOUT) {
-            await Updates.reloadAsync();
-          }
-          backgroundTime.current = null;
+    const subscription = AppState.addEventListener(
+      "change",
+      async (nextAppState) => {
+        // Going to background
+        if (
+          appState.current.match(/active/) &&
+          nextAppState.match(/inactive|background/)
+        ) {
+          backgroundTime.current = Date.now();
         }
-      }
 
-      appState.current = nextAppState;
-    });
+        // Coming to foreground
+        if (
+          appState.current.match(/inactive|background/) &&
+          nextAppState === "active"
+        ) {
+          if (backgroundTime.current) {
+            const timeInBackground = Date.now() - backgroundTime.current;
+            if (timeInBackground > BACKGROUND_TIMEOUT) {
+              await Updates.reloadAsync();
+            }
+            backgroundTime.current = null;
+          }
+        }
+
+        appState.current = nextAppState;
+      }
+    );
 
     return () => subscription.remove();
   }, []);
@@ -243,9 +247,11 @@ export default function RootLayout() {
           <QueryClientProvider client={queryClient}>
             <RealtimeProvider>
               <ThemeProvider value={DARK_THEME}>
-                <SplashScreenController />
-                <RootNavigatior />
-                <StatusBar style={isDarkColorScheme ? "light" : "dark"} />
+                <AudioProvider>
+                  <SplashScreenController />
+                  <RootNavigatior />
+                  <StatusBar style={isDarkColorScheme ? "light" : "dark"} />
+                </AudioProvider>
               </ThemeProvider>
             </RealtimeProvider>
             <Toaster
