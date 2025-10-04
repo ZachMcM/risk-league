@@ -88,22 +88,15 @@ async function registerForPushNotificationsAsync() {
   }
 }
 
-function useNotificationObserver(isNavigationReady: boolean) {
-  const pendingUrlRef = React.useRef<string | null>(null);
-
+function useNotificationObserver() {
   useEffect(() => {
     function redirect(notification: Notifications.Notification) {
       const url = notification.request.content.data?.url;
       if (typeof url === "string") {
-        if (isNavigationReady) {
-          if (router.canDismiss()) {
-            router.dismiss();
-          }
-          router.push(url as any);
-        } else {
-          // Store the URL to navigate to once navigation is ready
-          pendingUrlRef.current = url;
+        if (router.canDismiss()) {
+          router.dismiss();
         }
+        router.push(url as any);
       }
     }
 
@@ -121,19 +114,7 @@ function useNotificationObserver(isNavigationReady: boolean) {
     return () => {
       subscription.remove();
     };
-  }, [isNavigationReady]);
-
-  // Process pending navigation once ready
-  useEffect(() => {
-    if (isNavigationReady && pendingUrlRef.current) {
-      const url = pendingUrlRef.current;
-      pendingUrlRef.current = null;
-      if (router.canDismiss()) {
-        router.dismiss();
-      }
-      router.push(url as any);
-    }
-  }, [isNavigationReady]);
+  }, []);
 }
 
 onlineManager.setEventListener((setOnline) => {
@@ -222,8 +203,6 @@ export {
 const queryClient = new QueryClient();
 
 export default function RootLayout() {
-  const [isNavigationReady, setIsNavigationReady] = React.useState(false);
-
   useEffect(() => {
     registerForPushNotificationsAsync();
   }, []);
@@ -249,8 +228,6 @@ export default function RootLayout() {
     return () => subscription.remove();
   }, []);
 
-  useNotificationObserver(isNavigationReady);
-
   useRefreshOnFocus();
 
   useBackgroundTimeout();
@@ -267,7 +244,7 @@ export default function RootLayout() {
             <RealtimeProvider>
               <ThemeProvider value={DARK_THEME}>
                 <SplashScreenController />
-                <RootNavigatior onReady={() => setIsNavigationReady(true)} />
+                <RootNavigatior />
                 <StatusBar style={isDarkColorScheme ? "light" : "dark"} />
               </ThemeProvider>
             </RealtimeProvider>
@@ -292,14 +269,11 @@ export default function RootLayout() {
   );
 }
 
-export function RootNavigatior({ onReady }: { onReady: () => void }) {
+export function RootNavigatior() {
   const { data: currentUserData, isPending: isSessionPending } =
     authClient.useSession();
 
-  useEffect(() => {
-    // Signal that navigation is ready after component mounts
-    onReady();
-  }, [onReady]);
+  useNotificationObserver();
 
   return (
     <Stack>
