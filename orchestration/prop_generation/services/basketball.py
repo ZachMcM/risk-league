@@ -166,6 +166,7 @@ def main():
                                 eligible_stats.append(stat)
 
                         if not eligible_stats:
+                            logger.warning(f"No eligible stats for {player['name']}")
                             continue
 
                         team_stats_list: list[BasketballTeamStats] = (
