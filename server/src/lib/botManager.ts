@@ -24,25 +24,35 @@ import { getRank } from "../utils/getRank";
 import { getCombinedDictionaries } from "./usernameDictionaries";
 import { invalidateQueries } from "../utils/invalidateQueries";
 import { sendPushNotification } from "../routes/pushNotifications";
+import { botParlayQueue } from "../queues/botParlayQueue";
 
 export async function initializeBotParlays(botId: string, matchId: number) {
   logger.info(`Initializing bot parlays for bot ${botId} in match ${matchId}`);
 
   // First parlay: 30-90 seconds after match start
-  setTimeout(() => {
-    createBotParlay(botId, matchId);
-  }, 30000 + Math.random() * 60000);
+  const firstDelay = 30000 + Math.random() * 60000;
+  await botParlayQueue.add(
+    `parlay-1-bot-${botId}-match-${matchId}`,
+    { botId, matchId },
+    { delay: firstDelay }
+  );
 
   // Second parlay: 3-8 minutes later
-  setTimeout(() => {
-    createBotParlay(botId, matchId);
-  }, 180000 + Math.random() * 300000);
+  const secondDelay = 180000 + Math.random() * 300000;
+  await botParlayQueue.add(
+    `parlay-2-bot-${botId}-match-${matchId}`,
+    { botId, matchId },
+    { delay: secondDelay }
+  );
 
-  // Optional third parlay: 10-15 minutes (30% chance)
+  // Optional third parlay: 10-15 minutes (5% chance)
   if (Math.random() < 0.05) {
-    setTimeout(() => {
-      createBotParlay(botId, matchId);
-    }, 600000 + Math.random() * 300000);
+    const thirdDelay = 600000 + Math.random() * 300000;
+    await botParlayQueue.add(
+      `parlay-3-bot-${botId}-match-${matchId}`,
+      { botId, matchId },
+      { delay: thirdDelay }
+    );
   }
 }
 
