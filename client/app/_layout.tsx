@@ -17,25 +17,25 @@ import {
 import Constants from "expo-constants";
 import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
-import * as Updates from "expo-updates";
-import { router, SplashScreen, Stack } from "expo-router";
+import { SplashScreen, Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import * as Updates from "expo-updates";
 import * as React from "react";
 import { useEffect } from "react";
+import type { AppStateStatus } from "react-native";
 import { Appearance, AppState, Platform } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import mobileAds from "react-native-google-mobile-ads";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { toast, Toaster } from "sonner-native";
+import { AudioProvider } from "~/components/providers/AudioProvider";
 import { RealtimeProvider } from "~/components/providers/RealtimeProvider";
 import { SplashScreenController } from "~/components/ui/splash";
+import { patchUserExpoPushToken } from "~/endpoints";
 import { setAndroidNavigationBar } from "~/lib/android-navigation-bar";
 import { authClient } from "~/lib/auth-client";
 import { NAV_THEME } from "~/lib/constants";
 import { useColorScheme } from "~/lib/useColorScheme";
-import { patchUserExpoPushToken } from "~/endpoints";
-import type { AppStateStatus } from "react-native";
-import { AudioProvider } from "~/components/providers/AudioProvider";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -87,35 +87,6 @@ async function registerForPushNotificationsAsync() {
   } else {
     toast.error("Must use physical device for push notifications");
   }
-}
-
-function useNotificationObserver() {
-  useEffect(() => {
-    function redirect(notification: Notifications.Notification) {
-      const url = notification.request.content.data?.url;
-      if (typeof url === "string") {
-        if (router.canDismiss()) {
-          router.dismiss();
-        }
-        router.navigate(url as any);
-      }
-    }
-
-    const response = Notifications.getLastNotificationResponse();
-    if (response?.notification) {
-      redirect(response.notification);
-    }
-
-    const subscription = Notifications.addNotificationResponseReceivedListener(
-      (response) => {
-        redirect(response.notification);
-      }
-    );
-
-    return () => {
-      subscription.remove();
-    };
-  }, []);
 }
 
 onlineManager.setEventListener((setOnline) => {
@@ -183,6 +154,7 @@ function useBackgroundTimeout() {
           if (backgroundTime.current) {
             const timeInBackground = Date.now() - backgroundTime.current;
             if (timeInBackground > BACKGROUND_TIMEOUT) {
+              const update = await Updates.checkForUpdateAsync()
               await Updates.reloadAsync();
             }
             backgroundTime.current = null;
@@ -201,7 +173,7 @@ SplashScreen.preventAutoHideAsync();
 
 export {
   // Catch any errors thrown by the Layout component.
-  ErrorBoundary,
+  ErrorBoundary
 } from "expo-router";
 
 const queryClient = new QueryClient();
@@ -278,8 +250,6 @@ export default function RootLayout() {
 export function RootNavigatior() {
   const { data: currentUserData, isPending: isSessionPending } =
     authClient.useSession();
-
-  useNotificationObserver();
 
   return (
     <Stack>

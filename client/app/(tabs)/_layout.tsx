@@ -1,5 +1,6 @@
-import { Tabs } from "expo-router";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import * as Notifications from "expo-notifications";
+import { router, Tabs } from "expo-router";
+import { useEffect } from "react";
 import DynastyHeader from "~/components/dynasty/DynastyHeader";
 import PageHeader from "~/components/ui/page-header";
 import { BATTLE_PASS_NAME } from "~/lib/config";
@@ -11,10 +12,39 @@ import { Home } from "~/lib/icons/Home";
 import { ShieldHalf } from "~/lib/icons/ShieldHalf";
 import { useColorScheme } from "~/lib/useColorScheme";
 
+function useNotificationObserver() {
+  useEffect(() => {
+    function redirect(notification: Notifications.Notification) {
+      const url = notification.request.content.data?.url;
+      if (typeof url === "string") {
+        if (router.canDismiss()) {
+          router.dismiss();
+        }
+        router.navigate(url as any);
+      }
+    }
+
+    const response = Notifications.getLastNotificationResponse();
+    if (response?.notification) {
+      redirect(response.notification);
+    }
+
+    const subscription = Notifications.addNotificationResponseReceivedListener(
+      (response) => {
+        redirect(response.notification);
+      }
+    );
+
+    return () => {
+      subscription.remove();
+    };
+  }, []);
+}
+
 export default function TabsLayout() {
   const { isDarkColorScheme } = useColorScheme();
 
-  const safeAreaInsets = useSafeAreaInsets()
+  useNotificationObserver()  
 
   return (
     <Tabs
