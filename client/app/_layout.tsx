@@ -47,7 +47,7 @@ Notifications.setNotificationHandler({
 });
 
 async function registerForPushNotificationsAsync() {
-  if (Platform.OS === "android") {
+  if (Platform.OS === "ios" || Platform.OS == "android") {
     await Notifications.setNotificationChannelAsync("default", {
       name: "default",
       importance: Notifications.AndroidImportance.MAX,
@@ -154,7 +154,7 @@ function useBackgroundTimeout() {
           if (backgroundTime.current) {
             const timeInBackground = Date.now() - backgroundTime.current;
             if (timeInBackground > BACKGROUND_TIMEOUT) {
-              const update = await Updates.checkForUpdateAsync()
+              const update = await Updates.checkForUpdateAsync();
               await Updates.reloadAsync();
             }
             backgroundTime.current = null;
@@ -173,7 +173,7 @@ SplashScreen.preventAutoHideAsync();
 
 export {
   // Catch any errors thrown by the Layout component.
-  ErrorBoundary
+  ErrorBoundary,
 } from "expo-router";
 
 const queryClient = new QueryClient();

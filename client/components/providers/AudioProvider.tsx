@@ -1,5 +1,5 @@
-import { useAudioPlayer } from "expo-audio";
-import { createContext, ReactNode, useContext } from "react";
+import { useAudioPlayer, setAudioModeAsync } from "expo-audio";
+import { createContext, ReactNode, useContext, useEffect } from "react";
 
 type AudioProviderValues = {
   playCashRegister: () => void;
@@ -12,15 +12,27 @@ export function AudioProvider({ children }: { children: ReactNode }) {
   const cashRegisterPlayer = useAudioPlayer(
     require("~/assets/audio/cash_register.mp3")
   );
-  const cavalryPlayer = useAudioPlayer(
-    require("~/assets/audio/cavalry.mp3")
-  );
+  const cavalryPlayer = useAudioPlayer(require("~/assets/audio/cavalry.mp3"));
+
+  useEffect(() => {
+    // Configure audio to play even when device is in silent mode
+    setAudioModeAsync({
+      playsInSilentMode: true,
+      shouldPlayInBackground: true,
+    });
+  }, []);
 
   return (
     <AudioContext.Provider
       value={{
-        playCashRegister: () => cashRegisterPlayer.play(),
-        playCavalry: () => cavalryPlayer.play(),
+        playCashRegister: () => {
+          cashRegisterPlayer.seekTo(0);
+          cashRegisterPlayer.play();
+        },
+        playCavalry: () => {
+          cavalryPlayer.seekTo(0)
+          cavalryPlayer.play()
+        },
       }}
     >
       {children}
