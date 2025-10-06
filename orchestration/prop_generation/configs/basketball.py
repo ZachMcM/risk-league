@@ -20,12 +20,12 @@ from prop_generation.generator.registry import (
 
 ELIGIBILITY_THRESHOLDS = {
     "minutes": 0.25,
-    "points": 0.75,
-    "rebounds": 0.75,
+    "points": 0.25,
+    "rebounds": 0.5,
     "free_throws_made": 1.75,
-    "assists": 0.75,
-    "three_points_made": 1.5,
-    "three_points_attempted": 1.5,
+    "assists": 0.5,
+    "three_points_made": 1.25,
+    "three_points_attempted": 1.25,
     "blocks": 1.25,
     "steals": 1.25,
     "turnovers": 1.25,
@@ -35,8 +35,13 @@ ELIGIBILITY_THRESHOLDS = {
     "rebounds_assists": 1.25,
 }
 
-SAMPLE_SIZE = 11
+SAMPLE_SIZE = 35  # ~40% of season - captures opponent diversity while maintaining relevance
 MIN_LINE_FOR_UNDER = 3.5
+
+# Exponential decay rate for recency weighting
+# Higher values = stronger recency bias, lower effective sample size
+# Recommended: 0.08 (effective sample ~18 games from the 35 game window)
+DECAY_RATE = 0.08
 
 
 @register_basketball_stat

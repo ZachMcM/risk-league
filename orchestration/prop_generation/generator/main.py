@@ -27,7 +27,7 @@ TeamStatsType = TypeVar("TeamStatsType", bound=StatsDict)
 
 
 MIN_BIAS = 0.1
-MAX_BIAS = 0.2
+MAX_BIAS = 0.3
 
 
 def round_prop(value: float) -> float:
@@ -41,8 +41,9 @@ def round_prop(value: float) -> float:
 class BasePropGenerator(PropGenerator[PlayerStatsType, TeamStatsType]):
     """Base implementation of prop generation logic"""
 
-    def __init__(self):
+    def __init__(self, decay_rate: float):
         self.feature_extractor = FeatureExtractor[PlayerStatsType, TeamStatsType]()
+        self.decay_rate = decay_rate
 
     def generate_prop(
         self, config: PropConfig, game_data: GameStats[PlayerStatsType, TeamStatsType]
@@ -91,14 +92,21 @@ class BasePropGenerator(PropGenerator[PlayerStatsType, TeamStatsType]):
     def extract_features(
         self, config: PropConfig, game_data: GameStats[PlayerStatsType, TeamStatsType]
     ) -> pd.DataFrame:
-        """Extract all features including target variable"""
+        """
+        Extract all features including target variable.
+
+        Features are aggregated from previous games, targets are single-game outcomes.
+        Row i predicts game i+1's outcome using aggregated features from games 0 to i.
+        """
 
         feature_df = self.feature_extractor.build_feature_dataframe(
-            config.features, game_data
+            config.features, game_data, self.decay_rate
         )
 
+        # Target values start from game 1 (since row 0 predicts game 1)
+        # Exclude game 0 since we need at least 1 previous game for aggregation
         target_values = [
-            game[config.stat_name] for game in game_data.player_stats_list
+            game[config.stat_name] for game in game_data.player_stats_list[1:]
         ]
         feature_df[config.stat_name] = target_values
 
@@ -113,5 +121,5 @@ class BasePropGenerator(PropGenerator[PlayerStatsType, TeamStatsType]):
         """Extract features for next game prediction"""
 
         return self.feature_extractor.build_prediction_features(
-            config.features, game_data, training_data
+            config.features, game_data, training_data, self.decay_rate
         )

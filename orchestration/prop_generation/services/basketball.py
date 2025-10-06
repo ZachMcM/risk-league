@@ -22,6 +22,7 @@ from prop_generation.configs.basketball import (
     ELIGIBILITY_THRESHOLDS,
     SAMPLE_SIZE,
     MIN_LINE_FOR_UNDER,
+    DECAY_RATE,
     get_basketball_prop_configs,
     get_basketball_stats_list,
 )
@@ -198,7 +199,7 @@ def main():
                             curr_opponent_stats_list=curr_opponents_stats_list,
                         )
 
-                        generator = BasePropGenerator()
+                        generator = BasePropGenerator(DECAY_RATE)
 
                         for stat in eligible_stats:
                             config = configs[stat]
