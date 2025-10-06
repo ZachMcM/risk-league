@@ -21,14 +21,9 @@ ELIGIBILITY_THRESHOLDS = {
     "at_bats": 1.5
 }
 
-SAMPLE_SIZE = 40  # ~25% of season - captures opponent diversity and historical significance
+SAMPLE_SIZE = 17
 
 MIN_LINE_FOR_UNDER = 4.5
-
-# Exponential decay rate for recency weighting
-# Higher values = stronger recency bias, lower effective sample size
-# Recommended: 0.06 (effective sample ~22 games from the 40 game window)
-DECAY_RATE = 0.06
 
 PITCHING_STATS = [
     "pitching_strikeouts",

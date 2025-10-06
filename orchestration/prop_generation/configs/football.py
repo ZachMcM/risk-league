@@ -54,13 +54,8 @@ ELIGIBILITY_THRESHOLDS = {
     },
 }
 
-SAMPLE_SIZE = 12  # ~70% of season - captures diverse matchups across 1+ seasons
+SAMPLE_SIZE = 6
 MIN_LINE_FOR_UNDER = 4.5
-
-# Exponential decay rate for recency weighting
-# Higher values = stronger recency bias, lower effective sample size
-# Recommended: 0.10 (effective sample ~9 games from the 12 game window)
-DECAY_RATE = 0.10
 
 
 @register_football_stat

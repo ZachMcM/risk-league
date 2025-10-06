@@ -24,7 +24,6 @@ from prop_generation.configs.baseball import (
     SAMPLE_SIZE,
     ELIGIBILITY_THRESHOLDS,
     MIN_LINE_FOR_UNDER,
-    DECAY_RATE,
     get_baseball_prop_configs,
     get_baseball_stats_list,
 )
@@ -164,7 +163,7 @@ def main() -> None:
                         curr_opponent_stats_list=curr_opponents_stats_list,
                     )
 
-                    generator = BasePropGenerator(DECAY_RATE)
+                    generator = BasePropGenerator()
 
                     for stat in eligible_stats:
                         config = configs[stat]
