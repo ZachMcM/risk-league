@@ -235,7 +235,7 @@ propsRoute.get(
 
         return {
           ...prop,
-          previousResults: prevGameStats.reverse().map((prev) => ({
+          previousResults: [...prevGameStats].reverse().map((prev) => ({
             time: prev.game.startTime,
             value: (prev.stats as any)[camelCaseStatName] || 0,
           })),
