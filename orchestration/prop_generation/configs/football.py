@@ -54,7 +54,7 @@ ELIGIBILITY_THRESHOLDS = {
     },
 }
 
-SAMPLE_SIZE = 6
+SAMPLE_SIZE = 22  # ~1.3 seasons - captures diverse game situations while exponential decay keeps predictions recent-focused
 MIN_LINE_FOR_UNDER = 4.5
 
 

@@ -21,7 +21,7 @@ ELIGIBILITY_THRESHOLDS = {
     "at_bats": 1.5
 }
 
-SAMPLE_SIZE = 17
+SAMPLE_SIZE = 40  # ~1/4 season - captures diverse matchups and pitcher/lineup variations while exponential decay maintains recency
 
 MIN_LINE_FOR_UNDER = 4.5
 

@@ -13,8 +13,22 @@ PlayerStatsType = TypeVar("PlayerStatsType", bound=StatsDict)
 TeamStatsType = TypeVar("TeamStatsType", bound=StatsDict)
 
 
-def calculate_weighted_arithmetic_mean(values: list[float]) -> float:
-    """Calculate weighted arithmetic mean with recent games weighted more heavily"""
+def calculate_weighted_arithmetic_mean(values: list[float], decay_factor: float = 0.95) -> float:
+    """Calculate weighted mean with exponential decay (recent games weighted more)
+
+    Uses exponential decay weighting to maintain strong recency bias regardless of sample size.
+    This allows larger historical datasets for model training while keeping predictions
+    heavily influenced by recent performance.
+
+    Args:
+        values: List of values with index 0 = oldest, index -1 = most recent
+        decay_factor: Decay rate (0.85-0.95). Lower = more aggressive recency bias.
+                     0.90 is recommended default - maintains ~35% weight on last 4 games
+                     even with 50+ game history.
+
+    Returns:
+        Weighted average with exponential decay applied
+    """
     if not values:
         return 0.0
 
@@ -22,7 +36,9 @@ def calculate_weighted_arithmetic_mean(values: list[float]) -> float:
     if n == 1:
         return values[0]
 
-    weights = [i + 1 for i in range(n)]
+    # Exponential weights: decay^(n-1), decay^(n-2), ..., decay^1, decay^0
+    # Most recent game (index n-1) gets weight 1.0 (decay^0 = 1)
+    weights = [decay_factor ** (n - i - 1) for i in range(n)]
     weighted_sum = sum(v * w for v, w in zip(values, weights))
     total_weight = sum(weights)
 

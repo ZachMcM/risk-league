@@ -35,7 +35,7 @@ ELIGIBILITY_THRESHOLDS = {
     "rebounds_assists": 1.25,
 }
 
-SAMPLE_SIZE = 11
+SAMPLE_SIZE = 25  # ~1/3 season - captures diverse opponent types and game paces while exponential decay maintains recency
 MIN_LINE_FOR_UNDER = 3.5
 
 
