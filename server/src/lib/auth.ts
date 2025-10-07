@@ -19,7 +19,7 @@ export const auth = betterAuth({
       async sendVerificationOTP({ email, otp, type }) {
         if (type == "forget-password") {
           await resend.emails.send({
-            from: "Risk League <noreply@auth.riskleague.app>",
+            from: "Risk League <noreply@info.riskleague.app>",
             to: email,
             subject: "Risk League Reset Password",
             html: `This is your one time password: ${otp}. Do not share it with anyone`,
