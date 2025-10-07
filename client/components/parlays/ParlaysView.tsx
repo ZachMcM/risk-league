@@ -71,10 +71,10 @@ export default function ParlaysView({
         : selectedFilter == "completed"
         ? parlay.resolved
         : selectedFilter == "lost"
-        ? parlay.payout < parlay.stake
+        ? parlay.payout < parlay.stake && parlay.resolved
         : selectedFilter == "tied"
-        ? parlay.payout == parlay.stake
-        : parlay.payout > parlay.stake
+        ? parlay.payout == parlay.stake && parlay.resolved
+        : parlay.payout > parlay.stake && parlay.resolved
     );
   };
 
