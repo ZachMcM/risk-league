@@ -8,7 +8,9 @@
     "scheme": "riskleague",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.zachmcm.client",
@@ -22,7 +24,12 @@
         "backgroundColor": "#000000"
       },
       "package": "com.zachmcm.client",
-      "permissions": ["android.permission.RECORD_AUDIO"]
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -52,19 +59,28 @@
           "iosAppId": "ca-app-pub-7972955391905307~3082161857"
         }
       ],
-      ["expo-router"],
-      ["expo-font", {}],
+      [
+        "expo-router"
+      ],
+      [
+        "expo-font",
+        {}
+      ],
       [
         "expo-image-picker",
         {
           "photosPermission": "The app accesses your photos to let you share them with your friends."
         }
       ],
-      ["expo-audio"],
+      [
+        "expo-audio"
+      ],
       [
         "expo-notifications",
         {
-          "sounds": ["./assets/audio/basketball_swish.wav"]
+          "sounds": [
+            "./assets/audio/basketball_swish.wav"
+          ]
         }
       ],
       "expo-audio"
@@ -77,6 +93,12 @@
       "eas": {
         "projectId": "04b4e29c-4d9d-4dd6-b5a4-2616b1acb951"
       }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/04b4e29c-4d9d-4dd6-b5a4-2616b1acb951"
     }
   }
 }

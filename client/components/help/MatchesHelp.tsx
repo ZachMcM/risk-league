@@ -1,22 +1,18 @@
-import { useRef, useState } from "react";
-import { Pressable, ScrollView, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Pressable, View } from "react-native";
 import { Card, CardContent } from "~/components/ui/card";
 import { Text } from "~/components/ui/text";
-import { Blocks } from "~/lib/icons/Blocks";
 import { Clock } from "~/lib/icons/Clock";
 import { Dices } from "~/lib/icons/Dices";
 import { Gavel } from "~/lib/icons/Gavel";
 import { Play } from "~/lib/icons/Play";
 
+import { Separator } from "~/components/ui/separator";
 import {
   LEAGUES,
   MIN_PARLAYS_REQUIRED,
   MIN_PCT_TOTAL_STAKED,
-  MIN_STAKE_PCT,
-  ranksList,
+  ranksList
 } from "~/lib/config";
-import { Separator } from "~/components/ui/separator";
 import RankIcon from "../ui/rank-icon";
 
 export default function MatchesHelp({
@@ -184,7 +180,7 @@ export default function MatchesHelp({
               <Text className="font-bold text-xl">Match Guidelines</Text>
             </View>
             <Text className="text-muted-foreground font-semibold">
-              To incentive risk and ensure fair play, matches have guidelines
+              To incentivize risk and ensure fair play, matches have guidelines
               that users must meet or they will be disqualified.
             </Text>
             <View className="flex flex-col gap-1">
@@ -231,10 +227,10 @@ export default function MatchesHelp({
             </View>
             <View className="flex flex-col gap-1">
               <Text className="font-bold text-xl">
-                Friendly Match Avaibility
+                Friendly Match Availability
               </Text>
               <Text className="text-muted-foreground font-semibold">
-                Friendly match avaibility is not based on your previous parlays,
+                Friendly match Availability is not based on your previous parlays,
                 but available props in general.
               </Text>
             </View>
@@ -244,7 +240,7 @@ export default function MatchesHelp({
               </Text>
               <Text className="text-muted-foreground font-semibold">
                 You can only start competitive matches for sports leagues where
-                you have props available. This means match avaibility is based
+                you have props available. This means match Availability is based
                 on your previous parlays for the day, and actual amount of live
                 events occurring in that day.
               </Text>

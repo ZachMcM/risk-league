@@ -204,7 +204,7 @@ export default function BattlePass() {
                       Unlock Battle Pass
                     </Text>
                     <Text className="text-muted-foreground font-semibold text-sm">
-                      Unlock exclusive rewards and prove that your the most
+                      Unlock exclusive rewards and prove that you're the most
                       risky!
                     </Text>
                   </View>

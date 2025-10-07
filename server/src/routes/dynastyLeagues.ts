@@ -579,10 +579,13 @@ dynastyLeaguesRoute.get(
           totalStaked,
           totalParlays,
           parlaysWon: du.parlays.filter(
-            (parlay) => parlay.payout > 0 && parlay.resolved
+            (parlay) => parlay.payout > parlay.stake && parlay.resolved
+          ).length,
+          parlaysTied: du.parlays.filter(
+            (parlay) => parlay.payout == parlay.stake && parlay.resolved
           ).length,
           parlaysLost: du.parlays.filter(
-            (parlay) => parlay.payout == 0 && parlay.resolved
+            (parlay) => parlay.payout < parlay.stake && parlay.resolved
           ).length,
           parlaysInProgress: du.parlays.filter((parlay) => !parlay.resolved)
             .length,

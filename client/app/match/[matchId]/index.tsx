@@ -9,7 +9,12 @@ import ParlaysView from "~/components/parlays/ParlaysView";
 import { Button } from "~/components/ui/button";
 import { ScrollContainer } from "~/components/ui/scroll-container";
 import { Text } from "~/components/ui/text";
-import { getMatch, getParlays, getTodayProps } from "~/endpoints";
+import {
+  getMatch,
+  getOpponentParlays,
+  getParlays,
+  getTodayProps,
+} from "~/endpoints";
 import { interstitialAdUnitId } from "~/lib/ads";
 import { authClient } from "~/lib/auth-client";
 import { Plus } from "~/lib/icons/Plus";
@@ -34,6 +39,11 @@ export default function Match() {
   const { data: parlays, isPending: areParlaysPending } = useQuery({
     queryKey: ["parlays", "match", matchId, currentUserData?.user.id!],
     queryFn: async () => await getParlays({ matchId }),
+  });
+
+  const { data: opponentParlays } = useQuery({
+    queryKey: ["parlays", "opponent", "match", matchId],
+    queryFn: async () => getOpponentParlays(matchId),
   });
 
   const queryClient = useQueryClient();
@@ -98,7 +108,14 @@ export default function Match() {
               {areParlaysPending ? (
                 <ActivityIndicator className="text-foreground p-4" />
               ) : (
-                parlays && <ParlaysView parlays={parlays} />
+                parlays && (
+                  <ParlaysView
+                    opponentParlays={
+                      match.resolved ? opponentParlays : undefined
+                    }
+                    parlays={parlays}
+                  />
+                )
               )}
             </View>
           </View>

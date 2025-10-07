@@ -95,8 +95,10 @@ export default function ParlayCard({ initialData }: { initialData: Parlay }) {
               <Badge
                 variant={
                   parlay.resolved
-                    ? parlay.payout > 0
+                    ? parlay.payout > parlay.stake
                       ? "success"
+                      : parlay.payout == parlay.stake
+                      ? "secondary"
                       : "destructive"
                     : "default"
                 }
@@ -105,8 +107,10 @@ export default function ParlayCard({ initialData }: { initialData: Parlay }) {
                 <Text className="text-sm">
                   {!parlay.resolved
                     ? "Active"
-                    : parlay.payout > 0
+                    : parlay.payout > parlay.stake
                     ? "Won"
+                    : parlay.payout == parlay.stake
+                    ? "Tied"
                     : "Lost"}
                 </Text>
               </Badge>
@@ -149,22 +153,21 @@ export default function ParlayCard({ initialData }: { initialData: Parlay }) {
             </View>
           </View>
           <View className="flex flex-row items-center">
-            {parlay.picks
-              .map((pick, i) => (
-                <PlayerImage
-                  key={pick.id}
-                  image={pick.prop.player.image}
-                  className={cn(
-                    "w-16 h-16",
-                    pick.status == "hit"
-                      ? "border-success"
-                      : pick.status == "missed"
-                      ? "border-destructive"
-                      : "border-border",
-                    i !== 0 && "-ml-2"
-                  )}
-                />
-              ))}
+            {parlay.picks.map((pick, i) => (
+              <PlayerImage
+                key={pick.id}
+                image={pick.prop.player.image}
+                className={cn(
+                  "w-16 h-16",
+                  pick.status == "hit"
+                    ? "border-success"
+                    : pick.status == "missed"
+                    ? "border-destructive"
+                    : "border-border",
+                  i !== 0 && "-ml-2"
+                )}
+              />
+            ))}
           </View>
         </CardContent>
       </Card>
