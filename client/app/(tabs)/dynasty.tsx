@@ -33,6 +33,12 @@ export default function Dynasty() {
 
   const [searchQuery, setSearchQuery] = useState("");
 
+  useEffect(() => {
+    return () => {
+      setSearchQuery("")
+    }
+  }, [])
+
   const {
     data: searchResults,
     refetch: reSearch,
