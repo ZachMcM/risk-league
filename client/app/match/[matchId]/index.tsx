@@ -46,6 +46,8 @@ export default function Match() {
     queryFn: async () => getOpponentParlays(matchId),
   });
 
+  console.log(opponentParlays)
+
   const queryClient = useQueryClient();
 
   queryClient.prefetchQuery({

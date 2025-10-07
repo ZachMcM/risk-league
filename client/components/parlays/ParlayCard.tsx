@@ -129,7 +129,7 @@ export default function ParlayCard({ initialData }: { initialData: Parlay }) {
           <View className="flex flex-row items-center gap-6">
             <View className="flex flex-col">
               <Text className="font-medium text-muted-foreground">Stake</Text>
-              <Text className="font-bold text-2xl">${parlay.stake}</Text>
+              <Text className="font-bold text-2xl">${parlay.stake.toFixed(2)}</Text>
             </View>
             <Separator orientation="vertical" />
             <View className="flex flex-col">
@@ -148,7 +148,7 @@ export default function ParlayCard({ initialData }: { initialData: Parlay }) {
                         : getPerfectPlayMultiplier(parlay.picks.length)) *
                       parlay.stake
                     ).toFixed(2)
-                  : Math.abs(parlay.payout).toFixed(2)}
+                  : parlay.payout.toFixed(2)}
               </Text>
             </View>
           </View>

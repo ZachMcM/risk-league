@@ -21,40 +21,6 @@ import { invalidateQueries } from "../utils/invalidateQueries";
 
 export const parlaysRoute = Router();
 
-parlaysRoute.get("/parlays/:id", authMiddleware, async (req, res) => {
-  try {
-    const parlayResult = await db.query.parlay.findFirst({
-      where: eq(parlay.id, parseInt(req.params.id)),
-      with: {
-        picks: {
-          with: {
-            prop: {
-              with: {
-                player: {
-                  with: {
-                    team: true,
-                  },
-                },
-                game: {
-                  with: {
-                    homeTeam: true,
-                    awayTeam: true,
-                  },
-                },
-              },
-            },
-          },
-          orderBy: desc(pick.id),
-        },
-      },
-    });
-
-    res.json(parlayResult);
-  } catch (error) {
-    handleError(error, res, "Parlays route");
-  }
-});
-
 parlaysRoute.get("/parlays/opponent", authMiddleware, async (req, res) => {
   try {
     if (!req.query.matchId) {
@@ -110,6 +76,40 @@ parlaysRoute.get("/parlays/opponent", authMiddleware, async (req, res) => {
     return;
   } catch (error) {
     handleError(error, res, "Parlays");
+  }
+});
+
+parlaysRoute.get("/parlays/:id", authMiddleware, async (req, res) => {
+  try {
+    const parlayResult = await db.query.parlay.findFirst({
+      where: eq(parlay.id, parseInt(req.params.id)),
+      with: {
+        picks: {
+          with: {
+            prop: {
+              with: {
+                player: {
+                  with: {
+                    team: true,
+                  },
+                },
+                game: {
+                  with: {
+                    homeTeam: true,
+                    awayTeam: true,
+                  },
+                },
+              },
+            },
+          },
+          orderBy: desc(pick.id),
+        },
+      },
+    });
+
+    res.json(parlayResult);
+  } catch (error) {
+    handleError(error, res, "Parlays route");
   }
 });
 

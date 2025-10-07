@@ -85,7 +85,7 @@ export default function ParlayPage({ parlayId }: { parlayId: number }) {
                   <Text className="text-muted-foreground font-semibold">
                     Stake
                   </Text>
-                  <Text className="font-bold text-2xl">${parlay.stake}</Text>
+                  <Text className="font-bold text-2xl">${parlay.stake.toFixed(2)}</Text>
                 </View>
                 <View className="flex flex-col gap-1 items-center">
                   <Separator className="h-6" orientation="vertical" />
