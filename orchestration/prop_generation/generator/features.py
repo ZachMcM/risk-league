@@ -13,7 +13,7 @@ PlayerStatsType = TypeVar("PlayerStatsType", bound=StatsDict)
 TeamStatsType = TypeVar("TeamStatsType", bound=StatsDict)
 
 
-def calculate_weighted_arithmetic_mean(values: list[float], decay_factor: float = 0.95) -> float:
+def calculate_weighted_arithmetic_mean(values: list[float], decay_factor: float = 0.875) -> float:
     """Calculate weighted mean with exponential decay (recent games weighted more)
 
     Uses exponential decay weighting to maintain strong recency bias regardless of sample size.
