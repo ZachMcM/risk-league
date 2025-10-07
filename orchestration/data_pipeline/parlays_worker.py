@@ -199,14 +199,10 @@ async def handle_pick_resolved(data):
                                 * stake
                             )
                     else:  # flex
-                        # For flex plays with ties that reduce to 1 effective pick, treat as loss
-                        if effective_pick_count < 2:
-                            payout = 0.0
-                        else:
-                            payout = (
-                                get_flex_multiplier(effective_pick_count, hit_count)
-                                * stake
-                            )
+                        payout = (
+                            get_flex_multiplier(effective_pick_count, hit_count)
+                            * stake
+                        )
 
                     logger.info(
                         f"Parlay {parlay_res[0]} resolution triggered by pick {pick_id}, payout: {payout}"
