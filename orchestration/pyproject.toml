@@ -27,7 +27,7 @@ dependencies = [
   "aiohttp",
   "numba>=0.60.0",
   "opencv-python-headless>=4.10.0",
-  "boto"
+  "boto3"
 ]
 
 [tool.setuptools.packages.find]
