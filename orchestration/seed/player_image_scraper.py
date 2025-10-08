@@ -8,12 +8,12 @@ logger = setup_logger(__name__)
 
 
 def search_espn_player(name, league):
-    site_map = {
+    league_map = {
         "MLB": "mlb",
         "NBA": "nba",
         "NFL": "nfl",
-        "NCAAFB": "ncf",  # ESPN uses ncf for college football
-        "NCAABB": "ncb",  # ESPN uses ncb for men's college basketball
+        "NCAAFB": "college-football",
+        "NCAABB": "mens-college-basketball",
     }
     params = {
         "region": "us",
@@ -21,7 +21,6 @@ def search_espn_player(name, league):
         "query": name,
         "limit": 5,
         "type": "player",
-        "site": league,
     }
     resp = requests.get(
         "https://site.web.api.espn.com/apis/common/v3/search", params=params
@@ -29,8 +28,9 @@ def search_espn_player(name, league):
     data = resp.json()
     items = data.get("items", [])
     if items:
-        item = items[0]
-        return item.get("headshot", {}).get("href")
+        for item in items:
+            if item.get("league", "") == league_map[league]:
+                return item.get("headshot", {}).get("href")
     return None
 
 

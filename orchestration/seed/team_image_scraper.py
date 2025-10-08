@@ -8,33 +8,34 @@ logger = setup_logger(__name__)
 
 
 def search_espn_team(name, league):
-    site_map = {
+    league_map = {
         "MLB": "mlb",
         "NBA": "nba",
         "NFL": "nfl",
-        "NCAAFB": "ncf",  # ESPN uses ncf for college football
-        "NCAABB": "ncb",  # ESPN uses ncb for men's college basketball
+        "NCAAFB": "college-football",
+        "NCAABB": "mens-college-basketball",
     }
     params = {
         "region": "us",
         "lang": "en",
         "query": name,
-        "limit": 5,
+        "limit": 10,
         "type": "team",
-        "site": site_map[league],
     }
     resp = requests.get(
         "https://site.web.api.espn.com/apis/common/v3/search", params=params
     )
     data = resp.json()
     items = data.get("items", [])
+
     if items:
-        item = items[0]
-        logos = item.get("logos", [])
-        if len(logos) > 1:
-            return logos[1]["href"]
-        elif logos:
-            return logos[0]["href"]
+        for item in items:
+            if item.get("league", "") == league_map[league]:
+                logos = item.get("logos", [])
+                if len(logos) > 1:
+                    return logos[1]["href"]
+                elif logos:
+                    return logos[0]["href"]
     return None
 
 
@@ -63,7 +64,7 @@ def main():
             team_logo = search_espn_team(
                 team["abbreviation"],
                 league,
-            )
+            ) or search_espn_team(team["full_name"], team["abbreviation"])
 
             if team_logo:
                 response = requests.get(team_logo)
