@@ -64,7 +64,7 @@ def main():
             team_logo = search_espn_team(
                 team["abbreviation"],
                 league,
-            ) or search_espn_team(team["full_name"], team["abbreviation"])
+            ) or search_espn_team(team["full_name"], league)
 
             if team_logo:
                 response = requests.get(team_logo)
