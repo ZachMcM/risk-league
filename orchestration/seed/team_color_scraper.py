@@ -7,8 +7,22 @@ from db.teams import get_teams_by_league, update_team_colors
 logger = setup_logger(__name__)
 
 
-def search_espn_team(name):
-    params = {"region": "us", "lang": "en", "query": name, "limit": 5, "type": "team"}
+def search_espn_team(name, league):
+    site_map = {
+        "MLB": "mlb",
+        "NBA": "nba",
+        "NFL": "nfl",
+        "NCAAFB": "ncf",  # ESPN uses ncf for college football
+        "NCAABB": "ncb",  # ESPN uses ncb for men's college basketball
+    }
+    params = {
+        "region": "us",
+        "lang": "en",
+        "query": name,
+        "limit": 5,
+        "type": "team",
+        "site": site_map[league],
+    }
     resp = requests.get(
         "https://site.web.api.espn.com/apis/common/v3/search", params=params
     )
@@ -42,8 +56,10 @@ def main():
 
         for i in range(starting_index, len(teams_list)):
             team = teams_list[i]
-            logger.info(f"Processing team {team['full_name']} {i + 1}/{len(teams_list)}")
-            team_info = search_espn_team(team["full_name"])
+            logger.info(
+                f"Processing team {team['full_name']} {i + 1}/{len(teams_list)}"
+            )
+            team_info = search_espn_team(team["abbreviation"], league)
             if not team_info:
                 continue
 
@@ -52,7 +68,7 @@ def main():
                     team_id=team["team_id"],
                     league=league,
                     color=team_info["color"],
-                    alternate_color=team_info["alternateColor"]
+                    alternate_color=team_info["alternateColor"],
                 )
                 logger.info(
                     f"Updated {team['full_name']} color: {team_info['color']} alternateColor: {team_info['alternateColor']}"

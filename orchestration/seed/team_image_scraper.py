@@ -7,8 +7,22 @@ from db.teams import get_teams_by_league, update_team_image
 logger = setup_logger(__name__)
 
 
-def search_espn_team(name):
-    params = {"region": "us", "lang": "en", "query": name, "limit": 5, "type": "team"}
+def search_espn_team(name, league):
+    site_map = {
+        "MLB": "mlb",
+        "NBA": "nba",
+        "NFL": "nfl",
+        "NCAAFB": "ncf",  # ESPN uses ncf for college football
+        "NCAABB": "ncb",  # ESPN uses ncb for men's college basketball
+    }
+    params = {
+        "region": "us",
+        "lang": "en",
+        "query": name,
+        "limit": 5,
+        "type": "team",
+        "site": site_map[league],
+    }
     resp = requests.get(
         "https://site.web.api.espn.com/apis/common/v3/search", params=params
     )
@@ -16,7 +30,11 @@ def search_espn_team(name):
     items = data.get("items", [])
     if items:
         item = items[0]
-        return item.get("logos", [])[1]["href"]
+        logos = item.get("logos", [])
+        if len(logos) > 1:
+            return logos[1]["href"]
+        elif logos:
+            return logos[0]["href"]
     return None
 
 
@@ -39,8 +57,13 @@ def main():
 
         for i in range(starting_index, len(teams_list)):
             team = teams_list[i]
-            logger.info(f"Processing team {team['full_name']} {i + 1}/{len(teams_list)}")
-            team_logo = search_espn_team(team["full_name"])
+            logger.info(
+                f"Processing team {team['full_name']} {i + 1}/{len(teams_list)}"
+            )
+            team_logo = search_espn_team(
+                team["abbreviation"],
+                league,
+            )
 
             if team_logo:
                 response = requests.get(team_logo)
@@ -48,13 +71,13 @@ def main():
 
                 # Upload to S3 and get the public URL
                 file_path = f"teams/{league}/{team['team_id']}.png"
-                image_url = upload_to_s3(img_buffer, file_path, content_type="image/png")
+                image_url = upload_to_s3(
+                    img_buffer, file_path, content_type="image/png"
+                )
 
                 # Update the database with the image URL
                 update_team_image(
-                    team_id=team["team_id"],
-                    league=league,
-                    image_url=image_url
+                    team_id=team["team_id"], league=league, image_url=image_url
                 )
                 logger.info(f"Updated {team['full_name']} Logo URL: {image_url}")
 

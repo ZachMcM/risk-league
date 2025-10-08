@@ -1,8 +1,8 @@
 import { createRef, useRef, useState, useEffect } from "react";
-import { ScrollView, TextInput, View } from "react-native";
+import { Pressable, ScrollView, TextInput, View } from "react-native";
 import { League, propStats } from "~/lib/config";
 import { Search } from "~/lib/icons/Search";
-import { Prop } from "~/types/prop";
+import { Game, Prop } from "~/types/prop";
 import { cn } from "~/utils/cn";
 import { Button } from "../ui/button";
 import { SearchBar } from "../ui/search-bar";
@@ -10,7 +10,53 @@ import { Text } from "../ui/text";
 import PropCard from "./PropCard";
 import { FlashList } from "@shopify/flash-list";
 import { GridItemWrapper } from "../ui/grid-item-wrapper";
-import GameCard from "./GameCard";
+import { Card, CardContent } from "../ui/card";
+import moment from "moment";
+import { Image } from "expo-image";
+
+export function GameCard({
+  game,
+  isSelected,
+}: {
+  game: Game;
+  isSelected: boolean;
+}) {
+  return (
+    <Card className={cn(isSelected && "border-primary")}>
+      <CardContent className="p-3 flex flex-col gap-2">
+        <Text className="text-xs text-muted-foreground text-center">
+          Today, {moment(game.startTime).format("h:mm A")}
+        </Text>
+        <View className="flex flex-col gap-2">
+          <View className="flex flex-row items-center gap-2">
+            {game.awayTeam.image && (
+              <Image
+                source={{ uri: game.awayTeam.image }}
+                style={{ width: 20, height: 20 }}
+                contentFit="contain"
+              />
+            )}
+            <Text className="font-bold text-sm">
+              {game.awayTeam.abbreviation}
+            </Text>
+          </View>
+          <View className="flex flex-row items-center gap-2">
+            {game.homeTeam.image && (
+              <Image
+                source={{ uri: game.homeTeam.image }}
+                style={{ width: 20, height: 20 }}
+                contentFit="contain"
+              />
+            )}
+            <Text className="font-bold text-sm">
+              {game.homeTeam.abbreviation}
+            </Text>
+          </View>
+        </View>
+      </CardContent>
+    </Card>
+  );
+}
 
 export default function PropsView({
   props,
@@ -22,28 +68,39 @@ export default function PropsView({
   const [propFilter, setPropFilter] = useState<string>(
     propStats.filter((stat) => stat.leagues.includes(league))[0].displayName
   );
+  const [gameId, setGameId] = useState<string | null>(null);
   const [searchActivated, setSearchActivated] = useState(false);
   const [searchContent, setSearchContent] = useState<string>("");
 
   const filteredProps = (filter?: string) => {
+    const filtered: Prop[] = [];
     if (searchActivated) {
       const searchLower = searchContent.toLocaleLowerCase().trim();
 
-      return props.filter(
-        (prop) =>
-          prop.player.name?.toLocaleLowerCase().includes(searchLower) ||
-          prop.player.team.fullName
-            ?.toLocaleLowerCase()
-            .includes(searchLower) ||
-          prop.player.team.abbreviation
-            ?.toLocaleLowerCase()
-            .includes(searchLower) ||
-          prop.player.position?.toLocaleLowerCase().includes(searchLower) ||
-          prop.statDisplayName?.toLocaleLowerCase().includes(searchLower)
+      filtered.push(
+        ...props.filter(
+          (prop) =>
+            prop.player.name?.toLocaleLowerCase().includes(searchLower) ||
+            prop.player.team.fullName
+              ?.toLocaleLowerCase()
+              .includes(searchLower) ||
+            prop.player.team.abbreviation
+              ?.toLocaleLowerCase()
+              .includes(searchLower) ||
+            prop.player.position?.toLocaleLowerCase().includes(searchLower) ||
+            prop.statDisplayName?.toLocaleLowerCase().includes(searchLower)
+        )
       );
     }
     const selectedFilter = filter ?? propFilter;
-    return props.filter((prop) => prop.statDisplayName == selectedFilter);
+    filtered.push(
+      ...props.filter((prop) => prop.statDisplayName == selectedFilter)
+    );
+    if (gameId) {
+      return filtered.filter((el) => el.game.gameId == gameId);
+    } else {
+      return filtered;
+    }
   };
 
   const searchBarRef = useRef<TextInput>(null);
@@ -70,7 +127,21 @@ export default function PropsView({
             contentContainerStyle={{ display: "flex", gap: 12 }}
           >
             {uniqueGames.map((game) => (
-              <GameCard key={game.gameId} game={game} />
+              <Pressable
+                onPress={() => {
+                  if (gameId == game.gameId) {
+                    setGameId(null);
+                  } else {
+                    setGameId(game.gameId);
+                  }
+                }}
+              >
+                <GameCard
+                  isSelected={gameId == game.gameId}
+                  key={game.gameId}
+                  game={game}
+                />
+              </Pressable>
             ))}
           </ScrollView>
         </View>
