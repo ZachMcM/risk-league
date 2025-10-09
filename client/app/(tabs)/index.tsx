@@ -1,6 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { router } from "expo-router";
-import { BadgeInfoIcon } from "lucide-react-native";
+import {
+  BadgeInfoIcon,
+  Frame,
+  ImagePlus,
+  PictureInPicture,
+  UserCircle2,
+} from "lucide-react-native";
 import { useState } from "react";
 import { View } from "react-native";
 import BannerAdWrapper from "~/components/ad-wrappers/Banner";
@@ -58,7 +64,7 @@ export default function Home() {
           username={currentUserData?.user.username!}
           header={currentUserData?.user.banner!}
           userId={currentUserData?.user.id!}
-        />        
+        />
       </View>
       <View className="flex flex-1 flex-col gap-6">
         <View className="px-6 pt-12 flex flex-row items-center justify-between">
@@ -87,25 +93,31 @@ export default function Home() {
                   <DropdownMenuLabel>My Account</DropdownMenuLabel>
                   <DropdownMenuItem
                     className="w-full justify-between"
-                    onPress={() => router.navigate("/help")}
-                  >
-                    <View className="flex flex-row items-center gap-2">
-                      <Icon
-                        as={BadgeInfoIcon}
-                        className="text-foreground"
-                        size={16}
-                      />
-                      <Text>Help</Text>
-                    </View>
-                    <ChevronRight className="text-foreground" size={16} />
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    className="w-full justify-between"
                     onPress={() => router.navigate("/career")}
                   >
                     <View className="flex flex-row items-center gap-2">
                       <User className="text-foreground" size={18} />
                       <Text>Career</Text>
+                    </View>
+                    <ChevronRight className="text-foreground" size={16} />
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className="w-full justify-between"
+                    onPress={() => router.navigate("/banner-locker")}
+                  >
+                    <View className="flex flex-row items-center gap-2">
+                      <ImagePlus className="text-foreground" size={18} />
+                      <Text>Edit Banner</Text>
+                    </View>
+                    <ChevronRight className="text-foreground" size={16} />
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className="w-full justify-between"
+                    onPress={() => router.navigate("/image-locker")}
+                  >
+                    <View className="flex flex-row items-center gap-2">
+                      <UserCircle2 className="text-foreground" size={18} />
+                      <Text>Edit Image</Text>
                     </View>
                     <ChevronRight className="text-foreground" size={16} />
                   </DropdownMenuItem>
@@ -120,6 +132,20 @@ export default function Home() {
                     <Text>Leaderboard</Text>
                   </View>
                   <ChevronRight className="text-foreground" size={18} />
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="w-full justify-between"
+                  onPress={() => router.navigate("/help")}
+                >
+                  <View className="flex flex-row items-center gap-2">
+                    <Icon
+                      as={BadgeInfoIcon}
+                      className="text-foreground"
+                      size={16}
+                    />
+                    <Text>Help</Text>
+                  </View>
+                  <ChevronRight className="text-foreground" size={16} />
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
