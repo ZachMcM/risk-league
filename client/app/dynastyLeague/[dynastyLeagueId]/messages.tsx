@@ -14,7 +14,6 @@ import { getDynastyLeague, getMessages, postMessage } from "~/endpoints";
 import { authClient } from "~/lib/auth-client";
 import { SendHorizontal } from "~/lib/icons/SendHorizontal";
 import { Message } from "~/types/message";
-import { sqlToJsDate } from "~/utils/dateUtils";
 
 export default function Messages() {
   const searchParams = useLocalSearchParams<{ dynastyLeagueId: string }>();

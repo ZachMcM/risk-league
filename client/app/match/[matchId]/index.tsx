@@ -94,10 +94,12 @@ export default function Match() {
 
   useEffect(() => {
     if (
+      match &&
       unresolvedMatchIds &&
       resolvedMatchIds &&
       unresolvedMatchIds.length === 1 &&
-      resolvedMatchIds.length === 0
+      resolvedMatchIds.length === 0 &&
+      new Date().getTime() - sqlToJsDate(match.createdAt).getTime() <= 20000
     ) {
       setIsFirstMatchDialogOpen(true);
     }
