@@ -128,6 +128,7 @@ export default function PropsView({
           >
             {uniqueGames.map((game) => (
               <Pressable
+                key={game.gameId}
                 onPress={() => {
                   if (gameId == game.gameId) {
                     setGameId(null);
@@ -138,7 +139,6 @@ export default function PropsView({
               >
                 <GameCard
                   isSelected={gameId == game.gameId}
-                  key={game.gameId}
                   game={game}
                 />
               </Pressable>

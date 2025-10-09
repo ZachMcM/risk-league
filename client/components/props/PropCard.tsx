@@ -13,20 +13,33 @@ import { Badge } from "../ui/badge";
 import { Image } from "expo-image";
 
 export default function PropCard({ prop }: { prop: Prop }) {
-  const searchParams = useLocalSearchParams() as { matchId: string };
-  const matchId = parseInt(searchParams.matchId);
+  const searchParams = useLocalSearchParams() as {
+    matchId?: string;
+    dynastyLeagueId?: string;
+  };
 
   const { isPropPicked, addPick, removePick, updatePick, getPickChoice } =
     useCreateParlay();
 
   return (
     <Pressable
-      onPress={() =>
-        router.navigate({
-          pathname: "/match/[matchId]/props/players/[playerId]",
-          params: { matchId, playerId: prop.playerId },
-        })
-      }
+      onPress={() => {
+        if (searchParams.matchId) {
+          router.navigate({
+            pathname: "/match/[matchId]/props/players/[playerId]",
+            params: { matchId: searchParams.matchId, playerId: prop.playerId },
+          });
+        } else if (searchParams.dynastyLeagueId) {
+          router.navigate({
+            pathname:
+              "/dynastyLeague/[dynastyLeagueId]/props/players/[playerId]",
+            params: {
+              dynastyLeagueId: searchParams.dynastyLeagueId,
+              playerId: prop.playerId,
+            },
+          });
+        }
+      }}
       className="flex-1"
     >
       <Card

@@ -80,14 +80,14 @@ export default function TabsLayout() {
           tabBarIcon: ({ color }) => <Dices size={22} color={color} />,
         }}
       />
-      <Tabs.Screen
+      {/* <Tabs.Screen
         name="dynasty"
         options={{
           title: "Dynasty",
           header: () => <DynastyHeader />,
           tabBarIcon: ({ color }) => <ShieldHalf size={22} color={color} />,
         }}
-      />
+      /> */}
       <Tabs.Screen
         name="social"
         options={{
