@@ -85,23 +85,29 @@ export default function ParlayPage({ parlayId }: { parlayId: number }) {
                   <Text className="text-muted-foreground font-semibold">
                     Stake
                   </Text>
-                  <Text className="font-bold text-2xl">${parlay.stake.toFixed(2)}</Text>
+                  <Text className="font-bold text-2xl">
+                    ${parlay.stake.toFixed(2)}
+                  </Text>
                 </View>
                 <View className="flex flex-col gap-1 items-center">
                   <Separator className="h-6" orientation="vertical" />
                   <Badge
                     variant={
                       parlay.resolved
-                        ? parlay.payout > 0
+                        ? parlay.payout > parlay.stake
                           ? "success"
+                          : parlay.payout == parlay.stake
+                          ? "default"
                           : "destructive"
                         : "default"
                     }
                   >
                     <Text className="text-base">
                       {parlay.resolved
-                        ? parlay.payout > 0
+                        ? parlay.payout > parlay.stake
                           ? "Won"
+                          : parlay.payout == parlay.stake
+                          ? "Tied"
                           : "Lost"
                         : "Active"}
                     </Text>
@@ -129,10 +135,9 @@ export default function ParlayPage({ parlayId }: { parlayId: number }) {
                 </View>
               </View>
               <View className="flex flex-col gap-4">
-                {parlay.picks
-                  .map((pick) => (
-                    <PickCard initialData={pick} key={pick.id} />
-                  ))}
+                {parlay.picks.map((pick) => (
+                  <PickCard initialData={pick} key={pick.id} />
+                ))}
               </View>
             </View>
           )
