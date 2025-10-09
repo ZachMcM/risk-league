@@ -81,14 +81,14 @@ export default function TabsLayout() {
         }}
       />
       {/* TODO complete dynasty post launch */}
-      {/* <Tabs.Screen
+      <Tabs.Screen
         name="dynasty"
         options={{
           title: "Dynasty",
           header: () => <DynastyHeader />,
           tabBarIcon: ({ color }) => <ShieldHalf size={22} color={color} />,
         }}
-      /> */}
+      />
       <Tabs.Screen
         name="social"
         options={{
