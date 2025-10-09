@@ -1,4 +1,4 @@
-import { Pressable, View } from "react-native";
+import { Pressable, ScrollView, View } from "react-native";
 import { Card, CardContent } from "~/components/ui/card";
 import { Text } from "~/components/ui/text";
 import { Clock } from "~/lib/icons/Clock";
@@ -14,6 +14,7 @@ import {
 } from "~/lib/config";
 import { Level, Rank, Tier } from "~/types/rank";
 import RankIcon from "../ui/rank-icon";
+import React from "react";
 
 const ranksList: Omit<Rank, "minPoints" | "maxPoints">[][] = [
   [
@@ -173,23 +174,31 @@ export default function MatchesHelp({
               Each rank except for Legend has 3 level, I, II, and III. Once a
               user has hit legend they are ranked by pure points.
             </Text>
-            <View className="flex flex-col items-center justify-center gap-4">
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{
+                display: "flex",
+                gap: 16,
+                paddingRight: 16,
+              }}
+            >
               {ranksList.map((tier, i) => (
-                <View key={i} className="flex flex-row gap-8 items-center">
+                <React.Fragment key={i}>
                   {tier.map((rank) => (
                     <View
                       key={`${rank.tier}${rank.level}`}
                       className="flex flex-col gap-1 items-center"
                     >
-                      <RankIcon size={40} rank={rank} />
+                      <RankIcon size={36} rank={rank} />
                       <Text className="font-bold text-sm">
                         {rank.tier} {rank.level}
                       </Text>
                     </View>
                   ))}
-                </View>
+                </React.Fragment>
               ))}
-            </View>
+            </ScrollView>
           </CardContent>
         </Card>
       </View>
