@@ -1,7 +1,6 @@
 import * as Notifications from "expo-notifications";
 import { router, Tabs } from "expo-router";
 import { useEffect } from "react";
-import DynastyHeader from "~/components/dynasty/DynastyHeader";
 import PageHeader from "~/components/ui/page-header";
 import { BATTLE_PASS_NAME } from "~/lib/config";
 import { NAV_THEME } from "~/lib/constants";
@@ -9,7 +8,6 @@ import { Contact } from "~/lib/icons/Contact";
 import { Dices } from "~/lib/icons/Dices";
 import { Gift } from "~/lib/icons/Gift";
 import { Home } from "~/lib/icons/Home";
-import { ShieldHalf } from "~/lib/icons/ShieldHalf";
 import { useColorScheme } from "~/lib/useColorScheme";
 
 function useNotificationObserver() {
