@@ -1,25 +1,14 @@
-import { useRef, useState } from "react";
-import { Pressable, ScrollView, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Pressable, View } from "react-native";
 import { Card, CardContent } from "~/components/ui/card";
 import { Text } from "~/components/ui/text";
 import { Blocks } from "~/lib/icons/Blocks";
-import { Clock } from "~/lib/icons/Clock";
-import { Dices } from "~/lib/icons/Dices";
-import { Gavel } from "~/lib/icons/Gavel";
-import { Play } from "~/lib/icons/Play";
 
-import {
-  LEAGUES,
-  MIN_PARLAYS_REQUIRED,
-  MIN_PCT_TOTAL_STAKED,
-  MIN_STAKE_PCT,
-  ranksList,
-} from "~/lib/config";
+import { MinusCircle } from "lucide-react-native";
 import { Separator } from "~/components/ui/separator";
-import RankIcon from "../ui/rank-icon";
+import {
+  MIN_STAKE_PCT
+} from "~/lib/config";
 import { Icon } from "../ui/icon";
-import { Minus, MinusCircle } from "lucide-react-native";
 
 export default function ParlaysHelp({
   scrollToSection,

@@ -15,6 +15,7 @@
 // import { getDynastyLeagueIds, searchDynastyLeagues } from "~/endpoints";
 // import { authClient } from "~/lib/auth-client";
 
+// TODO complete dynasty post launch
 // export default function Dynasty() {
 //   const { data: currentUserData } = authClient.useSession();
 

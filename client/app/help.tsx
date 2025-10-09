@@ -45,9 +45,10 @@ export default function Help() {
               <TabsTrigger value="parlays">
                 <Text>Parlays</Text>
               </TabsTrigger>
-              <TabsTrigger value="dynasty">
+              {/* TODO complete dynasty post launch */}
+              {/* <TabsTrigger value="dynasty">
                 <Text>Dynasty</Text>
-              </TabsTrigger>
+              </TabsTrigger> */}
             </TabsList>
             <TabsContent value="matches" className="px-4 pt-4">
               <MatchesHelp

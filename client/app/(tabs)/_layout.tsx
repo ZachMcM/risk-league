@@ -80,6 +80,7 @@ export default function TabsLayout() {
           tabBarIcon: ({ color }) => <Dices size={22} color={color} />,
         }}
       />
+      {/* TODO complete dynasty post launch */}
       {/* <Tabs.Screen
         name="dynasty"
         options={{

@@ -11,9 +11,88 @@ import {
   LEAGUES,
   MIN_PARLAYS_REQUIRED,
   MIN_PCT_TOTAL_STAKED,
-  ranksList
 } from "~/lib/config";
+import { Level, Rank, Tier } from "~/types/rank";
 import RankIcon from "../ui/rank-icon";
+
+const ranksList: Omit<Rank, "minPoints" | "maxPoints">[][] = [
+  [
+    {
+      tier: "Rookie",
+      level: "III",
+    },
+    {
+      tier: "Rookie",
+      level: "II",
+    },
+    {
+      tier: "Rookie",
+      level: "I",
+    },
+  ],
+  [
+    {
+      tier: "Pro",
+      level: "III",
+    },
+    {
+      tier: "Pro",
+      level: "II",
+    },
+    {
+      tier: "Pro",
+      level: "I",
+    },
+  ],
+  [
+    {
+      tier: "All-Star",
+      level: "III",
+    },
+    {
+      tier: "All-Star",
+      level: "II",
+    },
+    {
+      tier: "All-Star",
+      level: "I",
+    },
+  ],
+  [
+    {
+      tier: "Superstar",
+      level: "III",
+    },
+    {
+      tier: "Superstar",
+      level: "II",
+    },
+    {
+      tier: "Superstar",
+      level: "I",
+    },
+  ],
+  [
+    {
+      tier: "Elite",
+      level: "III",
+    },
+    {
+      tier: "Elite",
+      level: "II",
+    },
+    {
+      tier: "Elite",
+      level: "I",
+    },
+  ],
+  [
+    {
+      tier: "Legend",
+      level: null,
+    },
+  ],
+];
 
 export default function MatchesHelp({
   scrollToSection,
@@ -94,13 +173,20 @@ export default function MatchesHelp({
               Each rank except for Legend has 3 level, I, II, and III. Once a
               user has hit legend they are ranked by pure points.
             </Text>
-            <View className="flex flex-row items-center gap-4 w-full flex-wrap">
-              {ranksList.map((rank) => (
-                <View key={`${rank.tier}-${rank.level}`} className="flex flex-col gap-2 items-center">
-                  <RankIcon rank={rank} size={48} />
-                  <Text className="text-sm font-bold">
-                    {rank.tier} {rank.level}
-                  </Text>
+            <View className="flex flex-col items-center justify-center gap-4">
+              {ranksList.map((tier, i) => (
+                <View key={i} className="flex flex-row gap-8 items-center">
+                  {tier.map((rank) => (
+                    <View
+                      key={`${rank.tier}${rank.level}`}
+                      className="flex flex-col gap-1 items-center"
+                    >
+                      <RankIcon size={40} rank={rank} />
+                      <Text className="font-bold text-sm">
+                        {rank.tier} {rank.level}
+                      </Text>
+                    </View>
+                  ))}
                 </View>
               ))}
             </View>
@@ -230,8 +316,8 @@ export default function MatchesHelp({
                 Friendly Match Availability
               </Text>
               <Text className="text-muted-foreground font-semibold">
-                Friendly match Availability is not based on your previous parlays,
-                but available props in general.
+                Friendly match Availability is not based on your previous
+                parlays, but available props in general.
               </Text>
             </View>
             <View className="flex flex-col gap-1">
