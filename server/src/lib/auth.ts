@@ -5,8 +5,25 @@ import { username } from "better-auth/plugins";
 import { db } from "../db";
 import { resend } from "../resend";
 import { emailOTP } from "better-auth/plugins";
+import { createAuthMiddleware } from "better-auth/api";
+import { user } from "../db/schema";
+import { eq } from "drizzle-orm";
 
 export const auth = betterAuth({
+  hooks: {
+    before: createAuthMiddleware(async (ctx) => {
+      // Clear push token when user signs out
+      if (ctx.path === "/sign-out") {
+        const userId = ctx.context.session?.user?.id;
+        if (userId) {
+          await db
+            .update(user)
+            .set({ expoPushToken: null })
+            .where(eq(user.id, userId));
+        }
+      }
+    }),
+  },
   plugins: [
     username({
       usernameNormalization: false,

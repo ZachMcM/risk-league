@@ -139,9 +139,14 @@ export {
 const queryClient = new QueryClient();
 
 export default function RootLayout() {
+  const { data: session } = authClient.useSession();
+
   useEffect(() => {
-    registerForPushNotificationsAsync();
-  }, []);
+    // Only register push notifications if user is signed in
+    if (session?.user) {
+      registerForPushNotificationsAsync();
+    }
+  }, [session?.user?.id]); // Re-register when user signs in
 
   useEffect(() => {
     mobileAds()

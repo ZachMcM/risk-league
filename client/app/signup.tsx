@@ -12,10 +12,6 @@ import { toast } from "sonner-native";
 import { Link } from "expo-router";
 import { Container } from "~/components/ui/container";
 import { useState } from "react";
-import Constants from "expo-constants";
-import * as Device from "expo-device";
-import * as Notifications from "expo-notifications";
-import { patchUserExpoPushToken } from "~/endpoints";
 
 const schema = z
   .object({
@@ -82,19 +78,6 @@ export default function SignUp() {
     if (error) {
       toast.error(error.message ?? "An error occurred, please try again.");
     } else {
-      const projectId =
-        Constants?.expoConfig?.extra?.eas?.projectId ??
-        Constants?.easConfig?.projectId;
-      try {
-        const pushTokenString = (
-          await Notifications.getExpoPushTokenAsync({
-            projectId,
-          })
-        ).data;
-        await patchUserExpoPushToken(pushTokenString);
-      } catch (e: unknown) {
-        toast.error(`${e}`);
-      }
       toast.success("Successfully signed up");
     }
   }
