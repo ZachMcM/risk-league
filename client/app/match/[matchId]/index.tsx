@@ -1,16 +1,23 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
 import { useInterstitialAd } from "react-native-google-mobile-ads";
 import { toast } from "sonner-native";
+import FirstMatchDialog from "~/components/matches/FirstMatchDialog";
 import MatchDetails from "~/components/matches/MatchDetails";
 import ParlaysView from "~/components/parlays/ParlaysView";
 import { useEntitlements } from "~/components/providers/EntitlementsProvider";
 import { Button } from "~/components/ui/button";
 import { ScrollContainer } from "~/components/ui/scroll-container";
 import { Text } from "~/components/ui/text";
-import { getMatch, getParlays, getTodayProps } from "~/endpoints";
+import {
+  getMatch,
+  getMatchIds,
+  getOpponentParlays,
+  getParlays,
+  getTodayProps,
+} from "~/endpoints";
 import { interstitialAdUnitId } from "~/lib/ads";
 import { authClient } from "~/lib/auth-client";
 import { Plus } from "~/lib/icons/Plus";
@@ -26,6 +33,7 @@ export default function Match() {
   const { data: currentUserData } = authClient.useSession();
 
   const router = useRouter();
+  const [isFirstMatchDialogOpen, setIsFirstMatchDialogOpen] = useState(false);
 
   const { data: match, isPending: isMatchPending } = useQuery({
     queryKey: ["match", matchId],
@@ -36,6 +44,23 @@ export default function Match() {
     queryKey: ["parlays", "match", matchId, currentUserData?.user.id!],
     queryFn: async () => await getParlays({ matchId }),
   });
+
+  const { data: opponentParlays } = useQuery({
+    queryKey: ["parlays", "opponent", "match", matchId],
+    queryFn: async () => getOpponentParlays(matchId),
+  });
+
+  const { data: unresolvedMatchIds, isPending: unresolvedMatchesPending } =
+    useQuery({
+      queryKey: ["match-ids", currentUserData?.user.id, "unresolved"],
+      queryFn: async () => await getMatchIds(false),
+    });
+
+  const { data: resolvedMatchIds, isPending: resolvedMatchesPending } =
+    useQuery({
+      queryKey: ["match-ids", currentUserData?.user.id, "resolved"],
+      queryFn: async () => await getMatchIds(true),
+    });
 
   const queryClient = useQueryClient();
 
@@ -76,8 +101,21 @@ export default function Match() {
     showAdIfAllowed();
   }, [isAdLoaded, match, adFreeEntitlement, adFreeEntitlementPending]);
 
+  useEffect(() => {
+    if (
+      match &&
+      unresolvedMatchIds &&
+      resolvedMatchIds &&
+      unresolvedMatchIds.length === 1 &&
+      resolvedMatchIds.length === 0 &&
+      new Date().getTime() - sqlToJsDate(match.createdAt).getTime() <= 20000
+    ) {
+      setIsFirstMatchDialogOpen(true);
+    }
+  }, [unresolvedMatchIds, resolvedMatchIds]);
+
   return (
-    <ScrollContainer className="p-4">
+    <ScrollContainer className="p-4 pb-12">
       {isMatchPending ? (
         <ActivityIndicator className="text-foreground p-4" />
       ) : (
@@ -107,12 +145,24 @@ export default function Match() {
               {areParlaysPending ? (
                 <ActivityIndicator className="text-foreground p-4" />
               ) : (
-                parlays && <ParlaysView parlays={parlays} />
+                parlays && (
+                  <ParlaysView
+                    opponentParlays={
+                      match.resolved ? opponentParlays : undefined
+                    }
+                    parlays={parlays}
+                  />
+                )
               )}
             </View>
           </View>
         )
       )}
+      <FirstMatchDialog
+        isOpen={isFirstMatchDialogOpen}
+        onOpenChange={setIsFirstMatchDialogOpen}
+        close={() => setIsFirstMatchDialogOpen(false)}
+      />
     </ScrollContainer>
   );
 }

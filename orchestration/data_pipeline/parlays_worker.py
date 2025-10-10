@@ -199,14 +199,10 @@ async def handle_pick_resolved(data):
                                 * stake
                             )
                     else:  # flex
-                        # For flex plays with ties that reduce to 1 effective pick, treat as loss
-                        if effective_pick_count < 2:
-                            payout = 0.0
-                        else:
-                            payout = (
-                                get_flex_multiplier(effective_pick_count, hit_count)
-                                * stake
-                            )
+                        payout = (
+                            get_flex_multiplier(effective_pick_count, hit_count)
+                            * stake
+                        )
 
                     logger.info(
                         f"Parlay {parlay_res[0]} resolution triggered by pick {pick_id}, payout: {payout}"
@@ -335,7 +331,7 @@ async def _publish_parlay_resolved_messages(
                     "title": "Parlay Resolved",
                     "body": "Your match parlay has been resolved!",
                     "data": {
-                        "url": f"/match/{user_context['match_id']}?openSubRoute=parlay&subRouteId={parlay_id}"
+                        "url": f"/match/{user_context['match_id']}?openSubRoute=parlays&subRouteId={parlay_id}"
                     },
                 },
             },
@@ -371,7 +367,7 @@ async def _publish_parlay_resolved_messages(
                     "title": "Parlay Resolved",
                     "body": "Your dynasty league parlay has been resolved!",
                     "data": {
-                        "url": f"/dynastyLeague/{user_context['dynasty_league_id']}?openSubRoute=parlay&subRouteId={parlay_id}"
+                        "url": f"/dynastyLeague/{user_context['dynasty_league_id']}?openSubRoute=parlays&subRouteId={parlay_id}"
                     }
                 },
             },

@@ -32,6 +32,7 @@ export type DynastyLeagueUser = {
   user: Omit<User, "rank" | "points">;
   totalStaked: number;
   parlaysWon: number;
+  parlaysTied: number;
   parlaysLost: number;
   parlaysInProgress: number;
   payoutPotential: number;

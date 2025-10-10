@@ -54,7 +54,6 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
     });
 
     socket.on("connect_error", (error) => {
-      console.warn("Socket connection error:", error);
       if (!isUnmountingRef.current) {
         setIsConnected(false);
       }

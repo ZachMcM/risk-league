@@ -1,18 +1,16 @@
 import express from "express";
 import { battlePassRoute } from "./battlePass";
+import { dynastyLeaguesRoute } from "./dynastyLeagues";
 import { friendlyMatchRequestsRoute } from "./friendlyMatchRequests";
 import { friendshipsRoute } from "./friendships";
 import { gamesRoute } from "./games";
+import { leaderboardRoute } from "./leaderboard";
 import { matchesRoute } from "./matches";
 import { parlaysRoute } from "./parlays";
 import { picksRoute } from "./picks";
-import { playersRoute } from "./players";
 import { propsRoute } from "./props";
-import { teamsRoute } from "./teams";
-import { usersRoute } from "./users";
-import { leaderboardRoute } from "./leaderboard";
-import { dynastyLeaguesRoute } from "./dynastyLeagues";
 import { pushNotificationsRoute } from "./pushNotifications";
+import { usersRoute } from "./users";
 
 export const routes = express.Router();
 
@@ -24,8 +22,6 @@ routes.use(picksRoute);
 routes.use(friendlyMatchRequestsRoute);
 routes.use(friendshipsRoute);
 routes.use(gamesRoute);
-routes.use(teamsRoute);
-routes.use(playersRoute);
 routes.use(leaderboardRoute);
 routes.use(dynastyLeaguesRoute);
 routes.use(battlePassRoute);

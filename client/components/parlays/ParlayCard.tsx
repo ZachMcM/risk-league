@@ -105,8 +105,10 @@ export default function ParlayCard({ initialData }: { initialData: Parlay }) {
               <Badge
                 variant={
                   parlay.resolved
-                    ? parlay.payout > 0
+                    ? parlay.payout > parlay.stake
                       ? "success"
+                      : parlay.payout == parlay.stake
+                      ? "secondary"
                       : "destructive"
                     : "default"
                 }
@@ -115,15 +117,16 @@ export default function ParlayCard({ initialData }: { initialData: Parlay }) {
                 <Text className="text-sm">
                   {!parlay.resolved
                     ? "Active"
-                    : parlay.payout > 0
+                    : parlay.payout > parlay.stake
                     ? "Won"
+                    : parlay.payout == parlay.stake
+                    ? "Tied"
                     : "Lost"}
                 </Text>
               </Badge>
             </View>
             <Text className="font-semibold text-muted-foreground">
               {parlay.picks
-                .sort((a, b) => b.id - a.id)
                 .map(
                   (pick) =>
                     `${formatName(pick.prop.player.name).firstName[0]}. ${
@@ -136,7 +139,7 @@ export default function ParlayCard({ initialData }: { initialData: Parlay }) {
           <View className="flex flex-row items-center gap-6">
             <View className="flex flex-col">
               <Text className="font-medium text-muted-foreground">Stake</Text>
-              <Text className="font-bold text-2xl">${parlay.stake}</Text>
+              <Text className="font-bold text-2xl">${parlay.stake.toFixed(2)}</Text>
             </View>
             <Separator orientation="vertical" />
             <View className="flex flex-col">
@@ -155,28 +158,26 @@ export default function ParlayCard({ initialData }: { initialData: Parlay }) {
                         : getPerfectPlayMultiplier(parlay.picks.length)) *
                       parlay.stake
                     ).toFixed(2)
-                  : Math.abs(parlay.payout).toFixed(2)}
+                  : parlay.payout.toFixed(2)}
               </Text>
             </View>
           </View>
           <View className="flex flex-row items-center">
-            {parlay.picks
-              .sort((a, b) => b.id - a.id)
-              .map((pick, i) => (
-                <PlayerImage
-                  key={pick.id}
-                  image={pick.prop.player.image}
-                  className={cn(
-                    "w-16 h-16",
-                    pick.status == "hit"
-                      ? "border-success"
-                      : pick.status == "missed"
-                      ? "border-destructive"
-                      : "border-border",
-                    i !== 0 && "-ml-2"
-                  )}
-                />
-              ))}
+            {parlay.picks.map((pick, i) => (
+              <PlayerImage
+                key={pick.id}
+                image={pick.prop.player.image}
+                className={cn(
+                  "w-16 h-16",
+                  pick.status == "hit"
+                    ? "border-success"
+                    : pick.status == "missed"
+                    ? "border-destructive"
+                    : "border-border",
+                  i !== 0 && "-ml-2"
+                )}
+              />
+            ))}
           </View>
         </CardContent>
       </Card>

@@ -12,6 +12,7 @@ export type MatchStatus =
 export type ExtendedMatchUser = {
   totalStaked: number;
   parlaysWon: number;
+  parlaysTied: number;
   parlaysLost: number;
   parlaysInProgress: number;
   payoutPotential: number;

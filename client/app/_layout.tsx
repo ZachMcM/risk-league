@@ -17,24 +17,26 @@ import {
 import Constants from "expo-constants";
 import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
-import { router, SplashScreen, Stack } from "expo-router";
+import { SplashScreen, Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import * as Updates from "expo-updates";
 import * as React from "react";
 import { useEffect } from "react";
+import type { AppStateStatus } from "react-native";
 import { Appearance, AppState, Platform } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import mobileAds from "react-native-google-mobile-ads";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { toast, Toaster } from "sonner-native";
+import { AudioProvider } from "~/components/providers/AudioProvider";
 import { RealtimeProvider } from "~/components/providers/RealtimeProvider";
 import { SplashScreenController } from "~/components/ui/splash";
+import { patchUserExpoPushToken } from "~/endpoints";
 import { setAndroidNavigationBar } from "~/lib/android-navigation-bar";
 import { authClient } from "~/lib/auth-client";
 import { NAV_THEME } from "~/lib/constants";
 import { useColorScheme } from "~/lib/useColorScheme";
-import { patchUserExpoPushToken } from "~/endpoints";
 import Purchases, { LOG_LEVEL } from "react-native-purchases";
-import type { AppStateStatus } from "react-native";
 import { EntitlementsProvider } from "~/components/providers/EntitlementsProvider";
 
 Notifications.setNotificationHandler({
@@ -47,12 +49,12 @@ Notifications.setNotificationHandler({
 });
 
 async function registerForPushNotificationsAsync() {
-  if (Platform.OS === "android") {
+  if (Platform.OS === "ios" || Platform.OS == "android") {
     await Notifications.setNotificationChannelAsync("default", {
       name: "default",
       importance: Notifications.AndroidImportance.MAX,
       vibrationPattern: [0, 250, 250, 250],
-      lightColor: "#FF231F7C",
+      sound: "basketball_swish.wav",
     });
   }
 
@@ -87,35 +89,6 @@ async function registerForPushNotificationsAsync() {
   } else {
     toast.error("Must use physical device for push notifications");
   }
-}
-
-function useNotificationObserver() {
-  useEffect(() => {
-    function redirect(notification: Notifications.Notification) {
-      const url = notification.request.content.data?.url;
-      if (typeof url === "string") {
-        if (router.canDismiss()) {
-          router.dismiss();
-        }
-        router.push(url as any);
-      }
-    }
-
-    const response = Notifications.getLastNotificationResponse();
-    if (response?.notification) {
-      redirect(response.notification);
-    }
-
-    const subscription = Notifications.addNotificationResponseReceivedListener(
-      (response) => {
-        redirect(response.notification);
-      }
-    );
-
-    return () => {
-      subscription.remove();
-    };
-  }, []);
 }
 
 onlineManager.setEventListener((setOnline) => {
@@ -168,10 +141,14 @@ export {
 const queryClient = new QueryClient();
 
 export default function RootLayout() {
-  // registering for push notifications
+  const { data: session } = authClient.useSession();
+
   useEffect(() => {
-    registerForPushNotificationsAsync();
-  }, []);
+    // Only register push notifications if user is signed in
+    if (session?.user) {
+      registerForPushNotificationsAsync();
+    }
+  }, [session?.user?.id]); // Re-register when user signs in
 
   // setting up mobile ads
   useEffect(() => {
@@ -195,7 +172,6 @@ export default function RootLayout() {
     return () => subscription.remove();
   }, []);
 
-  // setting up revenue cat
   useEffect(() => {
     Purchases.setLogLevel(LOG_LEVEL.VERBOSE);
 
@@ -205,9 +181,6 @@ export default function RootLayout() {
       });
     }
   }, []);
-
-  // allows for navigating for
-  useNotificationObserver();
 
   useRefreshOnFocus();
 
@@ -228,6 +201,13 @@ export default function RootLayout() {
                   <StatusBar style={isDarkColorScheme ? "light" : "dark"} />
                 </ThemeProvider>
               </EntitlementsProvider>
+              <ThemeProvider value={DARK_THEME}>
+                <AudioProvider>
+                  <SplashScreenController />
+                  <RootNavigatior />
+                  <StatusBar style={isDarkColorScheme ? "light" : "dark"} />
+                </AudioProvider>
+              </ThemeProvider>
             </RealtimeProvider>
             <Toaster
               toastOptions={{

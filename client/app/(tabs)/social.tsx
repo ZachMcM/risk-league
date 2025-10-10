@@ -43,6 +43,12 @@ export default function Friends() {
 
   const [searchQuery, setSearchQuery] = useState("");
 
+  useEffect(() => {
+    return () => {
+      setSearchQuery("")
+    }
+  }, [])
+
   const pathname = usePathname();
 
   const {

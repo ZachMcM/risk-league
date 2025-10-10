@@ -80,7 +80,7 @@ async def check_and_notify_available_props():
                             "title": "Start a Match!",
                             "body": body,
                             "data": {
-                                "url": "/(tabs)"
+                                "url": None
                             }
                         },
                     },

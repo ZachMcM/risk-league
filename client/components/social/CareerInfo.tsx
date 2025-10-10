@@ -61,11 +61,13 @@ export default function CareerInfo({ userId }: { userId: string }) {
                     </Text>
                   </View>
                   <Progress
+                    className="h-3"
                     value={
                       career.matchStats.total == 0
                         ? 0
                         : career.matchStats.wins / career.matchStats.total
                     }
+                    max={1}
                     variant="primary"
                   />
                   <View className="flex flex-row items-center justify-between">
@@ -130,11 +132,13 @@ export default function CareerInfo({ userId }: { userId: string }) {
                     </Text>
                   </View>
                   <Progress
+                    className="h-3"
                     value={
                       career.parlayStats.total == 0
                         ? 0
                         : career.parlayStats.wins / career.parlayStats.total
                     }
+                    max={1}
                     variant="primary"
                   />
                   <View className="flex flex-row items-center justify-between">

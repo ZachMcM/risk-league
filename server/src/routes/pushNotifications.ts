@@ -118,7 +118,7 @@ const pushNotificationReqBodySchema = z.object({
   pushNotification: z.object({
     title: z.string(),
     body: z.string(),
-    data: z.any(),
+    data: z.any().nullish(),
   }),
 });
 

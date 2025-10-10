@@ -112,6 +112,21 @@ export default function MatchStatsDialog({ match }: { match: ExtendedMatch }) {
                   </Text>
                 </TableCell>
               </TableRow>
+              <TableRow>
+                <TableCell className="w-1/3">
+                  <Text>Parlays Tied</Text>
+                </TableCell>
+                <TableCell className="w-1/3">
+                  <Text className="text-center">
+                    {currentMatchUser.parlaysTied}
+                  </Text>
+                </TableCell>
+                <TableCell className="w-1/3">
+                  <Text className="text-center">
+                    {otherMatchUser.parlaysTied}
+                  </Text>
+                </TableCell>
+              </TableRow>
               <TableRow className="bg-muted/40">
                 <TableCell className="w-1/3">
                   <Text>Parlays Lost</Text>

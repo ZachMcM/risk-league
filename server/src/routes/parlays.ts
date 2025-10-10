@@ -21,6 +21,64 @@ import { invalidateQueries } from "../utils/invalidateQueries";
 
 export const parlaysRoute = Router();
 
+parlaysRoute.get("/parlays/opponent", authMiddleware, async (req, res) => {
+  try {
+    if (!req.query.matchId) {
+      res.status(400).json({
+        error: "You need a matchId",
+      });
+      return;
+    }
+
+    const matchId = parseInt(req.query.matchId as string);
+
+    if (isNaN(matchId)) {
+      res.status(400).json({ error: "Invalid matchId" });
+      return;
+    }
+
+    const matchUserResult = await db.query.matchUser.findFirst({
+      where: and(
+        ne(matchUser.userId, res.locals.userId!),
+        eq(matchUser.matchId, matchId)
+      ),
+      with: {
+        parlays: {
+          orderBy: (parlay, { desc }) => [desc(parlay.id)],
+          with: {
+            picks: {
+              with: {
+                prop: {
+                  with: {
+                    player: {
+                      with: {
+                        team: true,
+                      },
+                    },
+                  },
+                },
+              },
+              orderBy: desc(pick.id),
+            },
+          },
+        },
+      },
+    });
+
+    if (!matchUserResult) {
+      res.status(404).json({
+        error: "No user found to retrieve parlay",
+      });
+      return;
+    }
+
+    res.json(matchUserResult.parlays);
+    return;
+  } catch (error) {
+    handleError(error, res, "Parlays");
+  }
+});
+
 parlaysRoute.get("/parlays/:id", authMiddleware, async (req, res) => {
   try {
     const parlayResult = await db.query.parlay.findFirst({
@@ -44,7 +102,7 @@ parlaysRoute.get("/parlays/:id", authMiddleware, async (req, res) => {
               },
             },
           },
-          orderBy: desc(pick.createdAt),
+          orderBy: desc(pick.id),
         },
       },
     });
@@ -79,7 +137,7 @@ parlaysRoute.get("/parlays", authMiddleware, async (req, res) => {
         ),
         with: {
           parlays: {
-            orderBy: (parlay, { desc }) => [desc(parlay.createdAt)],
+            orderBy: (parlay, { desc }) => [desc(parlay.id)],
             with: {
               picks: {
                 with: {
@@ -93,7 +151,7 @@ parlaysRoute.get("/parlays", authMiddleware, async (req, res) => {
                     },
                   },
                 },
-                orderBy: desc(pick.createdAt),
+                orderBy: desc(pick.id),
               },
             },
           },

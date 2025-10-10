@@ -39,7 +39,7 @@ matchesRoute.get("/matches", authMiddleware, async (req, res) => {
         columns: {
           matchId: true,
         },
-        orderBy: desc(matchUser.createdAt),
+        orderBy: desc(matchUser.matchId),
         limit: 50,
       });
 
@@ -104,10 +104,13 @@ matchesRoute.get("/matches/:id", authMiddleware, async (req, res) => {
         totalStaked: mu.parlays.reduce((accum, curr) => accum + curr.stake, 0),
         totalParlays: mu.parlays.length,
         parlaysWon: mu.parlays.filter(
-          (parlay) => parlay.payout > 0 && parlay.resolved
+          (parlay) => parlay.payout > parlay.stake && parlay.resolved
+        ).length,
+        parlaysTied: mu.parlays.filter(
+          (parlay) => parlay.payout == parlay.stake && parlay.resolved
         ).length,
         parlaysLost: mu.parlays.filter(
-          (parlay) => parlay.payout == 0 && parlay.resolved
+          (parlay) => parlay.payout < parlay.stake && parlay.resolved
         ).length,
         parlaysInProgress: mu.parlays.filter((parlay) => !parlay.resolved)
           .length,
@@ -210,8 +213,8 @@ matchesRoute.post("/matches/:id/messages", authMiddleware, async (req, res) => {
     });
 
     if (!otherMatchUser) {
-      res.status(500).json({ error: "No other match user found" })
-      return
+      res.status(500).json({ error: "No other match user found" });
+      return;
     }
 
     sendPushNotification(

@@ -1,6 +1,6 @@
-import { Tabs } from "expo-router";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import DynastyHeader from "~/components/dynasty/DynastyHeader";
+import * as Notifications from "expo-notifications";
+import { router, Tabs } from "expo-router";
+import { useEffect } from "react";
 import PageHeader from "~/components/ui/page-header";
 import { BATTLE_PASS_NAME } from "~/lib/config";
 import { NAV_THEME } from "~/lib/constants";
@@ -8,13 +8,41 @@ import { Contact } from "~/lib/icons/Contact";
 import { Dices } from "~/lib/icons/Dices";
 import { Gift } from "~/lib/icons/Gift";
 import { Home } from "~/lib/icons/Home";
-import { ShieldHalf } from "~/lib/icons/ShieldHalf";
 import { useColorScheme } from "~/lib/useColorScheme";
+
+function useNotificationObserver() {
+  useEffect(() => {
+    function redirect(notification: Notifications.Notification) {
+      const url = notification.request.content.data?.url;
+      if (typeof url === "string") {
+        if (router.canDismiss()) {
+          router.dismiss();
+        }
+        router.navigate(url as any);
+      }
+    }
+
+    const response = Notifications.getLastNotificationResponse();
+    if (response?.notification) {
+      redirect(response.notification);
+    }
+
+    const subscription = Notifications.addNotificationResponseReceivedListener(
+      (response) => {
+        redirect(response.notification);
+      }
+    );
+
+    return () => {
+      subscription.remove();
+    };
+  }, []);
+}
 
 export default function TabsLayout() {
   const { isDarkColorScheme } = useColorScheme();
 
-  const safeAreaInsets = useSafeAreaInsets()
+  useNotificationObserver()  
 
   return (
     <Tabs
@@ -50,14 +78,15 @@ export default function TabsLayout() {
           tabBarIcon: ({ color }) => <Dices size={22} color={color} />,
         }}
       />
-      <Tabs.Screen
+      {/* TODO complete dynasty post launch */}
+      {/* <Tabs.Screen
         name="dynasty"
         options={{
           title: "Dynasty",
           header: () => <DynastyHeader />,
           tabBarIcon: ({ color }) => <ShieldHalf size={22} color={color} />,
         }}
-      />
+      /> */}
       <Tabs.Screen
         name="social"
         options={{

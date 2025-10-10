@@ -5,7 +5,7 @@ import asyncio
 logger = setup_logger(__name__)
 
 
-async def send_broadcast_notification(title: str, body: str, url: str = "/(tabs)"):
+async def send_broadcast_notification(title: str, body: str, url: str | None = None):
     """Send a broadcast notification to all users"""
     logger.info(f"Preparing to send broadcast notification: {title}")
 
@@ -73,9 +73,9 @@ async def main():
             print("Error: Body cannot be empty")
             return
 
-        url = input("Enter notification URL (press Enter for default '/(tabs)'): ").strip()
+        url = input("Enter notification URL (press Enter for default 'None'): ").strip()
         if not url:
-            url = "/(tabs)"
+            url = None
 
         # Confirm before sending
         print(f"\n--- Notification Preview ---")

@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
+import moment from "moment";
 import { View } from "react-native";
 import { getPick } from "~/endpoints";
 import { ArrowDown } from "~/lib/icons/ArrowDown";
@@ -9,14 +10,10 @@ import { X } from "~/lib/icons/X";
 import { Pick } from "~/types/parlay";
 import { cn } from "~/utils/cn";
 import { Card, CardContent } from "../ui/card";
+import PlayerImage from "../ui/player-image";
 import { Progress } from "../ui/progress";
 import { Separator } from "../ui/separator";
 import { Text } from "../ui/text";
-import moment from "moment";
-import { formatName } from "~/utils/stringUtils";
-import PlayerImage from "../ui/player-image";
-import { Icon } from "../ui/icon";
-import { Minus } from "lucide-react-native";
 
 export default function PickCard({ initialData }: { initialData: Pick }) {
   const { data: pick } = useQuery({
@@ -70,7 +67,7 @@ export default function PickCard({ initialData }: { initialData: Pick }) {
             <Text className="text-muted-foreground font-normal">
               {pick.prop.game.awayTeam.abbreviation} @{" "}
               {pick.prop.game.homeTeam.abbreviation} •{" "}
-              {moment(pick.prop.game.startTime).format("m/d, h:mm A")}
+              {moment(pick.prop.game.startTime).format("h:mm A")}
             </Text>
           </View>
         </View>

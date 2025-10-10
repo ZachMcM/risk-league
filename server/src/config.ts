@@ -4,6 +4,6 @@ export const MIN_STAKE_PCT = 0.2;
 
 export const USER_IMAGES_BUCKET = "user-images"
 
-export const BOT_TIMER_MS = 10000
+export const BOT_TIMER_MS = 15000
 
 export const MIN_PCT_TOTAL_STAKED = 0.5;

@@ -9,19 +9,29 @@ import { Text } from "../ui/text";
 import ParlayCard from "./ParlayCard";
 import { TextInput } from "react-native-gesture-handler";
 
-const parlayFiltersList = [
-  "all",
-  "active",
-  "completed",
-  "won",
-  "lost",
-] as const;
+export default function ParlaysView({
+  parlays,
+  opponentParlays,
+}: {
+  parlays: Parlay[];
+  opponentParlays?: Parlay[];
+}) {
+  const parlayFiltersList = [
+    "all",
+    "active",
+    "completed",
+    "won",
+    "tied",
+    "lost",
+  ];
 
-export default function ParlaysView({ parlays }: { parlays: Parlay[] }) {
+  if (opponentParlays) {
+    parlayFiltersList.unshift("opponent");
+  }
+
   const [searchActivated, setSearchActivated] = useState(false);
   const [searchContent, setSearchContent] = useState("");
-  const [parlayFilter, setParlayFilter] =
-    useState<(typeof parlayFiltersList)[number]>("all");
+  const [parlayFilter, setParlayFilter] = useState("all");
 
   const searchBarRef = useRef<TextInput | null>(null);
 
@@ -48,6 +58,11 @@ export default function ParlaysView({ parlays }: { parlays: Parlay[] }) {
       );
     }
     const selectedFilter = filter ?? parlayFilter;
+
+    if (selectedFilter == "opponent" && opponentParlays) {
+      return opponentParlays;
+    }
+
     return parlays.filter((parlay) =>
       selectedFilter == "all"
         ? true
@@ -56,8 +71,10 @@ export default function ParlaysView({ parlays }: { parlays: Parlay[] }) {
         : selectedFilter == "completed"
         ? parlay.resolved
         : selectedFilter == "lost"
-        ? parlay.payout == 0
-        : parlay.payout > 0
+        ? parlay.payout < parlay.stake && parlay.resolved
+        : selectedFilter == "tied"
+        ? parlay.payout == parlay.stake && parlay.resolved
+        : parlay.payout > parlay.stake && parlay.resolved
     );
   };
 
@@ -140,7 +157,7 @@ export default function ParlaysView({ parlays }: { parlays: Parlay[] }) {
           </View>
         </View>
       ) : (
-        filteredParlays().sort((a, b) => b.id - a.id).map((parlay) => (
+        filteredParlays().map((parlay) => (
           <ParlayCard key={parlay.id} initialData={parlay} />
         ))
       )}

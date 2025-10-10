@@ -1,23 +1,99 @@
-import { useRef, useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Card, CardContent } from "~/components/ui/card";
 import { Text } from "~/components/ui/text";
-import { Blocks } from "~/lib/icons/Blocks";
 import { Clock } from "~/lib/icons/Clock";
 import { Dices } from "~/lib/icons/Dices";
 import { Gavel } from "~/lib/icons/Gavel";
 import { Play } from "~/lib/icons/Play";
 
+import { Separator } from "~/components/ui/separator";
 import {
   LEAGUES,
   MIN_PARLAYS_REQUIRED,
   MIN_PCT_TOTAL_STAKED,
-  MIN_STAKE_PCT,
-  ranksList,
 } from "~/lib/config";
-import { Separator } from "~/components/ui/separator";
+import { Level, Rank, Tier } from "~/types/rank";
 import RankIcon from "../ui/rank-icon";
+import React from "react";
+
+const ranksList: Omit<Rank, "minPoints" | "maxPoints">[][] = [
+  [
+    {
+      tier: "Rookie",
+      level: "III",
+    },
+    {
+      tier: "Rookie",
+      level: "II",
+    },
+    {
+      tier: "Rookie",
+      level: "I",
+    },
+  ],
+  [
+    {
+      tier: "Pro",
+      level: "III",
+    },
+    {
+      tier: "Pro",
+      level: "II",
+    },
+    {
+      tier: "Pro",
+      level: "I",
+    },
+  ],
+  [
+    {
+      tier: "All-Star",
+      level: "III",
+    },
+    {
+      tier: "All-Star",
+      level: "II",
+    },
+    {
+      tier: "All-Star",
+      level: "I",
+    },
+  ],
+  [
+    {
+      tier: "Superstar",
+      level: "III",
+    },
+    {
+      tier: "Superstar",
+      level: "II",
+    },
+    {
+      tier: "Superstar",
+      level: "I",
+    },
+  ],
+  [
+    {
+      tier: "Elite",
+      level: "III",
+    },
+    {
+      tier: "Elite",
+      level: "II",
+    },
+    {
+      tier: "Elite",
+      level: "I",
+    },
+  ],
+  [
+    {
+      tier: "Legend",
+      level: null,
+    },
+  ],
+];
 
 export default function MatchesHelp({
   scrollToSection,
@@ -98,16 +174,31 @@ export default function MatchesHelp({
               Each rank except for Legend has 3 level, I, II, and III. Once a
               user has hit legend they are ranked by pure points.
             </Text>
-            <View className="flex flex-row items-center gap-4 w-full flex-wrap">
-              {ranksList.map((rank) => (
-                <View key={`${rank.tier}-${rank.level}`} className="flex flex-col gap-2 items-center">
-                  <RankIcon rank={rank} size={48} />
-                  <Text className="text-sm font-bold">
-                    {rank.tier} {rank.level}
-                  </Text>
-                </View>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{
+                display: "flex",
+                gap: 16,
+                paddingRight: 16,
+              }}
+            >
+              {ranksList.map((tier, i) => (
+                <React.Fragment key={i}>
+                  {tier.map((rank) => (
+                    <View
+                      key={`${rank.tier}${rank.level}`}
+                      className="flex flex-col gap-1 items-center"
+                    >
+                      <RankIcon size={36} rank={rank} />
+                      <Text className="font-bold text-sm">
+                        {rank.tier} {rank.level}
+                      </Text>
+                    </View>
+                  ))}
+                </React.Fragment>
               ))}
-            </View>
+            </ScrollView>
           </CardContent>
         </Card>
       </View>
@@ -184,7 +275,7 @@ export default function MatchesHelp({
               <Text className="font-bold text-xl">Match Guidelines</Text>
             </View>
             <Text className="text-muted-foreground font-semibold">
-              To incentive risk and ensure fair play, matches have guidelines
+              To incentivize risk and ensure fair play, matches have guidelines
               that users must meet or they will be disqualified.
             </Text>
             <View className="flex flex-col gap-1">
@@ -231,11 +322,11 @@ export default function MatchesHelp({
             </View>
             <View className="flex flex-col gap-1">
               <Text className="font-bold text-xl">
-                Friendly Match Avaibility
+                Friendly Match Availability
               </Text>
               <Text className="text-muted-foreground font-semibold">
-                Friendly match avaibility is not based on your previous parlays,
-                but available props in general.
+                Friendly match Availability is not based on your previous
+                parlays, but available props in general.
               </Text>
             </View>
             <View className="flex flex-col gap-1">
@@ -244,7 +335,7 @@ export default function MatchesHelp({
               </Text>
               <Text className="text-muted-foreground font-semibold">
                 You can only start competitive matches for sports leagues where
-                you have props available. This means match avaibility is based
+                you have props available. This means match Availability is based
                 on your previous parlays for the day, and actual amount of live
                 events occurring in that day.
               </Text>

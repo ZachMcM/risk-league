@@ -1,4 +1,4 @@
-import { and, eq, InferSelectModel, ne } from "drizzle-orm";
+import { and, eq, gt, gte, InferSelectModel, lt, ne } from "drizzle-orm";
 import { v4 as uuidv4 } from "uuid";
 import {
   DEFAULT_PROFANITY,
@@ -9,7 +9,9 @@ import { MIN_PCT_TOTAL_STAKED } from "../config";
 import { db } from "../db";
 import {
   cosmetic,
+  game,
   leagueType,
+  match,
   matchUser,
   parlay,
   pick,
@@ -24,25 +26,71 @@ import { getRank } from "../utils/getRank";
 import { getCombinedDictionaries } from "./usernameDictionaries";
 import { invalidateQueries } from "../utils/invalidateQueries";
 import { sendPushNotification } from "../routes/pushNotifications";
+import { botParlayQueue } from "../queues/botParlayQueue";
+import moment from "moment";
 
 export async function initializeBotParlays(botId: string, matchId: number) {
   logger.info(`Initializing bot parlays for bot ${botId} in match ${matchId}`);
 
+  const now = moment();
+  const startTime = now.clone().subtract(6, "hours").toISOString();
+  const endTime = now.clone().add(18, "hours").toISOString();
+
+  const [{ league }] = await db
+    .select({ league: match.league })
+    .from(match)
+    .where(eq(match.id, matchId));
+
+  const availableGames = await db.query.game.findMany({
+    where: and(
+      gte(game.startTime, startTime),
+      lt(game.startTime, endTime),
+      gt(game.startTime, new Date().toISOString()),
+      eq(game.league, league as any)
+    ),
+  });
+
+  let gamesWithin = 0;
+
+  for (const gameEntry of availableGames) {
+    const gameTime = moment(gameEntry.startTime!);
+    const msUntilGame = gameTime.diff(moment(), 'milliseconds');
+    if (msUntilGame <= 480_000) {
+      gamesWithin++;
+    }
+  }
+
+  // Have to create the parlays right away to avoid time running out
+  if (gamesWithin == availableGames.length) {
+    await createBotParlay(botId, matchId);
+    await createBotParlay(botId, matchId);
+    return
+  }
+
   // First parlay: 30-90 seconds after match start
-  setTimeout(() => {
-    createBotParlay(botId, matchId);
-  }, 30000 + Math.random() * 60000);
+  const firstDelay = 30000 + Math.random() * 60000;
+  await botParlayQueue.add(
+    `parlay-1-bot-${botId}-match-${matchId}`,
+    { botId, matchId },
+    { delay: firstDelay }
+  );
 
   // Second parlay: 3-8 minutes later
-  setTimeout(() => {
-    createBotParlay(botId, matchId);
-  }, 180000 + Math.random() * 300000);
+  const secondDelay = 180000 + Math.random() * 300000;
+  await botParlayQueue.add(
+    `parlay-2-bot-${botId}-match-${matchId}`,
+    { botId, matchId },
+    { delay: secondDelay }
+  );
 
-  // Optional third parlay: 10-15 minutes (30% chance)
+  // Optional third parlay: 10-15 minutes (5% chance)
   if (Math.random() < 0.05) {
-    setTimeout(() => {
-      createBotParlay(botId, matchId);
-    }, 600000 + Math.random() * 300000);
+    const thirdDelay = 600000 + Math.random() * 300000;
+    await botParlayQueue.add(
+      `parlay-3-bot-${botId}-match-${matchId}`,
+      { botId, matchId },
+      { delay: thirdDelay }
+    );
   }
 }
 

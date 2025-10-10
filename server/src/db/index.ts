@@ -11,6 +11,10 @@ const pool = new Pool({
   connectionTimeoutMillis: 2000,
 });
 
+pool.on('error', (err) => {
+  console.error('Unexpected database pool error on idle client:', err);
+});
+
 export const db = drizzle(pool, {
   schema: { ...schema, ...relations },
 });

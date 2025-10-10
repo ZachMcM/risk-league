@@ -1,6 +1,13 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
-import { BadgeInfoIcon, Ban } from "lucide-react-native";
+import {
+  BadgeInfoIcon,
+  Frame,
+  ImagePlus,
+  PictureInPicture,
+  UserCircle2,
+  Ban,
+} from "lucide-react-native";
 import { useState } from "react";
 import { View } from "react-native";
 import BannerAdWrapper from "~/components/ad-wrappers/Banner";
@@ -54,13 +61,13 @@ export default function Home() {
 
   async function presentAdFreePaywall() {
     await RevenueCatUI.presentPaywallIfNeeded({
-      requiredEntitlementIdentifier: "No Ads"
+      requiredEntitlementIdentifier: "No Ads",
     });
     queryClient.invalidateQueries({ queryKey: ["customers", "No Ads"] });
   }
 
   return (
-    <ScrollContainer className="p-0" safeAreaInsets>
+    <ScrollContainer className="p-0 pb-8" safeAreaInsets>
       <View className="p-6">
         <OnboardingDialog
           isOpen={onboardingDialog}
@@ -101,25 +108,31 @@ export default function Home() {
                   <DropdownMenuLabel>My Account</DropdownMenuLabel>
                   <DropdownMenuItem
                     className="w-full justify-between"
-                    onPress={() => router.navigate("/help")}
-                  >
-                    <View className="flex flex-row items-center gap-2">
-                      <Icon
-                        as={BadgeInfoIcon}
-                        className="text-foreground"
-                        size={16}
-                      />
-                      <Text>Help</Text>
-                    </View>
-                    <ChevronRight className="text-foreground" size={16} />
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    className="w-full justify-between"
                     onPress={() => router.navigate("/career")}
                   >
                     <View className="flex flex-row items-center gap-2">
                       <User className="text-foreground" size={18} />
                       <Text>Career</Text>
+                    </View>
+                    <ChevronRight className="text-foreground" size={16} />
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className="w-full justify-between"
+                    onPress={() => router.navigate("/banner-locker")}
+                  >
+                    <View className="flex flex-row items-center gap-2">
+                      <ImagePlus className="text-foreground" size={18} />
+                      <Text>Edit Banner</Text>
+                    </View>
+                    <ChevronRight className="text-foreground" size={16} />
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className="w-full justify-between"
+                    onPress={() => router.navigate("/image-locker")}
+                  >
+                    <View className="flex flex-row items-center gap-2">
+                      <UserCircle2 className="text-foreground" size={18} />
+                      <Text>Edit Image</Text>
                     </View>
                     <ChevronRight className="text-foreground" size={16} />
                   </DropdownMenuItem>
@@ -151,6 +164,20 @@ export default function Home() {
                     />
                   </DropdownMenuItem>
                 )}
+                <DropdownMenuItem
+                  className="w-full justify-between"
+                  onPress={() => router.navigate("/help")}
+                >
+                  <View className="flex flex-row items-center gap-2">
+                    <Icon
+                      as={BadgeInfoIcon}
+                      className="text-foreground"
+                      size={16}
+                    />
+                    <Text>Help</Text>
+                  </View>
+                  <ChevronRight className="text-foreground" size={16} />
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </View>

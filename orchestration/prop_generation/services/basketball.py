@@ -43,12 +43,12 @@ def is_stat_eligible_for_player(
     if stat not in ELIGIBILITY_THRESHOLDS:
         return False
 
-    if minutes_avg <= ELIGIBILITY_THRESHOLDS["minutes"] * league_minutes_avg:
+    if minutes_avg < ELIGIBILITY_THRESHOLDS["minutes"] * league_minutes_avg:
         return False
 
     base_threshold = ELIGIBILITY_THRESHOLDS[stat]
 
-    return player_avg >= base_threshold * league_avg
+    return player_avg > base_threshold * league_avg
 
 
 def get_position_umbrella(position: str):
@@ -166,6 +166,7 @@ def main():
                                 eligible_stats.append(stat)
 
                         if not eligible_stats:
+                            logger.warning(f"No eligible stats for {player['name']}")
                             continue
 
                         team_stats_list: list[BasketballTeamStats] = (

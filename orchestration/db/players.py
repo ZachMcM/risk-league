@@ -158,7 +158,7 @@ def get_active_players_for_team(league: str, team_id: int) -> list[Player]:
                         SELECT number, player_id, status, name, team_id, league,
                             position, updated_at, height, weight
                         FROM player
-                        WHERE team_id = %s AND league = %s AND status = 'ACT'
+                        WHERE team_id = %s AND league = %s AND status = 'ACT' AND image IS NOT NULL
                         ORDER BY position, name
                     """
 
@@ -191,13 +191,18 @@ def get_active_players_for_team(league: str, team_id: int) -> list[Player]:
                     # Find the team by matching team_id in the array
                     team_found = False
                     for team_data in league_data:
-                        if isinstance(team_data, dict) and team_data.get("team_id") == team_id:
+                        if (
+                            isinstance(team_data, dict)
+                            and team_data.get("team_id") == team_id
+                        ):
                             team_injuries = team_data.get("injuries", [])
                             team_found = True
                             break
 
                     if not team_found:
-                        logger.warning(f"No injury data found for team {team_id} in league {league}")
+                        logger.warning(
+                            f"No injury data found for team {team_id} in league {league}"
+                        )
                         team_injuries = []
 
                     injured_ids_list = [
@@ -214,12 +219,17 @@ def get_active_players_for_team(league: str, team_id: int) -> list[Player]:
                     league_depth_data = league_depth_charts_data["data"][league]
 
                     for _, team_data in league_depth_data.items():
-                        if isinstance(team_data, dict) and team_data.get("team_id") == team_id:
+                        if (
+                            isinstance(team_data, dict)
+                            and team_data.get("team_id") == team_id
+                        ):
                             team_depth_chart = team_data
                             break
 
                     if not team_depth_chart:
-                        logger.warning(f"No depth chart found for team {team_id} in league {league}")
+                        logger.warning(
+                            f"No depth chart found for team {team_id} in league {league}"
+                        )
                         team_depth_chart = {}
 
                     depth_chart_ids: list[int] = []
@@ -231,24 +241,37 @@ def get_active_players_for_team(league: str, team_id: int) -> list[Player]:
 
                         if isinstance(depth_chart_entry, dict):
                             for depth, player_info in depth_chart_entry.items():
-                                if isinstance(player_info, dict) and "id" in player_info:
+                                if (
+                                    isinstance(player_info, dict)
+                                    and "id" in player_info
+                                ):
                                     if league == "NFL":
                                         # NFL-specific filtering logic
                                         if (
                                             (position == "QB" and depth == "1")
-                                            or (position in ["WR1", "WR2", "WR3"] and depth == "1")
+                                            or (
+                                                position in ["WR1", "WR2", "WR3"]
+                                                and depth == "1"
+                                            )
                                             or (position == "PK" and depth == "1")
-                                            or (position == "TE" and depth in ["1", "2"])
-                                            or (position == "RB" and depth in ["1", "2", "3"])
+                                            or (
+                                                position == "TE" and depth in ["1", "2"]
+                                            )
+                                            or (
+                                                position == "RB"
+                                                and depth in ["1", "2", "3"]
+                                            )
                                         ):
                                             depth_chart_ids.append(player_info["id"])
                                     else:
                                         # For other leagues (like MLB), include all depth chart players
                                         depth_chart_ids.append(player_info["id"])
-                                    
+
                     # Handle empty lists to avoid SQL errors
                     if not injured_ids_list:
-                        injured_ids_list = [-1]  # Use impossible ID to avoid empty NOT IN
+                        injured_ids_list = [
+                            -1
+                        ]  # Use impossible ID to avoid empty NOT IN
                     if not depth_chart_ids:
                         depth_chart_ids = [-1]  # Use impossible ID to avoid empty ANY
 
@@ -265,7 +288,10 @@ def get_active_players_for_team(league: str, team_id: int) -> list[Player]:
                             )
                     """
 
-                    cur.execute(active_players_query, (team_id, league, injured_ids_list, depth_chart_ids))
+                    cur.execute(
+                        active_players_query,
+                        (team_id, league, injured_ids_list, depth_chart_ids),
+                    )
                     rows = cur.fetchall()
 
                     for row in rows:
@@ -298,14 +324,14 @@ def get_active_players_for_team(league: str, team_id: int) -> list[Player]:
 
 def get_players_by_league(league: str) -> list[Player]:
     """
-    Get all active players for a league.
-    Replicates GET /players/league/:league/active
+    Get all players for a league.
+    Replicates GET /players/league/:league
 
     Args:
         league: The league to filter by
 
     Returns:
-        List of active players for the league
+        List of players for the league
 
     Raises:
         psycopg.Error: If database operation fails
@@ -317,7 +343,7 @@ def get_players_by_league(league: str) -> list[Player]:
                     SELECT number, player_id, status, name, team_id, league,
                            position, updated_at, height, weight
                     FROM player
-                    WHERE league = %s AND status = 'ACT'
+                    WHERE league = %s
                     ORDER BY name
                 """
 
@@ -340,9 +366,7 @@ def get_players_by_league(league: str) -> list[Player]:
                     }
                     players.append(player)
 
-                logger.info(
-                    f"Retrieved {len(players)} active players for league {league}"
-                )
+                logger.info(f"Retrieved {len(players)} players for league {league}")
                 return players
 
     except psycopg.Error as e:

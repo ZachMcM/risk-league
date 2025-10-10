@@ -435,6 +435,15 @@ export async function getParlays({
   return parlays;
 }
 
+export async function getOpponentParlays(matchId: number): Promise<Parlay[]> {
+  const oppParlays = await serverRequest({
+    endpoint: `/parlays/opponent?matchId=${matchId}`,
+    method: "GET",
+  });
+
+  return oppParlays;
+}
+
 export async function postParlay({
   parlay,
   matchId,
