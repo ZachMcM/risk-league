@@ -1,6 +1,9 @@
 import { cn } from "~/utils/cn";
 import { Avatar, AvatarFallback, AvatarImage } from "./avatar";
 import { Text } from "./text";
+import { View } from "react-native";
+import { Image } from "expo-image";
+import { useState } from "react";
 
 export default function ProfileImage({
   image,
@@ -11,18 +14,37 @@ export default function ProfileImage({
   username: string;
   className?: string;
 }) {
+  const [errorOccurred, setErrorOccurred] = useState(false);
+
+  const handleError = () => {
+    if (!errorOccurred) {
+      // Prevent infinite loop if fallback also fails
+      setErrorOccurred(true);
+    }
+  };
+
   return (
-    <Avatar className={cn("h-14 w-14 rounded-full", className)} alt="Profile">
-      <AvatarImage
-        source={{
-          uri: image!,
-        }}
-      />
-      <AvatarFallback className={cn("rounded-full", className)}>
-        <Text className="font-bold text-sm">
-          {username.slice(0, 2).toUpperCase()}
+    <View
+      className={cn(
+        cn("h-14 w-14 rounded-full overflow-hidden bg-secondary flex items-center justify-center", className),
+        className
+      )}
+    >
+      {errorOccurred || !image ? (
+        <Text className="font-semibold text-foreground">
+          {username
+            .split(" ")
+            .map((s) => s[0])
+            .join("")}
         </Text>
-      </AvatarFallback>
-    </Avatar>
+      ) : (
+        <Image
+          contentFit="cover"
+          style={{ width: "100%", height: "100%" }}
+          source={image}
+          onError={handleError}
+        />
+      )}
+    </View>
   );
 }
