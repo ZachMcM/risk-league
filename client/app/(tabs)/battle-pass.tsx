@@ -4,7 +4,7 @@ import { router } from "expo-router";
 import { Check, LockKeyhole } from "lucide-react-native";
 import { Fragment, useEffect, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
-import RevenueCatUI, { PAYWALL_RESULT } from "react-native-purchases-ui";
+import Purchases from "react-native-purchases";
 import { toast } from "sonner-native";
 import BannerAdWrapper from "~/components/ad-wrappers/Banner";
 import { useEntitlements } from "~/components/providers/EntitlementsProvider";
@@ -158,30 +158,41 @@ export default function BattlePass() {
   const { mutate: acquireBattlePass, isPending: acquiringBattlePass } =
     useMutation({
       mutationFn: async () => {
-        // TODO get specific offering/paywall for battle pass
-        const paywallResult: PAYWALL_RESULT =
-          await RevenueCatUI.presentPaywallIfNeeded({
-            requiredEntitlementIdentifier: "Season Zero Battle Pass",
-          });
+        // Get current offerings
+        const offerings = await Purchases.getOfferings();
 
-        if (
-          [PAYWALL_RESULT.PURCHASED, PAYWALL_RESULT.RESTORED].includes(
-            paywallResult
-          )
-        ) {
+        // Get the specific offering by identifier
+        const battlePassOffering = offerings.all["season-zero-battle-pass"];
+
+        if (!battlePassOffering) {
+          throw new Error("Battle Pass offering not found");
+        }
+
+        // Get the package you want to purchase
+        // You can use availablePackages[0] or find a specific package
+        // For example: battlePassOffering.availablePackages.find(pkg => pkg.identifier === 'your_package_id')
+        const packageToPurchase = battlePassOffering.availablePackages[0];
+
+        if (!packageToPurchase) {
+          throw new Error("No package available for purchase");
+        }
+
+        // Purchase the package directly
+        const { customerInfo } = await Purchases.purchasePackage(
+          packageToPurchase
+        );
+
+        // Check if the purchase was successful by checking entitlements
+        const hasEntitlement =
+          customerInfo.entitlements.active["Season Zero Battle Pass"] !==
+          undefined;
+
+        if (hasEntitlement) {
           await postUserBattlePass();
+          return true;
         }
-        switch (paywallResult) {
-          case PAYWALL_RESULT.NOT_PRESENTED:
-          case PAYWALL_RESULT.ERROR:
-          case PAYWALL_RESULT.CANCELLED:
-            return false;
-          case PAYWALL_RESULT.PURCHASED:
-          case PAYWALL_RESULT.RESTORED:
-            return true;
-          default:
-            return false;
-        }
+
+        return false;
       },
       onSuccess: (succesfullyPurchased) => {
         queryClient.invalidateQueries({
