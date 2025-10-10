@@ -1,9 +1,8 @@
-import { cn } from "~/utils/cn";
-import { Avatar, AvatarFallback, AvatarImage } from "./avatar";
-import { Text } from "./text";
-import { View } from "react-native";
 import { Image } from "expo-image";
 import { useState } from "react";
+import { View } from "react-native";
+import { cn } from "~/utils/cn";
+import { Text } from "./text";
 
 export default function ProfileImage({
   image,

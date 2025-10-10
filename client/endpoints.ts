@@ -441,8 +441,6 @@ export async function getOpponentParlays(matchId: number): Promise<Parlay[]> {
     method: "GET",
   });
 
-  console.log(oppParlays)
-
   return oppParlays;
 }
 
