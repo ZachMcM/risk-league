@@ -23,7 +23,7 @@ export default function PickCard({ initialData }: { initialData: Pick }) {
     queryFn: async () => await getPick(initialData.id),
   });
 
-  return !pick ? (
+  return !pick || !pick.prop || !pick.prop.player || !pick.prop.game ? (
     <Card className="w-full h-[177px] border animate-pulse" />
   ) : (
     <Card key={pick.id}>
