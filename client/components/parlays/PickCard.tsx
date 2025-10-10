@@ -14,6 +14,7 @@ import PlayerImage from "../ui/player-image";
 import { Progress } from "../ui/progress";
 import { Separator } from "../ui/separator";
 import { Text } from "../ui/text";
+import { Skeleton } from "../ui/skeleton";
 
 export default function PickCard({ initialData }: { initialData: Pick }) {
   const { data: pick } = useQuery({
@@ -22,7 +23,9 @@ export default function PickCard({ initialData }: { initialData: Pick }) {
     queryFn: async () => await getPick(initialData.id),
   });
 
-  return (
+  return !pick ? (
+    <Card className="w-full h-[177px] border animate-pulse" />
+  ) : (
     <Card key={pick.id}>
       <CardContent className="p-4 flex flex-col gap-4">
         <View className="flex flex-row items-center gap-1">
