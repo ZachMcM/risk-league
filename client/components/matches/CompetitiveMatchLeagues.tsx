@@ -21,6 +21,7 @@ export default function CompetitiveMatchLeagues() {
   }));
 
   const sortedLeagues = leagueData
+    .sort((a, b) => b.propCount - a.propCount)
     .map(item => item.league);
 
   return (
