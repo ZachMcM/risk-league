@@ -40,6 +40,7 @@ import { Trophy } from "~/lib/icons/Trophy";
 import { User } from "~/lib/icons/User";
 import RevenueCatUI, { PAYWALL_RESULT } from "react-native-purchases-ui";
 import Purchases from "react-native-purchases";
+import BattlePassCard from "~/components/battle-pass/BattlePassCard";
 
 export default function Home() {
   const { data: currentUserData } = authClient.useSession();
@@ -183,8 +184,8 @@ export default function Home() {
           </View>
         </View>
         {isUserRankPending ? (
-          <View className="flex flex-col gap-2">
-            <Skeleton className="h-2 w-1/2" />
+          <View className="flex flex-col gap-2 px-6">
+            <Skeleton className="h-3.5 w-1/2" />
             <Skeleton className="h-4 w-full" />
           </View>
         ) : (
@@ -214,6 +215,7 @@ export default function Home() {
           )
         )}
         <BannerAdWrapper />
+        <BattlePassCard/>
         <CompetitiveMatchLeagues />
       </View>
     </ScrollContainer>
