@@ -196,9 +196,11 @@ export default function RootLayout() {
             <RealtimeProvider>
               <EntitlementsProvider>
                 <ThemeProvider value={DARK_THEME}>
-                  <SplashScreenController />
-                  <RootNavigatior />
-                  <StatusBar style={isDarkColorScheme ? "light" : "dark"} />
+                  <AudioProvider>
+                    <SplashScreenController />
+                    <RootNavigatior />
+                    <StatusBar style={isDarkColorScheme ? "light" : "dark"} />
+                  </AudioProvider>
                 </ThemeProvider>
               </EntitlementsProvider>
             </RealtimeProvider>
