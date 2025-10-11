@@ -7,6 +7,7 @@ import { toast } from "sonner-native";
 import FirstMatchDialog from "~/components/matches/FirstMatchDialog";
 import MatchDetails from "~/components/matches/MatchDetails";
 import ParlaysView from "~/components/parlays/ParlaysView";
+import { useEntitlements } from "~/components/providers/EntitlementsProvider";
 import { Button } from "~/components/ui/button";
 import { ScrollContainer } from "~/components/ui/scroll-container";
 import { Text } from "~/components/ui/text";
@@ -81,16 +82,24 @@ export default function Match() {
     loadAd();
   }, [loadAd]);
 
+  const { adFreeEntitlementPending, adFreeEntitlement } = useEntitlements();
+
   useEffect(() => {
-    if (
-      isAdLoaded &&
-      match &&
-      new Date().getTime() - sqlToJsDate(match.createdAt).getTime() <= 20000
-    ) {
-      toast.dismiss();
-      showAd();
-    }
-  }, [isAdLoaded, match]);
+    const showAdIfAllowed = async () => {
+      if (
+        !adFreeEntitlementPending &&
+        !adFreeEntitlement &&
+        isAdLoaded &&
+        match &&
+        new Date().getTime() - sqlToJsDate(match.createdAt).getTime() <= 20000
+      ) {
+        toast.dismiss();
+        showAd();
+      }
+    };
+
+    showAdIfAllowed();
+  }, [isAdLoaded, match, adFreeEntitlement, adFreeEntitlementPending]);
 
   useEffect(() => {
     if (

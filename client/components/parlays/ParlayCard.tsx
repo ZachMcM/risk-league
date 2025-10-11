@@ -3,6 +3,8 @@ import { Link, useLocalSearchParams } from "expo-router";
 import { useEffect } from "react";
 import { View } from "react-native";
 import { useInterstitialAd } from "react-native-google-mobile-ads";
+import Purchases from "react-native-purchases";
+import { toast } from "sonner-native";
 import { getParlay } from "~/endpoints";
 import { interstitialAdUnitId } from "~/lib/ads";
 import { Parlay } from "~/types/parlay";
@@ -19,7 +21,7 @@ import { Card, CardContent } from "../ui/card";
 import PlayerImage from "../ui/player-image";
 import { Separator } from "../ui/separator";
 import { Text } from "../ui/text";
-import { toast } from "sonner-native";
+import { useEntitlements } from "../providers/EntitlementsProvider";
 
 export default function ParlayCard({ initialData }: { initialData: Parlay }) {
   const searchParams = useLocalSearchParams<{
@@ -43,15 +45,23 @@ export default function ParlayCard({ initialData }: { initialData: Parlay }) {
     loadAd();
   }, [loadAd]);
 
+  const { adFreeEntitlementPending, adFreeEntitlement } = useEntitlements();
+
   useEffect(() => {
-    if (
-      isAdLoaded &&
-      new Date().getTime() - sqlToJsDate(parlay.createdAt).getTime() <= 20000
-    ) {
-      toast.dismiss();
-      showAd();
-    }
-  }, [isAdLoaded, parlay]);
+    const showAdIfAllowed = async () => {
+      if (
+        isAdLoaded &&
+        !adFreeEntitlementPending &&
+        !adFreeEntitlement &&
+        new Date().getTime() - sqlToJsDate(parlay.createdAt).getTime() <= 20000
+      ) {
+        toast.dismiss();
+        showAd();
+      }
+    };
+
+    showAdIfAllowed();
+  }, [isAdLoaded, parlay, adFreeEntitlement, adFreeEntitlementPending]);
 
   return (
     <Link

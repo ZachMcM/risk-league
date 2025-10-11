@@ -1,11 +1,13 @@
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Platform } from "react-native";
 import {
   BannerAd,
   BannerAdSize,
   useForeground,
 } from "react-native-google-mobile-ads";
+import Purchases from "react-native-purchases";
 import { adaptiveBannerUnitId } from "~/lib/ads";
+import { useEntitlements } from "../providers/EntitlementsProvider";
 
 export default function BannerAdWrapper() {
   const bannerRef = useRef<BannerAd>(null);
@@ -14,11 +16,15 @@ export default function BannerAdWrapper() {
     Platform.OS === "ios" && bannerRef.current?.load();
   });
 
+  const { adFreeEntitlementPending, adFreeEntitlement } = useEntitlements()
+
   return (
-    <BannerAd
-      ref={bannerRef}
-      unitId={adaptiveBannerUnitId}
-      size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
-    />
+    !adFreeEntitlementPending && !adFreeEntitlement && (
+      <BannerAd
+        ref={bannerRef}
+        unitId={adaptiveBannerUnitId}
+        size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
+      />
+    )
   );
 }

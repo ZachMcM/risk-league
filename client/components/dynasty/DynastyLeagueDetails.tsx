@@ -2,14 +2,16 @@ import { AlertTriangle, X } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import { Pressable, View } from "react-native";
 import { useInterstitialAd } from "react-native-google-mobile-ads";
+import Purchases from "react-native-purchases";
 import { toast } from "sonner-native";
 import { interstitialAdUnitId } from "~/lib/ads";
 import { authClient } from "~/lib/auth-client";
 import { DynastyLeague, DynastyLeagueUser } from "~/types/dynastyLeague";
+import { sqlToJsDate } from "~/utils/dateUtils";
 import { Alert, AlertTitle } from "../ui/alert";
 import { Icon } from "../ui/icon";
 import { Text } from "../ui/text";
-import { sqlToJsDate } from "~/utils/dateUtils";
+import { useEntitlements } from "../providers/EntitlementsProvider";
 
 export default function DynastyLeagueDetails({
   dynastyLeagueUsers,
@@ -35,18 +37,31 @@ export default function DynastyLeagueDetails({
     loadAd();
   }, [loadAd]);
 
+  const { adFreeEntitlementPending, adFreeEntitlement } = useEntitlements();
+
   useEffect(() => {
-    if (
-      currentDynastyLeagueUser &&
-      isAdLoaded &&
-      new Date().getTime() -
-        sqlToJsDate(currentDynastyLeagueUser.createdAt).getTime() <=
-        20000
-    ) {
-      toast.dismiss();
-      showAd();
-    }
-  }, [isAdLoaded, currentDynastyLeagueUser]);
+    const showAdIfAllowed = async () => {
+      if (
+        currentDynastyLeagueUser &&
+        isAdLoaded &&
+        !adFreeEntitlementPending &&
+        !adFreeEntitlement &&
+        new Date().getTime() -
+          sqlToJsDate(currentDynastyLeagueUser.createdAt).getTime() <=
+          20000
+      ) {
+        toast.dismiss();
+        showAd();
+      }
+    };
+
+    showAdIfAllowed();
+  }, [
+    isAdLoaded,
+    currentDynastyLeagueUser,
+    adFreeEntitlement,
+    adFreeEntitlementPending,
+  ]);
 
   const [minParlaysAlert, setMinParlaysAlert] = useState(
     currentDynastyLeagueUser.totalParlays < dynastyLeague.minParlays

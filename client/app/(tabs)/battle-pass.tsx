@@ -4,8 +4,10 @@ import { router } from "expo-router";
 import { Check, LockKeyhole } from "lucide-react-native";
 import { Fragment, useEffect, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
+import Purchases from "react-native-purchases";
 import { toast } from "sonner-native";
 import BannerAdWrapper from "~/components/ad-wrappers/Banner";
+import { useEntitlements } from "~/components/providers/EntitlementsProvider";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
@@ -155,17 +157,58 @@ export default function BattlePass() {
 
   const { mutate: acquireBattlePass, isPending: acquiringBattlePass } =
     useMutation({
-      mutationFn: postUserBattlePass,
-      onSuccess: () => {
+      mutationFn: async () => {
+        // Get current offerings
+        const offerings = await Purchases.getOfferings();
+
+        // Get the specific offering by identifier
+        const battlePassOffering = offerings.all["season-zero-battle-pass"];
+
+        if (!battlePassOffering) {
+          throw new Error("Battle Pass offering not found");
+        }
+
+        // Get the package you want to purchase
+        // You can use availablePackages[0] or find a specific package
+        // For example: battlePassOffering.availablePackages.find(pkg => pkg.identifier === 'your_package_id')
+        const packageToPurchase = battlePassOffering.availablePackages[0];
+
+        if (!packageToPurchase) {
+          throw new Error("No package available for purchase");
+        }
+
+        // Purchase the package directly
+        const { customerInfo } = await Purchases.purchasePackage(
+          packageToPurchase
+        );
+
+        // Check if the purchase was successful by checking entitlements
+        const hasEntitlement =
+          customerInfo.entitlements.active["Season Zero Battle Pass"] !==
+          undefined;
+
+        if (hasEntitlement) {
+          await postUserBattlePass();
+          return true;
+        }
+
+        return false;
+      },
+      onSuccess: (succesfullyPurchased) => {
         queryClient.invalidateQueries({
-          queryKey: [
-            "battle-pass",
-            BATTLE_PASS_ID,
-            "progress",
-            currentUserData?.user.id,
-          ],
+          queryKey: ["entitlements", "Season Zero Battle Pass"],
         });
-        toast.success("Successfully purchased Battle Pass!");
+        if (succesfullyPurchased) {
+          queryClient.invalidateQueries({
+            queryKey: [
+              "battle-pass",
+              BATTLE_PASS_ID,
+              "progress",
+              currentUserData?.user.id,
+            ],
+          });
+          toast.success("Successfully purchased Battle Pass!");
+        }
       },
       onError: (error) => {
         toast.error(error.message);
@@ -187,16 +230,25 @@ export default function BattlePass() {
     }
   }, [battlePassProgress?.currentXp]);
 
+  const {
+    seasonZeroBattlePassEntitlementPending,
+    seasonZeroBattlePassEntitlement,
+  } = useEntitlements();
+
   return (
     <ScrollContainer className="p-0 flex flex-col">
       <BannerAdWrapper />
-      {battlePassProgressPending || allCosmeticsPending ? (
+      {battlePassProgressPending ||
+      allCosmeticsPending ||
+      seasonZeroBattlePassEntitlementPending ? (
         <ActivityIndicator className="text-foreground" />
       ) : (
         battlePassProgress &&
         allCosmetics && (
           <View className="flex flex-1 flex-col gap-6 p-6">
-            {battlePassProgress.currentXp === null || nextTier === null ? (
+            {battlePassProgress.currentXp === null ||
+            nextTier === null ||
+            !seasonZeroBattlePassEntitlement ? (
               <Card>
                 <CardContent className="p-4 flex flex-row gap-4 items-center">
                   <View className="flex flex-col flex-1">

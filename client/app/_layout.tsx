@@ -36,6 +36,8 @@ import { setAndroidNavigationBar } from "~/lib/android-navigation-bar";
 import { authClient } from "~/lib/auth-client";
 import { NAV_THEME } from "~/lib/constants";
 import { useColorScheme } from "~/lib/useColorScheme";
+import Purchases, { LOG_LEVEL } from "react-native-purchases";
+import { EntitlementsProvider } from "~/components/providers/EntitlementsProvider";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -148,6 +150,7 @@ export default function RootLayout() {
     }
   }, [session?.user?.id]); // Re-register when user signs in
 
+  // setting up mobile ads
   useEffect(() => {
     mobileAds()
       .initialize()
@@ -169,6 +172,16 @@ export default function RootLayout() {
     return () => subscription.remove();
   }, []);
 
+  useEffect(() => {
+    Purchases.setLogLevel(LOG_LEVEL.VERBOSE);
+
+    if (Platform.OS === "ios") {
+      Purchases.configure({
+        apiKey: process.env.EXPO_PUBLIC_REVENUECAT_APPLE_API_KEY!,
+      });
+    }
+  }, []);
+
   useRefreshOnFocus();
 
   usePlatformSpecificSetup();
@@ -181,13 +194,15 @@ export default function RootLayout() {
         <GestureHandlerRootView>
           <QueryClientProvider client={queryClient}>
             <RealtimeProvider>
-              <ThemeProvider value={DARK_THEME}>
-                <AudioProvider>
-                  <SplashScreenController />
-                  <RootNavigatior />
-                  <StatusBar style={isDarkColorScheme ? "light" : "dark"} />
-                </AudioProvider>
-              </ThemeProvider>
+              <EntitlementsProvider>
+                <ThemeProvider value={DARK_THEME}>
+                  <AudioProvider>
+                    <SplashScreenController />
+                    <RootNavigatior />
+                    <StatusBar style={isDarkColorScheme ? "light" : "dark"} />
+                  </AudioProvider>
+                </ThemeProvider>
+              </EntitlementsProvider>
             </RealtimeProvider>
             <Toaster
               toastOptions={{

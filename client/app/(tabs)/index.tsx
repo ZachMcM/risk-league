@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
 import {
   BadgeInfoIcon,
@@ -6,12 +6,14 @@ import {
   ImagePlus,
   PictureInPicture,
   UserCircle2,
+  Ban,
 } from "lucide-react-native";
 import { useState } from "react";
 import { View } from "react-native";
 import BannerAdWrapper from "~/components/ad-wrappers/Banner";
 import CompetitiveMatchLeagues from "~/components/matches/CompetitiveMatchLeagues";
 import OnboardingDialog from "~/components/onboarding/OnboardingDialog";
+import { useEntitlements } from "~/components/providers/EntitlementsProvider";
 import ProfileBanner from "~/components/social/ProfileBanner";
 import { Button } from "~/components/ui/button";
 import {
@@ -36,6 +38,8 @@ import { Cog } from "~/lib/icons/Cog";
 import { Ellipsis } from "~/lib/icons/Ellipsis";
 import { Trophy } from "~/lib/icons/Trophy";
 import { User } from "~/lib/icons/User";
+import RevenueCatUI, { PAYWALL_RESULT } from "react-native-purchases-ui";
+import Purchases from "react-native-purchases";
 
 export default function Home() {
   const { data: currentUserData } = authClient.useSession();
@@ -50,6 +54,17 @@ export default function Home() {
       new Date(currentUserData?.user.createdAt!).getTime() <=
       10000
   );
+
+  const { adFreeEntitlementPending, adFreeEntitlement } = useEntitlements();
+
+  const queryClient = useQueryClient();
+
+  async function presentAdFreePaywall() {
+    await RevenueCatUI.presentPaywallIfNeeded({
+      requiredEntitlementIdentifier: "No Ads",
+    });
+    queryClient.invalidateQueries({ queryKey: ["customers", "No Ads"] });
+  }
 
   return (
     <ScrollContainer className="p-0 pb-8" safeAreaInsets>
@@ -133,6 +148,22 @@ export default function Home() {
                   </View>
                   <ChevronRight className="text-foreground" size={18} />
                 </DropdownMenuItem>
+                {!adFreeEntitlementPending && !adFreeEntitlement && (
+                  <DropdownMenuItem
+                    onPress={presentAdFreePaywall}
+                    className="w-full justify-between"
+                  >
+                    <View className="flex flex-row items-center gap-2">
+                      <Icon as={Ban} className="text-foreground" size={18} />
+                      <Text>Go Ad Free</Text>
+                    </View>
+                    <Icon
+                      as={ChevronRight}
+                      className="text-foreground"
+                      size={18}
+                    />
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem
                   className="w-full justify-between"
                   onPress={() => router.navigate("/help")}
