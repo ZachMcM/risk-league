@@ -230,67 +230,15 @@ export default function BattlePass() {
     }
   }, [battlePassProgress?.currentXp]);
 
-  const {
-    seasonZeroBattlePassEntitlementPending,
-    seasonZeroBattlePassEntitlement,
-  } = useEntitlements();
-
   return (
     <ScrollContainer className="p-0 flex flex-col">
       <BannerAdWrapper />
-      {battlePassProgressPending ||
-      allCosmeticsPending ||
-      seasonZeroBattlePassEntitlementPending ? (
+      {battlePassProgressPending || allCosmeticsPending ? (
         <ActivityIndicator className="text-foreground" />
       ) : (
         battlePassProgress &&
         allCosmetics && (
           <View className="flex flex-1 flex-col gap-6 p-6">
-            {battlePassProgress.currentXp === null ||
-            nextTier === null ||
-            !seasonZeroBattlePassEntitlement ? (
-              <Card>
-                <CardContent className="p-4 flex flex-row gap-4 items-center">
-                  <View className="flex flex-col flex-1">
-                    <Text className="font-bold text-xl">
-                      Unlock Battle Pass
-                    </Text>
-                    <Text className="text-muted-foreground font-semibold text-sm">
-                      Unlock exclusive rewards and prove that you're the most
-                      risky!
-                    </Text>
-                  </View>
-                  <Button
-                    className="flex flex-row items-center gap-2"
-                    onPress={() => acquireBattlePass()}
-                    disabled={acquiringBattlePass}
-                  >
-                    <Text>Purchase!</Text>
-                    {acquiringBattlePass && (
-                      <ActivityIndicator className="text-foreground" />
-                    )}
-                  </Button>
-                </CardContent>
-              </Card>
-            ) : (
-              <View className="flex flex-col gap-2">
-                <Text className="font-bold text-xl">
-                  Progress to Tier {nextTier! + 1}
-                </Text>
-                <Progress
-                  variant="primary"
-                  value={
-                    (battlePassProgress.currentXp /
-                      battlePassProgress.battlePass.tiers[nextTier!]
-                        .xpRequired) *
-                    100
-                  }
-                  showValueText
-                  valueType="percent"
-                  className="h-3"
-                />
-              </View>
-            )}
             <View className="flex flex-col items-center gap-4 relative">
               {battlePassProgress.battlePass.tiers.map(
                 ({ tier, cosmetic, xpRequired, id }, index) => (

@@ -1,6 +1,7 @@
 import * as Notifications from "expo-notifications";
 import { router, Tabs } from "expo-router";
 import { useEffect } from "react";
+import BattlePassHeader from "~/components/battle-pass/BattlePassHeader";
 import PageHeader from "~/components/ui/page-header";
 import { BATTLE_PASS_NAME } from "~/lib/config";
 import { NAV_THEME } from "~/lib/constants";
@@ -99,7 +100,7 @@ export default function TabsLayout() {
         name="battle-pass"
         options={{
           title: "Battle Pass",
-          header: () => <PageHeader title={BATTLE_PASS_NAME} />,
+          header: () => <BattlePassHeader/>,
           tabBarIcon: ({ color }) => <Gift size={22} color={color} />,
         }}
       />

@@ -62,8 +62,8 @@ export default function BattlePassCard() {
           nextTier === null ||
           !seasonZeroBattlePassEntitlement ? (
             <View className="flex flex-row items-center gap-4">
-              <View className="flex flex-col flex-1">
-                <Text className="font-bold text-xl">Battle Pass</Text>
+              <View className="flex flex-col flex-1 gap-1">
+                <Text className="font-bold text-xl">{battlePassProgress.battlePass.name} Battle Pass</Text>
                 <Text className="text-muted-foreground font-semibold text-sm">
                   Unlock exclusive rewards and prove that you're the most risky!
                 </Text>
