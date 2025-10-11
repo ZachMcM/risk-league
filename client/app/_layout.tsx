@@ -201,13 +201,6 @@ export default function RootLayout() {
                   <StatusBar style={isDarkColorScheme ? "light" : "dark"} />
                 </ThemeProvider>
               </EntitlementsProvider>
-              <ThemeProvider value={DARK_THEME}>
-                <AudioProvider>
-                  <SplashScreenController />
-                  <RootNavigatior />
-                  <StatusBar style={isDarkColorScheme ? "light" : "dark"} />
-                </AudioProvider>
-              </ThemeProvider>
             </RealtimeProvider>
             <Toaster
               toastOptions={{
