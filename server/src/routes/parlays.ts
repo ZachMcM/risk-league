@@ -148,6 +148,12 @@ parlaysRoute.get("/parlays", authMiddleware, async (req, res) => {
                           team: true,
                         },
                       },
+                      game: {
+                        with: {
+                          homeTeam: true,
+                          awayTeam: true,
+                        },
+                      },
                     },
                   },
                 },
