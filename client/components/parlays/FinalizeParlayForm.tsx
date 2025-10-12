@@ -448,7 +448,7 @@ export function PickEntryCard({
         >
           <CircleMinus className="text-destructive" size={20} />
         </Pressable>
-        <PlayerImage image={pick.prop.player.image} />
+        {/* <PlayerImage image={pick.prop.player.image} /> */}
         <View className="flex flex-col gap-1">
           <Text className="font-bold">{prop.player.name}</Text>
           <Text className="font-semibold text-muted-foreground text-sm">

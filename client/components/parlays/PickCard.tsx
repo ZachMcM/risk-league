@@ -26,45 +26,21 @@ export default function PickCard({ initialData }: { initialData: Pick }) {
   ) : (
     <Card key={pick.id}>
       <CardContent className="p-4 flex flex-col gap-4">
-        <View className="flex flex-row items-center gap-1">
+        <View className="flex flex-row items-center gap-2">
           {pick.prop.game.startTime <= new Date().toISOString() &&
             !pick.prop.resolved &&
             pick.status === "not_resolved" && (
               <View className="h-2.5 w-2.5 animate-pulse rounded-full bg-destructive" />
             )}
-          <View className="flex flex-row items-center gap-2">
-            <View className="flex flex-row items-center">
-              <View
-                style={{
-                  backgroundColor: `#${pick.prop.game.homeTeam.color}`,
-                }}
-                className="py-1.5 px-2 rounded-xl border-4 border-card overflow-hidden"
-              >
-                <Text className="font-bold text-xs">
-                  {pick.prop.game.homeTeam.abbreviation}
-                </Text>
-              </View>
-              <View
-                style={{
-                  backgroundColor: `#${pick.prop.game.awayTeam.color}`,
-                }}
-                className="py-1.5 px-2 rounded-xl border-4 border-card overflow-hidden -ml-4"
-              >
-                <Text className="font-bold text-xs">
-                  {pick.prop.game.awayTeam.abbreviation}
-                </Text>
-              </View>
-            </View>
-            <Text className="text-muted-foreground font-normal">
-              {pick.prop.game.awayTeam.abbreviation} @{" "}
-              {pick.prop.game.homeTeam.abbreviation} •{" "}
-              {moment(pick.prop.game.startTime).format("h:mm A")}
-            </Text>
-          </View>
+          <Text className="text-muted-foreground">
+            {pick.prop.game.awayTeam.abbreviation} @{" "}
+            {pick.prop.game.homeTeam.abbreviation} •{" "}
+            {moment(pick.prop.game.startTime).format("h:mm A")}
+          </Text>
         </View>
         <Separator />
         <View className="flex flex-row items-center gap-4">
-          <PlayerImage
+          {/* <PlayerImage
             className={cn(
               "w-16 h-16",
               pick.status == "hit"
@@ -74,23 +50,23 @@ export default function PickCard({ initialData }: { initialData: Pick }) {
                 : "border-border"
             )}
             image={pick.prop.player.image}
-          />
+          /> */}
           <View className="flex flex-col gap-3 flex-1">
             <View className="flex flex-row items-center justify-between">
               <View className="flex flex-col gap-1">
                 <View className="flex flex-row items-center gap-1">
                   <Text className="font-bold">{pick.prop.player.name}</Text>
-                  <Text className="text-muted-foreground">
+                  <Text className="text-muted-foreground font-semibold">
                     • {pick.prop.player.position}
                   </Text>
                 </View>
                 <View className="flex flex-row items-center gap-1">
                   {pick.choice == "over" ? (
-                    <ArrowUp size={16} className="text-foreground" />
+                    <ArrowUp size={18} className="text-foreground" />
                   ) : (
-                    <ArrowDown size={16} className="text-foreground" />
+                    <ArrowDown size={18} className="text-foreground" />
                   )}
-                  <Text>
+                  <Text className="font-semibold">
                     {pick.prop.line} {pick.prop.statDisplayName}
                   </Text>
                 </View>

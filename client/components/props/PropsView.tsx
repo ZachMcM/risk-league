@@ -1,17 +1,17 @@
-import { createRef, useRef, useState, useEffect } from "react";
+import { FlashList } from "@shopify/flash-list";
+import moment from "moment";
+import { useEffect, useRef, useState } from "react";
 import { Pressable, ScrollView, TextInput, View } from "react-native";
 import { League, propStats } from "~/lib/config";
 import { Search } from "~/lib/icons/Search";
 import { Game, Prop } from "~/types/prop";
 import { cn } from "~/utils/cn";
 import { Button } from "../ui/button";
+import { Card, CardContent } from "../ui/card";
+import { GridItemWrapper } from "../ui/grid-item-wrapper";
 import { SearchBar } from "../ui/search-bar";
 import { Text } from "../ui/text";
 import PropCard from "./PropCard";
-import { FlashList } from "@shopify/flash-list";
-import { GridItemWrapper } from "../ui/grid-item-wrapper";
-import { Card, CardContent } from "../ui/card";
-import moment from "moment";
 import { Image } from "expo-image";
 
 export function GameCard({
@@ -119,7 +119,7 @@ export default function PropsView({
 
   return (
     <View className="flex flex-col gap-4 flex-1">
-      {uniqueGames.length !== 0 && (
+      {/* {uniqueGames.length !== 0 && (
         <View className="w-full">
           <ScrollView
             horizontal
@@ -142,7 +142,7 @@ export default function PropsView({
             ))}
           </ScrollView>
         </View>
-      )}
+      )} */}
       {searchActivated ? (
         <View className="flex flex-row items-center gap-3 w-full py-1 h-11">
           <SearchBar
@@ -222,12 +222,12 @@ export default function PropsView({
           showsVerticalScrollIndicator={false}
           data={filteredProps()}
           renderItem={({ item, index }) => (
-            <GridItemWrapper index={index} numCols={2} gap={12}>
+            <GridItemWrapper index={index} numCols={1} gap={12}>
               <PropCard prop={item} />
             </GridItemWrapper>
           )}
           keyExtractor={(item) => item.id.toString()}
-          numColumns={2}
+          numColumns={1}
           estimatedItemSize={210}
         />
       )}

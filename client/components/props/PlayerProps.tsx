@@ -14,6 +14,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import { Icon } from "../ui/icon";
 import { ArrowRight, ChevronDown, ChevronUp } from "lucide-react-native";
 import { useState } from "react";
+import LeagueLogo from "../ui/league-logo";
 
 function PropAccordion({
   prop,
@@ -197,10 +198,24 @@ export default function PlayerProps({
           <Text className="text-muted-foreground text-lg">
             {playerProps.player.team.fullName} • {playerProps.player.position}
           </Text>
+          <View className="flex flex-row items-center gap-2">
+            <LeagueLogo league={playerProps.player.league} size={18} />
+            <Text className="font-semibold text-lg">
+              {playerProps.games
+                .map((game) =>
+                  playerProps.player.team.teamId == game.awayTeam.teamId
+                    ? `${game.awayTeam.abbreviation} @ ${game.homeTeam.abbreviation}`
+                    : `${game.homeTeam.abbreviation} vs ${
+                        game.awayTeam.abbreviation
+                      }, Starts ${moment(game.startTime).format("h:mm A")}`
+                )
+                .join(", ")}
+            </Text>
+          </View>
         </View>
         <PlayerImage image={playerProps.player.image} className="h-28 w-28" />
       </View>
-      {playerProps.games.map((game) => (
+      {/* {playerProps.games.map((game) => (
         <Card key={game.gameId}>
           <CardContent className="py-4 px-6 flex flex-row items-center justify-between">
             {game.homeTeam.image ? (
@@ -230,7 +245,7 @@ export default function PlayerProps({
             )}
           </CardContent>
         </Card>
-      ))}
+      ))} */}
       <View className="flex flex-col gap-4">
         {playerProps.props.map((prop) => (
           <PropAccordion key={prop.id} prop={prop} />

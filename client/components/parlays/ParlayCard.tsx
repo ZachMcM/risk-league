@@ -22,6 +22,8 @@ import PlayerImage from "../ui/player-image";
 import { Separator } from "../ui/separator";
 import { Text } from "../ui/text";
 import { useEntitlements } from "../providers/EntitlementsProvider";
+import { Icon } from "../ui/icon";
+import { Check, CircleMinus, Minus, X } from "lucide-react-native";
 
 export default function ParlayCard({ initialData }: { initialData: Parlay }) {
   const searchParams = useLocalSearchParams<{
@@ -78,7 +80,7 @@ export default function ParlayCard({ initialData }: { initialData: Parlay }) {
     >
       <Card className="w-full">
         <CardContent className="p-4 flex flex-col gap-6 w-full flex-1">
-          <View className="flex flex-col">
+          <View className="flex flex-col gap-0.5">
             <View className="flex flex-row justify-between items-center">
               <View className="flex flex-row items-center gap-3">
                 <Text className="font-bold text-lg capitalize">
@@ -130,8 +132,7 @@ export default function ParlayCard({ initialData }: { initialData: Parlay }) {
                 .map(
                   (pick) =>
                     `${formatName(pick.prop.player.name).firstName[0]}. ${
-                      formatName(pick.prop.player.name).lastName
-                    }`
+                      formatName(pick.prop.player.name).lastName}`.trim()
                 )
                 .join(", ")}
             </Text>
@@ -139,7 +140,9 @@ export default function ParlayCard({ initialData }: { initialData: Parlay }) {
           <View className="flex flex-row items-center gap-6">
             <View className="flex flex-col">
               <Text className="font-medium text-muted-foreground">Stake</Text>
-              <Text className="font-bold text-2xl">${parlay.stake.toFixed(2)}</Text>
+              <Text className="font-bold text-2xl">
+                ${parlay.stake.toFixed(2)}
+              </Text>
             </View>
             <Separator orientation="vertical" />
             <View className="flex flex-col">
@@ -162,7 +165,7 @@ export default function ParlayCard({ initialData }: { initialData: Parlay }) {
               </Text>
             </View>
           </View>
-          <View className="flex flex-row items-center">
+          {/* <View className="flex flex-row items-center">
             {parlay.picks.map((pick, i) => (
               <PlayerImage
                 key={pick.id}
@@ -178,6 +181,39 @@ export default function ParlayCard({ initialData }: { initialData: Parlay }) {
                 )}
               />
             ))}
+          </View> */}
+          <View className="flex flex-row items-center gap-2">
+            {parlay.picks.map(
+              (pick) =>
+                pick.status !== "tie" &&
+                pick.status !== "did_not_play" && (
+                  <View
+                    className={cn(
+                      "h-6 w-6 border-2 border-border rounded-full flex justify-center items-center",
+                      pick.status === "hit" && "bg-success border-success",
+                      pick.status === "missed" &&
+                        "bg-destructive border-destructive"
+                    )}
+                  >
+                    {pick.status != "not_resolved" &&
+                      (pick.status == "hit" ? (
+                        <Check
+                          strokeWidth={3}
+                          size={16}
+                          className="text-foreground"
+                        />
+                      ) : (
+                        pick.status == "missed" && (
+                          <X
+                            strokeWidth={3}
+                            size={16}
+                            className="text-foreground"
+                          />
+                        )
+                      ))}
+                  </View>
+                )
+            )}
           </View>
         </CardContent>
       </Card>

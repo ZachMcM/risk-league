@@ -169,7 +169,7 @@ export default function CompetitiveMatchLeagues() {
         }}
       >
         {leaguesList.map(({ league, propCount }) => (
-          <Pressable
+          <Button
             disabled={propCount == 0}
             onPress={() => {
               if (selectedLeague == league) {
@@ -178,17 +178,16 @@ export default function CompetitiveMatchLeagues() {
                 setSelectedLeague(league);
               }
             }}
+            variant="secondary"
             className={cn(
-              "flex flex-row items-center gap-2.5 border py-2.5 px-5 disabled:opacity-40 rounded-xl",
-              selectedLeague === league
-                ? "border-primary bg-primary/20"
-                : "border-border bg-secondary"
+              "flex flex-row items-center gap-2.5 rounded-xl border",
+              selectedLeague === league && "border-primary bg-primary/20"
             )}
             key={league}
           >
-            <LeagueLogo size={22} league={league} />
-            <Text className="font-bold text-lg">{league}</Text>
-          </Pressable>
+            <LeagueLogo size={20} league={league} />
+            <Text className="font-semibold">{league}</Text>
+          </Button>
         ))}
       </ScrollView>
       <Button
