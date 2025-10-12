@@ -198,20 +198,17 @@ export default function PlayerProps({
           <Text className="text-muted-foreground text-lg">
             {playerProps.player.team.fullName} • {playerProps.player.position}
           </Text>
-          <View className="flex flex-row items-center gap-2">
-            <LeagueLogo league={playerProps.player.league} size={18} />
-            <Text className="font-semibold text-lg">
-              {playerProps.games
-                .map((game) =>
-                  playerProps.player.team.teamId == game.awayTeam.teamId
-                    ? `${game.awayTeam.abbreviation} @ ${game.homeTeam.abbreviation}`
-                    : `${game.homeTeam.abbreviation} vs ${
-                        game.awayTeam.abbreviation
-                      }, Starts ${moment(game.startTime).format("h:mm A")}`
-                )
-                .join(", ")}
-            </Text>
-          </View>
+          <Text className="font-semibold text-lg">
+            {playerProps.games
+              .map((game) =>
+                playerProps.player.team.teamId == game.awayTeam.teamId
+                  ? `${game.awayTeam.abbreviation} @ ${game.homeTeam.abbreviation}`
+                  : `${game.homeTeam.abbreviation} vs ${
+                      game.awayTeam.abbreviation
+                    }, Starts ${moment(game.startTime).format("h:mm A")}`
+              )
+              .join(", ")}
+          </Text>
         </View>
         <PlayerImage image={playerProps.player.image} className="h-28 w-28" />
       </View>

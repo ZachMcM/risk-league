@@ -46,7 +46,7 @@ export default function PropCard({ prop }: { prop: Prop }) {
           isPropPicked(prop.id) && "border-primary"
         )}
       >
-        {/* <CardContent className="px-4 pt-2 pb-4 flex flex-col gap-2.5">
+        <CardContent className="px-4 pt-2 pb-4 flex flex-col gap-2.5">
           <View className="flex flex-col gap-1">
             <View className="flex flex-col items-center justify-center">
               <PlayerImage image={prop.player.image} className="h-20 w-20" />
@@ -103,8 +103,8 @@ export default function PropCard({ prop }: { prop: Prop }) {
               </Button>
             ))}
           </View>
-        </CardContent> */}
-        <CardContent className="px-4 py-3 flex flex-row items-center justify-between">
+        </CardContent>
+        {/* <CardContent className="px-4 py-3 flex flex-row items-center justify-between">
           <View className="flex flex-col gap-1">
             <Text className="font-bold">
               {formatName(prop.player.name).firstName[0]}.{" "}
@@ -156,7 +156,7 @@ export default function PropCard({ prop }: { prop: Prop }) {
               </Button>
             ))}
           </View>
-        </CardContent>
+        </CardContent> */}
       </Card>
     </Pressable>
   );

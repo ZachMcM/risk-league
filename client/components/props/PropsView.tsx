@@ -222,12 +222,12 @@ export default function PropsView({
           showsVerticalScrollIndicator={false}
           data={filteredProps()}
           renderItem={({ item, index }) => (
-            <GridItemWrapper index={index} numCols={1} gap={12}>
+            <GridItemWrapper index={index} numCols={2} gap={12}>
               <PropCard prop={item} />
             </GridItemWrapper>
           )}
           keyExtractor={(item) => item.id.toString()}
-          numColumns={1}
+          numColumns={2}
           estimatedItemSize={210}
         />
       )}
