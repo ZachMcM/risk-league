@@ -10,7 +10,7 @@ import { getBadgeText, getBadgeVariant } from "~/utils/badgeUtils";
 import { timeAgo } from "~/utils/dateUtils";
 import { Badge } from "../ui/badge";
 import { Card, CardContent } from "../ui/card";
-import LeagueLogo from "../ui/league-logos/LeagueLogo";
+import LeagueLogo from "../ui/league-logo";
 import ProfileImage from "../ui/profile-image";
 import RankIcon from "../ui/rank-icon";
 import { Separator } from "../ui/separator";

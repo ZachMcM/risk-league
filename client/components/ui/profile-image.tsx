@@ -34,7 +34,7 @@ export default function ProfileImage({
           {username
             .split(" ")
             .map((s) => s[0])
-            .join("")}
+            .join("").toUpperCase()}
         </Text>
       ) : (
         <Image

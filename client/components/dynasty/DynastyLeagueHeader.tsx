@@ -4,7 +4,7 @@ import { Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { getDynastyLeague } from "~/endpoints";
 import { ChevronLeft } from "~/lib/icons/ChevronLeft";
-import LeagueLogo from "../ui/league-logos/LeagueLogo";
+import LeagueLogo from "../ui/league-logo";
 import { Skeleton } from "../ui/skeleton";
 import { Text } from "../ui/text";
 

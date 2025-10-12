@@ -7,7 +7,7 @@ import { toast } from "sonner-native";
 import MessagesList from "~/components/messages/MessagesList";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
-import LeagueLogo from "~/components/ui/league-logos/LeagueLogo";
+import LeagueLogo from "~/components/ui/league-logo";
 import ModalContainer from "~/components/ui/modal-container";
 import { Text } from "~/components/ui/text";
 import { getDynastyLeague, getMessages, postMessage } from "~/endpoints";

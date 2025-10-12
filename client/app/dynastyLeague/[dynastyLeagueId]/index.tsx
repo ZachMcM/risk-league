@@ -1,10 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import {
-  MessageCircle,
-  Plus,
-  Users
-} from "lucide-react-native";
+import { MessageCircle, Plus, Users } from "lucide-react-native";
 import { ActivityIndicator, View } from "react-native";
 import DynastyLeagueCountdown from "~/components/dynasty/DynastyLeagueCountdown";
 import DynastyLeagueDetails from "~/components/dynasty/DynastyLeagueDetails";
@@ -12,7 +8,7 @@ import ParlaysView from "~/components/parlays/ParlaysView";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Icon } from "~/components/ui/icon";
-import LeagueLogo from "~/components/ui/league-logos/LeagueLogo";
+import LeagueLogo from "~/components/ui/league-logo";
 import { ScrollContainer } from "~/components/ui/scroll-container";
 import { Text } from "~/components/ui/text";
 import {

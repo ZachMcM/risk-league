@@ -8,7 +8,7 @@ import { X } from "~/lib/icons/X";
 import { FriendlyMatchRequest } from "~/types/match";
 import { Button } from "../ui/button";
 import { Card, CardContent } from "../ui/card";
-import LeagueLogo from "../ui/league-logos/LeagueLogo";
+import LeagueLogo from "../ui/league-logo";
 import { Text } from "../ui/text";
 
 export function FriendlyMatchRequestCard({

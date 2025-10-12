@@ -17,7 +17,7 @@ import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { Card, CardContent } from "../ui/card";
 import { Icon } from "../ui/icon";
-import LeagueLogo from "../ui/league-logos/LeagueLogo";
+import LeagueLogo from "../ui/league-logo";
 import { Separator } from "../ui/separator";
 import { Skeleton } from "../ui/skeleton";
 import { Text } from "../ui/text";
@@ -57,7 +57,7 @@ export default function DynastyLeagueListCard({
   });
 
   if (isLoading || !league || !currentUserData?.user.id) {
-    return <Card className="w-full animate-pulse h-[166px]"/>;
+    return <Card className="w-full animate-pulse h-[166px]" />;
   }
 
   const isMember =

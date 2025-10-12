@@ -2,7 +2,7 @@ import { Href, useLocalSearchParams, useRouter } from "expo-router";
 import { Pressable, View } from "react-native";
 import { ChevronLeft } from "~/lib/icons/ChevronLeft";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import LeagueLogo from "../ui/league-logos/LeagueLogo";
+import LeagueLogo from "../ui/league-logo";
 import { Text } from "../ui/text";
 import { getMatch } from "~/endpoints";
 import { useQuery } from "@tanstack/react-query";

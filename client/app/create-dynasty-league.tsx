@@ -22,7 +22,7 @@ import { Button } from "~/components/ui/button";
 import { Icon } from "~/components/ui/icon";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import LeagueLogo from "~/components/ui/league-logos/LeagueLogo";
+import LeagueLogo from "~/components/ui/league-logo";
 import ModalContainer from "~/components/ui/modal-container";
 import {
   Popover,

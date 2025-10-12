@@ -13,7 +13,7 @@ import { Play } from "~/lib/icons/Play";
 import { cn } from "~/utils/cn";
 import { Button } from "../ui/button";
 import { Card, CardContent } from "../ui/card";
-import LeagueLogo from "../ui/league-logos/LeagueLogo";
+import LeagueLogo from "../ui/league-logo";
 import { Text } from "../ui/text";
 import { useAudio } from "../providers/AudioProvider";
 
@@ -29,11 +29,11 @@ export default function PlayButton({
   league: League;
   children?: ReactNode;
 }) {
-  const mlbImage = require("~/assets/images/league-pictures/mlb.jpg");
-  const nbaImage = require("~/assets/images/league-pictures/nba.jpg");
-  const nflImage = require("~/assets/images/league-pictures/nfl.jpg");
-  const ncaabbImage = require("~/assets/images/league-pictures/ncaabb.jpg");
-  const ncaafbImage = require("~/assets/images/league-pictures/ncaafb.jpg");
+  const mlbImage = require("~/assets/images/league-pictures/mlb.avif");
+  const nbaImage = require("~/assets/images/league-pictures/nba.avif");
+  const nflImage = require("~/assets/images/league-pictures/nfl.avif");
+  const ncaabbImage = require("~/assets/images/league-pictures/ncaabb.avif");
+  const ncaafbImage = require("~/assets/images/league-pictures/ncaafb.avif");
 
   const { data: propsData, isPending: arePropsPending } = useQuery({
     queryKey: ["props-games-count", league],
@@ -50,8 +50,8 @@ export default function PlayButton({
   const [progress, setProgress] = useState(0);
   const [loadingMessage, setLoadingMessage] = useState(messages[0]);
 
-  const { playCavalry } = useAudio()
-  
+  const { playCavalry } = useAudio();
+
   const startMatchmaking = () => {
     setIsLoading(true);
     setProgress(0);
@@ -80,7 +80,7 @@ export default function PlayButton({
       clearInterval(interval);
       setProgress(100);
 
-      playCavalry()
+      playCavalry();
       setLoadingMessage("Opponent found!");
       toast.success("Opponent found!");
       await queryClient.invalidateQueries({
@@ -116,20 +116,23 @@ export default function PlayButton({
 
   useEffect(() => {
     const handleAppStateChange = (nextAppState: string) => {
-      if (nextAppState === 'background' || nextAppState === 'inactive') {
+      if (nextAppState === "background" || nextAppState === "inactive") {
         if (isLoading) {
           cancelMatchmaking();
-          setIsLoading(false)
+          setIsLoading(false);
         }
       }
     };
 
-    const subscription = AppState.addEventListener('change', handleAppStateChange);
+    const subscription = AppState.addEventListener(
+      "change",
+      handleAppStateChange
+    );
 
     return () => {
       if (isLoading) {
         cancelMatchmaking();
-        setIsLoading(false)
+        setIsLoading(false);
       }
       subscription?.remove();
     };
@@ -151,11 +154,11 @@ export default function PlayButton({
       className={cn(
         "w-72",
         arePropsPending && "animate-pulse",
-        !arePropsPending && propsCount === 0 && "opacity-60",
+        !arePropsPending && propsCount === 0 && "opacity-60"
       )}
     >
       <CardContent className="p-0 flex flex-col">
-        <View className={"relative overflow-hidden h-36 rounded-t-2xl"}>
+        {/* <View className={"relative overflow-hidden h-36 rounded-t-2xl"}>
           <Image
             contentFit="cover"
             source={
@@ -171,18 +174,18 @@ export default function PlayButton({
             }
             style={{ width: "100%", height: "100%" }}
           />
-        </View>
+        </View> */}
         <View className="flex flex-col items-center gap-4 p-4">
           <View className="flex flex-col gap-3 items-center">
-            <View className="flex flex-row items-center gap-2">
-              <LeagueLogo size={28} league={league} />
+            <View className="flex flex-row items-center gap-2.5">
+              <LeagueLogo league={league} />
               <Text className="font-extrabold text-2xl uppercase">
                 {league}
               </Text>
             </View>
             {isLoading ? (
               <View className="flex flex-row items-center justify-center gap-2 max-w-xs">
-                <ActivityIndicator className="text-muted-foreground" /> 
+                <ActivityIndicator className="text-muted-foreground" />
                 <Text className="text-muted-foreground">
                   {progress}% {loadingMessage}
                 </Text>

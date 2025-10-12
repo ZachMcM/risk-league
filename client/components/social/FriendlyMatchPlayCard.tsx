@@ -4,7 +4,7 @@ import { getTodayProps } from "~/endpoints";
 import { League } from "~/lib/config";
 import { Play } from "~/lib/icons/Play";
 import { Card, CardContent } from "../ui/card";
-import LeagueLogo from "../ui/league-logos/LeagueLogo";
+import LeagueLogo from "../ui/league-logo";
 import { Skeleton } from "../ui/skeleton";
 import { Text } from "../ui/text";
 

@@ -1,5 +1,4 @@
 import { useQuery } from "@tanstack/react-query";
-import { Image } from "expo-image";
 import moment from "moment";
 import { View } from "react-native";
 import { getPick } from "~/endpoints";
@@ -14,7 +13,6 @@ import PlayerImage from "../ui/player-image";
 import { Progress } from "../ui/progress";
 import { Separator } from "../ui/separator";
 import { Text } from "../ui/text";
-import { Skeleton } from "../ui/skeleton";
 
 export default function PickCard({ initialData }: { initialData: Pick }) {
   const { data: pick } = useQuery({
@@ -35,7 +33,7 @@ export default function PickCard({ initialData }: { initialData: Pick }) {
               <View className="h-2.5 w-2.5 animate-pulse rounded-full bg-destructive" />
             )}
           <View className="flex flex-row items-center gap-8">
-            {pick.prop.game.homeTeam.image && pick.prop.game.awayTeam.image && (
+            {/* {pick.prop.game.homeTeam.image && pick.prop.game.awayTeam.image && (
               <View className="relative">
                 <View
                   style={{
@@ -66,7 +64,7 @@ export default function PickCard({ initialData }: { initialData: Pick }) {
                   />
                 </View>
               </View>
-            )}
+            )} */}
             <Text className="text-muted-foreground font-normal">
               {pick.prop.game.awayTeam.abbreviation} @{" "}
               {pick.prop.game.homeTeam.abbreviation} •{" "}

@@ -100,7 +100,7 @@ function BattlePassTier({
             <View
               className={cn(
                 "relative overflow-hidden rounded-xl h-36 w-full",
-                !hasCosmetic && "opacity-25"
+                !hasCosmetic && "opacity-40"
               )}
             >
               <Image
@@ -113,7 +113,7 @@ function BattlePassTier({
             <ProfileImage
               username=""
               image={cosmetic.url}
-              className={cn("h-36 w-36", !hasCosmetic && "opacity-25")}
+              className={cn("h-36 w-36", !hasCosmetic && "opacity-40")}
             />
           )}
           {currentXp === null && (
