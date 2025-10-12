@@ -165,7 +165,7 @@ export default function ParlayCard({ initialData }: { initialData: Parlay }) {
               </Text>
             </View>
           </View>
-          {/* <View className="flex flex-row items-center">
+          <View className="flex flex-row items-center">
             {parlay.picks.map((pick, i) => (
               <PlayerImage
                 key={pick.id}
@@ -181,8 +181,8 @@ export default function ParlayCard({ initialData }: { initialData: Parlay }) {
                 )}
               />
             ))}
-          </View> */}
-          <View className="flex flex-row items-center gap-2">
+          </View>
+          {/* <View className="flex flex-row items-center gap-2">
             {parlay.picks.map(
               (pick) =>
                 pick.status !== "tie" &&
@@ -214,7 +214,7 @@ export default function ParlayCard({ initialData }: { initialData: Parlay }) {
                   </View>
                 )
             )}
-          </View>
+          </View> */}
         </CardContent>
       </Card>
     </Link>

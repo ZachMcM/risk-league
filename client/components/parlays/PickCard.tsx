@@ -40,7 +40,7 @@ export default function PickCard({ initialData }: { initialData: Pick }) {
         </View>
         <Separator />
         <View className="flex flex-row items-center gap-4">
-          {/* <PlayerImage
+          <PlayerImage
             className={cn(
               "w-16 h-16",
               pick.status == "hit"
@@ -50,7 +50,7 @@ export default function PickCard({ initialData }: { initialData: Pick }) {
                 : "border-border"
             )}
             image={pick.prop.player.image}
-          /> */}
+          />
           <View className="flex flex-col gap-3 flex-1">
             <View className="flex flex-row items-center justify-between">
               <View className="flex flex-col gap-1">
