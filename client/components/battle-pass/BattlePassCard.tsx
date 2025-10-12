@@ -51,16 +51,16 @@ export default function BattlePassCard() {
   return (
     <Card
       className={cn(
-        "mx-6 min-h=[100px]",
-        battlePassProgressPending ||
-          (seasonZeroBattlePassEntitlementPending && "animate-pulse")
+        "mx-6 min-h-[100px]",
+        (battlePassProgressPending ||
+          seasonZeroBattlePassEntitlementPending) && "animate-pulse"
       )}
     >
       <CardContent className="p-4">
         {battlePassProgress &&
-          (battlePassProgress.currentXp === null ||
+          ((battlePassProgress.currentXp === null ||
           nextTier === null ||
-          !seasonZeroBattlePassEntitlement ? (
+          !seasonZeroBattlePassEntitlement) ? (
             <View className="flex flex-row items-center gap-4">
               <View className="flex flex-col flex-1 gap-1">
                 <Text className="font-bold text-xl">{battlePassProgress.battlePass.name} Battle Pass</Text>
