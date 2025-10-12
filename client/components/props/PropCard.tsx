@@ -9,8 +9,6 @@ import { Button } from "../ui/button";
 import { Card, CardContent } from "../ui/card";
 import PlayerImage from "../ui/player-image";
 import { Text } from "../ui/text";
-import { Badge } from "../ui/badge";
-import { Image } from "expo-image";
 
 export default function PropCard({ prop }: { prop: Prop }) {
   const searchParams = useLocalSearchParams() as {
@@ -48,22 +46,7 @@ export default function PropCard({ prop }: { prop: Prop }) {
           isPropPicked(prop.id) && "border-primary"
         )}
       >
-        <CardContent className="px-4 pt-2 pb-4 flex flex-col items-center gap-2.5 relative">
-          {prop.player.team.image && (
-            <Image
-              contentFit="contain"
-              source={{
-                uri: prop.player.team.image,
-              }}
-              style={{
-                width: 22,
-                height: 22,
-                position: "absolute",
-                top: 12,
-                left: 12,
-              }}
-            />
-          )}
+        <CardContent className="px-4 pt-2 pb-4 flex flex-col items-center gap-2.5">
           <View className="flex flex-col gap-1 items-center">
             <View className="flex flex-col items-center justify-center">
               <PlayerImage image={prop.player.image} className="h-20 w-20" />

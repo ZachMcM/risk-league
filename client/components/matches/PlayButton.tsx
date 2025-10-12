@@ -30,7 +30,7 @@ export default function PlayButton({
   children?: ReactNode;
 }) {
   const mlbImage = require("~/assets/images/league-pictures/mlb.avif");
-  const nbaImage = require("~/assets/images/league-pictures/nba.avif");
+  const nbaImage = require("~/assets/images/league-pictures/nba.png");
   const nflImage = require("~/assets/images/league-pictures/nfl.avif");
   const ncaabbImage = require("~/assets/images/league-pictures/ncaabb.avif");
   const ncaafbImage = require("~/assets/images/league-pictures/ncaafb.avif");
@@ -176,7 +176,7 @@ export default function PlayButton({
           />
         </View>
         <View className="flex flex-col items-center gap-4 p-4">
-          <View className="flex flex-col gap-3 items-center">
+          <View className="flex flex-col items-center gap-4">
             <View className="flex flex-row items-center gap-2.5">
               <LeagueLogo league={league} />
               <Text className="font-extrabold text-2xl uppercase">

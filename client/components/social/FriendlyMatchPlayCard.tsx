@@ -32,7 +32,7 @@ export default function FriendlyMatchPlayCard({
       >
         <Card>
           <CardContent className="flex flex-col gap-2 items-center p-6">
-            <LeagueLogo size={42} league={league} />
+            <LeagueLogo size={36} league={league} />
             <Text className="font-bold text-2xl text-center uppercase">
               {league}
             </Text>

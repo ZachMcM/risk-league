@@ -39,8 +39,8 @@ export default function MatchHeader() {
       ) : (
         match && (
           <View className="flex flex-row items-center gap-1.5">
-            <View className="flex flex-row items-center gap-2">
-              <LeagueLogo league={match.league} size={28} />
+            <View className="flex flex-row items-center gap-2.5">
+              <LeagueLogo league={match.league} />
               <Text className="text-xl uppercase font-bold">
                 {match.league}
               </Text>

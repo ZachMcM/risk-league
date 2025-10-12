@@ -137,10 +137,7 @@ export default function PropsView({
                   }
                 }}
               >
-                <GameCard
-                  isSelected={gameId == game.gameId}
-                  game={game}
-                />
+                <GameCard isSelected={gameId == game.gameId} game={game} />
               </Pressable>
             ))}
           </ScrollView>

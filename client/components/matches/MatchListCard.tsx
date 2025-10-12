@@ -60,8 +60,8 @@ export default function MatchListCard({ matchId }: { matchId: number }) {
           <View className="flex flex-col gap-2">
             <View className="flex flex-row items-center justify-between w-full">
               <View className="flex flex-row items-center gap-1.5">
-                <View className="flex flex-row items-center gap-2">
-                  <LeagueLogo league={match.league} size={26} />
+                <View className="flex flex-row items-center gap-2.5">
+                  <LeagueLogo league={match.league} />
                   <Text className="text-lg uppercase font-bold">
                     {match.league}
                   </Text>

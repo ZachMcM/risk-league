@@ -32,39 +32,29 @@ export default function PickCard({ initialData }: { initialData: Pick }) {
             pick.status === "not_resolved" && (
               <View className="h-2.5 w-2.5 animate-pulse rounded-full bg-destructive" />
             )}
-          <View className="flex flex-row items-center gap-8">
-            {/* {pick.prop.game.homeTeam.image && pick.prop.game.awayTeam.image && (
-              <View className="relative">
-                <View
-                  style={{
-                    backgroundColor: `#${pick.prop.game.homeTeam.color}`,
-                  }}
-                  className="p-1.5 rounded-xl border-4 border-card overflow-hidden"
-                >
-                  <Image
-                    style={{ height: 16, width: 16 }}
-                    contentFit="contain"
-                    source={{
-                      uri: pick.prop.game.homeTeam.image,
-                    }}
-                  />
-                </View>
-                <View
-                  style={{
-                    backgroundColor: `#${pick.prop.game.awayTeam.color}`,
-                  }}
-                  className="p-1.5 rounded-xl border-4 border-card overflow-hidden absolute -right-6"
-                >
-                  <Image
-                    style={{ height: 16, width: 16 }}
-                    contentFit="contain"
-                    source={{
-                      uri: pick.prop.game.awayTeam.image,
-                    }}
-                  />
-                </View>
+          <View className="flex flex-row items-center gap-2">
+            <View className="flex flex-row items-center">
+              <View
+                style={{
+                  backgroundColor: `#${pick.prop.game.homeTeam.color}`,
+                }}
+                className="py-1.5 px-2 rounded-xl border-4 border-card overflow-hidden"
+              >
+                <Text className="font-bold text-xs">
+                  {pick.prop.game.homeTeam.abbreviation}
+                </Text>
               </View>
-            )} */}
+              <View
+                style={{
+                  backgroundColor: `#${pick.prop.game.awayTeam.color}`,
+                }}
+                className="py-1.5 px-2 rounded-xl border-4 border-card overflow-hidden -ml-4"
+              >
+                <Text className="font-bold text-xs">
+                  {pick.prop.game.awayTeam.abbreviation}
+                </Text>
+              </View>
+            </View>
             <Text className="text-muted-foreground font-normal">
               {pick.prop.game.awayTeam.abbreviation} @{" "}
               {pick.prop.game.homeTeam.abbreviation} •{" "}

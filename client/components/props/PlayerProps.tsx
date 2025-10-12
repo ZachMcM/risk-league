@@ -205,14 +205,14 @@ export default function PlayerProps({
           <CardContent className="py-4 px-6 flex flex-row items-center justify-between">
             {game.homeTeam.image ? (
               <View className="flex flex-col justify-center items-center gap-1">
-                <Image
+                {/* <Image
                   contentFit="contain"
                   source={{
                     uri: game.homeTeam.image,
                   }}
                   style={{ width: 35, height: 35 }}
-                />
-                <Text className="text-muted-foreground text-xs">
+                /> */}
+                <Text className="text-muted-foreground">
                   {game.homeTeam.abbreviation}
                 </Text>
               </View>
@@ -221,19 +221,19 @@ export default function PlayerProps({
                 <Text className="text-sm">{game.homeTeam.abbreviation}</Text>
               </Badge>
             )}
-            <Text className="text-muted-foreground text-center max-w-xs text-sm">
+            <Text className="text-muted-foreground text-center max-w-xs">
               Starts {moment(game.startTime).format("ddd h:mm A")}
             </Text>
             {game.awayTeam.image ? (
               <View className="flex flex-col justify-center items-center gap-1">
-                <Image
+                {/* <Image
                   contentFit="contain"
                   source={{
                     uri: game.awayTeam.image,
                   }}
                   style={{ width: 30, height: 30 }}
-                />
-                <Text className="text-muted-foreground text-xs">
+                /> */}
+                <Text className="text-muted-foreground">
                   {game.awayTeam.abbreviation}
                 </Text>
               </View>
