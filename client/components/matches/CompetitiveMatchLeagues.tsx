@@ -172,10 +172,12 @@ export default function CompetitiveMatchLeagues() {
           <Button
             disabled={propCount == 0}
             onPress={() => {
-              if (selectedLeague == league) {
-                setSelectedLeague(null);
-              } else {
-                setSelectedLeague(league);
+              if (!isLoading) {
+                if (selectedLeague == league) {
+                  setSelectedLeague(null);
+                } else {
+                  setSelectedLeague(league);
+                }
               }
             }}
             variant="secondary"
