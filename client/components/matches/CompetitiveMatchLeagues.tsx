@@ -179,7 +179,7 @@ export default function CompetitiveMatchLeagues() {
               }
             }}
             className={cn(
-              "flex flex-row items-center gap-2.5 rounded-full border py-2.5 px-5 disabled:opacity-40",
+              "flex flex-row items-center gap-2.5 border py-2.5 px-5 disabled:opacity-40 rounded-xl",
               selectedLeague === league
                 ? "border-primary bg-primary/20"
                 : "border-border bg-secondary"
