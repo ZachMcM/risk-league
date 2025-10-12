@@ -158,7 +158,7 @@ export default function PlayButton({
       )}
     >
       <CardContent className="p-0 flex flex-col">
-        {/* <View className={"relative overflow-hidden h-36 rounded-t-2xl"}>
+        <View className={"relative overflow-hidden h-36 rounded-t-2xl"}>
           <Image
             contentFit="cover"
             source={
@@ -174,7 +174,7 @@ export default function PlayButton({
             }
             style={{ width: "100%", height: "100%" }}
           />
-        </View> */}
+        </View>
         <View className="flex flex-col items-center gap-4 p-4">
           <View className="flex flex-col gap-3 items-center">
             <View className="flex flex-row items-center gap-2.5">
