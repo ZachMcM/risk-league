@@ -2,15 +2,16 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
 import {
   BadgeInfoIcon,
-  Frame,
-  ImagePlus,
-  PictureInPicture,
-  UserCircle2,
   Ban,
+  ImagePlus,
+  UserCircle2,
 } from "lucide-react-native";
 import { useState } from "react";
-import { View, ScrollView } from "react-native";
+import { View } from "react-native";
+import { ScrollView } from "react-native-gesture-handler";
+import RevenueCatUI from "react-native-purchases-ui";
 import BannerAdWrapper from "~/components/ad-wrappers/Banner";
+import BattlePassCard from "~/components/battle-pass/BattlePassCard";
 import CompetitiveMatchLeagues from "~/components/matches/CompetitiveMatchLeagues";
 import OnboardingDialog from "~/components/onboarding/OnboardingDialog";
 import { useEntitlements } from "~/components/providers/EntitlementsProvider";
@@ -38,10 +39,6 @@ import { Cog } from "~/lib/icons/Cog";
 import { Ellipsis } from "~/lib/icons/Ellipsis";
 import { Trophy } from "~/lib/icons/Trophy";
 import { User } from "~/lib/icons/User";
-import RevenueCatUI, { PAYWALL_RESULT } from "react-native-purchases-ui";
-import Purchases from "react-native-purchases";
-import BattlePassCard from "~/components/battle-pass/BattlePassCard";
-import GoAdFreeCard from "~/components/ad-free/GoAdFreeCard";
 
 export default function Home() {
   const { data: currentUserData } = authClient.useSession();
@@ -217,7 +214,9 @@ export default function Home() {
         )}
         <CompetitiveMatchLeagues />
         <BannerAdWrapper />
-        <BattlePassCard />
+        <ScrollView showsHorizontalScrollIndicator={false} horizontal>
+          <BattlePassCard />
+        </ScrollView>
       </View>
     </ScrollContainer>
   );
