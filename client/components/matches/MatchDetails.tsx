@@ -97,7 +97,7 @@ export default function MatchDetails({ match }: { match: ExtendedMatch }) {
       </View>
       {(minTotalStakedAlert || minParlaysAlert) && (
         <View className="flex flex-col gap-2">
-          {minTotalStakedAlert && (
+          {minTotalStakedAlert && !match.resolved && (
             <Alert variant="destructive" className="items-center">
               <AlertTriangle className="text-destructive" size={20} />
               <AlertTitle className="text-foreground">
@@ -109,7 +109,7 @@ export default function MatchDetails({ match }: { match: ExtendedMatch }) {
               </Pressable>
             </Alert>
           )}
-          {minParlaysAlert && (
+          {minParlaysAlert && !match.resolved && (
             <Alert variant="destructive" className="items-center">
               <AlertTriangle className="text-destructive" size={20} />
               <AlertTitle className="text-foreground">

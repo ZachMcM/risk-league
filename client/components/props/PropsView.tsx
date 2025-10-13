@@ -73,34 +73,24 @@ export default function PropsView({
   const [searchContent, setSearchContent] = useState<string>("");
 
   const filteredProps = (filter?: string) => {
-    const filtered: Prop[] = [];
     if (searchActivated) {
       const searchLower = searchContent.toLocaleLowerCase().trim();
 
-      filtered.push(
-        ...props.filter(
-          (prop) =>
-            prop.player.name?.toLocaleLowerCase().includes(searchLower) ||
-            prop.player.team.fullName
-              ?.toLocaleLowerCase()
-              .includes(searchLower) ||
-            prop.player.team.abbreviation
-              ?.toLocaleLowerCase()
-              .includes(searchLower) ||
-            prop.player.position?.toLocaleLowerCase().includes(searchLower) ||
-            prop.statDisplayName?.toLocaleLowerCase().includes(searchLower)
-        )
+      return props.filter(
+        (prop) =>
+          prop.player.name?.toLocaleLowerCase().includes(searchLower) ||
+          prop.player.team.fullName
+            ?.toLocaleLowerCase()
+            .includes(searchLower) ||
+          prop.player.team.abbreviation
+            ?.toLocaleLowerCase()
+            .includes(searchLower) ||
+          prop.player.position?.toLocaleLowerCase().includes(searchLower) ||
+          prop.statDisplayName?.toLocaleLowerCase().includes(searchLower)
       );
     }
     const selectedFilter = filter ?? propFilter;
-    filtered.push(
-      ...props.filter((prop) => prop.statDisplayName == selectedFilter)
-    );
-    if (gameId) {
-      return filtered.filter((el) => el.game.gameId == gameId);
-    } else {
-      return filtered;
-    }
+    return props.filter((prop) => prop.statDisplayName == selectedFilter);
   };
 
   const searchBarRef = useRef<TextInput>(null);
@@ -111,38 +101,8 @@ export default function PropsView({
     }
   }, [searchActivated]);
 
-  const uniqueGames = [...new Set(props?.map((prop) => prop.game.gameId))]
-    .map((gameId) =>
-      props.map((prop) => prop.game).find((game) => game.gameId == gameId)
-    )
-    .filter((game) => game !== undefined);
-
   return (
     <View className="flex flex-col gap-4 flex-1">
-      {/* {uniqueGames.length !== 0 && (
-        <View className="w-full">
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ display: "flex", gap: 12 }}
-          >
-            {uniqueGames.map((game) => (
-              <Pressable
-                key={game.gameId}
-                onPress={() => {
-                  if (gameId == game.gameId) {
-                    setGameId(null);
-                  } else {
-                    setGameId(game.gameId);
-                  }
-                }}
-              >
-                <GameCard isSelected={gameId == game.gameId} game={game} />
-              </Pressable>
-            ))}
-          </ScrollView>
-        </View>
-      )} */}
       {searchActivated ? (
         <View className="flex flex-row items-center gap-3 w-full py-1 h-11">
           <SearchBar
