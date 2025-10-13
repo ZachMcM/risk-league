@@ -158,7 +158,24 @@ export default function CompetitiveMatchLeagues() {
 
   return (
     <View className="flex flex-col px-6 gap-4 w-full">
-      <Text className="text-3xl font-bold">Competitive</Text>
+      <View className="flex flex-col gap-2">
+        <Text className="text-3xl font-bold">Play Competitive</Text>
+        {isLoading ? (
+          <View className="flex flex-row items-center gap-2">
+            <ActivityIndicator className="text-muted-foreground" />
+            <Text className="text-muted-foreground font-semibold">
+              {progress}% {loadingMessage}
+            </Text>
+          </View>
+        ) : selectedLeagueData ? (
+          <Text className="text-muted-foreground font-semibold">
+            {selectedLeagueData.propCount} Props •{" "}
+            {selectedLeagueData.gamesCount} Games
+          </Text>
+        ) : (
+          <Text className="text-muted-foreground font-semibold">Select a League</Text>
+        )}
+      </View>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -206,21 +223,6 @@ export default function CompetitiveMatchLeagues() {
         )}
         <Text className="font-bold">{isLoading ? "Cancel" : "Play"}</Text>
       </Button>
-      {isLoading ? (
-        <View className="flex flex-row items-center gap-2">
-          <ActivityIndicator className="text-muted-foreground" />
-          <Text className="text-muted-foreground">
-            {progress}% {loadingMessage}
-          </Text>
-        </View>
-      ) : (
-        selectedLeagueData && (
-          <Text className="text-muted-foreground font-medium">
-            {selectedLeagueData.propCount} Props •{" "}
-            {selectedLeagueData.gamesCount} Games
-          </Text>
-        )
-      )}
     </View>
   );
 }

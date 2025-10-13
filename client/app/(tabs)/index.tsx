@@ -214,7 +214,7 @@ export default function Home() {
             </View>
           )
         )}
-        <View className="flex flex-col gap-10">
+        <View className="flex flex-col gap-6">
           <CompetitiveMatchLeagues />
           <BannerAdWrapper/>
           <BattlePassCard />
