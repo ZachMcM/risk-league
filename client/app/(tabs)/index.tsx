@@ -214,9 +214,9 @@ export default function Home() {
             </View>
           )
         )}
-        <BannerAdWrapper />
-        <BattlePassCard/>
         <CompetitiveMatchLeagues />
+        <BattlePassCard />
+        <BannerAdWrapper />
       </View>
     </ScrollContainer>
   );
