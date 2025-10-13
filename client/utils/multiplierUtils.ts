@@ -29,12 +29,12 @@ export function getFlexMultiplier(pickCount: number, hitCount: number): number {
     // 5-pick flex
     "5-5": 10.0,
     "5-4": 2.0,
-    "5-3": 0.4,
+    "5-3": 1.2,
 
     // 6-pick flex
     "6-6": 25.0,
-    "6-5": 2.0,
-    "6-4": 0.4,
+    "6-5": 2.25,
+    "6-4": 1.5,
   };
 
   const key = `${pickCount}-${hitCount}`;
