@@ -23,7 +23,7 @@ import * as Updates from "expo-updates";
 import * as React from "react";
 import { useEffect } from "react";
 import type { AppStateStatus } from "react-native";
-import { Appearance, AppState, Platform } from "react-native";
+import { ActivityIndicator, Appearance, AppState, Platform } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import mobileAds from "react-native-google-mobile-ads";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -211,7 +211,8 @@ export default function RootLayout() {
                 success: <Icon size={20} as={CircleCheck} className="text-success" />,
                 error: <Icon size={20} as={XCircle} className="text-destructive"/>,
                 info: <Icon size={20} as={Info} className="text-muted-foreground" />,
-                warning: <Icon size={20} as={AlertTriangle} className="text-yellow-500"/>
+                warning: <Icon size={20} as={AlertTriangle} className="text-yellow-500"/>,
+                loading: <ActivityIndicator className="text-foreground"/>
               }}
               toastOptions={{
                 style: {
