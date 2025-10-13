@@ -51,7 +51,6 @@ export default function BattlePassCard() {
   return (
     <Card
       className={cn(
-        "border-primary/50",
         (battlePassProgressPending || seasonZeroBattlePassEntitlementPending) &&
           "animate-pulse"
       )}
@@ -107,8 +106,8 @@ export default function BattlePassCard() {
                     <Image
                       contentFit="cover"
                       source={
-                        battlePassProgress.battlePass.tiers[nextTier ?? 0].cosmetic
-                          .url
+                        battlePassProgress.battlePass.tiers[nextTier ?? 0]
+                          .cosmetic.url
                       }
                       style={{ width: "100%", height: "100%" }}
                     />
@@ -117,8 +116,8 @@ export default function BattlePassCard() {
                   <ProfileImage
                     username=""
                     image={
-                      battlePassProgress.battlePass.tiers[nextTier ?? 0].cosmetic
-                        .url
+                      battlePassProgress.battlePass.tiers[nextTier ?? 0]
+                        .cosmetic.url
                     }
                     className="h-12 w-12"
                   />
@@ -133,8 +132,8 @@ export default function BattlePassCard() {
                   </Text>
                   <Text className="font-bold">
                     {
-                      battlePassProgress.battlePass.tiers[nextTier ?? 0].cosmetic
-                        .title
+                      battlePassProgress.battlePass.tiers[nextTier ?? 0]
+                        .cosmetic.title
                     }
                   </Text>
                 </View>

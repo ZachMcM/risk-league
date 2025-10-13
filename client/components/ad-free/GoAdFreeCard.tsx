@@ -26,12 +26,7 @@ export default function GoAdFreeCard() {
   }
 
   return (
-    <Card
-      className={cn(
-        "border-primary/50 bg-gradient-to-br flex-1",
-        adFreeEntitlementPending && "animate-pulse"
-      )}
-    >
+    <Card className={cn("flex-1", adFreeEntitlementPending && "animate-pulse")}>
       <CardContent className="p-4 flex flex-col justify-between flex-1 gap-4">
         <View className="flex flex-col gap-1">
           <View className="flex flex-row items-center gap-2">
@@ -44,11 +39,7 @@ export default function GoAdFreeCard() {
             Risk League, uninterrupted — without annoying ads!
           </Text>
         </View>
-        <Button
-          onPress={presentAdFreePaywall}
-          size="sm"
-          className="self-start"
-        >
+        <Button onPress={presentAdFreePaywall} size="sm" className="self-start">
           <Text className="font-bold">Upgrade Now</Text>
         </Button>
       </CardContent>
