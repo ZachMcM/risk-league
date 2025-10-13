@@ -68,7 +68,7 @@ export default function Home() {
   }
 
   return (
-    <ScrollContainer className="p-0 pb-8" safeAreaInsets>
+    <ScrollContainer className="p-0 pb-6" safeAreaInsets>
       <View className="p-6">
         <OnboardingDialog
           isOpen={onboardingDialog}
@@ -214,9 +214,11 @@ export default function Home() {
             </View>
           )
         )}
-        <CompetitiveMatchLeagues />
-        <BattlePassCard />
-        <BannerAdWrapper />
+        <View className="flex flex-col gap-12">
+          <CompetitiveMatchLeagues />
+          <BattlePassCard />
+          <BannerAdWrapper />
+        </View>
       </View>
     </ScrollContainer>
   );

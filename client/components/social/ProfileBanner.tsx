@@ -18,7 +18,7 @@ export default function ProfileBanner({
   const { data: currentUserData } = authClient.useSession();
 
   return (
-    <View className="w-full">
+    <View className="w-full mt-4">
       <Pressable
         onPress={() => {
           if (currentUserData?.user.id === userId) {
