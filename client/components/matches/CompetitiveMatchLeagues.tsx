@@ -180,9 +180,9 @@ export default function CompetitiveMatchLeagues() {
                 }
               }
             }}
-            variant="secondary"
+            variant="outline"
             className={cn(
-              "flex flex-row items-center gap-2.5 rounded-xl border",
+              "flex flex-row items-center gap-2.5 border rounded-full active:bg-current",
               selectedLeague === league && "border-primary bg-primary/20"
             )}
             key={league}
@@ -207,7 +207,7 @@ export default function CompetitiveMatchLeagues() {
         <Text className="font-bold">{isLoading ? "Cancel" : "Play"}</Text>
       </Button>
       {isLoading ? (
-        <View className="flex flex-row items-center justify-center gap-2">
+        <View className="flex flex-row items-center gap-2">
           <ActivityIndicator className="text-muted-foreground" />
           <Text className="text-muted-foreground">
             {progress}% {loadingMessage}
@@ -215,7 +215,7 @@ export default function CompetitiveMatchLeagues() {
         </View>
       ) : (
         selectedLeagueData && (
-          <Text className="text-muted-foreground font-medium text-center">
+          <Text className="text-muted-foreground font-medium">
             {selectedLeagueData.propCount} Props •{" "}
             {selectedLeagueData.gamesCount} Games
           </Text>

@@ -57,11 +57,13 @@ export default function FinalizeParlayForm({
 
   const minStake = Math.round(balance * MIN_STAKE_PCT);
 
-  const [stake, setStake] = useState<number | null>(minStake);
+  const [stake, setStake] = useState<number | null>(
+    Math.ceil(minTotalStaked - totalStaked)
+  );
   const [type, setType] = useState("perfect");
   const [formError, setFormError] = useState<null | string>(null);
 
-  const { playCashRegister } = useAudio()
+  const { playCashRegister } = useAudio();
 
   useEffect(() => {
     if (formError) {
@@ -129,7 +131,7 @@ export default function FinalizeParlayForm({
             ["dynasty-league", dynastyLeagueId]
           );
         }
-        playCashRegister()
+        playCashRegister();
         toast.success("Parlay Successfully created", {
           position: "top-center",
         });
