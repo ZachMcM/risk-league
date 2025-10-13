@@ -9,7 +9,7 @@ import {
   Ban,
 } from "lucide-react-native";
 import { useState } from "react";
-import { View } from "react-native";
+import { View, ScrollView } from "react-native";
 import BannerAdWrapper from "~/components/ad-wrappers/Banner";
 import CompetitiveMatchLeagues from "~/components/matches/CompetitiveMatchLeagues";
 import OnboardingDialog from "~/components/onboarding/OnboardingDialog";
@@ -41,6 +41,7 @@ import { User } from "~/lib/icons/User";
 import RevenueCatUI, { PAYWALL_RESULT } from "react-native-purchases-ui";
 import Purchases from "react-native-purchases";
 import BattlePassCard from "~/components/battle-pass/BattlePassCard";
+import GoAdFreeCard from "~/components/ad-free/GoAdFreeCard";
 
 export default function Home() {
   const { data: currentUserData } = authClient.useSession();
@@ -214,11 +215,9 @@ export default function Home() {
             </View>
           )
         )}
-        <View className="flex flex-col gap-6">
-          <CompetitiveMatchLeagues />
-          <BannerAdWrapper/>
-          <BattlePassCard />
-        </View>
+        <CompetitiveMatchLeagues />
+        <BannerAdWrapper />
+        <BattlePassCard />
       </View>
     </ScrollContainer>
   );
