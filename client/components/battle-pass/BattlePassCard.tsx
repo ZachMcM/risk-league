@@ -51,7 +51,7 @@ export default function BattlePassCard() {
   return (
     <Card
       className={cn(
-        "mx-6 border-primary/50",
+        "border-primary/50",
         (battlePassProgressPending || seasonZeroBattlePassEntitlementPending) &&
           "animate-pulse"
       )}

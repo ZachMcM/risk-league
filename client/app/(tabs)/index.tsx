@@ -11,6 +11,7 @@ import { View } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
 import RevenueCatUI from "react-native-purchases-ui";
 import BannerAdWrapper from "~/components/ad-wrappers/Banner";
+import GoAdFreeCard from "~/components/ad-free/GoAdFreeCard";
 import BattlePassCard from "~/components/battle-pass/BattlePassCard";
 import CompetitiveMatchLeagues from "~/components/matches/CompetitiveMatchLeagues";
 import OnboardingDialog from "~/components/onboarding/OnboardingDialog";
@@ -214,8 +215,14 @@ export default function Home() {
         )}
         <CompetitiveMatchLeagues />
         <BannerAdWrapper />
-        <ScrollView showsHorizontalScrollIndicator={false} horizontal>
+        <ScrollView
+          contentContainerClassName="flex flex-row items-center gap-4"
+          className="mx-6"
+          showsHorizontalScrollIndicator={false}
+          horizontal
+        >
           <BattlePassCard />
+          <GoAdFreeCard />
         </ScrollView>
       </View>
     </ScrollContainer>

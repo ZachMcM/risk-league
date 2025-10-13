@@ -38,6 +38,8 @@ import { NAV_THEME } from "~/lib/constants";
 import { useColorScheme } from "~/lib/useColorScheme";
 import Purchases, { LOG_LEVEL } from "react-native-purchases";
 import { EntitlementsProvider } from "~/components/providers/EntitlementsProvider";
+import { Icon } from "~/components/ui/icon";
+import { AlertCircle, AlertTriangle, Check, CircleCheck, Info, XCircle } from "lucide-react-native";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -205,6 +207,12 @@ export default function RootLayout() {
               </EntitlementsProvider>
             </RealtimeProvider>
             <Toaster
+              icons={{
+                success: <Icon size={20} as={CircleCheck} className="text-success" />,
+                error: <Icon size={20} as={XCircle} className="text-destructive"/>,
+                info: <Icon size={20} as={Info} className="text-muted-foreground" />,
+                warning: <Icon size={20} as={AlertTriangle} className="text-yellow-500"/>
+              }}
               toastOptions={{
                 style: {
                   backgroundColor: isDarkColorScheme
