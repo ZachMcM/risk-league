@@ -26,8 +26,8 @@ export default function GoAdFreeCard() {
   }
 
   return (
-    <Card className={cn("flex-1", adFreeEntitlementPending && "animate-pulse")}>
-      <CardContent className="p-4 flex flex-col justify-between flex-1 gap-4">
+    <Card className={cn(adFreeEntitlementPending && "animate-pulse")}>
+      <CardContent className="p-4 flex flex-col justify-between gap-4">
         <View className="flex flex-col gap-1">
           <View className="flex flex-row items-center gap-2">
             <Icon as={Ban} className="text-primary" size={20} />

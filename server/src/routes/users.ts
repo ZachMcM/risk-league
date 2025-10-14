@@ -344,12 +344,12 @@ usersRoute.get("/users/:id/career", authMiddleware, async (req, res) => {
         playerId: number;
         league: (typeof leagueType.enumValues)[number];
         image: string | null;
-        teamColor: string;
-        teamAlternateColor: string;
-        jerseyNumber: string;
-        teamName: string;
+        teamColor: string | null;
+        teamAlternateColor: string | null;
+        jerseyNumber: string | null;
+        teamName: string | null;
         name: string;
-        teamAbbreviation: string;
+        teamAbbreviation: string | null;
       }
     > = new Map();
 
@@ -361,8 +361,8 @@ usersRoute.get("/users/:id/career", authMiddleware, async (req, res) => {
         teamId: number;
         league: (typeof leagueType.enumValues)[number];
         fullName: string;
-        color: string;
-        abbreviation: string;
+        color: string | null;
+        abbreviation: string | null;
       }
     > = new Map();
 
@@ -385,10 +385,12 @@ usersRoute.get("/users/:id/career", authMiddleware, async (req, res) => {
             league: pick.prop.player.league,
             image: pick.prop.player.image,
             teamColor: pick.prop.player.team.color!,
-            teamAlternateColor: pick.prop.player.team.alternateColor!,
-            jerseyNumber: pick.prop.player.number?.toString()!,
+            teamAlternateColor: pick.prop.player.team.alternateColor,
+            jerseyNumber: pick.prop.player.number
+              ? pick.prop.player.number?.toString()
+              : null,
             teamName: pick.prop.player.team.fullName,
-            teamAbbreviation: pick.prop.player.team.abbreviation ?? "",
+            teamAbbreviation: pick.prop.player.team.abbreviation,
           };
 
           pickedPlayerCounts.set(
@@ -403,8 +405,8 @@ usersRoute.get("/users/:id/career", authMiddleware, async (req, res) => {
             teamId: pick.prop.player.team.teamId,
             league: pick.prop.player.team.league,
             image: pick.prop.player.team.image,
-            abbreviation: pick.prop.player.team.abbreviation!,
-            color: pick.prop.player.team.color!,
+            abbreviation: pick.prop.player.team.abbreviation,
+            color: pick.prop.player.team.color,
           };
 
           pickedTeamCounts.set(

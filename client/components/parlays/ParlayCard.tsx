@@ -177,37 +177,37 @@ export default function ParlayCard({ initialData }: { initialData: Parlay }) {
             ))}
           </View> */}
           <View className="flex flex-row items-center gap-2">
-            {parlay.picks.map(
-              (pick) =>
-                pick.status !== "tie" &&
-                pick.status !== "did_not_play" && (
-                  <View
-                    className={cn(
-                      "h-6 w-6 border-2 border-border rounded-full flex justify-center items-center",
-                      pick.status === "hit" && "bg-success border-success",
-                      pick.status === "missed" &&
-                        "bg-destructive border-destructive"
-                    )}
-                  >
-                    {pick.status != "not_resolved" &&
-                      (pick.status == "hit" ? (
-                        <Check
-                          strokeWidth={3}
-                          size={16}
-                          className="text-foreground"
-                        />
-                      ) : (
-                        pick.status == "missed" && (
-                          <X
-                            strokeWidth={3}
-                            size={16}
-                            className="text-foreground"
-                          />
-                        )
-                      ))}
-                  </View>
-                )
-            )}
+            {parlay.picks
+              .filter(
+                (pick) =>
+                  pick.status !== "tie" && pick.status !== "did_not_play"
+              )
+              .map((pick) => (
+                <View
+                  key={pick.id}
+                  className={cn(
+                    "h-6 w-6 border-2 border-border rounded-full flex justify-center items-center",
+                    pick.status === "hit" && "bg-success border-success",
+                    pick.status === "missed" &&
+                      "bg-destructive border-destructive"
+                  )}
+                >
+                  {pick.status != "not_resolved" &&
+                    (pick.status == "hit" ? (
+                      <Check
+                        strokeWidth={3}
+                        size={16}
+                        className="text-foreground"
+                      />
+                    ) : pick.status == "missed" ? (
+                      <X
+                        strokeWidth={3}
+                        size={16}
+                        className="text-foreground"
+                      />
+                    ) : null)}
+                </View>
+              ))}
           </View>
         </CardContent>
       </Card>

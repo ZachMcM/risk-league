@@ -18,6 +18,8 @@ export default function BannerAdWrapper() {
 
   const { adFreeEntitlementPending, adFreeEntitlement } = useEntitlements()
 
+
+  return null
   return (
     !adFreeEntitlementPending && !adFreeEntitlement && (
       <BannerAd
