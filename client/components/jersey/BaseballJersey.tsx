@@ -307,9 +307,9 @@ export const BaseballJersey: React.FC<BaseballJerseyProps> = ({
         <Circle cx="149.03" cy="210.6" r="2.7" fill={color} opacity="0.7" />
         <Circle cx="149.03" cy="247.24" r="2.7" fill={color} opacity="0.7" />
         <Text
-          x="117"
+          x="180"
           y="100"
-          fontSize="24"
+          fontSize="18"
           fontWeight="bold"
           fill={alternateColor}
           textAnchor="middle"
@@ -320,8 +320,8 @@ export const BaseballJersey: React.FC<BaseballJerseyProps> = ({
         {/* Jersey Number */}
         <Text
           x="180"
-          y="105"
-          fontSize="32"
+          y="130"
+          fontSize="24"
           fontWeight="bold"
           fill={alternateColor}
           textAnchor="middle"

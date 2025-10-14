@@ -2,20 +2,17 @@ import { useQuery } from "@tanstack/react-query";
 import { Fragment } from "react";
 import { View } from "react-native";
 import { getCareer } from "~/endpoints";
-import { Career } from "~/types/user";
-import { Skeleton } from "../ui/skeleton";
-import { Card, CardContent } from "../ui/card";
-import { Text } from "../ui/text";
 import { Star } from "~/lib/icons/Star";
 import { TrendingUp } from "~/lib/icons/TrendingUp";
 import { Trophy } from "~/lib/icons/Trophy";
-import { Progress } from "../ui/progress";
-import RankGraph from "../career/RankGraph";
-import { Image } from "expo-image";
-import PlayerImage from "../ui/player-image";
-import { Jersey } from "../jersey";
-import { lightenColor } from "~/utils/colorUtils";
 import { cn } from "~/utils/cn";
+import { lightenColor } from "~/utils/colorUtils";
+import RankGraph from "../career/RankGraph";
+import { Jersey } from "../jersey";
+import { Card, CardContent } from "../ui/card";
+import { Progress } from "../ui/progress";
+import { Skeleton } from "../ui/skeleton";
+import { Text } from "../ui/text";
 
 export default function CareerInfo({ userId }: { userId: string }) {
   const { data: career, isPending: isCareerPending } = useQuery({
@@ -170,7 +167,7 @@ export default function CareerInfo({ userId }: { userId: string }) {
                         jerseyNumber={career.mostBetPlayer.player.jerseyNumber}
                         color={`#${career.mostBetPlayer.player.teamColor}`}
                         alternateColor={`#${career.mostBetPlayer.player.teamAlternateColor}`}
-                        size={56}
+                        size={64}
                         teamName={career.mostBetPlayer.player.teamAbbreviation}
                       />
                       <Text className="text-2xl font-bold text-center">
@@ -214,7 +211,6 @@ export default function CareerInfo({ userId }: { userId: string }) {
                           {career.mostBetTeam.team.abbreviation}
                         </Text>
                       </View>
-                      ˝
                       <Text className="text-2xl font-bold text-center">
                         {career.mostBetTeam.team.fullName}
                       </Text>

@@ -57,10 +57,10 @@ export const BasketballJersey: React.FC<BasketballJerseyProps> = ({
           y2="55.34"
           gradientUnits="userSpaceOnUse"
         >
-          <Stop offset="0" stopColor={alternateColor} stopOpacity="1" />
-          <Stop offset="0.26" stopColor={alternateColor} stopOpacity="0.85" />
-          <Stop offset="0.75" stopColor={alternateColor} stopOpacity="0.6" />
-          <Stop offset="1" stopColor={alternateColor} stopOpacity="0.5" />
+          <Stop offset="0" stopColor={color} stopOpacity="1" />
+          <Stop offset="0.26" stopColor={color} stopOpacity="0.85" />
+          <Stop offset="0.75" stopColor={color} stopOpacity="0.6" />
+          <Stop offset="1" stopColor={color} stopOpacity="0.5" />
         </LinearGradient>
       </Defs>
 
@@ -83,21 +83,21 @@ export const BasketballJersey: React.FC<BasketballJerseyProps> = ({
         {/* Left Shoulder */}
         <Path
           d="m75.46,99.07c.38,2.76.73,5.59,1.05,8.47,0,0,15.8-19.21,17.74-44.25,1.46-18.89-5.91-42.21-5.91-42.21-1.26.4-2.49.78-3.71,1.14-1.74.51-2.74,2.31-2.25,4.05,2.04,7.21,6.53,25.36,4.69,39.7-2.27,17.64-8.72,27.67-10.99,30.73-.51.69-.73,1.54-.61,2.38Z"
-          fill={color}
+          fill={alternateColor}
           opacity="0.8"
         />
 
         {/* Right Shoulder */}
         <Path
           d="m224.54,99.07c-.38,2.76-.73,5.59-1.05,8.47,0,0-15.8-19.21-17.74-44.25-1.46-18.89,5.91-42.21,5.91-42.21,1.26.4,2.49.78,3.71,1.14,1.74.51,2.74,2.31,2.25,4.05-2.04,7.21-6.53,25.36-4.69,39.7,2.27,17.64,8.72,27.67,10.99,30.73.51.69.73,1.54.61,2.38Z"
-          fill={color}
+          fill={alternateColor}
           opacity="0.8"
         />
 
         {/* Collar/Neck Top */}
         <Path
           d="m189.69,13.16s-2.41,33.38-40.26,49.5c-37.85-16.12-39.16-49.5-39.16-49.5,2.18-.89,4.38-1.8,6.6-2.75.51-.22,1.07-.27,1.6-.16.01,0,.02.01.03.02,0,0-4.02,25.63,30.93,44.65,34.95-19.02,32.03-44.65,32.03-44.65.01-.01.02-.02.03-.02.53-.11,1.09-.06,1.6.16,2.22.95,4.42,1.86,6.6,2.75Z"
-          fill={color}
+          fill={alternateColor}
           opacity="0.85"
         />
 

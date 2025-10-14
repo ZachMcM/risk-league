@@ -15,7 +15,7 @@ import { Icon } from "../ui/icon";
 import { ArrowRight, ChevronDown, ChevronUp } from "lucide-react-native";
 import { useState } from "react";
 import LeagueLogo from "../ui/league-logo";
-import { Jersey } from "../jersey";
+import { BaseballJersey, FootballJersey, Jersey } from "../jersey";
 import { lightenColor } from "~/utils/colorUtils";
 
 function PropAccordion({
@@ -207,7 +207,7 @@ export default function PlayerProps({
           jerseyNumber={playerProps.player.number}
           color={`#${playerProps.player.team.color}`}
           alternateColor={`#${playerProps.player.team.alternateColor}`}
-          size={96}
+          size={128}
           teamName={playerProps.player.team.abbreviation ?? ""}
         />
       </View>
