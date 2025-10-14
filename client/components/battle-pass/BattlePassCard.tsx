@@ -50,7 +50,7 @@ export default function BattlePassCard() {
 
   return (
     <Card
-      className={cn(
+      className={cn("h-48",
         (battlePassProgressPending || seasonZeroBattlePassEntitlementPending) &&
           "animate-pulse"
       )}

@@ -26,7 +26,7 @@ export default function GoAdFreeCard() {
   }
 
   return (
-    <Card className={cn(adFreeEntitlementPending && "animate-pulse")}>
+    <Card className={cn("h-48", adFreeEntitlementPending && "animate-pulse")}>
       <CardContent className="p-4 flex flex-col justify-between gap-4">
         <View className="flex flex-col gap-1">
           <View className="flex flex-row items-center gap-2">
