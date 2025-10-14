@@ -66,12 +66,10 @@ export default function PropCard({ prop }: { prop: Prop }) {
               />
             </View>
             <Text className="font-bold text-center">
-              <Text className="text-muted-foreground">
-                {prop.player.position} •{" "}
-              </Text>
               {prop.player.name}
             </Text>
             <Text className="text-muted-foreground text-sm text-center font-normal">
+              {prop.player.team.abbreviation}{" "}
               {prop.game.homeTeamId == prop.player.teamId
                 ? `@ ${
                     prop.game.awayTeam.abbreviation ??
