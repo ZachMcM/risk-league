@@ -205,8 +205,8 @@ export default function PlayerProps({
         <Jersey
           league={playerProps.player.league}
           jerseyNumber={playerProps.player.number}
-          color={`#${playerProps.player.team.color}`}
-          alternateColor={`#${playerProps.player.team.alternateColor}`}
+          color={`#${playerProps.player.team.color ?? "000000"}`}
+          alternateColor={`#${playerProps.player.team.alternateColor ?? "FFFFFF"}`}
           size={128}
           teamName={playerProps.player.team.abbreviation ?? ""}
         />

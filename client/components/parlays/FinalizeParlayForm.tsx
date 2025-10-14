@@ -456,8 +456,8 @@ export function PickEntryCard({
         <Jersey
           league={prop.player.league}
           jerseyNumber={prop.player.number}
-          color={`#${prop.player.team.color}`}
-          alternateColor={`#${prop.player.team.alternateColor}`}
+          color={`#${prop.player.team.color ?? "000000"}`}
+          alternateColor={`#${prop.player.team.alternateColor ?? "FFFFFF"}`}
           size={64}
           teamName={prop.player.team.abbreviation ?? ""}
         />

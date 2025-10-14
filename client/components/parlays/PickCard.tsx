@@ -55,8 +55,8 @@ export default function PickCard({ initialData }: { initialData: Pick }) {
           <Jersey
             league={pick.prop.player.league}
             jerseyNumber={pick.prop.player.number}
-            color={`#${pick.prop.player.team.color}`}
-            alternateColor={`#${pick.prop.player.team.alternateColor}`}
+            color={`#${pick.prop.player.team.color ?? "000000"}`}
+            alternateColor={`#${pick.prop.player.team.alternateColor ?? "FFFFFF"}`}
             teamName={pick.prop.player.team.abbreviation ?? ""}
             size={64}
           />

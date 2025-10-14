@@ -165,8 +165,8 @@ export default function CareerInfo({ userId }: { userId: string }) {
                       <Jersey
                         league={career.mostBetPlayer.player.league}
                         jerseyNumber={career.mostBetPlayer.player.jerseyNumber}
-                        color={`#${career.mostBetPlayer.player.teamColor}`}
-                        alternateColor={`#${career.mostBetPlayer.player.teamAlternateColor}`}
+                        color={`#${career.mostBetPlayer.player.teamColor ?? "000000"}`}
+                        alternateColor={`#${career.mostBetPlayer.player.teamAlternateColor ?? "FFFFFF"}`}
                         size={64}
                         teamName={career.mostBetPlayer.player.teamAbbreviation}
                       />
