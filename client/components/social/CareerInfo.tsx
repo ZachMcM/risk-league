@@ -13,6 +13,9 @@ import { Progress } from "../ui/progress";
 import RankGraph from "../career/RankGraph";
 import { Image } from "expo-image";
 import PlayerImage from "../ui/player-image";
+import { Jersey } from "../jersey";
+import { lightenColor } from "~/utils/colorUtils";
+import { cn } from "~/utils/cn";
 
 export default function CareerInfo({ userId }: { userId: string }) {
   const { data: career, isPending: isCareerPending } = useQuery({
@@ -161,7 +164,15 @@ export default function CareerInfo({ userId }: { userId: string }) {
                       <Star className="text-muted-foreground" size={16} />
                     </View>
                     <View className="flex flex-col gap-1 items-center">
-                      <PlayerImage image={career.mostBetPlayer.player.image} />
+                      {/* <PlayerImage image={career.mostBetPlayer.player.image} /> */}
+                      <Jersey
+                        league={career.mostBetPlayer.player.league}
+                        jerseyNumber={career.mostBetPlayer.player.jerseyNumber}
+                        color={`#${career.mostBetPlayer.player.teamColor}`}
+                        alternateColor={`#${career.mostBetPlayer.player.teamAlternateColor}`}
+                        size={56}
+                        teamName={career.mostBetPlayer.player.teamAbbreviation}
+                      />
                       <Text className="text-2xl font-bold text-center">
                         {career.mostBetPlayer.player.name}
                       </Text>
@@ -178,14 +189,32 @@ export default function CareerInfo({ userId }: { userId: string }) {
                       <Star className="text-muted-foreground" size={16} />
                     </View>
                     <View className="flex flex-col gap-1 items-center">
-                      {career.mostBetTeam.team.image && (
+                      {/* {career.mostBetTeam.team.image && (
                         <Image
                           source={{
                             uri: career.mostBetTeam.team.image,
                           }}
                           style={{ width: 40, height: 40 }}
                         />
-                      )}
+                      )} */}
+                      <View
+                        style={{
+                          backgroundColor: `#${career.mostBetTeam.team.color}`,
+                          borderWidth: 2,
+                          borderColor: lightenColor(
+                            career.mostBetTeam.team.color!,
+                            0.2
+                          ),
+                        }}
+                        className={cn(
+                          "flex flex-col justify-center items-center h-12 w-12 rounded-full"
+                        )}
+                      >
+                        <Text className="tracking-tighter text-center font-semibold text-sm">
+                          {career.mostBetTeam.team.abbreviation}
+                        </Text>
+                      </View>
+                      ˝
                       <Text className="text-2xl font-bold text-center">
                         {career.mostBetTeam.team.fullName}
                       </Text>

@@ -13,6 +13,7 @@ import PlayerImage from "../ui/player-image";
 import { Progress } from "../ui/progress";
 import { Separator } from "../ui/separator";
 import { Text } from "../ui/text";
+import { Jersey } from "../jersey";
 
 export default function PickCard({ initialData }: { initialData: Pick }) {
   const { data: pick } = useQuery({
@@ -40,7 +41,7 @@ export default function PickCard({ initialData }: { initialData: Pick }) {
         </View>
         <Separator />
         <View className="flex flex-row items-center gap-4">
-          <PlayerImage
+          {/* <PlayerImage
             className={cn(
               "w-16 h-16",
               pick.status == "hit"
@@ -50,6 +51,14 @@ export default function PickCard({ initialData }: { initialData: Pick }) {
                 : "border-border"
             )}
             image={pick.prop.player.image}
+          /> */}
+          <Jersey
+            league={pick.prop.player.league}
+            jerseyNumber={pick.prop.player.number}
+            color={`#${pick.prop.player.team.color}`}
+            alternateColor={`#${pick.prop.player.team.alternateColor}`}
+            teamName={pick.prop.player.team.abbreviation ?? ""}
+            size={64}
           />
           <View className="flex flex-col gap-3 flex-1">
             <View className="flex flex-row items-center justify-between">

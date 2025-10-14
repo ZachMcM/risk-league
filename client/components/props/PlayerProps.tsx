@@ -15,6 +15,8 @@ import { Icon } from "../ui/icon";
 import { ArrowRight, ChevronDown, ChevronUp } from "lucide-react-native";
 import { useState } from "react";
 import LeagueLogo from "../ui/league-logo";
+import { Jersey } from "../jersey";
+import { lightenColor } from "~/utils/colorUtils";
 
 function PropAccordion({
   prop,
@@ -183,33 +185,15 @@ export default function PlayerProps({
     dynastyLeagueId?: string;
   }>();
 
-  const lightenColor = (hex: string, percent: number) => {
-    const num = parseInt(hex, 16);
-    const r = Math.min(
-      255,
-      (num >> 16) + Math.round((255 - (num >> 16)) * percent)
-    );
-    const g = Math.min(
-      255,
-      ((num >> 8) & 0x00ff) +
-        Math.round((255 - ((num >> 8) & 0x00ff)) * percent)
-    );
-    const b = Math.min(
-      255,
-      (num & 0x0000ff) + Math.round((255 - (num & 0x0000ff)) * percent)
-    );
-    return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, "0")}`;
-  };
-
   return (
     <View className="flex flex-col gap-4 flex-1">
       <View className="flex flex-row w-full justify-between gap-4 items-center">
         <View className="flex flex-col gap-1 flex-1 py-4">
-          <View className="flex flex-col">
-            <Text className="text-2xl font-semibold flex-wrap">
+          <View className="flex flex-col gap-1.5">
+            <Text className="text-3xl font-semibold flex-wrap">
               {formatName(playerProps.player.name).firstName}
             </Text>
-            <Text className="text-4xl font-bold flex-wrap">
+            <Text className="text-5xl font-bold flex-wrap">
               {formatName(playerProps.player.name).lastName}
             </Text>
           </View>
@@ -217,7 +201,15 @@ export default function PlayerProps({
             {playerProps.player.team.fullName} • {playerProps.player.position}
           </Text>
         </View>
-        <PlayerImage image={playerProps.player.image} className="h-28 w-28" />
+        {/* <PlayerImage image={playerProps.player.image} className="h-28 w-28" /> */}
+        <Jersey
+          league={playerProps.player.league}
+          jerseyNumber={playerProps.player.number}
+          color={`#${playerProps.player.team.color}`}
+          alternateColor={`#${playerProps.player.team.alternateColor}`}
+          size={96}
+          teamName={playerProps.player.team.abbreviation ?? ""}
+        />
       </View>
       {playerProps.games.map((game) => (
         <Card key={game.gameId}>
@@ -229,12 +221,14 @@ export default function PlayerProps({
                 : "flex-row"
             )}
           >
-            <View className={cn(
+            <View
+              className={cn(
                 "flex items-center gap-3",
                 playerProps.player.teamId !== game.homeTeamId
                   ? "flex-row-reverse"
                   : "flex-row"
-              )} >
+              )}
+            >
               <View
                 style={{
                   backgroundColor: `#${game.homeTeam.color}`,

@@ -1,3 +1,4 @@
+import { League } from "~/lib/config";
 import { Rank } from "./rank";
 
 export type User = {
@@ -27,14 +28,22 @@ export type Career = {
   mostBetPlayer: {
     player: {
       name: string;
-      image: string | null
+      image: string | null;
+      teamColor: string;
+      teamAlternateColor: string;
+      jerseyNumber: string;
+      teamName: string;
+      teamAbbreviation: string
+      league: League;
     };
     count: number;
   } | null;
   mostBetTeam: {
     team: {
       fullName: String;
-      image: string | null
+      image: string | null;
+      abbreviation: string;
+      color: string;
     };
     count: number;
   } | null;

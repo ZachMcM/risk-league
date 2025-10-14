@@ -9,6 +9,12 @@ import { Button } from "../ui/button";
 import { Card, CardContent } from "../ui/card";
 import PlayerImage from "../ui/player-image";
 import { Text } from "../ui/text";
+import {
+  BaseballJersey,
+  BasketballJersey,
+  FootballJersey,
+  Jersey,
+} from "../jersey";
 
 export default function PropCard({ prop }: { prop: Prop }) {
   const searchParams = useLocalSearchParams() as {
@@ -49,14 +55,21 @@ export default function PropCard({ prop }: { prop: Prop }) {
         <CardContent className="px-4 pt-2 pb-4 flex flex-col gap-2.5">
           <View className="flex flex-col gap-1">
             <View className="flex flex-col items-center justify-center">
-              <PlayerImage image={prop.player.image} className="h-20 w-20" />
+              {/* <PlayerImage image={prop.player.image} className="h-20 w-20" /> */}
+              <Jersey
+                league={prop.player.league}
+                jerseyNumber={prop.player.number}
+                color={`#${prop.player.team.color}`}
+                alternateColor={`#${prop.player.team.alternateColor}`}
+                teamName={prop.player.team.abbreviation ?? ""}
+                size={76}
+              />
             </View>
             <Text className="font-bold text-center">
               <Text className="text-muted-foreground">
                 {prop.player.position} •{" "}
               </Text>
-              {formatName(prop.player.name).firstName[0]}.{" "}
-              {formatName(prop.player.name).lastName}{" "}
+              {prop.player.name}
             </Text>
             <Text className="text-muted-foreground text-sm text-center font-normal">
               {prop.game.homeTeamId == prop.player.teamId

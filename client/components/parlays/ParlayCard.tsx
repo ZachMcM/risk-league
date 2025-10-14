@@ -128,13 +128,7 @@ export default function ParlayCard({ initialData }: { initialData: Parlay }) {
               </Badge>
             </View>
             <Text className="font-semibold text-muted-foreground">
-              {parlay.picks
-                .map(
-                  (pick) =>
-                    `${formatName(pick.prop.player.name).firstName[0]}. ${
-                      formatName(pick.prop.player.name).lastName}`.trim()
-                )
-                .join(", ")}
+              {parlay.picks.map((pick) => pick.prop.player.name).join(", ")}
             </Text>
           </View>
           <View className="flex flex-row items-center gap-6">
@@ -165,7 +159,7 @@ export default function ParlayCard({ initialData }: { initialData: Parlay }) {
               </Text>
             </View>
           </View>
-          <View className="flex flex-row items-center">
+          {/* <View className="flex flex-row items-center">
             {parlay.picks.map((pick, i) => (
               <PlayerImage
                 key={pick.id}
@@ -181,8 +175,8 @@ export default function ParlayCard({ initialData }: { initialData: Parlay }) {
                 )}
               />
             ))}
-          </View>
-          {/* <View className="flex flex-row items-center gap-2">
+          </View> */}
+          <View className="flex flex-row items-center gap-2">
             {parlay.picks.map(
               (pick) =>
                 pick.status !== "tie" &&
@@ -214,7 +208,7 @@ export default function ParlayCard({ initialData }: { initialData: Parlay }) {
                   </View>
                 )
             )}
-          </View> */}
+          </View>
         </CardContent>
       </Card>
     </Link>

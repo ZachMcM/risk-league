@@ -31,6 +31,7 @@ import {
   getFlexMultiplier,
   getPerfectPlayMultiplier,
 } from "~/utils/multiplierUtils";
+import { Jersey } from "../jersey";
 import { useAudio } from "../providers/AudioProvider";
 import { Tabs, TabsList, TabsTrigger } from "../ui/tabs";
 
@@ -239,6 +240,7 @@ export default function FinalizeParlayForm({
                         <Label>Stake</Label>
                         <FakeCurrencyInput
                           value={stake}
+                          autoFocus
                           onChangeValue={setStake}
                           prefix="$"
                           placeholder="$20.00"
@@ -442,7 +444,7 @@ export function PickEntryCard({
         !isLast && "border-b"
       )}
     >
-      <View className="flex flex-row items-center gap-3">
+      <View className="flex flex-row items-center gap-2">
         <Pressable
           onPress={() => {
             removePick(prop.id);
@@ -450,7 +452,15 @@ export function PickEntryCard({
         >
           <CircleMinus className="text-destructive" size={20} />
         </Pressable>
-        <PlayerImage image={pick.prop.player.image} />
+        {/* <PlayerImage image={pick.prop.player.image} /> */}
+        <Jersey
+          league={prop.player.league}
+          jerseyNumber={prop.player.number}
+          color={`#${prop.player.team.color}`}
+          alternateColor={`#${prop.player.team.alternateColor}`}
+          size={64}
+          teamName={prop.player.team.abbreviation ?? ""}
+        />
         <View className="flex flex-col gap-1">
           <Text className="font-bold">{prop.player.name}</Text>
           <Text className="font-semibold text-muted-foreground text-sm">

@@ -282,6 +282,7 @@ usersRoute.get("/users/:id/career", authMiddleware, async (req, res) => {
                             playerId: true,
                             league: true,
                             image: true,
+                            number: true,
                           },
                           with: {
                             team: {
@@ -290,6 +291,9 @@ usersRoute.get("/users/:id/career", authMiddleware, async (req, res) => {
                                 teamId: true,
                                 league: true,
                                 image: true,
+                                alternateColor: true,
+                                color: true,
+                                abbreviation: true,
                               },
                             },
                           },
@@ -340,7 +344,12 @@ usersRoute.get("/users/:id/career", authMiddleware, async (req, res) => {
         playerId: number;
         league: (typeof leagueType.enumValues)[number];
         image: string | null;
+        teamColor: string;
+        teamAlternateColor: string;
+        jerseyNumber: string;
+        teamName: string;
         name: string;
+        teamAbbreviation: string;
       }
     > = new Map();
 
@@ -352,6 +361,8 @@ usersRoute.get("/users/:id/career", authMiddleware, async (req, res) => {
         teamId: number;
         league: (typeof leagueType.enumValues)[number];
         fullName: string;
+        color: string;
+        abbreviation: string;
       }
     > = new Map();
 
@@ -373,6 +384,11 @@ usersRoute.get("/users/:id/career", authMiddleware, async (req, res) => {
             playerId: pick.prop.player.playerId,
             league: pick.prop.player.league,
             image: pick.prop.player.image,
+            teamColor: pick.prop.player.team.color!,
+            teamAlternateColor: pick.prop.player.team.alternateColor!,
+            jerseyNumber: pick.prop.player.number?.toString()!,
+            teamName: pick.prop.player.team.fullName,
+            teamAbbreviation: pick.prop.player.team.abbreviation ?? "",
           };
 
           pickedPlayerCounts.set(
@@ -387,6 +403,8 @@ usersRoute.get("/users/:id/career", authMiddleware, async (req, res) => {
             teamId: pick.prop.player.team.teamId,
             league: pick.prop.player.team.league,
             image: pick.prop.player.team.image,
+            abbreviation: pick.prop.player.team.abbreviation!,
+            color: pick.prop.player.team.color!,
           };
 
           pickedTeamCounts.set(
