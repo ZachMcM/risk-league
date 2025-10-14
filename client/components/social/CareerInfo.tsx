@@ -165,8 +165,13 @@ export default function CareerInfo({ userId }: { userId: string }) {
                       <Jersey
                         league={career.mostBetPlayer.player.league}
                         jerseyNumber={career.mostBetPlayer.player.jerseyNumber}
-                        color={`#${career.mostBetPlayer.player.teamColor ?? "000000"}`}
-                        alternateColor={`#${career.mostBetPlayer.player.teamAlternateColor ?? "FFFFFF"}`}
+                        color={`#${
+                          career.mostBetPlayer.player.teamColor ?? "000000"
+                        }`}
+                        alternateColor={`#${
+                          career.mostBetPlayer.player.teamAlternateColor ??
+                          "FFFFFF"
+                        }`}
                         size={64}
                         teamName={career.mostBetPlayer.player.teamAbbreviation}
                       />
@@ -198,10 +203,9 @@ export default function CareerInfo({ userId }: { userId: string }) {
                         style={{
                           backgroundColor: `#${career.mostBetTeam.team.color}`,
                           borderWidth: 2,
-                          borderColor: lightenColor(
-                            career.mostBetTeam.team.color!,
-                            0.2
-                          ),
+                          borderColor: career.mostBetTeam.team.color
+                            ? lightenColor(career.mostBetTeam.team.color, 0.2)
+                            : "transparent",
                         }}
                         className={cn(
                           "flex flex-col justify-center items-center h-12 w-12 rounded-full"

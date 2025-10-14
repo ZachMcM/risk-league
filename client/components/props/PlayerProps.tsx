@@ -206,7 +206,9 @@ export default function PlayerProps({
           league={playerProps.player.league}
           jerseyNumber={playerProps.player.number}
           color={`#${playerProps.player.team.color ?? "000000"}`}
-          alternateColor={`#${playerProps.player.team.alternateColor ?? "FFFFFF"}`}
+          alternateColor={`#${
+            playerProps.player.team.alternateColor ?? "FFFFFF"
+          }`}
           size={128}
           teamName={playerProps.player.team.abbreviation ?? ""}
         />
@@ -233,7 +235,9 @@ export default function PlayerProps({
                 style={{
                   backgroundColor: `#${game.homeTeam.color}`,
                   borderWidth: 2,
-                  borderColor: lightenColor(game.homeTeam.color!, 0.2),
+                  borderColor: game.homeTeam.color
+                    ? lightenColor(game.homeTeam.color!, 0.2)
+                    : "transparent",
                 }}
                 className={cn(
                   "flex flex-col justify-center items-center h-12 w-12 rounded-full"
@@ -261,7 +265,9 @@ export default function PlayerProps({
                 style={{
                   backgroundColor: `#${game.awayTeam.color}`,
                   borderWidth: 2,
-                  borderColor: lightenColor(game.awayTeam.color!, 0.2),
+                  borderColor: game.awayTeam.color
+                    ? lightenColor(game.awayTeam.color!, 0.2)
+                    : "transparent",
                 }}
                 className={cn(
                   "flex flex-col justify-center items-center h-12 w-12 rounded-full"
