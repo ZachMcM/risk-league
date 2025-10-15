@@ -1,1 +1,2 @@
-This is the repository for Risk League, a 
+# Risk League
+This Repo is currently under construction
