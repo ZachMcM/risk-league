@@ -1,1 +1,0 @@
-ALTER TABLE "battle_pass" DROP COLUMN "maxTier";

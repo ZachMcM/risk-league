@@ -6,27 +6,30 @@ from redis_utils import (
 )
 from db.connection import get_async_pool
 import asyncio
-from typing import TypedDict, Optional, List
-from datetime import datetime
+from typing import TypedDict, Optional, List, Dict
 from time import time
 import traceback
 
 logger = setup_logger(__name__)
 
-MIN_PARLAYS_REQUIRED = 2
-MIN_PCT_TOTAL_STAKED = 0.5
 K = 32  # Elo rating constant
-BATTLE_PASS_ID = 1
+
+
+class PickResult(TypedDict):
+    id: int
+    status: str
+    match_user_id: int
+    choice: str
+    prop_id: int
+
 
 class MatchUserResult(TypedDict):
     id: int
     user_id: str
-    balance: float
-    starting_balance: float
     points_snapshot: float
     points_delta: float
     status: str
-    parlays: List[dict]
+    picks: List[PickResult]
 
 
 class MatchResult(TypedDict):
@@ -35,17 +38,6 @@ class MatchResult(TypedDict):
     league: str
     resolved: bool
     match_users: List[MatchUserResult]
-
-
-class UserResult(TypedDict):
-    id: str
-    points: float
-
-
-class BattlePassProgress(TypedDict):
-    battle_pass_id: int
-    user_battle_pass_progress_id: int
-    current_xp: int
 
 
 def recalculate_points(current_points: List[float], winner: Optional[int]) -> List[int]:
@@ -70,204 +62,298 @@ def recalculate_points(current_points: List[float], winner: Optional[int]) -> Li
     return [round(r_prime_a), round(r_prime_b)]
 
 
-async def handle_parlay_resolved(data):
-    """Handles incoming parlay_resolved messages asynchronously"""
+def calculate_score_for_picks(picks: List[Dict]) -> float:
+    """Calculate score based on picks - same logic as server/src/routes/matches.ts"""
+    score = 0.0
+    for pick in picks:
+        if pick["prop_status"] != "resolved":
+            continue
+
+        if pick["choice"] == "over":
+            score += pick["current_value"] - pick["line"]
+        else:
+            score += pick["line"] - pick["current_value"]
+
+    return score
+
+
+async def handle_prop_updated(data):
+    """Handle incoming prop_updated messages - updates pick statuses and triggers match resolution"""
     start_time = time()
-    parlay_id = data.get("id")
-    if not parlay_id:
-        logger.error("Received parlay_resolved message without id")
+    prop_id = data.get("id")
+    if not prop_id:
+        logger.error("Received prop_updated message without id")
         return
 
     redis_publisher = await create_async_redis_client()
-    pool = await get_async_pool()
+    matches_to_check = set()
 
     try:
+        pool = await get_async_pool()
         async with pool.connection() as conn:
             async with conn.cursor() as cur:
                 try:
                     await cur.execute("BEGIN")
 
-                    # Verify parlay exists
-                    parlay_check_query = """
-                        SELECT id
-                        FROM parlay
+                    # Get the updated prop
+                    select_query = """
+                        SELECT id, current_value, line, status
+                        FROM prop
                         WHERE id = %s
                     """
 
-                    await cur.execute(parlay_check_query, (parlay_id,))
-                    parlay_res = await cur.fetchone()
+                    await cur.execute(select_query, (prop_id,))
+                    prop_query_res = await cur.fetchone()
 
-                    if not parlay_res:
-                        logger.warning(f"No parlay found with id {parlay_id}")
+                    if not prop_query_res:
+                        logger.warning(f"No prop found with id {prop_id}")
                         await cur.execute("ROLLBACK")
                         return
 
-                    # Get match with all related data
-                    match_query = """
-                        SELECT DISTINCT
-                            m.id as match_id,
-                            m.type as match_type,
-                            m.league as match_league,
-                            m.resolved as match_resolved
-                        FROM parlay p
-                        JOIN match_user mu ON p.match_user_id = mu.id
-                        JOIN match m ON mu.match_id = m.id
-                        WHERE p.id = %s
-                    """
+                    updated_prop = {
+                        "id": prop_query_res[0],
+                        "current_value": prop_query_res[1],
+                        "line": prop_query_res[2],
+                        "status": prop_query_res[3],
+                    }
 
-                    await cur.execute(match_query, (parlay_id,))
-                    match_res = await cur.fetchone()
-
-                    if not match_res:
-                        logger.error(f"No match found for parlay {parlay_id}")
-                        await cur.execute("ROLLBACK")
-                        return
-
-                    match_id = match_res[0]
-
-                    # Acquire exclusive lock on match to prevent concurrent resolution
-                    await cur.execute("SELECT id FROM match WHERE id = %s AND resolved = false FOR UPDATE", (match_id,))
-                    lock_result = await cur.fetchone()
-                    if not lock_result:
-                        logger.info(f"Match {match_id} is already resolved")
-                        await cur.execute("COMMIT")
-                        return
-
-
-                    # Get all match users with parlays
-                    match_users_query = """
-                        SELECT
-                            mu.id as match_user_id,
-                            mu.user_id,
-                            mu.balance,
-                            mu.starting_balance,
-                            mu.points_snapshot,
-                            mu.points_delta,
-                            mu.status
-                        FROM match_user mu
-                        WHERE mu.match_id = %s
-                        ORDER BY mu.id
-                    """
-
-                    await cur.execute(match_users_query, (match_id,))
-                    match_users_res = await cur.fetchall()
-
-                    if len(match_users_res) != 2:
-                        logger.error(f"Match {match_id} does not have exactly 2 users")
-                        await cur.execute("ROLLBACK")
-                        return
-
-                    # Get parlays for each match user
-                    match_users_data = []
-                    for mu_row in match_users_res:
-                        parlays_query = """
-                            SELECT id, stake, resolved, payout
-                            FROM parlay
-                            WHERE match_user_id = %s
+                    # Update pick statuses based on prop status
+                    if updated_prop["status"] == "did_not_play":
+                        update_stmt = """
+                            UPDATE pick
+                            SET status = 'did_not_play'::pick_status
+                            WHERE prop_id = %s
+                            RETURNING id, match_user_id
                         """
+                        await cur.execute(update_stmt, (updated_prop["id"],))
+                        updated_picks = await cur.fetchall()
 
-                        await cur.execute(parlays_query, (mu_row[0],))
-                        parlays_res = await cur.fetchall()
+                        for pick in updated_picks:
+                            matches_to_check.add(pick[1])  # match_user_id
 
-                        parlays = [
-                            {
-                                "id": p[0],
-                                "stake": float(p[1]),
-                                "resolved": p[2],
-                                "payout": float(p[3]) if p[3] is not None else None,
-                            }
-                            for p in parlays_res
-                        ]
-
-                        match_users_data.append(
-                            {
-                                "id": mu_row[0],
-                                "user_id": mu_row[1],
-                                "balance": float(mu_row[2]),
-                                "starting_balance": float(mu_row[3]),
-                                "points_snapshot": float(mu_row[4]),
-                                "points_delta": float(mu_row[5]),
-                                "status": mu_row[6],
-                                "parlays": parlays,
-                            }
-                        )
-
-                    # Check if all parlays are resolved
-                    for mu_data in match_users_data:
-                        for parlay in mu_data["parlays"]:
-                            if not parlay["resolved"]:
-                                logger.info(
-                                    f"Match {match_id} cannot be resolved - parlay {parlay['id']} not resolved"
+                    elif updated_prop["status"] == "resolved":
+                        if updated_prop["current_value"] > updated_prop["line"]:
+                            # Over hits, under misses
+                            batch_update_stmt = """
+                                WITH updates AS (
+                                    UPDATE pick SET status = CASE
+                                        WHEN choice = 'over' THEN 'hit'::pick_status
+                                        WHEN choice = 'under' THEN 'missed'::pick_status
+                                    END
+                                    WHERE prop_id = %s AND choice IN ('over', 'under')
+                                    RETURNING id, match_user_id
                                 )
-                                await cur.execute("COMMIT")
-                                return
+                                SELECT id, match_user_id FROM updates
+                            """
+                            await cur.execute(batch_update_stmt, (updated_prop["id"],))
+                            updated_picks = await cur.fetchall()
 
-                    # Check if props are still available (simplified check)
-                    # In production, you might want to implement the full getAvailablePropsForUser logic
-                    props_available_query = """
-                        SELECT COUNT(*) as available_count
-                        FROM prop p
-                        JOIN game g ON p.game_id = g.game_id
-                        WHERE g.league = %s
-                        AND p.status = 'not_resolved'
-                        AND g.start_time AT TIME ZONE 'UTC' > (NOW() AT TIME ZONE 'UTC')
-                    """
+                            for pick in updated_picks:
+                                matches_to_check.add(pick[1])
 
-                    await cur.execute(
-                        props_available_query, (match_res[2],)
-                    )  # match_league
-                    props_count_res = await cur.fetchone()
+                        elif updated_prop["current_value"] == updated_prop["line"]:
+                            # Tie
+                            ties_update_stmt = """
+                                UPDATE pick
+                                SET status = 'tie'::pick_status
+                                WHERE prop_id = %s
+                                RETURNING id, match_user_id
+                            """
+                            await cur.execute(ties_update_stmt, (updated_prop["id"],))
+                            updated_picks = await cur.fetchall()
 
-                    if props_count_res and props_count_res[0] > 0:
-                        logger.info(
-                            f"Match {match_id} cannot be resolved - props still available"
-                        )
-                        await cur.execute("COMMIT")
-                        return
+                            for pick in updated_picks:
+                                matches_to_check.add(pick[1])
 
-                    logger.info(
-                        f"Match {match_id} resolution triggered by parlay {parlay_id}"
-                    )
+                        else:
+                            # Under hits, over misses
+                            batch_update_stmt = """
+                                WITH updates AS (
+                                    UPDATE pick SET status = CASE
+                                        WHEN choice = 'over' THEN 'missed'::pick_status
+                                        WHEN choice = 'under' THEN 'hit'::pick_status
+                                    END
+                                    WHERE prop_id = %s AND choice IN ('over', 'under')
+                                    RETURNING id, match_user_id
+                                )
+                                SELECT id, match_user_id FROM updates
+                            """
+                            await cur.execute(batch_update_stmt, (updated_prop["id"],))
+                            updated_picks = await cur.fetchall()
 
-                    # Resolve the match
-                    await _resolve_match(
-                        cur, match_id, match_res[1], match_users_data
-                    )
+                            for pick in updated_picks:
+                                matches_to_check.add(pick[1])
 
                     await cur.execute("COMMIT")
 
-                    # Publish Redis messages for cache invalidation
-                    try:
-                        await _publish_match_resolved_messages(
-                            redis_publisher,
-                            match_id,
-                            match_users_data,
-                            match_res[1],
-                            match_res[2],
-                        )
-                    except Exception as e:
-                        logger.error(e)
+                    # Get match IDs from match_user_ids and check for resolution
+                    if matches_to_check:
+                        match_ids_query = """
+                            SELECT DISTINCT match_id
+                            FROM match_user
+                            WHERE id = ANY(%s)
+                        """
+                        await cur.execute(match_ids_query, (list(matches_to_check),))
+                        match_ids = [row[0] for row in await cur.fetchall()]
+
+                        # Trigger match resolution checks for affected matches
+                        for match_id in match_ids:
+                            await _check_and_resolve_match(cur, redis_publisher, match_id)
 
                 except Exception as e:
                     await cur.execute("ROLLBACK")
                     logger.error(f"Database transaction failed: {e}")
-                    logger.error(f"Full traceback: {traceback.format_exc()}")
                     raise e
 
     except Exception as e:
-        logger.error(f"Error handling parlay resolved: {e}")
+        logger.error(f"Error handling prop update: {e}")
         logger.error(f"Full traceback: {traceback.format_exc()}")
     finally:
         await redis_publisher.aclose()
 
     end_time = time()
-    logger.info(
-        f"Updated match of parlay_id {parlay_id}. Completed in {end_time - start_time:.2f}s"
-    )
+    if matches_to_check:
+        logger.info(
+            f"Updated picks for prop_id {prop_id}, checked {len(matches_to_check)} match_users. Completed in {end_time - start_time:.2f}s"
+        )
+
+
+async def _check_and_resolve_match(cur, redis_publisher, match_id: int):
+    """Check if a match is ready to be resolved and resolve it if so"""
+    try:
+        # Get match info
+        match_query = """
+            SELECT id, type, league, resolved
+            FROM match
+            WHERE id = %s
+        """
+        await cur.execute(match_query, (match_id,))
+        match_res = await cur.fetchone()
+
+        if not match_res:
+            logger.warning(f"No match found with id {match_id}")
+            return
+
+        # Skip if already resolved
+        if match_res[3]:  # resolved
+            return
+
+        # Acquire exclusive lock on match to prevent concurrent resolution
+        await cur.execute(
+            "SELECT id FROM match WHERE id = %s AND resolved = false FOR UPDATE",
+            (match_id,)
+        )
+        lock_result = await cur.fetchone()
+        if not lock_result:
+            logger.info(f"Match {match_id} is already resolved")
+            return
+
+        # Get all match users with their picks
+        match_users_query = """
+            SELECT
+                mu.id as match_user_id,
+                mu.user_id,
+                mu.points_snapshot,
+                mu.points_delta,
+                mu.status
+            FROM match_user mu
+            WHERE mu.match_id = %s
+            ORDER BY mu.id
+        """
+        await cur.execute(match_users_query, (match_id,))
+        match_users_res = await cur.fetchall()
+
+        if len(match_users_res) != 2:
+            logger.error(f"Match {match_id} does not have exactly 2 users")
+            return
+
+        # Get picks for each match user
+        match_users_data = []
+        for mu_row in match_users_res:
+            picks_query = """
+                SELECT
+                    p.id,
+                    p.status,
+                    p.choice,
+                    pr.current_value,
+                    pr.line,
+                    pr.status as prop_status
+                FROM pick p
+                JOIN prop pr ON p.prop_id = pr.id
+                WHERE p.match_user_id = %s
+            """
+            await cur.execute(picks_query, (mu_row[0],))
+            picks_res = await cur.fetchall()
+
+            picks = [
+                {
+                    "id": p[0],
+                    "status": p[1],
+                    "choice": p[2],
+                    "current_value": float(p[3]),
+                    "line": float(p[4]),
+                    "prop_status": p[5],
+                }
+                for p in picks_res
+            ]
+
+            match_users_data.append({
+                "id": mu_row[0],
+                "user_id": mu_row[1],
+                "points_snapshot": float(mu_row[2]),
+                "points_delta": float(mu_row[3]),
+                "status": mu_row[4],
+                "picks": picks,
+            })
+
+        # Check if all picks are resolved (excluding ties and DNPs)
+        for mu_data in match_users_data:
+            for pick in mu_data["picks"]:
+                if pick["status"] == "not_resolved":
+                    logger.info(
+                        f"Match {match_id} cannot be resolved - pick {pick['id']} not resolved"
+                    )
+                    return
+
+        # Check if props are still available for this league
+        props_available_query = """
+            SELECT COUNT(*) as available_count
+            FROM prop p
+            JOIN game g ON p.game_id = g.game_id AND p.league = g.league
+            WHERE g.league = %s
+            AND p.status = 'not_resolved'
+            AND g.start_time AT TIME ZONE 'UTC' > (NOW() AT TIME ZONE 'UTC')
+        """
+        await cur.execute(props_available_query, (match_res[2],))  # league
+        props_count_res = await cur.fetchone()
+
+        if props_count_res and props_count_res[0] > 0:
+            logger.info(
+                f"Match {match_id} cannot be resolved - {props_count_res[0]} props still available"
+            )
+            return
+
+        logger.info(f"Match {match_id} resolution triggered - all picks resolved and no props available")
+
+        # Resolve the match
+        await _resolve_match(cur, match_id, match_res[1], match_res[2], match_users_data)
+
+        # Publish cache invalidation and notifications
+        await _publish_match_resolved_messages(
+            redis_publisher,
+            match_id,
+            match_users_data,
+            match_res[1],
+            match_res[2],
+        )
+
+    except Exception as e:
+        logger.error(f"Error checking/resolving match {match_id}: {e}")
+        logger.error(f"Full traceback: {traceback.format_exc()}")
 
 
 async def _resolve_match(
-    cur, match_id: int, match_type: str, match_users_data: List[dict]
+    cur, match_id: int, match_type: str, league: str, match_users_data: List[dict]
 ):
     """Resolve match by determining winner and updating all related data"""
     # Update match as resolved
@@ -276,49 +362,22 @@ async def _resolve_match(
     match_user1 = match_users_data[0]
     match_user2 = match_users_data[1]
 
-    # Calculate total stakes
-    match_user1_total_staked = sum(p["stake"] for p in match_user1["parlays"])
-    match_user2_total_staked = sum(p["stake"] for p in match_user2["parlays"])
+    # Calculate scores using the same logic as server/src/routes/matches.ts
+    score1 = calculate_score_for_picks(match_user1["picks"])
+    score2 = calculate_score_for_picks(match_user2["picks"])
 
-    # Calculate minimum required stakes
-    match_user1_min_staked = round(
-        match_user1["starting_balance"] * MIN_PCT_TOTAL_STAKED
-    )
-    match_user2_min_staked = round(
-        match_user2["starting_balance"] * MIN_PCT_TOTAL_STAKED
-    )
+    logger.info(f"Match {match_id} scores - User 1: {score1}, User 2: {score2}")
 
-    # Determine winner and statuses
+    # Determine winner and statuses based on scores
     winner = None
     match_user1_status = None
     match_user2_status = None
 
-    # Check disqualification conditions
-    user1_disqualified = (
-        len(match_user1["parlays"]) < MIN_PARLAYS_REQUIRED
-        or match_user1_total_staked < match_user1_min_staked
-    )
-    user2_disqualified = (
-        len(match_user2["parlays"]) < MIN_PARLAYS_REQUIRED
-        or match_user2_total_staked < match_user2_min_staked
-    )
-
-    if user1_disqualified and not user2_disqualified:
-        match_user1_status = "disqualified"
-        match_user2_status = "win"
-        winner = 1
-    elif user2_disqualified and not user1_disqualified:
-        match_user1_status = "win"
-        match_user2_status = "disqualified"
-        winner = 0
-    elif user1_disqualified and user2_disqualified:
-        match_user1_status = "disqualified"
-        match_user2_status = "disqualified"
-    elif match_user1["balance"] > match_user2["balance"]:
+    if score1 > score2:
         match_user1_status = "win"
         match_user2_status = "loss"
         winner = 0
-    elif match_user1["balance"] == match_user2["balance"]:
+    elif score1 == score2:
         match_user1_status = "draw"
         match_user2_status = "draw"
     else:
@@ -347,20 +406,8 @@ async def _resolve_match(
             winner,
         )
 
-    # Update battle pass XP
-    await _update_battle_pass_xp(
-        cur,
-        match_user1["user_id"],
-        len(match_user1["parlays"]),
-        match_user1_total_staked,
-        match_user1_status,
-    )
-    await _update_battle_pass_xp(
-        cur,
-        match_user2["user_id"],
-        len(match_user2["parlays"]),
-        match_user2_total_staked,
-        match_user2_status,
+    logger.info(
+        f"Match {match_id} resolved - User 1: {match_user1_status} ({score1}), User 2: {match_user2_status} ({score2})"
     )
 
 
@@ -373,9 +420,6 @@ async def _update_elo_points(
     winner: Optional[int],
 ):
     """Update ELO points for competitive matches"""
-    if status1 == "disqualified" and status2 == "disqualified":
-        return
-
     # Get current user points atomically using SELECT FOR UPDATE
     await cur.execute(
         "SELECT id, points FROM public.user WHERE id = %s FOR UPDATE",
@@ -421,56 +465,6 @@ async def _update_elo_points(
     )
 
 
-async def _update_battle_pass_xp(
-    cur, user_id: str, parlay_count: int, total_staked: float, match_status: str
-):
-    """Update battle pass XP for a user"""
-    now = datetime.now().isoformat()
-
-    # Get active battle passes for user
-    battle_pass_query = """
-        SELECT
-            ubp.battle_pass_id,
-            ubp.id as user_battle_pass_progress_id,
-            ubp.current_xp
-        FROM user_battle_pass_progress ubp
-        JOIN battle_pass bp ON ubp.battle_pass_id = bp.id
-        WHERE bp.is_active = true
-        AND bp.start_date <= %s
-        AND bp.end_date >= %s
-        AND ubp.user_id = %s
-    """
-
-    await cur.execute(battle_pass_query, (now, now, user_id))
-    battle_passes_res = await cur.fetchall()
-
-    if not battle_passes_res:
-        return  # No active battle passes
-
-    # Calculate XP
-    base_xp = 50
-    parlay_bonus = parlay_count * 10
-    staking_bonus = int(total_staked / 10)
-
-    multiplier = {"win": 1.5, "draw": 1.2, "loss": 1.0, "disqualified": 0.5}.get(
-        match_status, 1.0
-    )
-
-    total_xp = int((base_xp + parlay_bonus + staking_bonus) * multiplier)
-    xp_gained = max(25, total_xp)
-
-    # Update each active battle pass atomically
-    for bp_row in battle_passes_res:
-        progress_id = bp_row[1]
-
-        await cur.execute(
-            """UPDATE user_battle_pass_progress
-               SET current_xp = COALESCE(current_xp, 0) + %s
-               WHERE id = %s""",
-            (xp_gained, progress_id),
-        )
-
-
 async def _publish_match_resolved_messages(
     redis_publisher,
     match_id: int,
@@ -495,8 +489,6 @@ async def _publish_match_resolved_messages(
         ["user", user2_id, "rank"],
         ["career", user1_id],
         ["career", user2_id],
-        ["battle-pass", BATTLE_PASS_ID, "progress", user1_id],
-        ["battle-pass", BATTLE_PASS_ID, "progress", user2_id]
     ]
 
     # Publish cache invalidation via Redis and send notification via HTTP in parallel
@@ -522,7 +514,7 @@ async def _publish_match_resolved_messages(
 
 
 async def handle_match_check(data):
-    """Handles incoming match_check messages to resolve matches without parlay triggers"""
+    """Handles incoming match_check messages to manually trigger match resolution checks"""
     start_time = time()
     match_id = data.get("matchId")
     if not match_id:
@@ -537,152 +529,12 @@ async def handle_match_check(data):
             async with conn.cursor() as cur:
                 try:
                     await cur.execute("BEGIN")
-
-                    # Get match with all related data
-                    match_query = """
-                        SELECT
-                            m.id as match_id,
-                            m.type as match_type,
-                            m.league as match_league,
-                            m.resolved as match_resolved
-                        FROM match m
-                        WHERE m.id = %s
-                    """
-
-                    await cur.execute(match_query, (match_id,))
-                    match_res = await cur.fetchone()
-
-                    if not match_res:
-                        logger.error(f"No match found with id {match_id}")
-                        await cur.execute("ROLLBACK")
-                        return
-
-                    # Acquire exclusive lock on match to prevent concurrent resolution
-                    await cur.execute("SELECT id FROM match WHERE id = %s AND resolved = false FOR UPDATE", (match_id,))
-                    lock_result = await cur.fetchone()
-                    if not lock_result:
-                        logger.info(f"Match {match_id} is already resolved")
-                        await cur.execute("COMMIT")
-                        return
-
-
-                    # Get all match users with parlays
-                    match_users_query = """
-                        SELECT
-                            mu.id as match_user_id,
-                            mu.user_id,
-                            mu.balance,
-                            mu.starting_balance,
-                            mu.points_snapshot,
-                            mu.points_delta,
-                            mu.status
-                        FROM match_user mu
-                        WHERE mu.match_id = %s
-                        ORDER BY mu.id
-                    """
-
-                    await cur.execute(match_users_query, (match_id,))
-                    match_users_res = await cur.fetchall()
-
-                    if len(match_users_res) != 2:
-                        logger.error(f"Match {match_id} does not have exactly 2 users")
-                        await cur.execute("ROLLBACK")
-                        return
-
-                    # Get parlays for each match user
-                    match_users_data = []
-                    for mu_row in match_users_res:
-                        parlays_query = """
-                            SELECT id, stake, resolved, payout
-                            FROM parlay
-                            WHERE match_user_id = %s
-                        """
-
-                        await cur.execute(parlays_query, (mu_row[0],))
-                        parlays_res = await cur.fetchall()
-
-                        parlays = [
-                            {
-                                "id": p[0],
-                                "stake": float(p[1]),
-                                "resolved": p[2],
-                                "payout": float(p[3]) if p[3] is not None else None,
-                            }
-                            for p in parlays_res
-                        ]
-
-                        match_users_data.append(
-                            {
-                                "id": mu_row[0],
-                                "user_id": mu_row[1],
-                                "balance": float(mu_row[2]),
-                                "starting_balance": float(mu_row[3]),
-                                "points_snapshot": float(mu_row[4]),
-                                "points_delta": float(mu_row[5]),
-                                "status": mu_row[6],
-                                "parlays": parlays,
-                            }
-                        )
-
-                    # Check if any parlays are still unresolved
-                    unresolved_parlays = []
-                    for mu_data in match_users_data:
-                        for parlay in mu_data["parlays"]:
-                            if not parlay["resolved"]:
-                                unresolved_parlays.append(parlay["id"])
-
-                    if unresolved_parlays:
-                        logger.info(
-                            f"Match {match_id} cannot be resolved - parlays {unresolved_parlays} not resolved"
-                        )
-                        await cur.execute("COMMIT")
-                        return
-
-                    # Check if props are still available
-                    props_available_query = """
-                        SELECT COUNT(*) as available_count
-                        FROM prop p
-                        JOIN game g ON p.game_id = g.game_id
-                        WHERE g.league = %s
-                        AND p.status = 'not_resolved'
-                        AND g.start_time AT TIME ZONE 'UTC' > (NOW() AT TIME ZONE 'UTC')
-                    """
-
-                    await cur.execute(
-                        props_available_query, (match_res[2],)
-                    )  # match_league
-                    props_count_res = await cur.fetchone()
-
-                    if props_count_res and props_count_res[0] > 0:
-                        logger.info(
-                            f"Match {match_id} cannot be resolved - props still available"
-                        )
-                        await cur.execute("COMMIT")
-                        return
-
-                    logger.info(f"Match {match_id} resolution triggered by match_check")
-
-                    # Resolve the match
-                    await _resolve_match(
-                        cur, match_id, match_res[1], match_users_data
-                    )
-
+                    await _check_and_resolve_match(cur, redis_publisher, match_id)
                     await cur.execute("COMMIT")
-
-                    # Publish Redis messages for cache invalidation
-                    await _publish_match_resolved_messages(
-                        redis_publisher,
-                        match_id,
-                        match_users_data,
-                        match_res[1],
-                        match_res[2],
-                    )
-
                 except Exception as e:
                     await cur.execute("ROLLBACK")
                     logger.error(f"Database transaction failed: {e}")
                     raise e
-
     except Exception as e:
         logger.error(f"Error handling match check: {e}")
         logger.error(f"Full traceback: {traceback.format_exc()}")
@@ -695,13 +547,14 @@ async def handle_match_check(data):
     )
 
 
-async def handle_parlay_resolved_safe(data):
-    """Safe wrapper for handle_parlay_resolved that prevents listener crashes"""
+async def handle_prop_updated_safe(data):
+    """Safe wrapper for handle_prop_updated that prevents listener crashes"""
     try:
-        await handle_parlay_resolved(data)
+        await handle_prop_updated(data)
     except Exception as e:
-        logger.error(f"Error handling parlay_resolved message: {e}", exc_info=True)
+        logger.error(f"Error handling prop_updated message: {e}", exc_info=True)
         logger.error(f"Full traceback: {traceback.format_exc()}")
+
 
 async def handle_match_check_safe(data):
     """Safe wrapper for handle_match_check that prevents listener crashes"""
@@ -711,18 +564,19 @@ async def handle_match_check_safe(data):
         logger.error(f"Error handling match_check message: {e}", exc_info=True)
         logger.error(f"Full traceback: {traceback.format_exc()}")
 
-async def listen_for_parlay_resolved():
-    """Function that listens for a parlay_resolved message on redis"""
+
+async def listen_for_prop_updated():
+    """Function that listens for prop_updated messages on redis"""
     while True:
         redis_subscriber = None
         try:
             redis_subscriber = await create_async_redis_client()
-            logger.info("Listening for parlay_resolved messages...")
+            logger.info("Listening for prop_updated messages...")
             await listen_for_messages_async(
-                redis_subscriber, "parlay_resolved", handle_parlay_resolved_safe
+                redis_subscriber, "prop_updated", handle_prop_updated_safe
             )
         except Exception as e:
-            logger.error(f"Error in parlay_resolved listener, restarting: {e}")
+            logger.error(f"Error in prop_updated listener, restarting: {e}")
             logger.error(f"Full traceback: {traceback.format_exc()}")
             await asyncio.sleep(5)  # Brief delay before restart
         finally:
@@ -750,10 +604,10 @@ async def listen_for_match_check():
 
 
 async def main():
-    """Main function that listens for both parlay_resolved and match_check messages."""
+    """Main function that listens for both prop_updated and match_check messages."""
     try:
         # Run both listeners concurrently
-        await asyncio.gather(listen_for_parlay_resolved(), listen_for_match_check())
+        await asyncio.gather(listen_for_prop_updated(), listen_for_match_check())
     except KeyboardInterrupt:
         logger.warning("Shutting down matches_worker...")
         # Ensure pool cleanup on shutdown

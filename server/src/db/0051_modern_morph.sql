@@ -1,1 +1,0 @@
-ALTER TABLE "player" ALTER COLUMN "status" SET NOT NULL;

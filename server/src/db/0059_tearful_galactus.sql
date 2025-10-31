@@ -1,1 +1,0 @@
-ALTER TABLE "football_player_stats" ALTER COLUMN "status" SET DEFAULT 'INACT';

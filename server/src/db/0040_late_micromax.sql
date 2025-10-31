@@ -1,1 +1,0 @@
-ALTER TABLE "football_player_stats" ADD COLUMN "fumble_recoveries" integer DEFAULT 0 NOT NULL;

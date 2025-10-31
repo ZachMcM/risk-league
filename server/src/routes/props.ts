@@ -15,7 +15,6 @@ import { db } from "../db";
 import {
   baseballPlayerStats,
   basketballPlayerStats,
-  dynastyLeagueUser,
   footballPlayerStats,
   game,
   leagueType,
@@ -42,9 +41,9 @@ propsRoute.get(
         return;
       }
 
-      if (!req.query.matchId && !req.query.dynastyLeagueId) {
+      if (!req.query.matchId) {
         res.status(400).json({
-          error: "You must provide either a matchId or a dynastyLeagueId",
+          error: "You must provide a matchId",
         });
         return;
       }
@@ -52,100 +51,52 @@ propsRoute.get(
       let league;
       const propsPickedAlready: number[] = [];
 
-      if (req.query.matchId) {
-        const matchId = parseInt(req.query.matchId as string);
+      const matchId = parseInt(req.query.matchId as string);
 
-        if (isNaN(matchId)) {
-          res.status(400).json({ error: "Invalid matchId" });
-          return;
-        }
+      if (isNaN(matchId)) {
+        res.status(400).json({ error: "Invalid matchId" });
+        return;
+      }
 
-        logger.debug(`matchId: ${matchId}`);
+      logger.debug(`matchId: ${matchId}`);
 
-        const matchUserResult = await db.query.matchUser.findFirst({
-          where: and(
-            eq(matchUser.userId, res.locals.userId!),
-            eq(matchUser.matchId, matchId)
-          ),
-          with: {
-            parlays: {
-              with: {
-                picks: {
-                  columns: {
-                    propId: true,
-                  },
+      const matchUserResult = await db.query.matchUser.findFirst({
+        where: and(
+          eq(matchUser.userId, res.locals.userId!),
+          eq(matchUser.matchId, matchId)
+        ),
+        with: {
+          parlays: {
+            with: {
+              picks: {
+                columns: {
+                  propId: true,
                 },
-              },
-            },
-            match: {
-              columns: {
-                league: true,
               },
             },
           },
-        });
-
-        if (!matchUserResult) {
-          res.status(404).json({
-            error: "No matchUser found with the provided credentials",
-          });
-          return;
-        }
-
-        league = matchUserResult.match.league;
-
-        matchUserResult.parlays.forEach((parlay) => {
-          parlay.picks.forEach((pick) => {
-            propsPickedAlready.push(pick.propId);
-          });
-        });
-      } else {
-        const dynastyLeagueId = parseInt(req.query.dynastyLeagueId as string);
-
-        if (isNaN(dynastyLeagueId)) {
-          res.status(400).json({ error: "Invalid dynastyLeagueId" });
-          return;
-        }
-
-        const dynastyLeagueUserResult =
-          await db.query.dynastyLeagueUser.findFirst({
-            where: and(
-              eq(dynastyLeagueUser.userId, res.locals.userId!),
-              eq(dynastyLeagueUser.dynastyLeagueId, dynastyLeagueId)
-            ),
-            with: {
-              parlays: {
-                with: {
-                  picks: {
-                    columns: {
-                      propId: true,
-                    },
-                  },
-                },
-              },
-              dynastyLeague: {
-                columns: {
-                  league: true,
-                },
-              },
+          match: {
+            columns: {
+              league: true,
             },
-          });
+          },
+        },
+      });
 
-        if (!dynastyLeagueUserResult) {
-          res.status(404).json({
-            error: "No dynastyLeagueUser found",
-          });
-          return;
-        }
-
-        league = dynastyLeagueUserResult.dynastyLeague.league;
-
-        dynastyLeagueUserResult.parlays.forEach((parlay) => {
-          parlay.picks.forEach((pick) => {
-            propsPickedAlready.push(pick.propId);
-          });
+      if (!matchUserResult) {
+        res.status(404).json({
+          error: "No matchUser found with the provided credentials",
         });
+        return;
       }
+
+      league = matchUserResult.match.league;
+
+      matchUserResult.parlays.forEach((parlay) => {
+        parlay.picks.forEach((pick) => {
+          propsPickedAlready.push(pick.propId);
+        });
+      });
 
       const playerResult = await db.query.player.findFirst({
         where: and(eq(player.playerId, playerId), eq(player.league, league)),
@@ -323,26 +274,21 @@ propsRoute.get("/props/today", authMiddleware, async (req, res) => {
     const matchId = req.query.matchId
       ? parseInt(req.query.matchId as string)
       : undefined;
-    const dynastyLeagueId = req.query.dynastyLeagueId
-      ? parseInt(req.query.dynastyLeagueId as string)
-      : undefined;
     const league = req.query.league as
       | (typeof leagueType.enumValues)[number]
       | undefined;
 
-    if (!matchId && !dynastyLeagueId && !league) {
+    if (!matchId && !league) {
       res.status(400).json({
-        error:
-          "Invalid params, no matchId, dynastyLeagueId, or league was provided",
+        error: "Invalid params, no matchId or league was provided",
       });
       return;
     }
 
-    if (matchId || dynastyLeagueId) {
+    if (matchId) {
       const result = await getAvailablePropsForUser({
         userId: res.locals.userId!,
         matchId,
-        dynastyLeagueId,
         fullData: true,
       });
       res.json(result.props);
@@ -398,7 +344,7 @@ propsRoute.get("/props/today", authMiddleware, async (req, res) => {
 
       res.json(extendedAvailableProps);
     } else {
-      res.json({ error: "Please pass in league, matchId, or dynastyLeagueId" });
+      res.json({ error: "Please pass in league or matchId" });
     }
   } catch (error) {
     handleError(error, res, "Props route");

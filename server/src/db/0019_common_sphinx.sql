@@ -1,1 +1,0 @@
-ALTER TABLE "friendly_match_request" ADD COLUMN "league" text NOT NULL;

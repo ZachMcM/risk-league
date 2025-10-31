@@ -2,11 +2,8 @@ import { and, desc, eq, ilike, ne } from "drizzle-orm";
 import { Router } from "express";
 import { db } from "../db";
 import {
-  cosmetic,
-  cosmeticType,
   leagueType,
   user,
-  userCosmetic,
 } from "../db/schema";
 import { authMiddleware } from "../middleware";
 import { ranks } from "../types/ranks";
@@ -41,103 +38,6 @@ usersRoute.patch("/users/expo-push-token", authMiddleware, async (req, res) => {
     handleError(error, res, "User");
   }
 });
-
-usersRoute.patch("/users/banner", authMiddleware, async (req, res) => {
-  try {
-    const userId = res.locals.userId!;
-    console.log(req.body);
-    if (!req.body.banner) {
-      res.status(400).json({ error: "Missing banner" });
-      return;
-    }
-    const { banner } = req.body;
-
-    const cosmeticExists = await db.query.cosmetic.findFirst({
-      where: and(eq(cosmetic.type, "banner"), eq(cosmetic.url, banner)),
-    });
-
-    if (!cosmeticExists) {
-      res.status(404).json({ error: "This banner doesn't exist" });
-      return;
-    }
-
-    await db.update(user).set({ banner }).where(eq(user.id, userId));
-
-    invalidateQueries(["user", res.locals.userId!]);
-
-    res.json({ success: true });
-  } catch (error) {
-    handleError(error, res, "Users");
-  }
-});
-
-usersRoute.get("/users/cosmetics/all", authMiddleware, async (req, res) => {
-  try {
-    const allUserCosmetics = await db.query.userCosmetic.findMany({
-      where: eq(userCosmetic.userId, res.locals.userId!),
-    });
-
-    res.json(allUserCosmetics);
-  } catch (error) {
-    handleError(error, res, "Users");
-  }
-});
-
-usersRoute.get(
-  "/users/cosmetics/:cosmetic",
-  authMiddleware,
-  async (req, res) => {
-    try {
-      const id = res.locals.userId!;
-      const cosmeticTypeVal = req.params.cosmetic as
-        | (typeof cosmeticType.enumValues)[number]
-        | undefined;
-
-      if (
-        cosmeticTypeVal == undefined ||
-        !cosmeticType.enumValues.includes(cosmeticTypeVal)
-      ) {
-        res.status(400).json({ error: "Invalid cosmetic parameter" });
-        return;
-      }
-
-      const allCosmetics: {
-        id: number;
-        type: "banner" | "image";
-        title: string;
-        url: string;
-      }[] = [];
-
-      const defaultCosmetics = await db.query.cosmetic.findMany({
-        where: and(
-          eq(cosmetic.type, cosmeticTypeVal),
-          eq(cosmetic.isDefault, true)
-        ),
-      });
-
-      const achievedCosmetics = await db
-        .select({
-          id: cosmetic.id,
-          type: cosmetic.type,
-          title: cosmetic.title,
-          url: cosmetic.url,
-        })
-        .from(userCosmetic)
-        .innerJoin(cosmetic, eq(userCosmetic.cosmeticId, cosmetic.id))
-        .where(
-          and(eq(userCosmetic.userId, id), eq(cosmetic.type, cosmeticTypeVal))
-        )
-        .orderBy(desc(userCosmetic.acquiredAt));
-
-      allCosmetics.push(...achievedCosmetics);
-      allCosmetics.push(...defaultCosmetics);
-
-      res.json(allCosmetics);
-    } catch (error) {
-      handleError(error, res, "Users");
-    }
-  }
-);
 
 usersRoute.get("/users/:id/rank", authMiddleware, async (req, res) => {
   try {

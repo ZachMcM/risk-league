@@ -1,1 +1,0 @@
-ALTER TABLE "football_team_stats" DROP COLUMN "dk_fantasy_points";

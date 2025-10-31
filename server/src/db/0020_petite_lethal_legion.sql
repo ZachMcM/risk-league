@@ -1,1 +1,0 @@
-ALTER TABLE "prop" DROP COLUMN "league";

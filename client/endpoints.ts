@@ -1,11 +1,8 @@
 import { authClient } from "./lib/auth-client";
-import { BATTLE_PASS_ID, League } from "./lib/config";
-import { Cosmetic, UserBattlePassProgress } from "./types/battlePass";
-import { DynastyLeague, DynastyLeagueUser } from "./types/dynastyLeague";
+import { League } from "./lib/config";
 import { LeaderboardPage } from "./types/leaderboard";
-import { ExtendedMatch, FriendlyMatchRequest, Match } from "./types/match";
-import { Message } from "./types/message";
-import { Parlay, Pick } from "./types/parlay";
+import { ExtendedMatch, FriendlyMatchRequest } from "./types/match";
+import { Pick } from "./types/pick";
 import { Game, Prop, TodayPlayerProps } from "./types/prop";
 import { Rank } from "./types/rank";
 import { Career, Friendship, User } from "./types/user";
@@ -73,38 +70,6 @@ export async function getUser(id: string): Promise<User> {
   return user;
 }
 
-export async function getBattlePassProgress(): Promise<UserBattlePassProgress> {
-  const battlePassProgress = await serverRequest({
-    endpoint: `/battle-pass/${BATTLE_PASS_ID}/progress`,
-    method: "GET",
-  });
-
-  return battlePassProgress;
-}
-
-export async function postUserBattlePass() {
-  await serverRequest({
-    endpoint: `/battle-pass/${BATTLE_PASS_ID}`,
-    method: "POST",
-  });
-}
-
-export async function postClaimBattlePassTier(tierId: number) {
-  await serverRequest({
-    endpoint: `/battle-pass/${BATTLE_PASS_ID}/tier/${tierId}/claim`,
-    method: "POST",
-  });
-}
-
-export async function getAllUserCosmetics(): Promise<{ cosmeticId: number }[]> {
-  const all = await serverRequest({
-    endpoint: "/users/cosmetics/all",
-    method: "GET",
-  });
-
-  return all;
-}
-
 export async function patchUserBanner(banner: string) {
   return await serverRequest({
     endpoint: `/users/banner`,
@@ -134,17 +99,6 @@ export async function getUserRank(): Promise<{
   });
 
   return user;
-}
-
-export async function getUserCosmetics(
-  cosmeticType: "banner" | "image"
-): Promise<Cosmetic[]> {
-  const cosmetics = await serverRequest({
-    endpoint: `/users/cosmetics/${cosmeticType}`,
-    method: "GET",
-  });
-
-  return cosmetics;
 }
 
 export async function getUsers(query: string): Promise<User[]> {
@@ -183,171 +137,6 @@ export async function getMatch(id: number): Promise<ExtendedMatch> {
   return match;
 }
 
-export async function postDynastyLeague(
-  dynastyLeague: Omit<
-    DynastyLeague,
-    | "id"
-    | "createdAt"
-    | "resolved"
-    | "userCount"
-    | "dynastyLeagueUsers"
-    | "adminCup"
-    | "cashPrize"
-    | "maxUsers"
-  >
-) {
-  const newLeague: { id: number } = await serverRequest({
-    endpoint: "/dynastyLeagues",
-    method: "POST",
-    body: JSON.stringify(dynastyLeague),
-  });
-
-  return newLeague;
-}
-
-export async function patchDynastyLeagueUsersBonus({
-  dynastyLeagueId,
-  bonusValue,
-}: {
-  dynastyLeagueId: number;
-  bonusValue: number;
-}) {
-  await serverRequest({
-    endpoint: `/dynastyLeagues/${dynastyLeagueId}/users/bonus`,
-    method: "PATCH",
-    body: JSON.stringify({ bonusValue }),
-  });
-}
-
-export async function getDynastyLeague(id: number): Promise<DynastyLeague> {
-  const league = await serverRequest({
-    endpoint: `/dynastyLeagues/${id}`,
-    method: "GET",
-  });
-
-  return league;
-}
-
-export async function getDynastyLeagueIds(): Promise<number[]> {
-  const leagueIds = await serverRequest({
-    endpoint: `/dynastyLeagues`,
-    method: "GET",
-  });
-
-  return leagueIds;
-}
-
-export async function getDynastyLeagueUsers(
-  id: number
-): Promise<DynastyLeagueUser[]> {
-  const users = await serverRequest({
-    endpoint: `/dynastyLeagues/${id}/users`,
-    method: "GET",
-  });
-
-  return users;
-}
-
-export async function searchDynastyLeagues(
-  query: string
-): Promise<DynastyLeague[]> {
-  const dynastyLeagues = await serverRequest({
-    endpoint: `/dynastyLeagues/search?query=${query}`,
-    method: "GET",
-  });
-
-  return dynastyLeagues;
-}
-
-export async function patchDynastyLeagueJoin({
-  dynastyLeagueId,
-  inviteId,
-}: {
-  dynastyLeagueId: number;
-  inviteId?: string;
-}) {
-  await serverRequest({
-    endpoint: `/dynastyLeagues/${dynastyLeagueId}/join${
-      inviteId ? `?inviteId=${inviteId}` : ""
-    }`,
-    method: "POST",
-  });
-}
-
-export async function postDynastLeagueInvite(id: number) {
-  const newInvite: { id: string } = await serverRequest({
-    endpoint: `/dynastyLeagues/${id}/invite`,
-    method: "POST",
-  });
-
-  return newInvite;
-}
-
-export async function patchDynastyLeagueDemoteUser(
-  dynastyLeagueId: number,
-  userId: string
-) {
-  await serverRequest({
-    endpoint: `/dynastyLeagues/${dynastyLeagueId}/users/${userId}/demote`,
-    method: "PATCH",
-  });
-}
-
-export async function patchDynastyLeaguePromoteUser(
-  dynastyLeagueId: number,
-  userId: string
-) {
-  await serverRequest({
-    endpoint: `/dynastyLeagues/${dynastyLeagueId}/users/${userId}/promote`,
-    method: "PATCH",
-  });
-}
-
-export async function patchDynastyLeagueKickUser(
-  dynastyLeagueId: number,
-  userId: string
-) {
-  await serverRequest({
-    endpoint: `/dynastyLeagues/${dynastyLeagueId}/users/${userId}/kick`,
-    method: "DELETE",
-  });
-}
-
-export async function getMessages({
-  matchId,
-  dynastyLeagueId,
-}: {
-  matchId?: number;
-  dynastyLeagueId?: number;
-}): Promise<Message[]> {
-  const messages = await serverRequest({
-    endpoint: `/${matchId ? "matches" : "dynastyLeagues"}/${
-      matchId ?? dynastyLeagueId
-    }/messages`,
-    method: "GET",
-  });
-
-  return messages;
-}
-
-export async function postMessage({
-  matchId,
-  dynastyLeagueId,
-  content,
-}: {
-  matchId?: number;
-  dynastyLeagueId?: number;
-  content: string;
-}) {
-  await serverRequest({
-    endpoint: `/${matchId ? "matches" : "dynastyLeagues"}/${
-      matchId ?? dynastyLeagueId
-    }/messages`,
-    method: "POST",
-    body: JSON.stringify({ content }),
-  });
-}
-
 export async function getTodayPropsCount(
   league: League
 ): Promise<{ availableProps: number; totalGames: number }> {
@@ -362,19 +151,13 @@ export async function getTodayPropsCount(
 export async function getTodayProps({
   league,
   matchId,
-  dynastyLeagueId,
 }: {
   league?: League;
   matchId?: number;
-  dynastyLeagueId?: number;
 }): Promise<Prop[]> {
   const todayProps = await serverRequest({
     endpoint: `/props/today?${
-      matchId
-        ? `matchId=${matchId}`
-        : dynastyLeagueId
-        ? `dynastyLeagueId=${dynastyLeagueId}`
-        : `league=${league}`
+      matchId ? `matchId=${matchId}` : `league=${league}`
     }`,
     method: "GET",
   });
@@ -385,28 +168,15 @@ export async function getTodayProps({
 export async function getTodayPlayerProps({
   playerId,
   matchId,
-  dynastyLeagueId,
 }: {
   playerId: number;
-  matchId?: number;
-  dynastyLeagueId?: number;
+  matchId: number;
 }): Promise<TodayPlayerProps> {
   const todayPlayerProps = await serverRequest({
-    endpoint: `/props/today/players/${playerId}?${
-      matchId ? `matchId=${matchId}` : `dynastyLeagueId=${dynastyLeagueId}`
-    }`,
+    endpoint: `/props/today/players/${playerId}?matchId=${matchId}`,
     method: "GET",
   });
   return todayPlayerProps;
-}
-
-export async function getParlay(id: number): Promise<Parlay> {
-  const parlay = await serverRequest({
-    endpoint: `/parlays/${id}`,
-    method: "GET",
-  });
-
-  return parlay;
 }
 
 export async function getPick(id: number): Promise<Pick> {
@@ -416,56 +186,6 @@ export async function getPick(id: number): Promise<Pick> {
   });
 
   return pick;
-}
-
-export async function getParlays({
-  dynastyLeagueId,
-  matchId,
-}: {
-  matchId?: number;
-  dynastyLeagueId?: number;
-}): Promise<Parlay[]> {
-  const parlays = await serverRequest({
-    endpoint: `/parlays?${
-      matchId ? `matchId=${matchId}` : `dynastyLeagueId=${dynastyLeagueId}`
-    }`,
-    method: "GET",
-  });
-
-  return parlays;
-}
-
-export async function getOpponentParlays(matchId: number): Promise<Parlay[]> {
-  const oppParlays = await serverRequest({
-    endpoint: `/parlays/opponent?matchId=${matchId}`,
-    method: "GET",
-  });
-
-  return oppParlays;
-}
-
-export async function postParlay({
-  parlay,
-  matchId,
-  dynastyLeagueId,
-}: {
-  parlay: {
-    type: string;
-    stake: number;
-    picks: { prop: Prop; choice: string }[];
-  };
-  matchId?: number;
-  dynastyLeagueId?: number;
-}) {
-  const newParlay: { parlayId: number } = await serverRequest({
-    endpoint: `/parlays?${
-      matchId ? `matchId=${matchId}` : `dynastyLeagueId=${dynastyLeagueId}`
-    }`,
-    method: "POST",
-    body: JSON.stringify(parlay),
-  });
-
-  return newParlay;
 }
 
 export async function getFriendship(

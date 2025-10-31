@@ -12,12 +12,10 @@ import {
 export async function getAvailablePropsForUser({
   userId,
   matchId,
-  dynastyLeagueId,
   fullData,
 }: {
   userId: string;
-  matchId?: number;
-  dynastyLeagueId?: number;
+  matchId: number;
   fullData: boolean;
 }): Promise<{
   hasAvailableProps: boolean;
@@ -28,84 +26,37 @@ export async function getAvailablePropsForUser({
   const propsPickedAlready: number[] = [];
   let league: string | undefined;
 
-  if (matchId) {
-    if (isNaN(matchId)) {
-      throw new Error("Invalid matchId");
-    }
-
-    const matchUserResult = await db.query.matchUser.findFirst({
-      where: and(eq(matchUser.userId, userId), eq(matchUser.matchId, matchId)),
-      with: {
-        parlays: {
-          with: {
-            picks: {
-              columns: {
-                propId: true,
-              },
+  const matchUserResult = await db.query.matchUser.findFirst({
+    where: and(eq(matchUser.userId, userId), eq(matchUser.matchId, matchId)),
+    with: {
+      parlays: {
+        with: {
+          picks: {
+            columns: {
+              propId: true,
             },
           },
         },
-        match: {
-          columns: {
-            league: true,
-          },
+      },
+      match: {
+        columns: {
+          league: true,
         },
       },
-    });
+    },
+  });
 
-    if (!matchUserResult) {
-      throw new Error("No matchUser found with the provided credentials");
-    }
-
-    league = matchUserResult.match.league;
-
-    matchUserResult.parlays.forEach((parlay) => {
-      parlay.picks.forEach((pick) => {
-        propsPickedAlready.push(pick.propId);
-      });
-    });
-  } else if (dynastyLeagueId) {
-    if (isNaN(dynastyLeagueId)) {
-      throw new Error("Invalid dynastyLeagueId");
-    }
-
-    const dynastyLeagueUserResult = await db.query.dynastyLeagueUser.findFirst({
-      where: and(
-        eq(dynastyLeagueUser.userId, userId),
-        eq(dynastyLeagueUser.dynastyLeagueId, dynastyLeagueId)
-      ),
-      with: {
-        parlays: {
-          with: {
-            picks: {
-              columns: {
-                propId: true,
-              },
-            },
-          },
-        },
-        dynastyLeague: {
-          columns: {
-            league: true,
-          },
-        },
-      },
-    });
-
-    if (!dynastyLeagueUserResult) {
-      throw new Error("No dynastyLeagueUser found");
-    }
-
-    league = dynastyLeagueUserResult.dynastyLeague.league;
-
-    dynastyLeagueUserResult.parlays.forEach((parlay) => {
-      parlay.picks.forEach((pick) => {
-        propsPickedAlready.push(pick.propId);
-      });
-    });
-  } else {
-    throw new Error("You must provide either a matchId or a dynastyLeagueId");
+  if (!matchUserResult) {
+    throw new Error("No matchUser found with the provided credentials");
   }
+
+  league = matchUserResult.match.league;
+
+  matchUserResult.parlays.forEach((parlay) => {
+    parlay.picks.forEach((pick) => {
+      propsPickedAlready.push(pick.propId);
+    });
+  });
 
   if (!league || !leagueType.enumValues.includes(league as any)) {
     throw new Error("Invalid league");

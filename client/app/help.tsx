@@ -6,7 +6,6 @@ import MatchesHelp from "~/components/help/MatchesHelp";
 import ModalContainer from "~/components/ui/modal-container";
 import { ScrollContainer } from "~/components/ui/scroll-container";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
-import DynastyHelp from "~/components/help/DynastyHelp";
 import ParlaysHelp from "~/components/help/ParlaysHelp";
 
 export default function Help() {
@@ -58,12 +57,6 @@ export default function Help() {
             </TabsContent>
             <TabsContent value="parlays" className="px-4 pt-4">
               <ParlaysHelp
-                handleSectionLayout={handleSectionLayout}
-                scrollToSection={scrollToSection}
-              />
-            </TabsContent>
-            <TabsContent value="dynasty" className="px-4 pt-4">
-              <DynastyHelp
                 handleSectionLayout={handleSectionLayout}
                 scrollToSection={scrollToSection}
               />

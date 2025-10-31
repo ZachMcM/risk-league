@@ -3,14 +3,12 @@ import { Socket } from "socket.io";
 import { io } from "..";
 import {
   BOT_TIMER_MS,
-  MAX_STARTING_BALANCE,
-  MIN_STARTING_BALANCE,
 } from "../config";
 import { db } from "../db";
 import { leagueType, match, matchUser, user } from "../db/schema";
+import { createBotMatch } from "../lib/botManager";
 import { logger } from "../logger";
 import { redis } from "../redis";
-import { createBotMatch } from "../lib/botManager";
 import { getRank } from "../utils/getRank";
 import { invalidateQueries } from "../utils/invalidateQueries";
 
@@ -25,14 +23,27 @@ export async function createMatch({
   league: (typeof leagueType.enumValues)[number];
   type?: string;
 }) {
-  const startingBalance = Math.round(
-    MIN_STARTING_BALANCE +
-      Math.random() * (MAX_STARTING_BALANCE - MIN_STARTING_BALANCE)
-  );
+  // Check if either user is already in an unresolved match
+  const existingMatches = await db
+    .select({ userId: matchUser.userId })
+    .from(matchUser)
+    .innerJoin(match, eq(matchUser.matchId, match.id))
+    .where(eq(match.resolved, false));
+
+  const usersInMatches = new Set(existingMatches.map((m) => m.userId));
+
+  if (usersInMatches.has(user1Id) || usersInMatches.has(user2Id)) {
+    logger.warn(
+      `Attempted to create match with users already in unresolved matches: ${user1Id}, ${user2Id}`
+    );
+    return null;
+  }
+
+  const draftEndTime = new Date(Date.now() + 5 * 60 * 1000).toISOString();
 
   const [matchResult] = await db
     .insert(match)
-    .values({ resolved: false, league, type })
+    .values({ resolved: false, league, type, draftEndTime })
     .returning({ id: match.id });
 
   const { points: user1Points } = (
@@ -52,16 +63,12 @@ export async function createMatch({
 
   await db.insert(matchUser).values({
     pointsSnapshot: user1Points,
-    startingBalance,
-    balance: startingBalance,
     userId: user1Id,
     matchId: matchResult.id,
   });
 
   await db.insert(matchUser).values({
     pointsSnapshot: user2Points,
-    startingBalance,
-    balance: startingBalance,
     userId: user2Id,
     matchId: matchResult.id,
   });
@@ -75,6 +82,9 @@ export async function createMatch({
 }
 
 const getQueueKey = (league: string) => `matchmaking:queue:${league}`;
+
+// Store bot timers by userId to allow clearing them when matches are found
+const botTimers = new Map<string, NodeJS.Timeout>();
 
 export async function cleanInvalidEntries() {
   for (const league of ["mlb", "nba", "nfl", "mccb", "cfb"]) {
@@ -118,10 +128,24 @@ export async function getPair(league: string): Promise<{
         user1Rank?.tier === user2Rank?.tier &&
         user1Rank?.level === user2Rank?.level
       ) {
-        await redis.lRem(queueKey, 0, user1);
-        await redis.lRem(queueKey, 0, user2);
+        // Atomically remove both users - only proceed if BOTH were actually in the queue
+        const user1Removed = await redis.lRem(queueKey, 1, user1);
+        const user2Removed = await redis.lRem(queueKey, 1, user2);
 
-        return { user1, user2 };
+        // If both users were successfully removed, we have a valid pair
+        if (user1Removed > 0 && user2Removed > 0) {
+          return { user1, user2 };
+        }
+
+        // If only one was removed, put them back in the queue
+        if (user1Removed > 0) {
+          await redis.rPush(queueKey, user1);
+        }
+        if (user2Removed > 0) {
+          await redis.rPush(queueKey, user2);
+        }
+
+        // Continue searching for other pairs
       }
     }
   }
@@ -165,8 +189,12 @@ export async function matchMakingHandler(socket: Socket) {
         `User ${userId} waited ${BOT_TIMER_MS / 1000}s, creating bot match`
       );
       await createBotMatch(userId, league);
+      botTimers.delete(userId);
     }
   }, BOT_TIMER_MS);
+
+  // Store the timer so we can clear it if a match is found
+  botTimers.set(userId, botTimer);
 
   const tryMatchmaking = async () => {
     // Clean up any invalid entries first
@@ -175,15 +203,26 @@ export async function matchMakingHandler(socket: Socket) {
     const pair = await getPair(league);
 
     if (pair) {
-      clearTimeout(botTimer);
+      const { user1, user2 } = pair;
+
+      // Clear bot timers for both matched users to prevent double-matching
+      const user1Timer = botTimers.get(user1);
+      const user2Timer = botTimers.get(user2);
+
+      if (user1Timer) {
+        clearTimeout(user1Timer);
+        botTimers.delete(user1);
+      }
+      if (user2Timer) {
+        clearTimeout(user2Timer);
+        botTimers.delete(user2);
+      }
 
       const matchId = await createMatch({
         user1Id: pair.user1,
         user2Id: pair.user2,
         league: league as (typeof leagueType.enumValues)[number],
       });
-
-      const { user1, user2 } = pair;
 
       if (!matchId) {
         logger.error("Matchmaking failed due to failure to insert match");
@@ -202,13 +241,21 @@ export async function matchMakingHandler(socket: Socket) {
 
   socket.on("disconnect", () => {
     logger.info(`User ${userId} disconnected`);
-    clearTimeout(botTimer);
+    const timer = botTimers.get(userId);
+    if (timer) {
+      clearTimeout(timer);
+      botTimers.delete(userId);
+    }
     removeFromQueue(userId, league);
   });
 
   socket.on("cancel-search", () => {
     logger.info(`User ${userId} cancelled search`);
-    clearTimeout(botTimer);
+    const timer = botTimers.get(userId);
+    if (timer) {
+      clearTimeout(timer);
+      botTimers.delete(userId);
+    }
     removeFromQueue(userId, league);
     socket.disconnect();
   });

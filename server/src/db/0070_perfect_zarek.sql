@@ -1,1 +1,0 @@
-ALTER TYPE "public"."dynasty_league_user_roles" ADD VALUE 'owner' BEFORE 'manager';

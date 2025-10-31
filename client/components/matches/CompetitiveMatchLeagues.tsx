@@ -173,7 +173,9 @@ export default function CompetitiveMatchLeagues() {
             {selectedLeagueData.gamesCount} Games
           </Text>
         ) : (
-          <Text className="text-muted-foreground font-semibold">Select a League</Text>
+          <Text className="text-muted-foreground font-semibold">
+            Select a League
+          </Text>
         )}
       </View>
       <ScrollView

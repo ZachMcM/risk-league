@@ -1,1 +1,0 @@
-ALTER TABLE "football_team_stats" ADD COLUMN "completions" integer DEFAULT 0 NOT NULL;

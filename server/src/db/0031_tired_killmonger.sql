@@ -1,1 +1,0 @@
-ALTER TABLE "baseball_team_stats" ADD COLUMN "id" serial PRIMARY KEY NOT NULL;

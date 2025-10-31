@@ -4,12 +4,6 @@ import {
   baseballTeamStats,
   basketballPlayerStats,
   basketballTeamStats,
-  battlePass,
-  battlePassTier,
-  cosmetic,
-  dynastyLeague,
-  dynastyLeagueInvitation,
-  dynastyLeagueUser,
   footballPlayerStats,
   footballTeamStats,
   friendlyMatchRequest,
@@ -18,14 +12,11 @@ import {
   match,
   matchUser,
   message,
-  parlay,
   pick,
   player,
   prop,
   team,
   user,
-  userBattlePassProgress,
-  userCosmetic,
 } from "./schema";
 
 export const userRelations = relations(user, ({ many }) => ({
@@ -42,58 +33,7 @@ export const userRelations = relations(user, ({ many }) => ({
   incomingFriendlyMatchRequests: many(friendlyMatchRequest, {
     relationName: "incomingFriendlyMatchRequests",
   }),
-  dynastyLeagueUsers: many(dynastyLeagueUser),
-  outgoingDynastyLeagueInvitations: many(dynastyLeagueInvitation, {
-    relationName: "outgoingDynastyLeagueInvitations",
-  }),
-  incomingDynastyLeagueInvitations: many(dynastyLeagueInvitation, {
-    relationName: "incomingDynastyLeagueInvitations",
-  }),
-  userCosmetics: many(userCosmetic, {
-    relationName: "userCosmetics",
-  }),
 }));
-
-export const userCosmeticRelations = relations(userCosmetic, ({ one }) => ({
-  user: one(user, {
-    fields: [userCosmetic.userId],
-    references: [user.id],
-  }),
-  cosmetic: one(cosmetic, {
-    fields: [userCosmetic.cosmeticId],
-    references: [cosmetic.id],
-  }),
-}));
-
-export const battlePassRelations = relations(battlePass, ({ many }) => ({
-  tiers: many(battlePassTier),
-  usersProgress: many(userBattlePassProgress),
-}));
-
-export const battlePassTierRelations = relations(battlePassTier, ({ one }) => ({
-  cosmetic: one(cosmetic, {
-    fields: [battlePassTier.cosmeticId],
-    references: [cosmetic.id],
-  }),
-  battlePass: one(battlePass, {
-    fields: [battlePassTier.battlePassId],
-    references: [battlePass.id],
-  }),
-}));
-
-export const userBattlePassProgressRelations = relations(
-  userBattlePassProgress,
-  ({ one }) => ({
-    user: one(user, {
-      fields: [userBattlePassProgress.userId],
-      references: [user.id],
-    }),
-    battlePass: one(battlePass, {
-      fields: [userBattlePassProgress.battlePassId],
-      references: [battlePass.id],
-    }),
-  })
-);
 
 export const matchRelations = relations(match, ({ many }) => ({
   matchUsers: many(matchUser),
@@ -109,42 +49,7 @@ export const messageRelations = relations(message, ({ one }) => ({
     fields: [message.matchId],
     references: [match.id],
   }),
-  dynastyLeague: one(dynastyLeague, {
-    fields: [message.dynastyLeagueId],
-    references: [dynastyLeague.id],
-  }),
 }));
-
-export const dynastyLeagueInvitationRelations = relations(
-  dynastyLeagueInvitation,
-  ({ one }) => ({
-    dynastyLeague: one(dynastyLeague, {
-      fields: [dynastyLeagueInvitation.dynastyLeagueId],
-      references: [dynastyLeague.id],
-    }),
-  })
-);
-
-export const dynastyLeagueRelations = relations(dynastyLeague, ({ many }) => ({
-  dynastyLeagueUsers: many(dynastyLeagueUser),
-  messages: many(message),
-}));
-
-export const dynastyLeagueUserRelations = relations(
-  dynastyLeagueUser,
-  ({ one, many }) => ({
-    user: one(user, {
-      fields: [dynastyLeagueUser.userId],
-      references: [user.id],
-    }),
-    dynastyLeague: one(dynastyLeague, {
-      fields: [dynastyLeagueUser.dynastyLeagueId],
-      references: [dynastyLeague.id],
-    }),
-    parlays: many(parlay),
-    battlePassProgressions: many(userBattlePassProgress),
-  })
-);
 
 export const gameRelations = relations(game, ({ one, many }) => ({
   awayTeam: one(team, {
@@ -165,9 +70,9 @@ export const gameRelations = relations(game, ({ one, many }) => ({
 }));
 
 export const pickRelations = relations(pick, ({ one }) => ({
-  parlay: one(parlay, {
-    fields: [pick.parlayId],
-    references: [parlay.id],
+  matchUser: one(matchUser, {
+    fields: [pick.matchUserId],
+    references: [matchUser.id],
   }),
   prop: one(prop, {
     fields: [pick.propId],
@@ -208,18 +113,6 @@ export const propRelations = relations(prop, ({ one, many }) => ({
   picks: many(pick),
 }));
 
-export const parlayRelations = relations(parlay, ({ one, many }) => ({
-  matchUser: one(matchUser, {
-    fields: [parlay.matchUserId],
-    references: [matchUser.id],
-  }),
-  dynastyLeagueUser: one(dynastyLeagueUser, {
-    fields: [parlay.dynastyLeagueUserId],
-    references: [dynastyLeagueUser.id],
-  }),
-  picks: many(pick),
-}));
-
 export const matchUserRelations = relations(matchUser, ({ one, many }) => ({
   user: one(user, {
     fields: [matchUser.userId],
@@ -229,7 +122,7 @@ export const matchUserRelations = relations(matchUser, ({ one, many }) => ({
     fields: [matchUser.matchId],
     references: [match.id],
   }),
-  parlays: many(parlay),
+  picks: many(pick),
 }));
 
 export const friendshipRelations = relations(friendship, ({ one }) => ({

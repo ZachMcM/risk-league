@@ -1,1 +1,0 @@
-ALTER TABLE "dynasty_league" ADD COLUMN "tags" text[] NOT NULL;

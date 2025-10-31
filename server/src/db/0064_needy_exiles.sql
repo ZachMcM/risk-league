@@ -1,1 +1,0 @@
-ALTER TABLE "user" RENAME COLUMN "header" TO "banner";

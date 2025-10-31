@@ -1,1 +1,0 @@
-ALTER TABLE "parlay" RENAME COLUMN "delta" TO "profit";

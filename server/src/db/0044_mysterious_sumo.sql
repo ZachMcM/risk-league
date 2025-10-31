@@ -1,2 +1,0 @@
-ALTER TABLE "football_team_stats" RENAME COLUMN "total_passing_yards_allowed" TO "passing_yards_allowed";--> statement-breakpoint
-ALTER TABLE "football_team_stats" RENAME COLUMN "total_rushing_yards_allowed" TO "rushing_yards_allowed";

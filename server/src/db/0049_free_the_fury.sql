@@ -1,1 +1,0 @@
-ALTER TABLE "player" ADD COLUMN "status" text;

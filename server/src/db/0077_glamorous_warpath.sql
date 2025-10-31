@@ -1,1 +1,0 @@
-ALTER TABLE "team" RENAME COLUMN "alternateColor" TO "alternate_color";

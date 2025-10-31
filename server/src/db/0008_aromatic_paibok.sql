@@ -1,1 +1,0 @@
-ALTER TABLE "game" RENAME COLUMN "startTime" TO "start_time";

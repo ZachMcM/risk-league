@@ -9,8 +9,6 @@ import { handleError } from "../utils/handleError";
 
 export const gamesRoute = Router();
 
-const gamesSchema = createInsertSchema(game);
-
 gamesRoute.get(
   "/games/league/:league/today",
   authMiddleware,

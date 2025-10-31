@@ -1,1 +1,0 @@
-ALTER TABLE "baseball_player_stats" RENAME COLUMN "pitchesThrown" TO "pitches_thrown";

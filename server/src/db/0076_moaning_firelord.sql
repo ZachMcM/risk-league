@@ -1,1 +1,0 @@
-ALTER TABLE "dynasty_league" ALTER COLUMN "cash_prize" SET DATA TYPE double precision USING CASE WHEN cash_prize = true THEN 0.0 ELSE NULL END;
