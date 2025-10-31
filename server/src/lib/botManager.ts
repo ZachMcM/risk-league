@@ -1,97 +1,176 @@
-import { and, eq, gt, gte, InferSelectModel, lt, ne } from "drizzle-orm";
-import { v4 as uuidv4 } from "uuid";
+import { and, eq, ne } from "drizzle-orm";
 import {
   DEFAULT_PROFANITY,
   uniqueUsernameGenerator,
 } from "unique-username-generator";
+import { v4 as uuidv4 } from "uuid";
 import { io } from "..";
-import { MIN_PCT_TOTAL_STAKED } from "../config";
+import { getPickRequirements } from "../constants/draftRequirements";
 import { db } from "../db";
 import {
-  cosmetic,
-  game,
   leagueType,
   match,
   matchUser,
-  parlay,
   pick,
-  prop,
   user,
 } from "../db/schema";
 import { logger } from "../logger";
+import { sendPushNotification } from "../routes/pushNotifications";
 import { createMatch } from "../sockets/matchmaking";
 import { Rank } from "../types/ranks";
 import { getAvailablePropsForUser } from "../utils/getAvailableProps";
 import { getRank } from "../utils/getRank";
-import { getCombinedDictionaries } from "./usernameDictionaries";
 import { invalidateQueries } from "../utils/invalidateQueries";
-import { sendPushNotification } from "../routes/pushNotifications";
-import { botParlayQueue } from "../queues/botParlayQueue";
-import moment from "moment";
+import { getCombinedDictionaries } from "./usernameDictionaries";
 
-export async function initializeBotParlays(botId: string, matchId: number) {
-  logger.info(`Initializing bot parlays for bot ${botId} in match ${matchId}`);
+/**
+ * Creates a draft for a bot in a match by selecting props that satisfy position requirements
+ */
+export async function createBotDraft(botId: string, matchId: number) {
+  try {
+    logger.info(`Creating bot draft for bot ${botId} in match ${matchId}`);
 
-  const now = moment();
-  const startTime = now.clone().subtract(6, "hours").toISOString();
-  const endTime = now.clone().add(18, "hours").toISOString();
+    // Get the match and league
+    const matchResult = await db.query.match.findFirst({
+      where: eq(match.id, matchId),
+      columns: {
+        league: true,
+        resolved: true,
+      },
+    });
 
-  const [{ league }] = await db
-    .select({ league: match.league })
-    .from(match)
-    .where(eq(match.id, matchId));
-
-  const availableGames = await db.query.game.findMany({
-    where: and(
-      gte(game.startTime, startTime),
-      lt(game.startTime, endTime),
-      gt(game.startTime, new Date().toISOString()),
-      eq(game.league, league as any)
-    ),
-  });
-
-  let gamesWithin = 0;
-
-  for (const gameEntry of availableGames) {
-    const gameTime = moment(gameEntry.startTime!);
-    const msUntilGame = gameTime.diff(moment(), 'milliseconds');
-    if (msUntilGame <= 480_000) {
-      gamesWithin++;
+    if (!matchResult || matchResult.resolved) {
+      logger.warn(`Match ${matchId} not found or already resolved, skipping bot draft`);
+      return;
     }
-  }
 
-  // Have to create the parlays right away to avoid time running out
-  if (gamesWithin == availableGames.length) {
-    await createBotParlay(botId, matchId);
-    await createBotParlay(botId, matchId);
-    return
-  }
+    // Get bot's matchUser record
+    const botMatchUser = await db.query.matchUser.findFirst({
+      where: and(
+        eq(matchUser.userId, botId),
+        eq(matchUser.matchId, matchId)
+      ),
+    });
 
-  // First parlay: 30-90 seconds after match start
-  const firstDelay = 30000 + Math.random() * 60000;
-  await botParlayQueue.add(
-    `parlay-1-bot-${botId}-match-${matchId}`,
-    { botId, matchId },
-    { delay: firstDelay }
-  );
+    if (!botMatchUser) {
+      logger.warn(`Bot ${botId} not found in match ${matchId}`);
+      return;
+    }
 
-  // Second parlay: 3-8 minutes later
-  const secondDelay = 180000 + Math.random() * 300000;
-  await botParlayQueue.add(
-    `parlay-2-bot-${botId}-match-${matchId}`,
-    { botId, matchId },
-    { delay: secondDelay }
-  );
+    // Get available props with full data
+    const { props: availableProps } = await getAvailablePropsForUser({
+      userId: botId,
+      matchId,
+      fullData: true,
+    });
 
-  // Optional third parlay: 10-15 minutes (5% chance)
-  if (Math.random() < 0.05) {
-    const thirdDelay = 600000 + Math.random() * 300000;
-    await botParlayQueue.add(
-      `parlay-3-bot-${botId}-match-${matchId}`,
-      { botId, matchId },
-      { delay: thirdDelay }
+    if (!availableProps || availableProps.length === 0) {
+      logger.warn(`No available props for bot ${botId} in match ${matchId}`);
+      return;
+    }
+
+    // Get pick requirements for this league
+    const requirements = getPickRequirements(matchResult.league);
+
+    // Build the draft picks
+    const draftPicks: Array<{
+      propId: number;
+      choice: "over" | "under";
+      matchUserId: number;
+    }> = [];
+
+    const usedPropIds = new Set<number>();
+
+    // For each position requirement, select random eligible props
+    for (const requirement of requirements) {
+      const eligibleProps = availableProps.filter(
+        (p) =>
+          requirement.eligiblePositions.includes(p.player.position) &&
+          !usedPropIds.has(p.id)
+      );
+
+      if (eligibleProps.length < requirement.count) {
+        logger.warn(
+          `Not enough eligible props for ${requirement.name} (need ${requirement.count}, have ${eligibleProps.length})`
+        );
+        // Can't complete a valid draft, abort
+        return;
+      }
+
+      // Randomly select the required number of props
+      const selectedProps = selectRandomItems(eligibleProps, requirement.count);
+
+      for (const selectedProp of selectedProps) {
+        usedPropIds.add(selectedProp.id);
+
+        // Randomly choose over or under
+        const choice = Math.random() > 0.5 ? "over" : "under";
+
+        draftPicks.push({
+          propId: selectedProp.id,
+          choice,
+          matchUserId: botMatchUser.id,
+        });
+      }
+    }
+
+    // Insert all picks in a transaction
+    await db.insert(pick).values(draftPicks);
+
+    invalidateQueries(["match", matchId]);
+
+    // Get the opponent to send notification
+    const opponentMatchUser = await db.query.matchUser.findFirst({
+      where: and(
+        eq(matchUser.matchId, matchId),
+        ne(matchUser.userId, botId)
+      ),
+      with: {
+        user: {
+          columns: {
+            id: true,
+            username: true,
+          },
+        },
+      },
+    });
+
+    const botUser = await db.query.user.findFirst({
+      where: eq(user.id, botId),
+      columns: {
+        username: true,
+      },
+    });
+
+    if (opponentMatchUser) {
+      sendPushNotification(
+        opponentMatchUser.user.id,
+        "Opponent Drafted",
+        `${botUser?.username || "Bot"} completed their draft with ${draftPicks.length} picks!`,
+        {
+          matchId,
+          url: `/match/${matchId}`,
+        }
+      );
+    }
+
+    logger.info(
+      `Bot ${botId} completed draft in match ${matchId} with ${draftPicks.length} picks`
+    );
+  } catch (error) {
+    logger.error(
+      `Failed to create bot draft for bot ${botId} in match ${matchId}:`,
+      error
     );
   }
+}
+
+/**
+ * Helper function to select N random items from an array without replacement
+ */
+function selectRandomItems<T>(items: T[], count: number): T[] {
+  const shuffled = [...items].sort(() => Math.random() - 0.5);
+  return shuffled.slice(0, count);
 }
 
 export async function createBotMatch(userId: string, league: string) {
@@ -114,10 +193,14 @@ export async function createBotMatch(userId: string, league: string) {
     if (matchId) {
       io.of("/matchmaking").to(userId).emit("match-found", { matchId });
 
-      initializeBotParlays(botId, matchId);
+      // Schedule bot draft with a random delay (10-120 seconds) to simulate human behavior
+      const draftDelay = 10000 + Math.random() * 110000;
+      setTimeout(() => {
+        createBotDraft(botId, matchId);
+      }, draftDelay);
 
       logger.info(
-        `Created bot match ${matchId} for user ${userId} with bot ${botId}`
+        `Created bot match ${matchId} for user ${userId} with bot ${botId}, bot will draft in ${Math.round(draftDelay / 1000)}s`
       );
     }
   } catch (error) {
@@ -126,302 +209,6 @@ export async function createBotMatch(userId: string, league: string) {
   }
 }
 
-export async function createBotParlay(botId: string, matchId: number) {
-  try {
-    const botMatchUserRes = await db.query.matchUser.findFirst({
-      where: and(
-        eq(matchUser.userId, botId),
-        eq(matchUser.status, "not_resolved")
-      ),
-    });
-
-    if (botMatchUserRes == undefined) {
-      logger.info(
-        `Bot ${botId} no longer in active match ${matchId}, skipping`
-      );
-      return;
-    }
-
-    const balance = botMatchUserRes.balance;
-    const { props: availableProps } = await getAvailablePropsForUser({
-      userId: botId,
-      matchId,
-      fullData: true,
-    });
-    const minTotalStaked =
-      botMatchUserRes.startingBalance * MIN_PCT_TOTAL_STAKED;
-
-    const allParlays = await db
-      .select({ stake: parlay.stake })
-      .from(parlay)
-      .innerJoin(matchUser, eq(parlay.matchUserId, matchUser.id))
-      .where(and(eq(matchUser.userId, botId), eq(matchUser.matchId, matchId)));
-
-    const currTotalStaked = allParlays.reduce(
-      (accum, curr) => accum + curr.stake,
-      0
-    );
-
-    if (
-      balance > 0.1 * botMatchUserRes.startingBalance &&
-      availableProps &&
-      availableProps.length >= 2
-    ) {
-      const parlayData = generateBotParlay(
-        availableProps,
-        balance,
-        currTotalStaked,
-        minTotalStaked
-      );
-
-      await db
-        .update(matchUser)
-        .set({ balance: balance - parlayData.stake })
-        .where(eq(matchUser.id, botMatchUserRes.id));
-
-      const [newParlay] = await db
-        .insert(parlay)
-        .values({
-          stake: parlayData.stake,
-          type: parlayData.type,
-          matchUserId: botMatchUserRes.id,
-        })
-        .returning({ id: parlay.id });
-
-      // Batch insert all picks in a single operation
-      const pickData = parlayData.selectedProps.map((propEntry, i) => ({
-        choice: parlayData.choices[i],
-        propId: propEntry.id,
-        parlayId: newParlay.id,
-      }));
-
-      await db.insert(pick).values(pickData);
-
-      invalidateQueries(["match", matchId]);
-
-      const otherMatchUser = (await db.query.matchUser.findFirst({
-        where: and(
-          eq(matchUser.matchId, matchId),
-          ne(matchUser.userId, botMatchUserRes.userId)
-        ),
-        columns: {
-          id: true,
-        },
-        with: {
-          user: {
-            columns: {
-              username: true,
-              id: true,
-              image: true,
-            },
-          },
-        },
-      }))!;
-
-      const botAcc = await db.query.user.findFirst({
-        where: eq(user.id, botId),
-        columns: {
-          username: true,
-          image: true,
-        },
-      });
-
-      // Send push notification
-      sendPushNotification(
-        otherMatchUser.user.id,
-        "Opponent Parlay Placed",
-        `${botAcc?.username || "Bot"} placed a ${
-          parlayData.selectedProps.length
-        }-leg ${parlayData.type} parlay!`,
-        {
-          matchId,
-          stake: parlayData.stake,
-          legs: parlayData.selectedProps.length,
-          type: parlayData.type,
-          url: `/match/${matchId}`,
-        }
-      );
-
-      logger.info(
-        `Created parlay ${newParlay.id} for bot ${botId} in match ${matchId}`
-      );
-    } else {
-      logger.warn(`Insufficient conditions for bot parlay: balance=${balance}, 
-  props=${availableProps?.length}`);
-      return;
-    }
-  } catch (error) {
-    logger.error(
-      `Bot parlay creation failed for bot ${botId}, match ${matchId}`,
-      error
-    );
-  }
-}
-
-export function generateBotParlay(
-  availableProps: InferSelectModel<typeof prop>[],
-  botBalance: number,
-  currTotalStaked: number,
-  minTotalStaked: number
-): {
-  type: "perfect" | "flex";
-  stake: number;
-  pickCount: number;
-  selectedProps: InferSelectModel<typeof prop>[];
-  choices: Array<"over" | "under">;
-} {
-  // If less than 3 available props, force perfect type with 2 picks
-  if (availableProps.length < 3) {
-    const selectedProps = selectRandomProps(availableProps, 2);
-
-    let stake;
-
-    if (currTotalStaked < minTotalStaked) {
-      if (currTotalStaked == 0) {
-        stake = (Math.random() * (0.7 - 0.5) + 0.5) * minTotalStaked;
-      } else {
-        const minNeeded = minTotalStaked - currTotalStaked;
-        const availableBalance = botBalance - minNeeded;
-
-        // Weighted distribution: 70% chance small (0-30%), 20% medium (30-60%), 10% large (60-90%)
-        const rand = Math.random();
-        let multiplier;
-
-        if (rand < 0.7) {
-          // Small stake: 0-30% of available balance
-          multiplier = Math.random() * 0.3;
-        } else if (rand < 0.9) {
-          // Medium stake: 30-60% of available balance
-          multiplier = 0.3 + Math.random() * 0.3;
-        } else {
-          // Large stake: 60-90% of available balance
-          multiplier = 0.6 + Math.random() * 0.3;
-        }
-
-        stake = minNeeded + availableBalance * multiplier;
-      }
-    } else {
-      stake = Math.floor(botBalance * (0.2 + Math.random() * 0.4));
-    }
-
-    return {
-      type: "perfect",
-      stake,
-      pickCount: 2,
-      selectedProps,
-      choices: selectedProps.map((prop) =>
-        prop.choices.length == 1
-          ? prop.choices[0]
-          : Math.random() > 0.5
-          ? "over"
-          : "under"
-      ) as Array<"over" | "under">,
-    };
-  }
-
-  // Determine parlay type first, then pick count based on type preference
-  const typeRand = Math.random();
-  const type: "perfect" | "flex" = typeRand < 0.5 ? "perfect" : "flex";
-
-  let pickCount: number;
-
-  if (type === "perfect") {
-    // Perfect parlays favor low legs (2-3): 70% chance for 2-3, 30% for 4-6
-    const perfectRand = Math.random();
-    if (perfectRand < 0.7) {
-      // 2-3 legs (weighted toward lower)
-      pickCount = Math.random() < 0.6 ? 2 : 3;
-    } else {
-      // 4-6 legs
-      pickCount = 4 + Math.floor(Math.random() * 3);
-    }
-  } else {
-    // Flex parlays favor high legs (4-6): 30% chance for 2-3, 70% for 4-6
-    const flexRand = Math.random();
-    if (flexRand < 0.3) {
-      // 2-3 legs
-      pickCount = Math.random() < 0.5 ? 2 : 3;
-    } else {
-      // 4-6 legs (weighted toward higher)
-      const highLegRand = Math.random();
-      if (highLegRand < 0.4) {
-        pickCount = 4;
-      } else if (highLegRand < 0.7) {
-        pickCount = 5;
-      } else {
-        pickCount = 6;
-      }
-    }
-  }
-
-  if (pickCount > availableProps.length) {
-    pickCount = availableProps.length;
-  }
-  const selectedProps = selectRandomProps(availableProps, pickCount);
-
-  let stake;
-
-  if (currTotalStaked < minTotalStaked) {
-    if (currTotalStaked == 0) {
-      stake = (Math.random() * (0.7 - 0.5) + 0.5) * minTotalStaked;
-    } else {
-      const minNeeded = minTotalStaked - currTotalStaked;
-      const availableBalance = botBalance - minNeeded;
-
-      // Weighted distribution: 70% chance small (0-30%), 20% medium (30-60%), 10% large (60-90%)
-      const rand = Math.random();
-      let multiplier;
-
-      if (rand < 0.7) {
-        // Small stake: 0-30% of available balance
-        multiplier = Math.random() * 0.3;
-      } else if (rand < 0.9) {
-        // Medium stake: 30-60% of available balance
-        multiplier = 0.3 + Math.random() * 0.3;
-      } else {
-        // Large stake: 60-90% of available balance
-        multiplier = 0.6 + Math.random() * 0.3;
-      }
-
-      stake = minNeeded + availableBalance * multiplier;
-    }
-  } else {
-    stake = Math.floor(botBalance * (0.2 + Math.random() * 0.4));
-  }
-
-  return {
-    type,
-    stake,
-    pickCount,
-    selectedProps,
-    choices: selectedProps.map((prop) =>
-      prop.choices.length == 1
-        ? prop.choices[0]
-        : Math.random() > 0.5
-        ? "over"
-        : "under"
-    ) as Array<"over" | "under">,
-  };
-}
-
-function selectRandomProps(
-  availableProps: InferSelectModel<typeof prop>[],
-  pickCount: number
-) {
-  const res = [];
-  const prevIndexes: number[] = [];
-
-  for (let i = 0; i < pickCount; i++) {
-    let randomIndex = Math.floor(Math.random() * availableProps.length);
-    while (prevIndexes.includes(randomIndex)) {
-      randomIndex = Math.floor(Math.random() * availableProps.length);
-    }
-
-    res.push(availableProps[randomIndex]);
-  }
-
-  return res;
-}
 
 export async function createBot(targetRank: Rank): Promise<string> {
   const caseStyles = [
@@ -441,17 +228,6 @@ export async function createBot(targetRank: Rank): Promise<string> {
     style: caseStyles[Math.floor(Math.random() * caseStyles.length)],
   });
 
-  const allDefaultCosmetics = await db.query.cosmetic.findMany({
-    where: eq(cosmetic.isDefault, true),
-  });
-
-  const defaultImages = allDefaultCosmetics
-    .filter((dc) => dc.type == "image")
-    .map((image) => image.url);
-  const defaultBanners = allDefaultCosmetics
-    .filter((dc) => dc.type == "banner")
-    .map((banner) => banner.url);
-
   await db.insert(user).values({
     id: botId,
     name: username,
@@ -460,8 +236,6 @@ export async function createBot(targetRank: Rank): Promise<string> {
     email: `${username}@bot.riskleague.app`,
     points: targetRank.minPoints + Math.floor(Math.random() * 50),
     isBot: true,
-    image: defaultImages[Math.floor(Math.random() * defaultImages.length)],
-    banner: defaultBanners[Math.floor(Math.random() * defaultBanners.length)],
   });
 
   return botId;

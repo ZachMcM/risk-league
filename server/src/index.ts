@@ -15,7 +15,6 @@ import RedisStore from "rate-limit-redis";
 import { redis } from "./redis";
 import { invalidateQueries } from "./utils/invalidateQueries";
 import { sendPushNotifications } from "./routes/pushNotifications";
-import "./workers/botParlayWorker";
 const port = process.env.PORT;
 
 const app = express();

@@ -66,13 +66,9 @@ propsRoute.get(
           eq(matchUser.matchId, matchId)
         ),
         with: {
-          parlays: {
-            with: {
-              picks: {
-                columns: {
-                  propId: true,
-                },
-              },
+          picks: {
+            columns: {
+              propId: true,
             },
           },
           match: {
@@ -92,10 +88,8 @@ propsRoute.get(
 
       league = matchUserResult.match.league;
 
-      matchUserResult.parlays.forEach((parlay) => {
-        parlay.picks.forEach((pick) => {
-          propsPickedAlready.push(pick.propId);
-        });
+      matchUserResult.picks.forEach((pick) => {
+        propsPickedAlready.push(pick.propId);
       });
 
       const playerResult = await db.query.player.findFirst({

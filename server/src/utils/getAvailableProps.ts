@@ -2,7 +2,6 @@ import { and, eq, gte, gt, lt, notInArray, inArray } from "drizzle-orm";
 import moment from "moment";
 import { db } from "../db";
 import {
-  dynastyLeagueUser,
   game,
   leagueType,
   matchUser,
@@ -29,13 +28,9 @@ export async function getAvailablePropsForUser({
   const matchUserResult = await db.query.matchUser.findFirst({
     where: and(eq(matchUser.userId, userId), eq(matchUser.matchId, matchId)),
     with: {
-      parlays: {
-        with: {
-          picks: {
-            columns: {
-              propId: true,
-            },
-          },
+      picks: {
+        columns: {
+          propId: true,
         },
       },
       match: {
@@ -52,10 +47,8 @@ export async function getAvailablePropsForUser({
 
   league = matchUserResult.match.league;
 
-  matchUserResult.parlays.forEach((parlay) => {
-    parlay.picks.forEach((pick) => {
-      propsPickedAlready.push(pick.propId);
-    });
+  matchUserResult.picks.forEach((pick) => {
+    propsPickedAlready.push(pick.propId);
   });
 
   if (!league || !leagueType.enumValues.includes(league as any)) {

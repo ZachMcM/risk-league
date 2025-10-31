@@ -5,86 +5,9 @@ import { db } from "../db";
 import { matchUser, pick } from "../db/schema";
 import { authMiddleware } from "../middleware";
 import { handleError } from "../utils/handleError";
+import { getPickRequirements, PickRequirement } from "../constants/draftRequirements";
 
 export const draftRoute = Router();
-
-interface PickRequirement {
-  name: string;
-  count: number;
-  eligiblePositions: string[];
-}
-
-const BASKETBALL_PICK_REQS: PickRequirement[] = [
-  {
-    name: "guard",
-    count: 2,
-    eligiblePositions: ["PG", "SG", "G", "GF"],
-  },
-  {
-    name: "forward",
-    count: 2,
-    eligiblePositions: ["SF", "PF", "F", "FC", "GF"],
-  },
-  {
-    name: "center",
-    count: 1,
-    eligiblePositions: ["C", "FC"],
-  },
-];
-
-const FOOTBALL_PICK_REQS: PickRequirement[] = [
-  {
-    name: "qb",
-    count: 1,
-    eligiblePositions: ["QB"],
-  },
-  {
-    name: "wr",
-    count: 1,
-    eligiblePositions: ["WR"],
-  },
-  {
-    name: "rb",
-    count: 1,
-    eligiblePositions: ["RB"],
-  },
-  {
-    name: "te",
-    count: 1,
-    eligiblePositions: ["TE"],
-  },
-  {
-    name: "flex",
-    count: 1,
-    eligiblePositions: ["RB", "WR", "TE"],
-  },
-];
-
-const BASEBALL_PICK_REQS: PickRequirement[] = [
-  {
-    name: "batter",
-    count: 4,
-    eligiblePositions: [
-      "1B",
-      "2B",
-      "3B",
-      "SS",
-      "C",
-      "CF",
-      "RF",
-      "LF",
-      "TWP",
-      "DH",
-      "OF",
-      "IF",
-    ],
-  },
-  {
-    name: "pitcher",
-    count: 1,
-    eligiblePositions: ["P"],
-  },
-];
 
 // Zod schema for basic payload validation
 const draftPickSchema = z.object({
@@ -105,21 +28,6 @@ const draftPickSchema = z.object({
 });
 
 const draftPayloadSchema = z.array(draftPickSchema);
-
-// Map league to pick requirements
-const getPickRequirements = (league: string): PickRequirement[] => {
-  const leagueUpper = league.toUpperCase();
-
-  if (leagueUpper === "NBA" || leagueUpper === "NCAABB") {
-    return BASKETBALL_PICK_REQS;
-  } else if (leagueUpper === "NFL" || leagueUpper === "NCAAFB") {
-    return FOOTBALL_PICK_REQS;
-  } else if (leagueUpper === "MLB") {
-    return BASEBALL_PICK_REQS;
-  }
-
-  throw new Error(`Unknown league: ${league}`);
-};
 
 // Validate position requirements
 function validatePositionRequirements(
