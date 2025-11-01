@@ -12,7 +12,6 @@ import { ScrollView } from "react-native-gesture-handler";
 import RevenueCatUI from "react-native-purchases-ui";
 import BannerAdWrapper from "~/components/ad-wrappers/Banner";
 import GoAdFreeCard from "~/components/ad-free/GoAdFreeCard";
-import BattlePassCard from "~/components/battle-pass/BattlePassCard";
 import CompetitiveMatchLeagues from "~/components/matches/CompetitiveMatchLeagues";
 import OnboardingDialog from "~/components/onboarding/OnboardingDialog";
 import { useEntitlements } from "~/components/providers/EntitlementsProvider";
@@ -40,6 +39,7 @@ import { Cog } from "~/lib/icons/Cog";
 import { Ellipsis } from "~/lib/icons/Ellipsis";
 import { Trophy } from "~/lib/icons/Trophy";
 import { User } from "~/lib/icons/User";
+import ProfileImage from "~/components/ui/profile-image";
 
 export default function Home() {
   const { data: currentUserData } = authClient.useSession();
@@ -67,27 +67,27 @@ export default function Home() {
   }
 
   return (
-    <ScrollContainer className="p-0 pb-6" safeAreaInsets>
-      <View className="p-6">
-        <OnboardingDialog
-          isOpen={onboardingDialog}
-          close={() => setOnboardingDialog(false)}
-          onOpenChange={setOnboardingDialog}
-        />
-        <ProfileBanner
-          image={currentUserData?.user.image!}
-          username={currentUserData?.user.username!}
-          header={currentUserData?.user.banner!}
-          userId={currentUserData?.user.id!}
-        />
-      </View>
-      <View className="flex flex-1 flex-col gap-6">
-        <View className="px-6 pt-12 flex flex-row items-center justify-between">
-          <View className="flex flex-row items-center gap-3">
-            {userRank?.rank && <RankIcon rank={userRank.rank} />}
-            <Text className="font-bold text-2xl">
-              {currentUserData?.user.username}
-            </Text>
+    <ScrollContainer className="p-0" safeAreaInsets>
+      <BannerAdWrapper />
+      <OnboardingDialog
+        isOpen={onboardingDialog}
+        close={() => setOnboardingDialog(false)}
+        onOpenChange={setOnboardingDialog}
+      />
+      <View className="flex flex-1 flex-col gap-6 p-6">
+        <View className="flex flex-row items-center justify-between">
+          <View className="flex flex-row items-center gap-4">
+            <ProfileImage
+              className="w-20 h-20"
+              image={currentUserData?.user.image!}
+              username={currentUserData?.user.username!}
+            />
+            <View className="flex flex-row items-center gap-3">
+              {userRank?.rank && <RankIcon rank={userRank.rank} />}
+              <Text className="font-bold text-2xl">
+                {currentUserData?.user.username}
+              </Text>
+            </View>
           </View>
           <View className="flex flex-row items-center gap-2">
             <Button
@@ -113,26 +113,6 @@ export default function Home() {
                     <View className="flex flex-row items-center gap-2">
                       <User className="text-foreground" size={18} />
                       <Text>Career</Text>
-                    </View>
-                    <ChevronRight className="text-foreground" size={16} />
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    className="w-full justify-between"
-                    onPress={() => router.navigate("/banner-locker")}
-                  >
-                    <View className="flex flex-row items-center gap-2">
-                      <ImagePlus className="text-foreground" size={18} />
-                      <Text>Edit Banner</Text>
-                    </View>
-                    <ChevronRight className="text-foreground" size={16} />
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    className="w-full justify-between"
-                    onPress={() => router.navigate("/image-locker")}
-                  >
-                    <View className="flex flex-row items-center gap-2">
-                      <UserCircle2 className="text-foreground" size={18} />
-                      <Text>Edit Image</Text>
                     </View>
                     <ChevronRight className="text-foreground" size={16} />
                   </DropdownMenuItem>
@@ -183,7 +163,7 @@ export default function Home() {
           </View>
         </View>
         {isUserRankPending ? (
-          <View className="flex flex-col gap-2 px-6">
+          <View className="flex flex-col gap-2">
             <Skeleton className="h-3.5 w-1/2" />
             <Skeleton className="h-4 w-full" />
           </View>
@@ -191,7 +171,7 @@ export default function Home() {
           userRank &&
           userRank.nextRank &&
           userRank.progression !== null && (
-            <View className="flex flex-col gap-2 px-6">
+            <View className="flex flex-col gap-2">
               <View className="flex flex-row items-center justify-between">
                 <Text className="font-semibold text-muted-foreground text-xl">
                   Progress to next rank
@@ -214,16 +194,7 @@ export default function Home() {
           )
         )}
         <CompetitiveMatchLeagues />
-        <BannerAdWrapper />
-        <ScrollView
-          contentContainerClassName="flex flex-row items-center gap-4"
-          className="mx-6"
-          showsHorizontalScrollIndicator={false}
-          horizontal
-        >
-          <BattlePassCard />
-          <GoAdFreeCard />
-        </ScrollView>
+        <GoAdFreeCard />
       </View>
     </ScrollContainer>
   );

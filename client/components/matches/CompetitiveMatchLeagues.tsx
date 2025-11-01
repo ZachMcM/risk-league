@@ -157,7 +157,7 @@ export default function CompetitiveMatchLeagues() {
     : null;
 
   return (
-    <View className="flex flex-col px-6 gap-4 w-full">
+    <View className="flex flex-col gap-4 w-full">
       <View className="flex flex-col gap-2">
         <Text className="text-3xl font-bold">Play Competitive</Text>
         {isLoading ? (

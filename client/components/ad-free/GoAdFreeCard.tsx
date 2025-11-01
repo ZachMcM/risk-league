@@ -26,22 +26,27 @@ export default function GoAdFreeCard() {
   }
 
   return (
-    <Card className={cn("h-48", adFreeEntitlementPending && "animate-pulse")}>
+    <Card className={cn(adFreeEntitlementPending && "animate-pulse")}>
       <CardContent className="p-4 flex flex-col justify-between gap-4">
-        <View className="flex flex-col gap-1">
+        <View className="flex flex-col gap-2">
           <View className="flex flex-row items-center gap-2">
             <Icon as={Ban} className="text-primary" size={20} />
             <Text className="font-bold text-xl">
               Play Risk League WITHOUT Ads!
             </Text>
           </View>
-          <Text className="text-muted-foreground font-semibold max-w-xs">
-            Risk League, uninterrupted — without annoying ads!
-          </Text>
+          <View className="flex flex-row items-center justify-between">
+            <Text className="text-muted-foreground font-semibold max-w-xs flex-1">
+              Risk League, uninterrupted — without annoying ads!
+            </Text>
+            <Button
+              onPress={presentAdFreePaywall}
+              size="sm"
+            >
+              <Text className="font-bold">Upgrade</Text>
+            </Button>
+          </View>
         </View>
-        <Button onPress={presentAdFreePaywall} size="sm" className="self-start">
-          <Text className="font-bold">Upgrade Now</Text>
-        </Button>
       </CardContent>
     </Card>
   );

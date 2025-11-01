@@ -174,16 +174,6 @@ export default function RootLayout() {
     return () => subscription.remove();
   }, []);
 
-  useEffect(() => {
-    Purchases.setLogLevel(LOG_LEVEL.VERBOSE);
-
-    if (Platform.OS === "ios") {
-      Purchases.configure({
-        apiKey: process.env.EXPO_PUBLIC_REVENUECAT_APPLE_API_KEY!,
-      });
-    }
-  }, []);
-
   useRefreshOnFocus();
 
   usePlatformSpecificSetup();
@@ -281,28 +271,6 @@ export function RootNavigatior() {
         />
         <Stack.Screen
           name="help"
-          options={{ headerShown: false, presentation: "modal" }}
-        />
-        <Stack.Screen
-          name="create-dynasty-league"
-          options={{
-            headerShown: false,
-            presentation: "modal",
-          }}
-        />
-        <Stack.Screen
-          name="join-dynasty-league/[dynastyLeagueId]"
-          options={{
-            headerShown: false,
-          }}
-        />
-        <Stack.Screen name="dynastyLeague" options={{ headerShown: false }} />
-        <Stack.Screen
-          name="banner-locker"
-          options={{ headerShown: false, presentation: "modal" }}
-        />
-        <Stack.Screen
-          name="image-locker"
           options={{ headerShown: false, presentation: "modal" }}
         />
       </Stack.Protected>

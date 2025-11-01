@@ -1,10 +1,7 @@
 import { and, desc, eq, ilike, ne } from "drizzle-orm";
 import { Router } from "express";
 import { db } from "../db";
-import {
-  leagueType,
-  user,
-} from "../db/schema";
+import { leagueType, user } from "../db/schema";
 import { authMiddleware } from "../middleware";
 import { ranks } from "../types/ranks";
 import { calculateProgression } from "../utils/calculateProgression";
@@ -139,255 +136,255 @@ usersRoute.get("/users/rank", authMiddleware, async (_, res) => {
   }
 });
 
-usersRoute.get("/users/:id/career", authMiddleware, async (req, res) => {
-  try {
-    const id = req.params.id;
+// usersRoute.get("/users/:id/career", authMiddleware, async (req, res) => {
+//   try {
+//     const id = req.params.id;
 
-    const userResult = await db.query.user.findFirst({
-      columns: {
-        id: true,
-        username: true,
-        image: true,
-        points: true,
-        banner: true,
-      },
-      with: {
-        matchUsers: {
-          columns: {
-            status: true,
-            pointsDelta: true,
-            pointsSnapshot: true,
-            createdAt: true,
-          },
-          with: {
-            parlays: {
-              columns: {
-                resolved: true,
-                payout: true,
-              },
-              with: {
-                picks: {
-                  columns: {
-                    status: true,
-                  },
-                  with: {
-                    prop: {
-                      columns: {
-                        id: true,
-                      },
-                      with: {
-                        player: {
-                          columns: {
-                            name: true,
-                            playerId: true,
-                            league: true,
-                            image: true,
-                            number: true,
-                          },
-                          with: {
-                            team: {
-                              columns: {
-                                fullName: true,
-                                teamId: true,
-                                league: true,
-                                image: true,
-                                alternateColor: true,
-                                color: true,
-                                abbreviation: true,
-                              },
-                            },
-                          },
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-            },
-            match: {
-              columns: {
-                type: true,
-              },
-            },
-          },
-        },
-      },
-      where: eq(user.id, id),
-    });
+//     const userResult = await db.query.user.findFirst({
+//       columns: {
+//         id: true,
+//         username: true,
+//         image: true,
+//         points: true,
+//         banner: true,
+//       },
+//       with: {
+//         matchUsers: {
+//           columns: {
+//             status: true,
+//             pointsDelta: true,
+//             pointsSnapshot: true,
+//             createdAt: true,
+//           },
+//           with: {
+//             parlays: {
+//               columns: {
+//                 resolved: true,
+//                 payout: true,
+//               },
+//               with: {
+//                 picks: {
+//                   columns: {
+//                     status: true,
+//                   },
+//                   with: {
+//                     prop: {
+//                       columns: {
+//                         id: true,
+//                       },
+//                       with: {
+//                         player: {
+//                           columns: {
+//                             name: true,
+//                             playerId: true,
+//                             league: true,
+//                             image: true,
+//                             number: true,
+//                           },
+//                           with: {
+//                             team: {
+//                               columns: {
+//                                 fullName: true,
+//                                 teamId: true,
+//                                 league: true,
+//                                 image: true,
+//                                 alternateColor: true,
+//                                 color: true,
+//                                 abbreviation: true,
+//                               },
+//                             },
+//                           },
+//                         },
+//                       },
+//                     },
+//                   },
+//                 },
+//               },
+//             },
+//             match: {
+//               columns: {
+//                 type: true,
+//               },
+//             },
+//           },
+//         },
+//       },
+//       where: eq(user.id, id),
+//     });
 
-    if (!userResult) {
-      res.status(404).json({
-        error: "No user was found",
-      });
-      return;
-    }
+//     if (!userResult) {
+//       res.status(404).json({
+//         error: "No user was found",
+//       });
+//       return;
+//     }
 
-    const filteredMatchUsers = userResult.matchUsers.filter(
-      (matchUser) =>
-        matchUser.match.type == "competitive" &&
-        matchUser.status != "not_resolved"
-    );
+//     const filteredMatchUsers = userResult.matchUsers.filter(
+//       (matchUser) =>
+//         matchUser.match.type == "competitive" &&
+//         matchUser.status != "not_resolved"
+//     );
 
-    const pointsTimeline: { x: string; y: number }[] = [];
+//     const pointsTimeline: { x: string; y: number }[] = [];
 
-    if (filteredMatchUsers.length > 0) {
-      pointsTimeline.push({
-        x: filteredMatchUsers[0].createdAt,
-        y: filteredMatchUsers[0].pointsSnapshot,
-      });
-    }
+//     if (filteredMatchUsers.length > 0) {
+//       pointsTimeline.push({
+//         x: filteredMatchUsers[0].createdAt,
+//         y: filteredMatchUsers[0].pointsSnapshot,
+//       });
+//     }
 
-    const pickedPlayerCounts: Map<string, number> = new Map();
-    const pickedPlayerInfo: Map<
-      string,
-      {
-        playerId: number;
-        league: (typeof leagueType.enumValues)[number];
-        image: string | null;
-        teamColor: string | null;
-        teamAlternateColor: string | null;
-        jerseyNumber: string | null;
-        teamName: string | null;
-        name: string;
-        teamAbbreviation: string | null;
-      }
-    > = new Map();
+//     const pickedPlayerCounts: Map<string, number> = new Map();
+//     const pickedPlayerInfo: Map<
+//       string,
+//       {
+//         playerId: number;
+//         league: (typeof leagueType.enumValues)[number];
+//         image: string | null;
+//         teamColor: string | null;
+//         teamAlternateColor: string | null;
+//         jerseyNumber: string | null;
+//         teamName: string | null;
+//         name: string;
+//         teamAbbreviation: string | null;
+//       }
+//     > = new Map();
 
-    const pickedTeamCounts: Map<string, number> = new Map();
-    const pickedTeamInfo: Map<
-      string,
-      {
-        image: string | null;
-        teamId: number;
-        league: (typeof leagueType.enumValues)[number];
-        fullName: string;
-        color: string | null;
-        abbreviation: string | null;
-      }
-    > = new Map();
+//     const pickedTeamCounts: Map<string, number> = new Map();
+//     const pickedTeamInfo: Map<
+//       string,
+//       {
+//         image: string | null;
+//         teamId: number;
+//         league: (typeof leagueType.enumValues)[number];
+//         fullName: string;
+//         color: string | null;
+//         abbreviation: string | null;
+//       }
+//     > = new Map();
 
-    let peakPoints = userResult.points;
+//     let peakPoints = userResult.points;
 
-    for (const matchUser of filteredMatchUsers) {
-      const pointsAfterMatch = matchUser.pointsSnapshot + matchUser.pointsDelta;
-      if (pointsAfterMatch > peakPoints) {
-        peakPoints = pointsAfterMatch;
-      }
+//     for (const matchUser of filteredMatchUsers) {
+//       const pointsAfterMatch = matchUser.pointsSnapshot + matchUser.pointsDelta;
+//       if (pointsAfterMatch > peakPoints) {
+//         peakPoints = pointsAfterMatch;
+//       }
 
-      pointsTimeline.push({ x: matchUser.createdAt, y: pointsAfterMatch });
+//       pointsTimeline.push({ x: matchUser.createdAt, y: pointsAfterMatch });
 
-      for (const parlay of matchUser.parlays) {
-        for (const pick of parlay.picks) {
-          const playerKey = `${pick.prop.player.playerId}-${pick.prop.player.league}`;
-          const playerInfo = {
-            name: pick.prop.player.name,
-            playerId: pick.prop.player.playerId,
-            league: pick.prop.player.league,
-            image: pick.prop.player.image,
-            teamColor: pick.prop.player.team.color!,
-            teamAlternateColor: pick.prop.player.team.alternateColor,
-            jerseyNumber: pick.prop.player.number
-              ? pick.prop.player.number?.toString()
-              : null,
-            teamName: pick.prop.player.team.fullName,
-            teamAbbreviation: pick.prop.player.team.abbreviation,
-          };
+//       for (const parlay of matchUser.parlays) {
+//         for (const pick of parlay.picks) {
+//           const playerKey = `${pick.prop.player.playerId}-${pick.prop.player.league}`;
+//           const playerInfo = {
+//             name: pick.prop.player.name,
+//             playerId: pick.prop.player.playerId,
+//             league: pick.prop.player.league,
+//             image: pick.prop.player.image,
+//             teamColor: pick.prop.player.team.color!,
+//             teamAlternateColor: pick.prop.player.team.alternateColor,
+//             jerseyNumber: pick.prop.player.number
+//               ? pick.prop.player.number?.toString()
+//               : null,
+//             teamName: pick.prop.player.team.fullName,
+//             teamAbbreviation: pick.prop.player.team.abbreviation,
+//           };
 
-          pickedPlayerCounts.set(
-            playerKey,
-            (pickedPlayerCounts.get(playerKey) || 0) + 1
-          );
-          pickedPlayerInfo.set(playerKey, playerInfo);
+//           pickedPlayerCounts.set(
+//             playerKey,
+//             (pickedPlayerCounts.get(playerKey) || 0) + 1
+//           );
+//           pickedPlayerInfo.set(playerKey, playerInfo);
 
-          const teamKey = `${pick.prop.player.team.teamId}-${pick.prop.player.team.league}`;
-          const teamInfo = {
-            fullName: pick.prop.player.team.fullName,
-            teamId: pick.prop.player.team.teamId,
-            league: pick.prop.player.team.league,
-            image: pick.prop.player.team.image,
-            abbreviation: pick.prop.player.team.abbreviation,
-            color: pick.prop.player.team.color,
-          };
+//           const teamKey = `${pick.prop.player.team.teamId}-${pick.prop.player.team.league}`;
+//           const teamInfo = {
+//             fullName: pick.prop.player.team.fullName,
+//             teamId: pick.prop.player.team.teamId,
+//             league: pick.prop.player.team.league,
+//             image: pick.prop.player.team.image,
+//             abbreviation: pick.prop.player.team.abbreviation,
+//             color: pick.prop.player.team.color,
+//           };
 
-          pickedTeamCounts.set(
-            teamKey,
-            (pickedTeamCounts.get(teamKey) || 0) + 1
-          );
-          pickedTeamInfo.set(teamKey, teamInfo);
-        }
-      }
-    }
+//           pickedTeamCounts.set(
+//             teamKey,
+//             (pickedTeamCounts.get(teamKey) || 0) + 1
+//           );
+//           pickedTeamInfo.set(teamKey, teamInfo);
+//         }
+//       }
+//     }
 
-    const mostBetPlayerKey = getMaxKey(pickedPlayerCounts);
-    const mostBetTeamKey = getMaxKey(pickedTeamCounts);
+//     const mostBetPlayerKey = getMaxKey(pickedPlayerCounts);
+//     const mostBetTeamKey = getMaxKey(pickedTeamCounts);
 
-    res.json({
-      currentRank: findRank(userResult.points),
-      peakRank: findRank(peakPoints),
-      pointsTimeline,
-      matchStats: {
-        total: filteredMatchUsers.filter(
-          (matchUser) => matchUser.status != "not_resolved"
-        ).length,
-        wins: filteredMatchUsers.filter(
-          (matchUser) => matchUser.status == "win"
-        ).length,
-        draws: filteredMatchUsers.filter(
-          (matchUser) => matchUser.status == "draw"
-        ).length,
-        losses: filteredMatchUsers.filter(
-          (matchUser) =>
-            matchUser.status == "disqualified" || matchUser.status == "loss"
-        ).length,
-      },
-      parlayStats: {
-        total: filteredMatchUsers
-          .filter((matchUser) => matchUser.status != "not_resolved")
-          .reduce(
-            (accum, curr) =>
-              accum + curr.parlays.filter((parlay) => parlay.resolved).length,
-            0
-          ),
-        wins: filteredMatchUsers
-          .filter((matchUser) => matchUser.status != "not_resolved")
-          .reduce(
-            (accum, curr) =>
-              accum +
-              curr.parlays.filter(
-                (parlay) => parlay.resolved && parlay.payout > 0
-              ).length,
-            0
-          ),
-        losses: filteredMatchUsers
-          .filter((matchUser) => matchUser.status != "not_resolved")
-          .reduce(
-            (accum, curr) =>
-              accum +
-              curr.parlays.filter(
-                (parlay) => parlay.resolved && parlay.payout == 0
-              ).length,
-            0
-          ),
-      },
-      mostBetPlayer:
-        mostBetPlayerKey == null
-          ? null
-          : {
-              player: pickedPlayerInfo.get(mostBetPlayerKey)!,
-              count: pickedPlayerCounts.get(mostBetPlayerKey)!,
-            },
-      mostBetTeam:
-        mostBetTeamKey == null
-          ? null
-          : {
-              team: pickedTeamInfo.get(mostBetTeamKey)!,
-              count: pickedTeamCounts.get(mostBetTeamKey)!,
-            },
-    });
-  } catch (error) {
-    handleError(error, res, "Users route");
-  }
-});
+//     res.json({
+//       currentRank: findRank(userResult.points),
+//       peakRank: findRank(peakPoints),
+//       pointsTimeline,
+//       matchStats: {
+//         total: filteredMatchUsers.filter(
+//           (matchUser) => matchUser.status != "not_resolved"
+//         ).length,
+//         wins: filteredMatchUsers.filter(
+//           (matchUser) => matchUser.status == "win"
+//         ).length,
+//         draws: filteredMatchUsers.filter(
+//           (matchUser) => matchUser.status == "draw"
+//         ).length,
+//         losses: filteredMatchUsers.filter(
+//           (matchUser) =>
+//             matchUser.status == "disqualified" || matchUser.status == "loss"
+//         ).length,
+//       },
+//       parlayStats: {
+//         total: filteredMatchUsers
+//           .filter((matchUser) => matchUser.status != "not_resolved")
+//           .reduce(
+//             (accum, curr) =>
+//               accum + curr.parlays.filter((parlay) => parlay.resolved).length,
+//             0
+//           ),
+//         wins: filteredMatchUsers
+//           .filter((matchUser) => matchUser.status != "not_resolved")
+//           .reduce(
+//             (accum, curr) =>
+//               accum +
+//               curr.parlays.filter(
+//                 (parlay) => parlay.resolved && parlay.payout > 0
+//               ).length,
+//             0
+//           ),
+//         losses: filteredMatchUsers
+//           .filter((matchUser) => matchUser.status != "not_resolved")
+//           .reduce(
+//             (accum, curr) =>
+//               accum +
+//               curr.parlays.filter(
+//                 (parlay) => parlay.resolved && parlay.payout == 0
+//               ).length,
+//             0
+//           ),
+//       },
+//       mostBetPlayer:
+//         mostBetPlayerKey == null
+//           ? null
+//           : {
+//               player: pickedPlayerInfo.get(mostBetPlayerKey)!,
+//               count: pickedPlayerCounts.get(mostBetPlayerKey)!,
+//             },
+//       mostBetTeam:
+//         mostBetTeamKey == null
+//           ? null
+//           : {
+//               team: pickedTeamInfo.get(mostBetTeamKey)!,
+//               count: pickedTeamCounts.get(mostBetTeamKey)!,
+//             },
+//     });
+//   } catch (error) {
+//     handleError(error, res, "Users route");
+//   }
+// });
 
 usersRoute.patch("/users/push-token", authMiddleware, async (req, res) => {
   try {
